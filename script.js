@@ -1,6 +1,9 @@
 // Languages
 const translations = {
   en: {
+    navProjects: "Projects",
+    navPersonal: "Personal",
+    navAbout: "About",
     introText: "I'm Vincent, a <span>product designer</span> with a background in cognitive and computer sciences, driven by a research-backed methodology.",
     proProjectText: "Discover my vision of design through my professional projects, from the financial space to health.",
     persoProjectText: "Beside, I also like to capture pixels and play with 0 and 1s.",
@@ -9,9 +12,12 @@ const translations = {
     aboutText: "I am a lifelong learner, dedicated in making the product and services that surround us more human-centered.Experience has taught me where to focus my energy to make the best out of a project. Designing the things that surround us, I value design that has a positive impact on society.Besides, I enjoy running, swimming and climbing!"
   },
   fr: {
+    navProjects: "Projets",
+    navPersonal: "Autres",
+    navAbout: "A propos",
     introText: "Moi, c'est Vincent, un <span>product designer</span> avec une formation en sciences cognitives et informatiques, guidé par une méthodologie basée sur la recherche.",
     proProjectText: "Découvrez ma vision du design à travers mes projets professionels, de la finance à la santé.",
-    persoProjectText: "À côté, j'aime aussi capturer des pixels ou jouer avec des 0 et des 1.",
+    persoProjectText: "À côté, j'aime aussi capturer des pixels et jouer avec des 0 et des 1.",
     projectPlaceholder:"Bientôt disponible !",
     aboutTitle: "A propos de moi",
     aboutText: "Je suis un éternel curieux, dédié à rendre les produits et services qui nous entourent plus centrés sur l'humain. L'expérience m'a appris où concentrer mon énergie pour tirer le meilleur parti d'un projet. En concevant les choses qui nous entourent, je valorise le design qui a un impact positif. En dehors de cela, j'aime courir, nager et grimper !"
