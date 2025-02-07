@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A brief description of the site">
+    <meta name="keywords" content="your, site, keywords">
+    <!-- Styles -->
+    <link rel="stylesheet" href="./styles.css">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
+    <!-- Title -->
+    <title>Vincent Manzoni / Portfolio</title>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav id="nav">
+        <a id="logo" href="#introduction">
+            VM
+        </a>
+        <input id="nav-checkbox" type="checkbox">
+        <label id="nav-container" for="nav-checkbox">
+            <i data-lucide="menu"></i>
+        </label>
+        <ul id="nav-list">
+            <li id="lang" class="d-none">
+                <button>EN</button>
+            </li>
+            <li>
+                <a href="#featured-projects" onclick="document.getElementById('nav-checkbox').checked = false;">Projects</a>
+            </li>
+            <li>
+                <a href="#personal-projects" onclick="document.getElementById('nav-checkbox').checked = false;">Experiments</a>
+            </li>
+            <li>
+                <a href="#about" onclick="document.getElementById('nav-checkbox').checked = false;">About</a>
+            </li>
+            <!-- <li>
+                <button onclick="showPage('new-page')">New page</button>
+            </li> -->
+        </ul>
+    </nav>
+
+    <!-- Header -->
+    <header id="introduction">
+        <div class="intro-content">
+            <img src="./assets/vince.jpg" alt="">
+            <div class="intro-desc">
+                <p data-i18n="introText"></p>
+                <!-- <div class="intro-socials">
+                    <a href="#">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-github"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                    </a>
+                    <a href="#">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                    </a>
+                </div> -->
+            </div>
+        </div>
+        <div class="intro-line">
+            <svg class="water-line" width="100%" height="100" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M 0 50 L 100 50" fill="none" stroke-width="1" />
+            </svg>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main id="" class="">
+        <div></div>
+        <div id="main-content">
+            <p data-i18n="proProjectText"></p>
+            <!-- Featured -->
+            <section id="featured-projects">
+                <div class="project-container">
+                    <a href="./projects/project-template.html" id="sgm-iso20022" class="project-card">
+                        <img src="./assets/sgm-iso20022.png" alt="">
+                        <h3>ISO 20022</h3>
+                        <p>Société Générale CIB</p>
+                    </a>
+                    <a href="./projects/project-template.html" id="sgm-design" class="project-card">
+                        <img src="./assets/sgm-design.png" alt="">
+                        <h3>SG Market Design</h3>
+                        <p>Société Générale CIB</p>
+                    </a>
+                    <a href="./projects/project-template.html" id="popin" class="project-card">
+                        <img src="./assets/popin.png" alt="">
+                        <h3>Chatbot</h3>
+                        <p>Pop-in</p>
+                    </a>
+                </div>
+            </section>
+
+            <p data-i18n="persoProjectText"></p>
+
+            <!-- Personal -->
+            <section id="personal-projects">
+                <div class="project-container">
+                    <a href="https://sealens.art" id="sealens" class="project-card">
+                        <img src="./assets/sealens.png" alt="">
+                        <h3>Exposition immersive</h3>
+                        <p>Sealens.art</p>
+                    </a>
+                    <button href="" id="project4" class="project-card">
+                        <img src="./assets/aerial-island.jpeg" alt="">
+                    </button>
+                    <button href="" id="project5" class="project-card">
+                        <img src="./assets/aerial-boats.jpeg" alt="">
+                    </button>
+                    <button href="" id="project6" class="project-card">
+                        <img src="./assets/aerial-sea.jpeg" alt="">
+                    </button>
+                    <div class=""></div>
+                </div>
+            </section>
+
+            <!-- About -->
+            <section id="about">
+                <h5 data-i18n="aboutTitle"></h5>
+                <div class="about-content">
+                    <p data-i18n="aboutText"></p>
+                    <img src="./assets/vince-diving.jpg" alt="">
+                </div>
+            </section>
+        </div>
+        <div></div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy;
+            <script>document.write(new Date().getFullYear())</script> Vincent Manzoni. All rights reserved.
+        </p>
+    </footer>
+
+</body>
+
+<script src="./script.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons({
+        attrs: {
+            'height': 32,
+            'stroke-width': 1,
+        },
+        nameAttr: 'data-lucide' // attribute for the icon name.
+    });
+</script>
+
+</html>

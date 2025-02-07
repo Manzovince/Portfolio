@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A brief description of the site">
+    <meta name="keywords" content="your, site, keywords">
+    <!-- Styles -->
+    <link rel="stylesheet" href="../styles.css">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
+    <!-- Title -->
+    <title>VM / Portfolio / ISO 20022</title>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav id="nav">
+        <a id="logo" href="../index.html">
+            Vincent Manzoni
+        </a>
+        <input id="nav-checkbox" type="checkbox">
+        <label id="nav-container" for="nav-checkbox">
+            <i data-lucide="menu"></i>
+        </label>
+        <ul id="nav-list">
+            <li id="lang" class="d-none">
+                <button>EN</button>
+            </li>
+            <li>
+                <a href="#about" onclick="document.getElementById('nav-checkbox').checked = false;">Projects</a>
+            </li>
+            <li>
+                <a href="#about" onclick="document.getElementById('nav-checkbox').checked = false;">Experiments</a>
+            </li>
+            <li>
+                <a href="#about" onclick="document.getElementById('nav-checkbox').checked = false;">About</a>
+            </li>
+            <!-- <li>
+                <button onclick="showPage('new-page')">New page</button>
+            </li> -->
+        </ul>
+    </nav>
+
+    <main id="project-placeholder">
+        <p data-i18n="projetPlaceholder">Project presentation coming soon.</p>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy;
+            <script>document.write(new Date().getFullYear())</script> Vincent Manzoni. All rights reserved.
+        </p>
+    </footer>
+
+</body>
+
+<script src="./script.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons({
+        attrs: {
+            'height': 32,
+            'stroke-width': 1,
+        },
+        nameAttr: 'data-lucide' // attribute for the icon name.
+    });
+</script>
+
+</html>
