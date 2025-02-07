@@ -30,13 +30,16 @@
                 <button>EN</button>
             </li>
             <li>
-                <a href="#about" onclick="document.getElementById('nav-checkbox').checked = false;">Projects</a>
+                <a href="../index.html#featured-projects"
+                    onclick="document.getElementById('nav-checkbox').checked = false;" data-i18n="navProjects"></a>
             </li>
             <li>
-                <a href="#about" onclick="document.getElementById('nav-checkbox').checked = false;">Experiments</a>
+                <a href="../index.html#personal-projects"
+                    onclick="document.getElementById('nav-checkbox').checked = false;" data-i18n="navPersonal"></a>
             </li>
             <li>
-                <a href="#about" onclick="document.getElementById('nav-checkbox').checked = false;">About</a>
+                <a href="../index.html#about" onclick="document.getElementById('nav-checkbox').checked = false;"
+                    data-i18n="navAbout"></a>
             </li>
             <!-- <li>
                 <button onclick="showPage('new-page')">New page</button>
@@ -45,8 +48,15 @@
     </nav>
 
     <!-- Main -->
-    <main>
-        
+    <main id="project-page">
+        <div class="project-header">
+            <div class="project-infos">
+                <h4>ISO 20022</h4>
+                <p>Société Générale CIB</p>
+            </div>
+            <img src="../assets/sgm-design-illu-1.png" alt="">
+        </div>
+        <a href="https://design.sgmarkets.com/" data-i18n="projectAccessText"></a>
     </main>
 
     <!-- Footer -->

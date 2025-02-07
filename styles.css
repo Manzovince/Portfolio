@@ -139,6 +139,7 @@ img {
     justify-content: space-between;
     align-items: center;
     padding: 32px;
+    background: linear-gradient(180deg, var(--bg-color), transparent);
     z-index: 999;
 }
 
@@ -290,7 +291,7 @@ header {
     /* border: solid 1px rgba(255, 0, 0, 0.4); */
 }
 
-main {
+#main-page {
     display: grid;
     grid-template-columns: minmax(24px, 1fr) minmax(0, 1000px) minmax(24px, 1fr);
     justify-content: center;
@@ -425,9 +426,39 @@ main {
 #project-placeholder {
     height: 100vh;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 64px;
+    justify-content: center;
+}
+
+#project-page {
+    min-height: 100vh;
+    width: 100vw;
+    padding: 32px;
+    padding-top: 128px;
+}
+
+.project-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: start;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.project-header img {
+    max-width: 500px;
+}
+
+.project-infos {
+
+}
+
+.project-infos h4 {
+    
+}
+
+.project-infos p {
+    
 }
 
 /* About */
