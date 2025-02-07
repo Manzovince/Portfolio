@@ -484,6 +484,12 @@ header {
     
 }
 
+#project-page img {
+    width: 100%;
+    max-width: 900px;
+    border-radius: 8px;
+}
+
 /* About */
 
 #about {}
