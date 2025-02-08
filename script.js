@@ -2,25 +2,31 @@
 const translations = {
   en: {
     navProjects: "Projects",
-    navPersonal: "Personal",
+    navPersonal: "More",
     navAbout: "About",
     introText: "I'm Vincent, a <span>product designer</span> with a background in cognitive and computer sciences, driven by a research-backed methodology.",
     proProjectText: "Discover my vision of design through my professional projects, from the financial space to health.",
     persoProjectText: "Beside, I also like to capture pixels and play with 0 and 1s.",
     projectPlaceholder:"Coming soon !",
     projectAccessText: "Go to website",
+    sgmIso1: "This service was created from a design challenge for a new request to help clients check their payment transactions file format against the ISO standard (ISO20022) for electronic data interchange between financial institutions.",
+    sgmIso2: "We created an homepage that introduce the new ISO 20022 standard, along with some tips on how to do a successful migration, and an upload area to add one or more files. <br><br> After submitting a file, the document is parsed locally and enable clients to preview all informations in a human readable way, with highlights when errors are detected, and each one is accompanied with details on how to resolve it.",
+    sgmIso3: "Starting with a short brief from the team requesting this new service, we were introduced to a proof of concept website where we can upload and preview a document, with highlighted errors in red.",
     aboutTitle: "About me",
     aboutText: "I am a lifelong learner, dedicated in making the product and services that surround us more human-centered.Experience has taught me where to focus my energy to make the best out of a project. Designing the things that surround us, I value design that has a positive impact on society.Besides, I enjoy running, swimming and climbing!"
   },
   fr: {
     navProjects: "Projets",
-    navPersonal: "Autres",
+    navPersonal: "En plus",
     navAbout: "A propos",
     introText: "Moi, c'est Vincent, un <span>product designer</span> avec une formation en sciences cognitives et informatiques, guidé par une méthodologie basée sur la recherche.",
     proProjectText: "Découvrez ma vision du design à travers mes projets professionels, de la finance à la santé.",
     persoProjectText: "À côté, j'aime aussi capturer des pixels et jouer avec des 0 et des 1.",
     projectPlaceholder:"Bientôt disponible !",
     projectAccessText: "Voir le site",
+    sgmIso1: "Ce service a été créé lors d'un challenge, pour permettre aux clients de vérifier le format de leur fichier de transactions de paiement par rapport à la norme ISO (ISO20022) pour l'échange de données électroniques entre les institutions financières.",
+    sgmIso2: "Nous avons créé une page d'accueil qui présente la nouvelle norme ISO 20022, ainsi que quelques conseils sur la manière de réussir une migration, et une zone de téléchargement pour ajouter un ou plusieurs fichiers. <br><br> Après l'upload d'un fichier, le document est analysé localement et permet aux clients de prévisualiser toutes les informations de manière lisible, avec des erreurs mises en évidence lorsqu'elles sont détectées, et chacune est accompagnée de détails sur la manière de la résoudre.",
+    sgmIso3: "À partir d'un bref résumé, nous avons été introduits à un site web proof of concept où nous pouvions télécharger et prévisualiser un document, avec des erreurs en rouge. Le format de fichier XML se base sur une structure de balises spécifiques, et chaque élément doit respecter un format précis. <br><br> Après une phase d'idéation, nous avons décidé de faire une interface qui permet de naviguer rapidement entre les batchs (sous forme d'onglets) et les transaction (dans un sidepanel). Les éléments d'une transaction peuvent alors s'articuler au centre de l'écran, avec des détails sur la transaction. <br><br> Pour chaque erreur détectée, un message est affiché à côté, avec un lien vers la section de la norme ISO qui explique comment résoudre cette erreur.",
     aboutTitle: "A propos de moi",
     aboutText: "Je suis un éternel curieux, dédié à rendre les produits et services qui nous entourent plus centrés sur l'humain. L'expérience m'a appris où concentrer mon énergie pour tirer le meilleur parti d'un projet. En concevant les choses qui nous entourent, je valorise le design qui a un impact positif. En dehors de cela, j'aime courir, nager et grimper !"
   }
