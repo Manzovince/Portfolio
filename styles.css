@@ -190,6 +190,12 @@ td {
     font-size: 1rem;
 }
 
+#nav-list li a {
+    /* text-transform: uppercase; */
+    font-size: 2rem;
+    font-weight: 500;
+}
+
 @media screen and (min-width: 800px) {
     nav {
         position: fixed;
@@ -210,6 +216,11 @@ td {
         display: flex;
         flex-direction: row;
         list-style: none;
+    }
+
+    #nav-list li a {
+        font-size: 1rem;
+        font-weight: 300;
     }
 }
 
@@ -402,6 +413,10 @@ header {
 
 #popin {
     grid-column: span 5;
+}
+
+#landsea {
+    grid-column: span 12;
 }
 
 @media screen and (max-width: 800px) {

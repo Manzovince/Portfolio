@@ -47,7 +47,7 @@ function translate(lang) {
 }
 
 // Initial load
-translate('fr');
+translate('en');
 
 // Language selector
 document.getElementById('lang').addEventListener('change',
