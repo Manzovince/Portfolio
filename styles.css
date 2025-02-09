@@ -2,7 +2,7 @@
 
 :root {
     --color-light: hsl(35, 45%, 83%);
-    --color-dark: hsl(198, 82%, 9%);
+    --color-dark: #041e2a;
     --color-primary: hsl(175, 43%, 47%);
     --color-secondary: hsl(175, 39%, 25%);
     --color-link: hsl(10, 84%, 76%);
@@ -228,6 +228,7 @@ header {
 }
 
 .intro-content {
+    margin-top: 128px;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -242,6 +243,9 @@ header {
     width: clamp(180px, 24vw, 240px);
 }
 
+#introduction circle {
+    transform: scale(.9);
+}
 
 .intro-desc {
     display: flex;

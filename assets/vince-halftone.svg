@@ -1,5 +1,14 @@
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="400px" height="400px" x="0" y="0" viewBox="0 0 400 400">
     <circle cx="200" cy="200" r="200" fill="#e7d7c0" />
+    <defs>
+        <style type="text/css">
+            <![CDATA[
+            g circle {
+                fill: #121d29;
+            }
+            ]]>
+        </style>
+    </defs>
     <g>
         <circle cx="200" cy="200" r="0.9229903634291668" fill="#041e2a" fill-opacity="1" />
         <circle cx="193.63603896932108" cy="200" r="0.7048225908152045" fill="#041e2a" fill-opacity="1" />
