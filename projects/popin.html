@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A brief description of the site">
+    <meta name="keywords" content="your, site, keywords">
+    <!-- Styles -->
+    <link rel="stylesheet" href="../styles.css">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
+    <!-- Title -->
+    <title>Vincent Manzoni / Pop-in</title>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav id="nav">
+        <a id="logo" href="../index.html">
+            Vincent Manzoni
+        </a>
+        <input id="nav-checkbox" type="checkbox">
+        <label id="nav-container" for="nav-checkbox">
+            <i data-lucide="menu"></i>
+        </label>
+        <ul id="nav-list">
+            <li id="lang" class="d-none">
+                <button>EN</button>
+            </li>
+            <li>
+                <a href="../index.html#featured-projects"
+                    onclick="document.getElementById('nav-checkbox').checked = false;" data-i18n="navProjects"></a>
+            </li>
+            <li>
+                <a href="../index.html#personal-projects"
+                    onclick="document.getElementById('nav-checkbox').checked = false;" data-i18n="navPersonal"></a>
+            </li>
+            <li>
+                <a href="../index.html#about" onclick="document.getElementById('nav-checkbox').checked = false;"
+                    data-i18n="navAbout"></a>
+            </li>
+            <!-- <li>
+                <button onclick="showPage('new-page')">New page</button>
+            </li> -->
+        </ul>
+    </nav>
+
+    <!-- Main -->
+    <main id="project-page">
+        <div class="project-header">
+            <div class="project-infos">
+                <h4>Pop-in</h4>
+                <p data-i18n="popin1"></p>
+            </div>
+            <div class="tag-list">
+                <div class="tag">UX research</div>
+                <div class="tag">Web design</div>
+                <div class="tag">Chatbot</div>
+            </div>
+            <img src="../assets/popin-illu-1.png" alt="" style="max-width: 400px;">
+        </div>
+        <div class="">
+            <h6>Solution</h6>
+            <p data-i18n="popin2"></p>
+        </div>
+        <img src="../assets/popin-illu-2.png" alt="">
+        <div class="">
+            <h6>Challenges</h6>
+            <p data-i18n="popin3"></p>
+        </div>
+        <img src="../assets/popin-illu-3.png" alt="">
+        <p data-i18n="popin4"></p>
+        <img src="../assets/demo-popin.gif" alt="" style="max-width: 300px;">
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy;
+            <script>document.write(new Date().getFullYear())</script> Vincent Manzoni. All rights reserved.
+        </p>
+    </footer>
+
+</body>
+
+<script src="../script.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons({
+        attrs: {
+            'height': 32,
+            'stroke-width': 1,
+        },
+        nameAttr: 'data-lucide' // attribute for the icon name.
+    });
+</script>
+
+</html>
