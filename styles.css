@@ -514,14 +514,16 @@ header {
 
 .tag-list {
     display: flex;
+    align-items: center;
     gap: 8px;
 }
 
 .tag {
+    font-size: 14px;
     opacity: .6;
     border: solid 1px var(--text-color);
-    padding: 4px 12px;
-    border-radius: 8px;
+    padding: 4px 6px;
+    border-radius: 4px;
 }
 
 /* About */
