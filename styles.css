@@ -9,6 +9,8 @@
 
     --bg-color: var(--color-dark);
     --text-color: var(--color-light);
+
+    --max-width-container: 1600px;
 }
 
 /* Reset styles */
@@ -41,7 +43,7 @@ html {
 body {
     color: var(--text-color);
     background-color: var(--bg-color);
-    font-family: sans-serif;
+    font-family: 'IBM Plex Serif', serif;
     font-size: 1.2rem;
     font-weight: 300;
 }
@@ -58,7 +60,6 @@ h6 {
     text-transform: uppercase;
     font-weight: 300;
     text-wrap: balance;
-    margin-bottom: 1rem;
 }
 
 h1 {
@@ -144,40 +145,51 @@ td {
     z-index: 999;
 }
 
-#logo {
+#path {
     font-family: 'IBM Plex Serif', serif;
     font-size: 16px;
     font-weight: 300;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
+#path .current {
+    font-weight: 400;
+}
 #nav-list {
-    display: none;
     position: absolute;
-    top: 0;
+    top: -32px;
     width: 100vw;
     padding: 32px;
     padding-top: 96px;
     left: 0;
     z-index: -1;
-    transition: all 1s ease-in-out;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease-in-out; 
+    flex-direction: column;
+    align-items: end;
+    justify-content: end;
+    gap: 16px;
+    background-color: hsla(199, 83%, 8%, 0.8);
+    border-bottom: solid 1px hsla(35, 45%, 83%, .1);
+    backdrop-filter: blur(12px);
+    display: flex;
 }
 
 #nav-checkbox {
     display: none;
 }
 
-#nav-checkbox:checked~#nav-list {
-    display: flex;
-    flex-direction: column;
-    align-items: end;
-    justify-content: end;
-    gap: 16px;
+#nav-checkbox:checked ~ #nav-list {
+    top: 0;
     opacity: 1;
-    background-color: hsla(199, 83%, 8%, 0.8);
-    border-bottom: solid 1px hsla(35, 45%, 83%, .1);
-    backdrop-filter: blur(12px);
-    transition: all ease-in .2s;
+    pointer-events: all;
+    transition: all 0.3s ease-in-out;
 }
+
+/* Navbar icon interactions */
 
 #nav-container {
     cursor: pointer;
@@ -206,14 +218,25 @@ td {
     fill: transparent;
 }
 
+/* Navbar items interactions */
+
 #nav-list li a {
-    /* text-transform: uppercase; */
+    font-family: 'IBM Plex Serif', serif;
     font-size: 1rem;
+    font-weight: 200;
+    transition: all ease-in-out .2s;
+}
+
+#nav-list li a:hover {
+    background-color: var(--text-color);
+    color: var(--bg-color);
 }
 
 /* Header */
 
 header {
+    max-width: var(--max-width-container);
+    margin-inline: auto;
     min-height: 100dvh;
     /* max-width: 1000px; */
     margin: auto;
@@ -272,13 +295,14 @@ header {
     stroke: var(--text-color);
 }
 
-/* Pages */
+/* Main */
 
 #main-page {
+    max-width: var(--max-width-container);
+    margin-inline: auto;
     margin-top: 256px;
     display: flex;
     flex-direction: column;
-    grid-template-columns: 1fr;
     padding-inline: 32px;
     gap: 128px;
     justify-content: center;
@@ -295,6 +319,7 @@ header {
 /* Projects */
 
 #featured {
+    scroll-margin-top: 256px;
     display: flex;
     flex-direction: column;
     gap: 96px;
@@ -314,7 +339,7 @@ header {
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 16px;
 }
 
 .project-details h3 {
@@ -324,11 +349,12 @@ header {
 
 .project-details p {
     font-family: 'IBM Plex Serif', serif;
+    font-weight: 200;
 }
 
 .project-cover {
     background-color: hsla(358, 65%, 50%, 0.2);
-    padding-top: 64px;
+    padding-top: 32px;
     width: 100%;
     display: flex;
     align-items: center;
@@ -393,12 +419,14 @@ header {
 /* Personal */
 
 #personal {
+    scroll-margin-top: 256px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     gap: 8px;
 }
 
 .cell {
+    position: relative;
     cursor: pointer;
     border: solid 1px hsla(35, 45%, 83%, 0.1);
     height: 35vh;
@@ -409,16 +437,26 @@ header {
     object-fit: cover;
     width: 100%;
     height: 100%;
-    transition: all ease-out .5s;
+    transition: all ease-out 1s;
+    z-index: -99;
 }
 
 .cell:hover>img {
-    transform: scale(1.05);
+    transform: scale(1.1);
+}
+
+.cell h5 {
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    text-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
 }
 
 /* About */
 
 #about {
+    scroll-margin-top: 128px;
     display: flex;
     flex-direction: column;
     gap: 256px;
@@ -427,20 +465,23 @@ header {
 .about-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 64px;
+    gap: 32px;
 }
 
 .about-container h4 {
-    width: 30vw;
+    width: 500px;
+    font-size: clamp(24px, 2.4rem, 48px);
 }
 
 .about-container p {
+    min-width: 400px;
     font-family: 'IBM Plex Serif', serif;
     font-weight: 200;
     line-height: 1.4rem;
 }
 
 .about-list {
+    min-width: 400px;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -482,7 +523,7 @@ header {
 
 .place {
     font-family: 'IBM Plex Serif', serif;
-    font-size: clamp(14px, .8rem, 16px);
+    font-size: clamp(14px, 1rem, 20px);
     font-weight: 200;
 }
 
@@ -507,6 +548,7 @@ footer {
 }
 
 .footer-label {
+    font-size: 14px;
     font-weight: 200;
 }
 
@@ -539,28 +581,32 @@ footer {
 
 #project-page {
     min-height: 100vh;
-    width: 100vw;
-    padding: 32px;
-    padding-top: 100px;
+    max-width: var(--max-width-container);
+    margin-inline: auto;
+    padding: 2rem;
+    padding-top: 6rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 64px;
+    gap: 128px;
 }
 
 .project-header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-self: center;
-    gap: 24px;
+    gap: 1.5rem;
+    max-width: 1100px;
 }
 
 .project-header img {
     width: 100%;
+    height: auto;
     max-height: 700px;
-    border-radius: 8px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .project-button {
@@ -568,50 +614,109 @@ footer {
     align-items: center;
     justify-content: space-between;
     background-color: rgba(250, 235, 215, 0.1);
-    /* color: var(--color-primary); */
-    padding: 12px 16px;
+    padding: 0.75rem 1.25rem;
     border-radius: 6px;
     cursor: alias;
-    transition: all ease-in .2s;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    font-weight: 500;
 }
 
 .project-button:hover {
     background-color: rgba(250, 235, 215, 0.2);
+    transform: translateY(-2px);
 }
 
 .project-infos {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 1.25rem;
+    width: 100%;
 }
 
 .project-infos h4 {
-    margin-bottom: 0;
+    margin: 0;
+    font-size: 2rem;
 }
 
 .project-infos div {
     font-weight: 400;
 }
 
-.project-infos p {}
+.project-infos p {
+    font-family: 'IBM Plex Serif', serif;
+    line-height: 1.6;
+    margin: 0;
+}
 
 #project-page img {
-    max-width: 100%;
+    width: 100%;
     max-width: 900px;
-    border-radius: 8px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+#project-page h6 {
+    margin: 0 0 1.5rem 0;
+    font-size: 2rem;
+    font-weight: 300;
 }
 
 .tag-list {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: start;
-    gap: 8px;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
 }
 
 .tag {
-    font-size: 14px;
-    opacity: .6;
-    border: solid 1px var(--text-color);
-    padding: 2px 6px;
+    font-family: 'IBM Plex Serif', serif;
+    font-size: 0.75rem;
+    font-weight: 300;
+    border: solid 1px hsla(35, 45%, 83%, 0.3);
+    padding: 0.25rem 0.75rem;
     border-radius: 90px;
+    background-color: rgba(250, 235, 215, 0.05);
+}
+
+#project-page > div:not(.project-header) {
+    width: 100%;
+    max-width: 900px;
+}
+
+@media (max-width: 768px) {
+    #project-page {
+        padding: 1.5rem;
+        padding-top: 5rem;
+        gap: 3rem;
+    }
+    
+    .project-header {
+        gap: 1rem;
+    }
+    
+    .project-infos h4 {
+        font-size: 1.75rem;
+    }
+    
+    #project-page h6 {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    #project-page {
+        padding: 1rem;
+        padding-top: 4rem;
+        gap: 2.5rem;
+    }
+    
+    .project-infos h4 {
+        font-size: 1.5rem;
+    }
+    
+    .tag-list {
+        flex-wrap: wrap;
+    }
 }
