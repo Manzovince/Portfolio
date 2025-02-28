@@ -157,6 +157,7 @@ td {
 #path .current {
     font-weight: 400;
 }
+
 #nav-list {
     position: absolute;
     top: -32px;
@@ -167,7 +168,7 @@ td {
     z-index: -1;
     opacity: 0;
     pointer-events: none;
-    transition: all 0.3s ease-in-out; 
+    transition: all 0.3s ease-in-out;
     flex-direction: column;
     align-items: end;
     justify-content: end;
@@ -182,7 +183,7 @@ td {
     display: none;
 }
 
-#nav-checkbox:checked ~ #nav-list {
+#nav-checkbox:checked~#nav-list {
     top: 0;
     opacity: 1;
     pointer-events: all;
@@ -331,7 +332,7 @@ header {
     height: 150vh;
     margin-inline: -32px;
     background-color: hsla(35, 45%, 83%, 0.1);
-    background: linear-gradient(rgba(241,241,230,0) 0%, rgba(241,241,230,.11) 50%, rgba(241,241,230,0) 100%);
+    background: linear-gradient(rgba(241, 241, 230, 0) 0%, rgba(241, 241, 230, .11) 50%, rgba(241, 241, 230, 0) 100%);
 }
 
 .square {
@@ -456,8 +457,21 @@ header {
 #personal {
     scroll-margin-top: 256px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    /* grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); */
+    grid-template-columns: 1fr;
     gap: 8px;
+}
+
+@media (min-width: 800px) {
+    #personal {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1200px) {
+    #personal {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 .cell {
@@ -529,6 +543,11 @@ header {
     flex: 1;
     display: flex;
     flex-direction: column;
+}
+
+details > summary::marker,
+details summary::-webkit-details-marker {
+    display: none;
 }
 
 .about-list details {
@@ -628,7 +647,7 @@ footer {
     max-width: var(--max-width-container);
     margin-inline: auto;
     padding: 2rem;
-    padding-top: 6rem;
+    padding-top: 128px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -641,7 +660,7 @@ footer {
     flex-direction: column;
     align-items: center;
     gap: 1.5rem;
-    max-width: 1100px;
+    max-width: var(--max-width-container)
 }
 
 .project-header img {
@@ -724,7 +743,7 @@ footer {
     background-color: rgba(250, 235, 215, 0.05);
 }
 
-#project-page > div:not(.project-header) {
+#project-page>div:not(.project-header) {
     width: 100%;
     max-width: 900px;
 }
@@ -732,18 +751,18 @@ footer {
 @media (max-width: 768px) {
     #project-page {
         padding: 1.5rem;
-        padding-top: 5rem;
+        padding-top: 128px;
         gap: 3rem;
     }
-    
+
     .project-header {
         gap: 1rem;
     }
-    
+
     .project-infos h4 {
         font-size: 1.75rem;
     }
-    
+
     #project-page h6 {
         font-size: 1.1rem;
     }
@@ -755,11 +774,11 @@ footer {
         padding-top: 4rem;
         gap: 2.5rem;
     }
-    
+
     .project-infos h4 {
         font-size: 1.5rem;
     }
-    
+
     .tag-list {
         flex-wrap: wrap;
     }
