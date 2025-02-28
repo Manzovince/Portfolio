@@ -479,7 +479,7 @@ header {
     cursor: pointer;
     background-color: hsl(199, 83%, 8%);
     border: solid 1px hsla(35, 45%, 83%, 0.1);
-    height: 35vh;
+    height: 40vh;
     overflow: hidden;
 }
 
@@ -509,6 +509,12 @@ header {
 
 .cell:hover .cell-content {
     opacity: 1;
+}
+
+@media (max-width: 600px) {
+    .cell-content {
+        opacity: 1;
+    }
 }
 
 /* About */
