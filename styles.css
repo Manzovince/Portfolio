@@ -201,6 +201,10 @@ td {
     opacity: 1;
 }
 
+#nav-container:active {
+    transform: rotate(90deg);
+}
+
 #nav-container svg path {
     transition: all ease-in .2s;
 }
@@ -316,6 +320,28 @@ header {
     font-weight: 200;
 }
 
+/* Process */
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    grid-template-rows: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 1px;
+    width: calc(100% + 64px);
+    height: 150vh;
+    margin-inline: -32px;
+    background-color: hsla(35, 45%, 83%, 0.1);
+    background: linear-gradient(rgba(241,241,230,0) 0%, rgba(241,241,230,.11) 50%, rgba(241,241,230,0) 100%);
+}
+
+.square {
+    background-color: var(--bg-color);
+    transition: border-radius 0.3s ease;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+}
+
 /* Projects */
 
 #featured {
@@ -362,7 +388,6 @@ header {
     transition: all ease-out .5s;
 }
 
-
 .project-focus {
     position: absolute;
     top: -16px;
@@ -388,6 +413,8 @@ header {
 .project-cover img {
     width: 80%;
     max-width: 800px;
+    max-height: 400px;
+    object-fit: cover;
     transition: all ease-out .8s;
 }
 
@@ -399,6 +426,14 @@ header {
     background-color: #631a1d;
 }
 
+#sealens .project-cover {
+    background-color: #062b3e;
+}
+
+#sealens .project-focus {
+    background-color: #062b3e;
+}
+
 #sgm-design .project-cover {
     background-color: #234348;
 }
@@ -408,11 +443,11 @@ header {
 }
 
 #popin .project-cover {
-    background-color: #062b3e;
+    background-color: #384F84;
 }
 
 #popin .project-focus {
-    background-color: #062b3e;
+    background-color: #384F84;
 }
 
 
@@ -428,6 +463,7 @@ header {
 .cell {
     position: relative;
     cursor: pointer;
+    background-color: hsl(199, 83%, 8%);
     border: solid 1px hsla(35, 45%, 83%, 0.1);
     height: 35vh;
     overflow: hidden;
@@ -445,12 +481,20 @@ header {
     transform: scale(1.1);
 }
 
-.cell h5 {
+.cell-content {
     position: absolute;
-    bottom: 50%;
-    left: 50%;
-    transform: translate(-50%, 50%);
-    text-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 32px;
+    opacity: 0;
+    background: linear-gradient(180deg, hsla(199, 83%, 9%, 0), hsla(199, 83%, 9%, .8));
+    /* text-shadow: 0 0 24px rgba(0, 0, 0, 0.5); */
+    transition: all ease-out 1s;
+}
+
+.cell:hover .cell-content {
+    opacity: 1;
 }
 
 /* About */
@@ -652,7 +696,7 @@ footer {
 #project-page img {
     width: 100%;
     max-width: 900px;
-    border-radius: 12px;
+    border-radius: 4px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 

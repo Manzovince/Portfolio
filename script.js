@@ -17,9 +17,9 @@ const translations = {
     sgmDesign1: "I worked on the migration of the SG Markets Design page to the latest version of the Design system, and implemented a complete redesign of the 'Join us' page.",
     sgmDesign2: "During a team event, we embarked on a collaborative redesign project of the 'Join us' page. I then had the goal of developing this new page with a focus on engaging interactions.",
     sgmDesign3: "This project allowed me to better understand the challenges of a front-end developer, with the use of React components, the implementation of a responsive page and CSS animations. In addition, I learned how to master the steps required to publish a service in production with deployment configuration, as well as auditing the service after deployment to maintain optimal performance.",
-    popin1: "When a child is born, two adults are transformed into parents. In a way, it is the child who makes the parents. Becoming a parent is life changing, in every way possible. <br><br> From happiness to frustration, we want the best for our children, and this can very quickly become stressful. Elodie Hughes, mother of 4, and serial entrepreneur, has put together a small team to find a solution.",
+    popin1: "When a child is born, two adults are transformed into parents. In a way, it is the child who makes the parents. Becoming a parent is life changing, in every way possible. <br><br> From happiness to frustration, we want the best for our children, and this can very quickly become stressful. Elodie Hughes, mother of 4 children and entrepreneur, has put together a small team to find a solution.",
     popin2: "Child development is a complex process. Parents need to learn a lot of things, and the web is a wide source of knowledge, but informations often contradicts. To provide clear and concise facts and tips to parents, and in the new era of human-like interaction with technology, we found that creating a chatbot was a fun and powerful way to educate. <br><br> We made a corpus of the most asked questions asked by parents, and there are a lot of subjects about babies: alimentation, health, sleep... Babies need a lot of sleep (approx. 20 hours per day as a newborn) and parents too. But it often doesn't work as we want, because babies don't have the same sleep cycle, and they need to embody the circadian rythm of day and night. <br><br> We decided to give only science-based facts, and link them with practical tips and advices when it was possible.",
-    popin3: "When we had all we need : personas, user flows, Q/A content, and a new face for Pop-in, we needed to structure a discussion to make users understand who Pop-in is, what she does and how to talk to her. I tested multiple platforms before finding the write one. It was a way for me to learn how chatbots works, and to quickly get parents interested. Our final solution was to use DialogFlow for a good Natural Language Understanding, and ManyChat, a chatbot development plateform for Facebook Messenger. <br><br> We also needed a website to showcase our goals and valus. After the sitemap construction, I designed a few prototypes of the website in Adobe XD, to show to parents and coachs how a platform enables them to start a coaching, and launched it using Wix.",
+    popin3: "When we had all we need : personas, user flows, Q/A content, and a new face for Pop-in, we needed to structure a discussion to make users understand who Pop-in is, what she does and how to talk to her. I tested multiple platforms before finding the write one. It was a way for me to learn how chatbots works, and to quickly get parents interested. Our final solution was to use DialogFlow for a good Natural Language Understanding, and ManyChat, a chatbot development plateform for Facebook Messenger. <br><br> We also needed a website to showcase our goals and values. After making the sitemap, I designed a few prototypes of the website in Adobe XD, to show to parents and coachs how a platform enables them to start a coaching, and launched it using Wix.",
     popin4: "Our chatbot can answer more than 100 questions about sleep and baby health, but is this enough ? Parents can have access to information quickly, and some of our elaborate answers provide an great source of help. But are we missing something ? <br><br> Science facts and tips are great, but to really help parents, they need more than a chatbot. And because every child is different, it was impossible for us to give super personalized answers with Pop-in. And who is the best placed to understand and resolve child's sleep problems ? Specialists ! Around the world, their are a lot a sleep coachs, but in France, it's not well known. And we had to change this. That's why we decided to bring professionals of babies sleep to help parents in their journey.",
     aboutTitle: "About me",
     aboutText: "I am a lifelong learner, dedicated in making the product and services that surround us more human-centered. Experience has taught me where to focus my energy to make the best out of a project. Designing the things that surround us, I value design that has a positive impact on society. Besides, I enjoy running, swimming and climbing!"
@@ -275,3 +275,79 @@ const waterLine = new WaterLineAnimation('.water-line', {
   numPoints: 100,
   scrollSensitivity: 1
 });
+
+// Grid effect
+
+// Create the grid
+const grid = document.getElementById('grid');
+        
+// Calculate number of rows and columns based on viewport size
+function setupGrid() {
+    // Clear existing grid
+    grid.innerHTML = '';
+    
+    // Calculate grid dimensions based on viewport and minimum cell size (50px + 1px gap)
+    const cellSize = 51;
+    const cols = Math.floor(window.innerWidth / cellSize);
+    const rows = Math.floor(window.innerHeight / cellSize);
+    
+    // Update grid template
+    grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    
+    // Create grid cells
+    for (let i = 0; i < rows * cols; i++) {
+        const square = document.createElement('div');
+        square.className = 'square';
+        square.dataset.row = Math.floor(i / cols);
+        square.dataset.col = i % cols;
+        grid.appendChild(square);
+    }
+    
+    // Get all squares
+    const squares = document.querySelectorAll('.square');
+    
+    // Fixed radius of 8
+    const radius = 8;
+    
+    // Hover effect function
+    function handleMouseEvents(event) {
+        const isEnter = event.type === 'mouseenter';
+        
+        // Get current square coordinates
+        const row = parseInt(this.dataset.row);
+        const col = parseInt(this.dataset.col);
+        
+        // Apply effect to squares in radius
+        squares.forEach(square => {
+            const squareRow = parseInt(square.dataset.row);
+            const squareCol = parseInt(square.dataset.col);
+            
+            // Calculate distance (Manhattan distance for simplicity)
+            const distance = Math.abs(row - squareRow) + Math.abs(col - squareCol);
+            
+            // Apply effect if within radius
+            if (distance <= radius) {
+                if (isEnter) {
+                    // Calculate border radius based on distance (closer = more circular)
+                    const borderRadiusPercent = 50 * (1 - distance / (radius + 1));
+                    square.style.borderRadius = `${borderRadiusPercent}%`;
+                } else {
+                    square.style.borderRadius = '0%';
+                }
+            }
+        });
+    }
+    
+    // Add event listeners to all squares
+    squares.forEach(square => {
+        square.addEventListener('mouseenter', handleMouseEvents);
+        square.addEventListener('mouseleave', handleMouseEvents);
+    });
+}
+
+// Initial setup
+setupGrid();
+
+// Resize handling
+window.addEventListener('resize', setupGrid);
