@@ -527,11 +527,13 @@ header {
 }
 
 .about-container h4 {
+    white-space: nowrap;
     flex:1;
     font-size: clamp(24px, 2.4rem, 48px);
 }
 
 .about-container p {
+    min-width: 24ch;
     font-family: 'IBM Plex Serif', serif;
     font-weight: 200;
     line-height: 1.4rem;
@@ -624,11 +626,23 @@ footer {
 
 .footer-socials a {
     opacity: .6;
-    transition: all ease-in .2s;
+    transition: all ease-in .5s;
 }
 
 .footer-socials a:hover {
     opacity: 1;
+}
+
+#linkedin:hover {
+    color: #0077b5;
+}
+
+#instagram:hover {
+    color: #e4405f;
+}
+
+#github:hover {
+    color: #6e5494;
 }
 
 /* Project page */
