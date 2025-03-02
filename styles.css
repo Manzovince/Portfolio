@@ -337,11 +337,11 @@ header {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    pointer-events: none;
     font-size: 2.4rem;
     font-weight: 200;
     font-style: italic;
-    text-shadow: 0 0 100px hsl(199, 83%, 9%);
+    text-shadow: 0 0 100px hsl(199, 83%, 8%);
+    pointer-events: none;
 }
 
 .grid {
