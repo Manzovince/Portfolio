@@ -6,7 +6,7 @@ const translations = {
     navPersonal: "Experiments",
     navAbout: "About me",
     introText: "I'm Vincent, a <span>product designer</span> with a background in cognitive and computer sciences, driven by a research-backed methodology.",
-    proProjectText: "Discover my vision of design through my professional projects, from the financial space to health.",
+    proProjectText: "Discover my vision of design through my professional and personal projects, in the financial space and health.",
     persoProjectText: "Beside, I also like to capture pixels and play with 0 and 1s.",
     projectPlaceholder: "Coming soon !",
     projectAccessText: "Go to website",
@@ -287,7 +287,7 @@ function setupGrid() {
     grid.innerHTML = '';
     
     // Calculate grid dimensions based on viewport and minimum cell size (50px + 1px gap)
-    const cellSize = 51;
+    const cellSize = 61;
     const cols = Math.floor(window.innerWidth / cellSize);
     const rows = Math.floor(window.innerHeight / cellSize);
     
