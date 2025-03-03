@@ -510,6 +510,10 @@ header {
     background: linear-gradient(135deg, #D32D33 0%, #d15e53 100%);
 }
 
+#sealens {
+    cursor: alias;
+}
+
 #sealens .project-cover {
     background: linear-gradient(135deg, #062b3e 0%, #0a3d5e 100%);
 }
