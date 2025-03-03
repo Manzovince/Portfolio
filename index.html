@@ -20,38 +20,7 @@
 
 <body>
     <!-- Navigation -->
-    <nav id="nav">
-        <a id="path" href="./index.html#introduction">
-            <div class="">Vincent Manzoni</div>
-        </a>
-        <input id="nav-checkbox" type="checkbox">
-        <label id="nav-container" for="nav-checkbox">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 0 L16 0 L16 16 L16 16 Z" fill="currentColor" />
-            </svg>
-        </label>
-        <ul id="nav-list">
-            <li>
-                <a href="./index.html#featured" onclick="document.getElementById('nav-checkbox').checked = false;"
-                    data-i18n="navProjects"></a>
-            </li>
-            <!-- <li>
-                <a href="./index.html#process" onclick="document.getElementById('nav-checkbox').checked = false;"
-                    data-i18n="navProcess"></a>
-            </li> -->
-            <li>
-                <a href="./index.html#personal" onclick="document.getElementById('nav-checkbox').checked = false;"
-                    data-i18n="navPersonal"></a>
-            </li>
-            <li>
-                <a href="./index.html#about" onclick="document.getElementById('nav-checkbox').checked = false;"
-                    data-i18n="navAbout"></a>
-            </li>
-            <!-- <li>
-                <button onclick="showPage('new-page')">New page</button>
-            </li> -->
-        </ul>
-    </nav>
+    <site-nav></site-nav>
 
     <!-- Header -->
     <header id="introduction">
@@ -76,7 +45,7 @@
         <!-- Featured -->
         <section id="featured">
             <div class="project-2col">
-                <a id="sgm-iso20022" href="./projects/sgm-iso20022.html" class="project-tile">
+                <a id="sgm-iso20022" href="./sgm-iso20022.html" class="project-tile">
                     <div class="project-cover">
                         <img src="./assets/sgm-iso20022-dev.png" alt="">
                         <img src="./assets/sgm-iso20022-wf.png" alt="">
@@ -108,7 +77,7 @@
                 </a>
             </div>
             <div class="project-2col">
-                <a id="sgm-design" href="./projects/sgm-design.html" class="project-tile">
+                <a id="sgm-design" href="./sgm-design.html" class="project-tile">
                     <div class="project-cover">
                         <img src="./assets/sgm-design-dev.png" alt="">
                         <img src="./assets/sgm-design-wf.png" alt="">
@@ -122,7 +91,7 @@
                         </div>
                     </div>
                 </a>
-                <a id="popin" href="./projects/popin.html" class="project-tile">
+                <a id="popin" href="./popin.html" class="project-tile">
                     <div class="project-cover">
                         <img src="./assets/popin-dev.png" alt="">
                         <img src="./assets/popin-wf.png" alt="">
@@ -149,28 +118,28 @@
                     <p>Aerial photography</p>
                 </div>
             </a>
-            <a href="./projects/project-wip.html" class="cell">
+            <a href="./project-wip.html" class="cell">
                 <img src="./assets/keyboard-project.png" alt="">
                 <div class="cell-content">
                     <h6>Sound maker</h6>
                     <p>Interactive music keyboard</p>
                 </div>
             </a>
-            <a id="life-calendar" href="./projects/project-wip.html" class="cell">
+            <a id="life-calendar" href="./project-wip.html" class="cell">
                 <img src="./assets/life-calendar.png" alt="">
                 <div class="cell-content">
                     <h6>Life calendar</h6>
                     <p>Tiny squares, entire journey</p>
                 </div>
             </a>
-            <a id="space-pendulum" href="./projects/project-wip.html" class="cell">
+            <a id="space-pendulum" href="./project-wip.html" class="cell">
                 <img src="./assets/space-pendulum.png" alt="">
                 <div class="cell-content">
                     <h6>Space pendulum</h6>
                     <p>Chaos and gravity</p>
                 </div>
             </a>
-            <a id="spaceship-game" href="./projects/project-wip.html" class="cell">
+            <a id="spaceship-game" href="./project-wip.html" class="cell">
                 <img src="./assets/spaceship-game.png" alt="">
                 <div class="cell-content">
                     <h6>Spaceship game</h6>
@@ -209,11 +178,11 @@
                     <details>
                         <summary>
                             <div class="year">Now <br> 2020</div>
-                            <h6 class="title">UX / Product Designer</h6>
+                            <h6 class="title">Product Designer</h6>
                             <i class="place">Société Générale</i>
                         </summary>
                         <p>Designer of multiple services across various business lines, and co-lead of the Design System
-                            team.</p>
+                            team. Find out more at <a href="https://info.sgmarkets.com/" class="link">SG Markets</a> and our <a href="https://design.sgmarkets.com/" class="link">design team website</a>.</p>
                     </details>
                     <details>
                         <summary>
@@ -228,7 +197,7 @@
                     <details>
                         <summary>
                             <div class="year">2020 <br> 2019</div>
-                            <h6 class="title">Brand content manager</h6>
+                            <h6 class="title">UX designer and developer</h6>
                             <i class="place">Popin</i>
                         </summary>
                         <p>Alongside an entrepreneur and a psychologist, I contributed to the development of Pop-in, one
@@ -281,47 +250,7 @@
     </main>
 
     <!-- Footer -->
-    <footer>
-        <div class="footer-item">
-            <div class="footer-label">Contact</div>
-            <a href="mailto:manzovince@outlook.fr" class="footer-content">manzovince@outlook.fr</a>
-        </div>
-        <div class="footer-item">
-            <div class="footer-label">Location</div>
-            <div class="footer-content">48.8575° N, 2.3514° E</div>
-        </div>
-        <div class="footer-item">
-            <div class="footer-label">Copyright</div>
-            <div class="footer-content">&copy;
-                <script>document.write(new Date().getFullYear())</script> Vincent Manzoni.
-            </div>
-        </div>
-        <div class="footer-socials">
-            <a href="https://www.linkedin.com/in/vincent-manzoni/" target="_blank" rel="noopener noreferrer"><svg
-                    id="linkedin" xmlns="http://www.w3.org/2000/svg" width="24" height="32" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-                    <rect width="4" height="12" x="2" y="9"></rect>
-                    <circle cx="4" cy="4" r="2"></circle>
-                </svg></a>
-            <a href="https://www.instagram.com/manzovince/" target="_blank" rel="noopener noreferrer"><svg
-                    id="instagram" xmlns="http://www.w3.org/2000/svg" width="24" height="32" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
-                </svg></a>
-            <a href="https://github.com/Manzovince" target="_blank" rel="noopener noreferrer"><svg id="github"
-                    xmlns="http://www.w3.org/2000/svg" width="24" height="32" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
-                    data-lucide="github">
-                    <path
-                        d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4">
-                    </path>
-                    <path d="M9 18c-4.51 2-5-2-7-2"></path>
-                </svg></a>
-        </div>
-    </footer>
+    <site-footer></site-footer>
 
 </body>
 
