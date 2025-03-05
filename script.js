@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   }
               });
           }, {
-              threshold: 0.5 // Adjust threshold as needed
+              threshold: .8 // Adjust threshold as needed
           });
 
           observer.observe(tile);
