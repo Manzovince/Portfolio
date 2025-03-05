@@ -456,7 +456,6 @@ class WaterLineAnimation {
   }
 }
 
-// Usage example
 const waterLine = new WaterLineAnimation('.water-line', {
   width: 100,
   baseHeight: 50,
@@ -464,9 +463,34 @@ const waterLine = new WaterLineAnimation('.water-line', {
   scrollSensitivity: 1
 });
 
-// Grid effect
+// Mobile project tile effect
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.innerWidth < 400) {
+      const projectTiles = document.querySelectorAll('.project-tile');
 
-// Create the grid
+      projectTiles.forEach(tile => {
+          const images = tile.querySelectorAll('.project-cover img');
+
+          const observer = new IntersectionObserver(entries => {
+              entries.forEach(entry => {
+                  if (entry.isIntersecting) {
+                      images[0].style.opacity = '1';
+                      images[1].style.opacity = '0';
+                  } else {
+                      images[0].style.opacity = '0';
+                      images[1].style.opacity = '1';
+                  }
+              });
+          }, {
+              threshold: 0.5 // Adjust threshold as needed
+          });
+
+          observer.observe(tile);
+      });
+  }
+});
+
+// Grid effect
 const grid = document.getElementById('grid');
 
 // Calculate number of rows and columns based on viewport size
