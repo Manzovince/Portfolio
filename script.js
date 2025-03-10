@@ -1,4 +1,5 @@
-// Load components
+// Web components
+
 // Navbar
 class NavComponent extends HTMLElement {
   constructor() {
@@ -35,7 +36,7 @@ class NavComponent extends HTMLElement {
           </div>
         </div>
         <input id="nav-checkbox" type="checkbox">
-        <label id="nav-container" for="nav-checkbox">
+        <label id="nav-icon" for="nav-checkbox">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M0 0 L16 0 L16 16 L16 16 Z" fill="currentColor" />
             </svg>
@@ -184,7 +185,6 @@ class FooterComponent extends HTMLElement {
 customElements.define('site-nav', NavComponent);
 customElements.define('site-footer', FooterComponent);
 
-
 // Languages
 const translations = {
   en: {
@@ -192,7 +192,7 @@ const translations = {
     navProjects: "Work",
     navPersonal: "Experiments",
     navAbout: "About me",
-    introText: "I'm Vincent, a <span>product designer</span> with a background in cognitive and computer sciences, driven by a research-backed methodology.",
+    introText: "I'm Vincent, a product designer with a background in <span>cognitive</span> and <span>computer sciences</span>, driven by a research-backed methodology.",
     proProjectText: "Discover my vision of design through my professional and personal projects, in the financial space and health.",
     persoProjectText: "Beside, I also like to capture pixels and play with 0 and 1s.",
     projectPlaceholder: "Coming soon !",

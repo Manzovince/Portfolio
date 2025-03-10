@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Vincent Manzoni">
+    <meta name="description"
+        content="Vincent Manzoni - UX Designer & Product Developer specializing in user-centered design solutions. View my portfolio of innovative digital products, user research, and photography projects.">
+    <meta name="keywords"
+        content="UX designer, product design, user experience, UI/UX, interaction design, digital product, user research, wireframing, prototyping, design system, photography, portfolio">
+    <meta property="og:title" content="Vincent Manzoni / Portfolio">
+    <meta property="og:description"
+        content="Showcasing creative work in UX design, product development, and photography">
+    <meta property="og:image" content="">
+    <meta property="og:url" content="https://manzovince.com">
+    <meta property="og:site_name" content="Vincent Manzoni Portfolio">
+    <meta property="og:type" content="website">
+    <link rel="canonical" href="https://manzovince.com">
+    <!-- Styles -->
+    <link rel="icon" href="./assets/favicon.png">
+    <link rel="stylesheet" href="./styles.css">
+    <meta name="theme-color" content="#041e2a">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap"
+        rel="stylesheet" media="print" onload="this.media='all'">
+    <!-- Title -->
+    <title>Vincent Manzoni / Space pendulum</title>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <site-nav page-name="Space pendulum"></site-nav>
+
+    <main id="project-page">
+        <div class="project-header">
+            <div class="project-infos">
+                <h4>Space pendulum</h4>
+                <p>An experiment about chaotic pendulum in different places of the Universe, choosing a random planet or
+                    satellite gravity.</p>
+                <ul class="tag-list">
+                    <li class="tag">HTML</li>
+                    <li class="tag">CSS</li>
+                    <li class="tag">JS</li>
+                </ul>
+            </div>
+        </div>
+        <style>
+            #pendulum {
+                position: relative;
+                height: 90vh;
+                width: 90vw;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: rgb(21, 24, 26);
+                border: solid 1px rgba(255, 255, 255, 0.1);
+            }
+
+            #pendulum canvas {
+                width: 100%;
+                height: 100%;
+            }
+
+            #canvas {
+                z-index: 1;
+            }
+
+            #canvas2 {
+                position: absolute;
+                z-index: 0;
+            }
+        </style>
+        <section id="pendulum">
+            <canvas id="canvas"></canvas>
+            <canvas id="canvas2"></canvas>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <site-footer></site-footer>
+
+</body>
+
+<script src="./script.js"></script>
+<script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const canvas2 = document.getElementById("canvas2");
+    const ctx2 = canvas2.getContext("2d");
+
+    // Physics constants
+    const r1 = 190;  // Length of first arm
+    const r2 = 190;  // Length of second arm
+    const gravity = [  // Added gravity values
+        { name: "Earth", gravity: 9.81 },
+        { name: "Moon", gravity: 1.62 },
+        { name: "Mars", gravity: 3.71 },
+        { name: "Jupiter", gravity: 24.79 }
+    ];
+    const gNum = Math.floor(Math.random() * gravity.length);
+    const g = gravity[gNum].gravity;
+    const m1 = 40;  // Mass 1
+    const m2 = 20;  // Mass 2
+
+    // Simulation state
+    let a1 = Math.PI / 2;  // Initial angle 1
+    let a2 = Math.PI / 2;  // Initial angle 2
+    let v1 = 0;            // Angular velocity 1
+    let v2 = 0;            // Angular velocity 2
+    let animationFrameId;
+    let trailAlpha = 0.3;  // Trail effect opacity
+
+    // Canvas setup
+    function setupCanvas() {
+        const container = document.getElementById('pendulum');
+        const dpr = window.devicePixelRatio || 1;
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        [canvas, canvas2].forEach(c => {
+            c.width = width * dpr;
+            c.height = height * dpr;
+            c.style.width = `${width}px`;
+            c.style.height = `${height}px`;
+        });
+
+        ctx.resetTransform();
+        ctx.scale(dpr, dpr);
+        ctx.translate(width/2, 100);
+        
+        ctx2.resetTransform();
+        ctx2.scale(dpr, dpr);
+        ctx2.translate(width/2, 100);
+    }
+
+    // Physics calculations
+    function calculateAccelerations() {
+        const num1 = -g * (2 * m1 + m2) * Math.sin(a1);
+        const num2 = -m2 * g * Math.sin(a1 - 2 * a2);
+        const num3 = -2 * Math.sin(a1 - a2) * m2 * (v2*v2 * r2 + v1*v1 * r1 * Math.cos(a1 - a2));
+        const den = r1 * (2 * m1 + m2 - m2 * Math.cos(2 * a1 - 2 * a2));
+        
+        const acc1 = (num1 + num2 + num3) / den;
+
+        const num4 = 2 * Math.sin(a1 - a2);
+        const num5 = v1*v1 * r1 * (m1 + m2);
+        const num6 = g * (m1 + m2) * Math.cos(a1);
+        const num7 = v2*v2 * r2 * m2 * Math.cos(a1 - a2);
+        
+        const acc2 = (num4 * (num5 + num6 + num7)) / (r2 * (2 * m1 + m2 - m2 * Math.cos(2 * a1 - 2 * a2)));
+
+        return { acc1, acc2 };
+    }
+
+    function draw() {
+        // Clear main canvas
+        ctx.clearRect(-canvas.width/2, -100, canvas.width, canvas.height);
+
+        // Calculate positions
+        const x1 = r1 * Math.sin(a1);
+        const y1 = r1 * Math.cos(a1);
+        const x2 = x1 + r2 * Math.sin(a2);
+        const y2 = y1 + r2 * Math.cos(a2);
+
+        // Draw pendulum arms
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        // Draw moving mass with trail
+        ctx2.fillStyle = `hsla(${(performance.now()/50) % 360}, 80%, 60%, ${trailAlpha})`;
+        ctx2.beginPath();
+        ctx2.arc(x2, y2, m2/3, 0, Math.PI * 2);
+        ctx2.fill();
+    }
+
+    function update() {
+        const { acc1, acc2 } = calculateAccelerations();
+        
+        // Update velocities
+        v1 += acc1;
+        v2 += acc2;
+        v1 *= 0.998;  // Energy loss
+        v2 *= 0.998;
+
+        // Update angles
+        a1 += v1;
+        a2 += v2;
+    }
+
+    function animate() {
+        update();
+        draw();
+        animationFrameId = requestAnimationFrame(animate);
+    }
+
+    // Event listeners
+    window.addEventListener('resize', () => {
+        cancelAnimationFrame(animationFrameId);
+        setupCanvas();
+        animate();
+    });
+
+    // Initial setup
+    setupCanvas();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 4;
+    animate();
+
+    // Optional: Add initial impulse
+    setTimeout(() => {
+        v1 += Math.PI / 16 * (Math.random() - 0.5);
+        v2 += Math.PI / 16 * (Math.random() - 0.5);
+    }, 1000);
+</script>
+
+
+</html>
