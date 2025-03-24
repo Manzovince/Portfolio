@@ -491,12 +491,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Grid effect
-const grid = document.getElementById('grid');
+const grid1 = document.getElementById('grid');
 
 // Calculate number of rows and columns based on viewport size
 function setupGrid() {
   // Clear existing grid
-  grid.innerHTML = '';
+  grid1.innerHTML = '';
 
   // Calculate grid dimensions based on viewport and minimum cell size (50px + 1px gap)
   const cellSize = 61;
@@ -504,8 +504,8 @@ function setupGrid() {
   const rows = Math.floor(window.innerHeight / cellSize);
 
   // Update grid template
-  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-  grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+  grid1.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  grid1.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
   // Create grid cells
   for (let i = 0; i < rows * cols; i++) {
@@ -513,7 +513,7 @@ function setupGrid() {
     square.className = 'square';
     square.dataset.row = Math.floor(i / cols);
     square.dataset.col = i % cols;
-    grid.appendChild(square);
+    grid1.appendChild(square);
   }
 
   // Get all squares
@@ -563,3 +563,374 @@ setupGrid();
 
 // Resize handling
 window.addEventListener('resize', setupGrid);
+
+// Header water simulation
+// ----- Configuration and Global Variables -----
+const config = {
+  cellSize: 16,             // cell size in pixels (also used as monospace font size)
+  damping: 0.99,            // damping factor for wave decay
+  densityScale: " ....---~~~≈≈≈%#@", // ASCII intensity scale low-to-high
+  rippleSpeed: 600,         // ripple expansion speed in pixels per second
+  rippleWidth: 6,           // default ripple ring width
+  rippleIntensity: 6,       // default impulse strength from a ripple
+  cellDecayFactor: 0.99     // overall decay factor for each cell per update
+};
+
+let canvas, ctx;
+let cols, rows;
+let grid = [], prevGrid = [], nextGrid = [];
+
+// Global accumulator for timing the border reset.
+let borderAccumulator = 0;
+
+let lastMouse = { x: 0, y: 0, time: 0 };
+
+// Array for active ripples. Each ripple object is { x, y, radius, width, intensity }
+const ripples = [];
+
+let lastTimestamp = null;
+const maxIntensity = config.densityScale.length;
+
+// ----- Initialization -----
+function init() {
+  canvas = document.createElement("canvas");
+  canvas.id = "canvas"; // Assign the id so it matches your CSS
+  ctx = canvas.getContext("2d");
+
+  document.body.appendChild(canvas);
+
+  // Set up text-related properties.
+  ctx.font = `${config.cellSize}px monospace`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  // Setup canvas style for proper placement.
+  canvas.style.top = 0;
+  canvas.style.left = 0;
+  canvas.style.position = "absolute";
+
+  // Initial resize and grid creation.
+  resizeCanvas();
+  createGrid();
+
+  // Set up event listeners.
+  window.addEventListener("resize", onWindowResize);
+  canvas.addEventListener("mousemove", onMouseMove);
+  canvas.addEventListener("click", onMouseClick);
+
+  // Add touch event listeners for mobile devices.
+  canvas.addEventListener("touchmove", onTouchMove, { passive: false });
+  canvas.addEventListener("touchstart", onTouchStart, { passive: false });
+
+  // Start the animation loop.
+  requestAnimationFrame(loop);
+}
+
+// ----- Canvas Resize & Grid Setup -----
+function onWindowResize() {
+  resizeCanvas();
+  createGrid();
+}
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  cols = Math.floor(canvas.width / config.cellSize);
+  rows = Math.floor(canvas.height / config.cellSize);
+}
+
+function createGrid() {
+  // Create three arrays for water simulation.
+  grid = [];
+  prevGrid = [];
+  nextGrid = [];
+  for (let j = 0; j < rows; j++) {
+    const row = new Array(cols).fill(0);
+    const rowPrev = new Array(cols).fill(0);
+    const rowNext = new Array(cols).fill(0);
+    grid.push(row);
+    prevGrid.push(rowPrev);
+    nextGrid.push(rowNext);
+  }
+}
+
+// ----- Main Animation Loop -----
+let lastRenderTime = null;           // Tracks last render time.
+const renderInterval = 25;           // Render every 50ms (i.e. around 20 fps).
+
+function loop(timestamp) {
+  if (lastTimestamp === null) {
+    lastTimestamp = timestamp;
+    lastRenderTime = timestamp;
+  }
+  // dt is the delta time in seconds for simulation updates.
+  const dt = (timestamp - lastTimestamp) / 1000;
+  
+  // Update the simulation at high frequency.
+  update(dt);
+  
+  // Throttle the rendering. Only render if enough time has passed.
+  if (timestamp - lastRenderTime >= renderInterval) {
+    render();
+    lastRenderTime = timestamp;
+  }
+  
+  lastTimestamp = timestamp;
+  requestAnimationFrame(loop);
+}
+
+// ----- Update Functions -----
+function update(dt) {
+  updateWaterWaves();
+  updateRipples(dt);
+  applyCellDecay();
+
+  // Spawn subtle random ripples.
+  spawnRandomRipple(dt);
+
+  // Update the border accumulator.
+  borderAccumulator += dt;
+  if (borderAccumulator >= 0.5) {
+    resetBorderCells();
+    borderAccumulator = 0;
+  }
+}
+
+function updateWaterWaves() {
+  // Update each cell using a basic wave propagation algorithm.
+  // Skip edges for simplicity.
+  for (let j = 1; j < rows - 1; j++) {
+    for (let i = 1; i < cols - 1; i++) {
+      nextGrid[j][i] =
+        (
+          (grid[j][i - 1] + grid[j][i + 1] + grid[j - 1][i] + grid[j + 1][i]) / 2 -
+          prevGrid[j][i]
+        ) * config.damping;
+    }
+  }
+  // Swap grid buffers for next update.
+  const temp = prevGrid;
+  prevGrid = grid;
+  grid = nextGrid;
+  nextGrid = temp;
+}
+
+function updateRipples(dt) {
+  // Process each active ripple.
+  for (let k = ripples.length - 1; k >= 0; k--) {
+    const ripple = ripples[k];
+    ripple.radius += config.rippleSpeed * dt; // Expand the ripple
+
+    // Determine grid boundaries for ripple impact.
+    const minI = Math.max(0, Math.floor((ripple.x - ripple.radius - ripple.width) / config.cellSize));
+    const maxI = Math.min(cols - 1, Math.ceil((ripple.x + ripple.radius + ripple.width) / config.cellSize));
+    const minJ = Math.max(0, Math.floor((ripple.y - ripple.radius - ripple.width) / config.cellSize));
+    const maxJ = Math.min(rows - 1, Math.ceil((ripple.y + ripple.radius + ripple.width) / config.cellSize));
+
+    // Apply ripple impact on nearby grid cells.
+    for (let j = minJ; j <= maxJ; j++) {
+      for (let i = minI; i <= maxI; i++) {
+        const cx = i * config.cellSize + config.cellSize / 2;
+        const cy = j * config.cellSize + config.cellSize / 2;
+        const distance = Math.hypot(cx - ripple.x, cy - ripple.y);
+        if (distance > ripple.radius - ripple.width && distance < ripple.radius + ripple.width) {
+          const factor = 1 - Math.abs(distance - ripple.radius) / ripple.width;
+          grid[j][i] += ripple.intensity * factor;
+        }
+      }
+    }
+    // Remove ripple when it exceeds canvas bounds.
+    if (ripple.radius - ripple.width > Math.max(canvas.width, canvas.height)) {
+      ripples.splice(k, 1);
+    }
+  }
+}
+
+function applyCellDecay() {
+  // Gradually bring cell intensities back to zero.
+  for (let j = 0; j < rows; j++) {
+    for (let i = 0; i < cols; i++) {
+      grid[j][i] *= config.cellDecayFactor;
+    }
+  }
+}
+
+// This helper function resets (forces to 0) the intensity of border cells.
+// It is called automatically every 0.5 seconds.
+function resetBorderCells() {
+  // Top and bottom rows.
+  for (let i = 0; i < cols; i++) {
+    grid[0][i] = 0;
+    grid[rows - 1][i] = 0;
+  }
+  // Left and right columns.
+  for (let j = 0; j < rows; j++) {
+    grid[j][0] = 0;
+    grid[j][cols - 1] = 0;
+  }
+}
+
+/**
+ * Spawns a subtle random ripple at a random position on the canvas.
+ * The probability scales with dt so that on average a ripple appears every few seconds.
+ */
+function spawnRandomRipple(dt) {
+  // Adjust the probability factor as needed for frequency.
+  if (Math.random() < dt * 0.2) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    ripples.push({
+      x,
+      y,
+      radius: 0,
+      width: config.rippleWidth,
+      intensity: config.rippleIntensity / 4  // Lower intensity for a subtle effect.
+    });
+  }
+}
+
+// ----- Render Function with Color & Opacity Variations -----
+function render() {
+  // Clear the canvas without filling it with a background color.
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Render each cell as an ASCII character based on its intensity.
+  for (let j = 0; j < rows; j++) {
+    for (let i = 0; i < cols; i++) {
+      // Get absolute intensity, then clamp with maxIntensity
+      const intensity = Math.min(Math.abs(grid[j][i]), maxIntensity);
+      // Determine the density scale character.
+      const scaleIndex = Math.floor((intensity / maxIntensity) * (config.densityScale.length - 1));
+      const char = config.densityScale[scaleIndex];
+
+      // Calculate the center position of this cell.
+      const x = i * config.cellSize + config.cellSize / 2;
+      const y = j * config.cellSize + config.cellSize / 2;
+
+      // Compute a ratio for intensity.
+      const ratio = intensity / maxIntensity;
+
+      // Compute opacity from 0.3 to 1.
+      const opacity = 0.1 + 0.9 * ratio;
+
+      // Set the fill style dynamically.
+      ctx.fillStyle = `rgba(255, 255, 224, ${opacity})`;
+
+      ctx.fillText(char, x, y);
+    }
+  }
+}
+
+// ----- Interactive Controls -----
+// Mouse move creates a localized impulse on the grid.
+function onMouseMove(e) {
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  const now = performance.now();
+
+  let speed = 0;
+  if (lastMouse.time) {
+    const dx = mouseX - lastMouse.x;
+    const dy = mouseY - lastMouse.y;
+    const dtMouse = now - lastMouse.time;
+    speed = Math.hypot(dx, dy) / dtMouse;
+  }
+  lastMouse = { x: mouseX, y: mouseY, time: now };
+
+  const influenceRadius = 35;
+  const impulseStrength = speed * 5;
+
+  const minI = Math.max(0, Math.floor((mouseX - influenceRadius) / config.cellSize));
+  const maxI = Math.min(cols - 1, Math.ceil((mouseX + influenceRadius) / config.cellSize));
+  const minJ = Math.max(0, Math.floor((mouseY - influenceRadius) / config.cellSize));
+  const maxJ = Math.min(rows - 1, Math.ceil((mouseY + influenceRadius) / config.cellSize));
+
+  for (let j = minJ; j <= maxJ; j++) {
+    for (let i = minI; i <= maxI; i++) {
+      const cx = i * config.cellSize + config.cellSize / 2;
+      const cy = j * config.cellSize + config.cellSize / 2;
+      const dist = Math.hypot(cx - mouseX, cy - mouseY);
+      if (dist < influenceRadius) {
+        const factor = 1 - dist / influenceRadius;
+        grid[j][i] += impulseStrength * factor;
+      }
+    }
+  }
+}
+
+// Mouse click creates a ripple effect.
+function onMouseClick(e) {
+  const rect = canvas.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const clickY = e.clientY - rect.top;
+  ripples.push({
+    x: clickX,
+    y: clickY,
+    radius: 0,
+    width: config.rippleWidth,
+    intensity: config.rippleIntensity
+  });
+}
+
+// ----- Touch Event Handlers for Mobile Devices -----
+// Touch move creates an impulse effect similar to mouse move.
+function onTouchMove(e) {
+  // Prevent scrolling.
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  const touchX = touch.clientX - rect.left;
+  const touchY = touch.clientY - rect.top;
+  const now = performance.now();
+
+  let speed = 0;
+  if (lastMouse.time) {
+    const dx = touchX - lastMouse.x;
+    const dy = touchY - lastMouse.y;
+    const dtTouch = now - lastMouse.time;
+    speed = Math.hypot(dx, dy) / dtTouch;
+  }
+  lastMouse = { x: touchX, y: touchY, time: now };
+
+  const influenceRadius = 35;
+  const impulseStrength = speed * 5;
+
+  const minI = Math.max(0, Math.floor((touchX - influenceRadius) / config.cellSize));
+  const maxI = Math.min(cols - 1, Math.ceil((touchX + influenceRadius) / config.cellSize));
+  const minJ = Math.max(0, Math.floor((touchY - influenceRadius) / config.cellSize));
+  const maxJ = Math.min(rows - 1, Math.ceil((touchY + influenceRadius) / config.cellSize));
+
+  for (let j = minJ; j <= maxJ; j++) {
+    for (let i = minI; i <= maxI; i++) {
+      const cx = i * config.cellSize + config.cellSize / 2;
+      const cy = j * config.cellSize + config.cellSize / 2;
+      const dist = Math.hypot(cx - touchX, cy - touchY);
+      if (dist < influenceRadius) {
+        const factor = 1 - dist / influenceRadius;
+        grid[j][i] += impulseStrength * factor;
+      }
+    }
+  }
+}
+
+// Touch start creates a ripple effect similar to mouse click.
+function onTouchStart(e) {
+  // Prevent the default touch behavior.
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  const touchX = touch.clientX - rect.left;
+  const touchY = touch.clientY - rect.top;
+  ripples.push({
+    x: touchX,
+    y: touchY,
+    radius: 0,
+    width: config.rippleWidth,
+    intensity: config.rippleIntensity
+  });
+}
+
+// ----- Start the Simulation -----
+window.addEventListener("DOMContentLoaded", init);
+

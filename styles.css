@@ -2,7 +2,7 @@
 
 :root {
     --color-light: hsl(35, 45%, 83%);
-    --color-dark: hsl(199, 83%, 9%);
+    --color-dark: rgb(4, 30, 42);
     --color-primary: hsl(175, 43%, 47%);
     --color-secondary: hsl(175, 39%, 25%);
     --color-link: hsl(22, 100%, 58%);
@@ -235,7 +235,7 @@ td {
 }
 
 #nav-checkbox:checked~#nav-icon {
-    transform: rotate(180deg);
+    transform: rotate(135deg);
 }
 
 #nav-icon svg path {
@@ -246,8 +246,12 @@ td {
     d: path('M0 0 L16 0 L16 16 L0 16 Z')
 }
 
-#nav-checkbox:checked~#nav-icon svg {
-    transform: rotate(180deg);
+/* #nav-checkbox:checked~#nav-icon svg {
+    transform: rotate(45deg);
+} */
+
+#nav-checkbox:checked~#nav-icon svg path {
+    d: path('M0 0 L16 0 L16 16 L0 16 Z');
 }
 
 #nav-checkbox:checked~#nav-icon svg path {
@@ -281,8 +285,6 @@ header {
     display: flex;
     flex-direction: column;
     justify-content: end;
-    /* align-items: center; */
-    /* gap: 64px; */
 }
 
 .intro-content {
@@ -301,10 +303,15 @@ header {
 }
 
 #introduction p {
+    /* display: inline; */
     max-width: 52ch;
     font-size: clamp(1.5rem, 1.3696rem + 0.6522vw, 1.875rem);
     font-weight: 200;
     font-family: "IBM Plex Serif", serif;
+    text-shadow: 0 0 168px 200px hsl(199, 83%, 8%);
+    background-color: var(--bg-color);
+    box-shadow: 0 0 32px 32px var(--bg-color);
+    z-index: 1;
 }
 
 #introduction p span {
@@ -319,6 +326,16 @@ header {
     justify-content: center;
     overflow: hidden;
     stroke: var(--text-color);
+}
+
+#canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    opacity: .8;
+    z-index: 0;
 }
 
 /* Main */
