@@ -193,7 +193,7 @@ const translations = {
     navPersonal: "Experiments",
     navAbout: "About me",
     introText: "I'm Vincent, a product designer with a background in <span>cognitive</span> and <span>computer sciences</span>, driven by a research-backed methodology.",
-    proProjectText: "Discover my vision of design through my professional and personal projects, in the financial space and health.",
+    proProjectText: "Discover my vision of design through my professional and personal projects.",
     persoProjectText: "Beside, I also like to capture pixels and play with 0 and 1s.",
     projectPlaceholder: "Coming soon !",
     projectAccessText: "Go to website",
@@ -569,7 +569,8 @@ window.addEventListener('resize', setupGrid);
 const config = {
   cellSize: 16,             // cell size in pixels (also used as monospace font size)
   damping: 0.99,            // damping factor for wave decay
-  densityScale: " ....---~~~≈≈≈%#@", // ASCII intensity scale low-to-high
+  // densityScale: " ..--~~≈≈%%##@@",
+  densityScale: " ...0123456789", // ASCII intensity scale low-to-high
   rippleSpeed: 600,         // ripple expansion speed in pixels per second
   rippleWidth: 6,           // default ripple ring width
   rippleIntensity: 6,       // default impulse strength from a ripple
@@ -690,7 +691,7 @@ function update(dt) {
 
   // Update the border accumulator.
   borderAccumulator += dt;
-  if (borderAccumulator >= 0.5) {
+  if (borderAccumulator >= 0.01) {
     resetBorderCells();
     borderAccumulator = 0;
   }
@@ -789,6 +790,13 @@ function spawnRandomRipple(dt) {
   }
 }
 
+// Get root CSS values
+function getRootCSSVariable(variableName) {
+  return getComputedStyle(document.documentElement).getPropertyValue(variableName);
+}
+
+let textColor = getRootCSSVariable('--text-color');
+
 // ----- Render Function with Color & Opacity Variations -----
 function render() {
   // Clear the canvas without filling it with a background color.
@@ -814,7 +822,7 @@ function render() {
       const opacity = 0.1 + 0.9 * ratio;
 
       // Set the fill style dynamically.
-      ctx.fillStyle = `rgba(255, 255, 224, ${opacity})`;
+      ctx.fillStyle = `${textColor.replace('rgb', 'rgba').replace(')', `, ${opacity})`)}`;
 
       ctx.fillText(char, x, y);
     }
