@@ -1,5 +1,5 @@
 // ----- Get CSS Variables -----
-// Improved to catch potential errors and return a fallback value.
+// Improved to catch potential errors and validate the returned value.
 function getRootCSSVariable(variableName, defaultVal = "") {
   let value = "";
   try {
@@ -7,16 +7,15 @@ function getRootCSSVariable(variableName, defaultVal = "") {
   } catch (e) {
     console.warn(`Error fetching CSS variable ${variableName}:`, e);
   }
-  return value && value.trim() !== "" ? value.trim() : defaultVal;
+  value = value ? value.trim() : "";
+  return value !== "" ? value : defaultVal;
 }
 
 // ----- Configuration -----
 const config = {
   cellSize: 16,               // pixels
   damping: 0.99,              // wave decay factor
-  // densityScale: " ..--~~≈≈%%##@@",
-  // densityScale: " .0123456789",
-  densityScale: "···--++0011",
+  densityScale: "···--++0011", // characters from lightest to heaviest intensity
   rippleSpeed: 600,           // pixels per second
   rippleWidth: 4,             // ripple ring width
   rippleIntensity: 6,         // impulse strength from a ripple
@@ -43,8 +42,17 @@ let textColor, bgColor, textRGB, bgRGB;
 // ----- Initialization -----
 function init() {
   // Get CSS variable values now – after the DOM and styles are loaded.
+  // Also verify that they look as expected.
   textColor = getRootCSSVariable('--text-color', 'rgb(0, 0, 0)');
+  if (!/^rgb\(/.test(textColor)) {
+    console.warn("Invalid text color retrieved, falling back to rgb(0,0,0)");
+    textColor = "rgb(0,0,0)";
+  }
   bgColor   = getRootCSSVariable('--bg-color', 'rgb(255, 255, 255)');
+  if (!/^rgb\(/.test(bgColor)) {
+    console.warn("Invalid background color retrieved, falling back to rgb(255,255,255)");
+    bgColor = "rgb(255,255,255)";
+  }
   textRGB   = getRootCSSVariable('--rgb-text', '0, 0, 0');
   bgRGB     = getRootCSSVariable('--rgb-bg', '255, 255, 255');
 
@@ -127,7 +135,7 @@ function update(dt) {
   updateWaterWaves();
   updateRipples(dt);
   applyCellDecay();
-  
+
   if (canvas.width < MOBILE_WIDTH_THRESHOLD) {
     spawnRandomRipple(dt);
   }
@@ -143,13 +151,14 @@ function updateWaterWaves() {
   // Classic wave simulation (skip the boundary cells)
   for (let j = 1; j < rows - 1; j++) {
     for (let i = 1; i < cols - 1; i++) {
-      nextGrid[j][i] =
-        (
-          (grid[j][i - 1] || 0) +
-          (grid[j][i + 1] || 0) +
-          (grid[j - 1][i] || 0) +
-          (grid[j + 1][i] || 0)
-        ) / 2 - (prevGrid[j][i] || 0);
+      // Coerce all neighboring cell values to numbers, defaulting to 0.
+      const left = Number(grid[j][i - 1]) || 0;
+      const right = Number(grid[j][i + 1]) || 0;
+      const top = Number(grid[j - 1][i]) || 0;
+      const bottom = Number(grid[j + 1][i]) || 0;
+      const centerPrev = Number(prevGrid[j][i]) || 0;
+      
+      nextGrid[j][i] = ((left + right + top + bottom) / 2) - centerPrev;
       nextGrid[j][i] *= config.damping;
     }
   }
@@ -191,9 +200,8 @@ function updateRipples(dt) {
         const distance = Math.hypot(cx - ripple.x, cy - ripple.y);
         if (distance > ripple.radius - ripple.width && distance < ripple.radius + ripple.width) {
           const factor = 1 - Math.abs(distance - ripple.radius) / ripple.width;
-          // Coerce grid[j][i] to a number and default to 0 as needed.
-          grid[j][i] = Number(grid[j][i]) || 0;
-          grid[j][i] += ripple.intensity * factor;
+          // Ensure grid[j][i] is a number.
+          grid[j][i] = (Number(grid[j][i]) || 0) + ripple.intensity * factor;
         }
       }
     }
@@ -252,12 +260,12 @@ function render() {
   // Draw each cell as an ASCII character based on its intensity.
   for (let j = 0; j < rows; j++) {
     for (let i = 0; i < cols; i++) {
-      // Safely cast cell value to a number; if not finite, use 0.
+      // Safely convert the cell’s value.
       const cellValue = Number(grid[j][i]);
       const safeValue = isFinite(cellValue) ? cellValue : 0;
+      // Compute intensity and clamp it.
       const intensity = Math.min(Math.abs(safeValue), maxIntensity);
       let scaleIndex = Math.floor((intensity / maxIntensity) * (config.densityScale.length - 1));
-      // Clamp scaleIndex between 0 and config.densityScale.length - 1.
       scaleIndex = Math.max(0, Math.min(config.densityScale.length - 1, scaleIndex));
       const char = config.densityScale[scaleIndex] || "0";
 
@@ -266,8 +274,9 @@ function render() {
       const ratio = intensity / maxIntensity;
       const opacity = 0.1 + 0.9 * ratio;
 
-      // Convert rgb to rgba with the computed opacity.
-      ctx.fillStyle = textColor.replace("rgb(", "rgba(").replace(")", `, ${opacity})`);
+      // Ensure our fillStyle is built from a well-formed rgba string.
+      const rgbaColor = textColor.replace("rgb(", "rgba(").replace(")", `, ${opacity})`);
+      ctx.fillStyle = rgbaColor;
       ctx.font = `${config.cellSize / 2}px monospace`;
       ctx.fillText(char, x, y);
     }
