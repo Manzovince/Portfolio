@@ -185,7 +185,7 @@ function updateRipples(dt) {
         const distance = Math.hypot(cx - ripple.x, cy - ripple.y);
         if (distance > ripple.radius - ripple.width && distance < ripple.radius + ripple.width) {
           const factor = 1 - Math.abs(distance - ripple.radius) / ripple.width;
-          grid[j][i] += ripple.intensity * factor;
+          grid[j][i] = (grid[j][i] || 0) + ripple.intensity * factor;
         }
       }
     }
@@ -201,7 +201,8 @@ function applyCellDecay() {
   // Gradually decay all cell intensities.
   for (let j = 0; j < rows; j++) {
     for (let i = 0; i < cols; i++) {
-      grid[j][i] *= config.cellDecayFactor;
+      // Default cell value to 0 if undefined.
+      grid[j][i] = (grid[j][i] || 0) * config.cellDecayFactor;
     }
   }
 }
@@ -236,8 +237,6 @@ function spawnRandomRipple(dt) {
   }
 }
 
-
-
 // ----- Rendering -----
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -246,23 +245,22 @@ function render() {
   // Draw each cell as an ASCII character based on its intensity.
   for (let j = 0; j < rows; j++) {
     for (let i = 0; i < cols; i++) {
-      // Ensure intensity is non-negative.
-      const intensity = Math.min(Math.abs(grid[j][i]), maxIntensity);
+      // Use 0 if the cell value is undefined.
+      const cellValue = grid[j][i] || 0;
+      const intensity = Math.min(Math.abs(cellValue), maxIntensity);
       const scaleIndex = Math.floor(
         (intensity / maxIntensity) * (config.densityScale.length - 1)
       );
-      const char = config.densityScale[scaleIndex];
+      // Fallback to "0" if the density scale lookup is undefined.
+      const char = config.densityScale[scaleIndex] || "0";
       const x = i * config.cellSize + halfCell;
       const y = j * config.cellSize + halfCell;
       const ratio = intensity / maxIntensity;
       const opacity = 0.1 + 0.9 * ratio;
 
-      // Using RGBA dynamically: change 'rgb(' into 'rgba(' and append the opacity.
+      // Dynamically create rgba value.
       ctx.fillStyle = textColor.replace("rgb(", "rgba(").replace(")", `, ${opacity})`);
-      
-      // We adjust the font size here – you can change it as needed.
       ctx.font = `${config.cellSize / 2}px monospace`;
-
       ctx.fillText(char, x, y);
     }
   }
@@ -285,7 +283,7 @@ function applyImpulse(x, y, speed) {
       const dist = Math.hypot(cx - x, cy - y);
       if (dist < influenceRadius) {
         const factor = 1 - dist / influenceRadius;
-        grid[j][i] += impulseStrength * factor;
+        grid[j][i] = (grid[j][i] || 0) + impulseStrength * factor;
       }
     }
   }

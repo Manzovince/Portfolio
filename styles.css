@@ -614,7 +614,7 @@ header {
     gap: 64px;
 }
 
-@media screen and (max-width: 1400px) {
+@media screen and (max-width: 1000px) {
     .project-2col {
         flex-direction: column;
     }
