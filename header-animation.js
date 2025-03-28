@@ -1,7 +1,13 @@
 // ----- Get CSS Variables -----
+// Improved to catch potential errors and return a fallback value.
 function getRootCSSVariable(variableName, defaultVal = "") {
-  const value = getComputedStyle(document.documentElement).getPropertyValue(variableName);
-  return value.trim() || defaultVal;
+  let value = "";
+  try {
+    value = getComputedStyle(document.documentElement).getPropertyValue(variableName);
+  } catch (e) {
+    console.warn(`Error fetching CSS variable ${variableName}:`, e);
+  }
+  return value && value.trim() !== "" ? value.trim() : defaultVal;
 }
 
 // ----- Configuration -----
@@ -139,15 +145,15 @@ function updateWaterWaves() {
     for (let i = 1; i < cols - 1; i++) {
       nextGrid[j][i] =
         (
-          grid[j][i - 1] +
-          grid[j][i + 1] +
-          grid[j - 1][i] +
-          grid[j + 1][i]
-        ) / 2 - prevGrid[j][i];
+          (grid[j][i - 1] || 0) +
+          (grid[j][i + 1] || 0) +
+          (grid[j - 1][i] || 0) +
+          (grid[j + 1][i] || 0)
+        ) / 2 - (prevGrid[j][i] || 0);
       nextGrid[j][i] *= config.damping;
     }
   }
-  // Swap buffers
+  // Swap buffers.
   const temp = prevGrid;
   prevGrid = grid;
   grid = nextGrid;
@@ -185,7 +191,9 @@ function updateRipples(dt) {
         const distance = Math.hypot(cx - ripple.x, cy - ripple.y);
         if (distance > ripple.radius - ripple.width && distance < ripple.radius + ripple.width) {
           const factor = 1 - Math.abs(distance - ripple.radius) / ripple.width;
-          grid[j][i] = (grid[j][i] || 0) + ripple.intensity * factor;
+          // Coerce grid[j][i] to a number and default to 0 as needed.
+          grid[j][i] = Number(grid[j][i]) || 0;
+          grid[j][i] += ripple.intensity * factor;
         }
       }
     }
@@ -201,8 +209,7 @@ function applyCellDecay() {
   // Gradually decay all cell intensities.
   for (let j = 0; j < rows; j++) {
     for (let i = 0; i < cols; i++) {
-      // Default cell value to 0 if undefined.
-      grid[j][i] = (grid[j][i] || 0) * config.cellDecayFactor;
+      grid[j][i] = (Number(grid[j][i]) || 0) * config.cellDecayFactor;
     }
   }
 }
@@ -245,20 +252,21 @@ function render() {
   // Draw each cell as an ASCII character based on its intensity.
   for (let j = 0; j < rows; j++) {
     for (let i = 0; i < cols; i++) {
-      // Use 0 if the cell value is undefined.
-      const cellValue = grid[j][i] || 0;
-      const intensity = Math.min(Math.abs(cellValue), maxIntensity);
-      const scaleIndex = Math.floor(
-        (intensity / maxIntensity) * (config.densityScale.length - 1)
-      );
-      // Fallback to "0" if the density scale lookup is undefined.
+      // Safely cast cell value to a number; if not finite, use 0.
+      const cellValue = Number(grid[j][i]);
+      const safeValue = isFinite(cellValue) ? cellValue : 0;
+      const intensity = Math.min(Math.abs(safeValue), maxIntensity);
+      let scaleIndex = Math.floor((intensity / maxIntensity) * (config.densityScale.length - 1));
+      // Clamp scaleIndex between 0 and config.densityScale.length - 1.
+      scaleIndex = Math.max(0, Math.min(config.densityScale.length - 1, scaleIndex));
       const char = config.densityScale[scaleIndex] || "0";
+
       const x = i * config.cellSize + halfCell;
       const y = j * config.cellSize + halfCell;
       const ratio = intensity / maxIntensity;
       const opacity = 0.1 + 0.9 * ratio;
 
-      // Dynamically create rgba value.
+      // Convert rgb to rgba with the computed opacity.
       ctx.fillStyle = textColor.replace("rgb(", "rgba(").replace(")", `, ${opacity})`);
       ctx.font = `${config.cellSize / 2}px monospace`;
       ctx.fillText(char, x, y);
@@ -283,7 +291,7 @@ function applyImpulse(x, y, speed) {
       const dist = Math.hypot(cx - x, cy - y);
       if (dist < influenceRadius) {
         const factor = 1 - dist / influenceRadius;
-        grid[j][i] = (grid[j][i] || 0) + impulseStrength * factor;
+        grid[j][i] = (Number(grid[j][i]) || 0) + impulseStrength * factor;
       }
     }
   }
