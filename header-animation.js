@@ -1,12 +1,8 @@
 // ----- Get CSS Variables -----
-function getRootCSSVariable(variableName) {
-  return getComputedStyle(document.documentElement).getPropertyValue(variableName);
+function getRootCSSVariable(variableName, defaultVal = "") {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(variableName);
+  return value.trim() || defaultVal;
 }
-
-const textColor = getRootCSSVariable('--text-color');
-const bgColor = getRootCSSVariable('--bg-color');
-const textRGB = getRootCSSVariable('--rgb-text');
-const bgRGB = getRootCSSVariable('--rgb-bg');
 
 // ----- Configuration -----
 const config = {
@@ -14,13 +10,15 @@ const config = {
   damping: 0.99,              // wave decay factor
   // densityScale: " ..--~~≈≈%%##@@",
   // densityScale: " .0123456789",
-  densityScale: "···--++01",
+  densityScale: "···--++0011",
   rippleSpeed: 600,           // pixels per second
   rippleWidth: 4,             // ripple ring width
   rippleIntensity: 6,         // impulse strength from a ripple
   cellDecayFactor: 0.99       // overall decay factor per update
 };
+
 const maxIntensity = config.densityScale.length;
+const MOBILE_WIDTH_THRESHOLD = 768;
 
 // ----- Globals -----
 let canvas, ctx;
@@ -33,8 +31,20 @@ let lastTimestamp = null;
 let lastRenderTime = null;
 const renderInterval = 30;  // render throttling (ms)
 
+// These will be set after the DOM is loaded.
+let textColor, bgColor, textRGB, bgRGB;
+
 // ----- Initialization -----
 function init() {
+  // Get CSS variable values now – after the DOM and styles are loaded.
+  textColor = getRootCSSVariable('--text-color', 'rgb(0, 0, 0)');
+  bgColor   = getRootCSSVariable('--bg-color', 'rgb(255, 255, 255)');
+  textRGB   = getRootCSSVariable('--rgb-text', '0, 0, 0');
+  bgRGB     = getRootCSSVariable('--rgb-bg', '255, 255, 255');
+
+  // Optionally set a background color on the body.
+  document.body.style.backgroundColor = bgColor;
+
   canvas = document.createElement("canvas");
   canvas.id = "canvas";
   ctx = canvas.getContext("2d");
@@ -111,7 +121,10 @@ function update(dt) {
   updateWaterWaves();
   updateRipples(dt);
   applyCellDecay();
-  spawnRandomRipple(dt);
+  
+  if (canvas.width < MOBILE_WIDTH_THRESHOLD) {
+    spawnRandomRipple(dt);
+  }
 
   borderAccumulator += dt;
   if (borderAccumulator >= 0.1) {
@@ -233,6 +246,7 @@ function render() {
   // Draw each cell as an ASCII character based on its intensity.
   for (let j = 0; j < rows; j++) {
     for (let i = 0; i < cols; i++) {
+      // Ensure intensity is non-negative.
       const intensity = Math.min(Math.abs(grid[j][i]), maxIntensity);
       const scaleIndex = Math.floor(
         (intensity / maxIntensity) * (config.densityScale.length - 1)
@@ -243,9 +257,12 @@ function render() {
       const ratio = intensity / maxIntensity;
       const opacity = 0.1 + 0.9 * ratio;
 
-      // Use RGBA dynamically by replacing the closing bracket with an opacity value.
-      ctx.fillStyle = textColor.replace('rgb', 'rgba').replace(')', `, ${opacity})`);
+      // Using RGBA dynamically: change 'rgb(' into 'rgba(' and append the opacity.
+      ctx.fillStyle = textColor.replace("rgb(", "rgba(").replace(")", `, ${opacity})`);
+      
+      // We adjust the font size here – you can change it as needed.
       ctx.font = `${config.cellSize / 2}px monospace`;
+
       ctx.fillText(char, x, y);
     }
   }

@@ -28,7 +28,10 @@ class NavComponent extends HTMLElement {
       <nav id="nav">
         <div class="page-path">
           <a id="path" href="./index.html#introduction">
-              <div>Vincent Manzoni</div>
+              <!-- <div>Vincent Manzoni</div> -->
+            <svg width="32" height="16" viewBox="0 0 32 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0 0 L16 0 L24 8 L32 0 L32 16 L16 16 L16 0 L0 16" fill="currentColor"/>
+            </svg>
           </a>
           <div id="page-name-container" style="display: none;">
             <div class="path-separator">/</div>
