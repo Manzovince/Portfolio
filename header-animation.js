@@ -1,21 +1,13 @@
-// ----- Get CSS Variables -----
-// Improved to catch potential errors and validate the returned value.
-function getRootCSSVariable(variableName, defaultVal = "") {
-  let value = "";
-  try {
-    value = getComputedStyle(document.documentElement).getPropertyValue(variableName);
-  } catch (e) {
-    console.warn(`Error fetching CSS variable ${variableName}:`, e);
-  }
-  value = value ? value.trim() : "";
-  return value !== "" ? value : defaultVal;
+// Get CSS Variables
+function getRootCSSVariable(variableName) {
+  return getComputedStyle(document.documentElement).getPropertyValue(variableName)?.trim() || "";
 }
 
 // ----- Configuration -----
 const config = {
   cellSize: 16,               // pixels
   damping: 0.99,              // wave decay factor
-  densityScale: "···--++0011", // characters from lightest to heaviest intensity
+  densityScale: "···-~++0011", // characters from lightest to heaviest intensity
   rippleSpeed: 600,           // pixels per second
   rippleWidth: 4,             // ripple ring width
   rippleIntensity: 6,         // impulse strength from a ripple
@@ -42,48 +34,37 @@ let textColor, bgColor, textRGB, bgRGB;
 // ----- Initialization -----
 function init() {
   // Get CSS variable values now – after the DOM and styles are loaded.
-  // Also verify that they look as expected.
-  textColor = getRootCSSVariable('--text-color', 'rgb(0, 0, 0)');
-  if (!/^rgb\(/.test(textColor)) {
-    console.warn("Invalid text color retrieved, falling back to rgb(0,0,0)");
-    textColor = "rgb(0,0,0)";
-  }
-  bgColor   = getRootCSSVariable('--bg-color', 'rgb(255, 255, 255)');
-  if (!/^rgb\(/.test(bgColor)) {
-    console.warn("Invalid background color retrieved, falling back to rgb(255,255,255)");
-    bgColor = "rgb(255,255,255)";
-  }
-  textRGB   = getRootCSSVariable('--rgb-text', '0, 0, 0');
-  bgRGB     = getRootCSSVariable('--rgb-bg', '255, 255, 255');
-
-  // Optionally set a background color on the body.
-  document.body.style.backgroundColor = bgColor;
+  textColor = getRootCSSVariable('--text-color');
+  bgColor = getRootCSSVariable('--bg-color');
+  textRGB = getRootCSSVariable('--rgb-text');
+  bgRGB = getRootCSSVariable('--rgb-bg');
+  // document.body.style.backgroundColor = bgColor;
 
   canvas = document.createElement("canvas");
   canvas.id = "canvas";
   ctx = canvas.getContext("2d");
   document.body.appendChild(canvas);
 
-  // Set up text rendering properties.
+  // Set up text rendering properties
   ctx.font = `${config.cellSize}px monospace`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  // Position the canvas.
+  // Position the canvas
   canvas.style.position = "absolute";
   canvas.style.top = 0;
   canvas.style.left = 0;
 
-  // Set the canvas size and create our simulation grids.
+  // Set the canvas size and create our simulation grids
   resizeCanvas();
   createGrid();
 
-  // Register event listeners.
+  // Register event listeners
   window.addEventListener("resize", onWindowResize);
   canvas.addEventListener("mousemove", onPointerMove);
   canvas.addEventListener("click", onPointerClick);
 
-  // Start the animation loop.
+  // Start the animation loop
   requestAnimationFrame(loop);
 }
 
@@ -157,7 +138,7 @@ function updateWaterWaves() {
       const top = Number(grid[j - 1][i]) || 0;
       const bottom = Number(grid[j + 1][i]) || 0;
       const centerPrev = Number(prevGrid[j][i]) || 0;
-      
+
       nextGrid[j][i] = ((left + right + top + bottom) / 2) - centerPrev;
       nextGrid[j][i] *= config.damping;
     }
@@ -175,22 +156,10 @@ function updateRipples(dt) {
     ripple.radius += config.rippleSpeed * dt; // expand the ripple
 
     // Calculate affected grid cell boundaries.
-    const minI = Math.max(
-      0,
-      Math.floor((ripple.x - ripple.radius - ripple.width) / config.cellSize)
-    );
-    const maxI = Math.min(
-      cols - 1,
-      Math.ceil((ripple.x + ripple.radius + ripple.width) / config.cellSize)
-    );
-    const minJ = Math.max(
-      0,
-      Math.floor((ripple.y - ripple.radius - ripple.width) / config.cellSize)
-    );
-    const maxJ = Math.min(
-      rows - 1,
-      Math.ceil((ripple.y + ripple.radius + ripple.width) / config.cellSize)
-    );
+    const minI = Math.max(0, Math.floor((ripple.x - ripple.radius - ripple.width) / config.cellSize));
+    const maxI = Math.min(cols - 1, Math.ceil((ripple.x + ripple.radius + ripple.width) / config.cellSize));
+    const minJ = Math.max(0, Math.floor((ripple.y - ripple.radius - ripple.width) / config.cellSize));
+    const maxJ = Math.min(rows - 1, Math.ceil((ripple.y + ripple.radius + ripple.width) / config.cellSize));
 
     // Apply the ripple impulse to nearby cells.
     for (let j = minJ; j <= maxJ; j++) {

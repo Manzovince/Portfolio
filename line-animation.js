@@ -191,21 +191,3 @@ const waterLine = new WaterLineAnimation('.water-line', {
     numPoints: 100,
     scrollSensitivity: 1
 });
-
-
-/* Mobile project tile effect
-   Only for small screens (width < 400px) – toggles image opacity on intersection */
-document.addEventListener('DOMContentLoaded', () => {
-    if (window.innerWidth < 400) {
-        document.querySelectorAll('.project-tile').forEach(tile => {
-            const images = tile.querySelectorAll('.project-cover img');
-            const observer = new IntersectionObserver(entries => {
-                entries.forEach(({ isIntersecting }) => {
-                    images[0].style.opacity = isIntersecting ? '1' : '0';
-                    images[1].style.opacity = isIntersecting ? '0' : '1';
-                });
-            }, { threshold: 0.8 });
-            observer.observe(tile);
-        });
-    }
-});
