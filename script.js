@@ -7,6 +7,18 @@ const translations = {
     navAbout: "About me",
     introText: "I'm Vincent, a product designer with a background in <span>cognitive</span> and <span>computer sciences</span>, driven by a research-backed methodology.",
     proProjectText: "Discover my vision of design through my professional and personal projects.",
+    tagPhoto: "Photography",
+    tagDesign: "Design",
+    tagDev: "Dev",
+    tagResearch: "Research",
+    sealensDesc: "An aquatic immersive exposition",
+    sealens1: "Sealens is a photographic exhibition about the Mediterranean Sea, which invites you to explore the underwater landscapes and meet its inhabitants during a freedive.",
+    sealens2: "Each dive tells a new story, delicately revealing the beauty and fragility of a world we never imagined. Let yourself be carried by the currents, observe with respect, and let the Mediterranean whisper its secrets.",
+    sealens3: "Our project was born from a simple conviction: understanding is key to better protection. <br><br> Each image is a testimony, each view an invitation to become aware of the richness and vulnerability of our maritime heritage. <br><br> It's an ode to the ocean, a visual journey that awakens as much as it amazes. Through our images, we seek to capture the essence of a vibrant world, shaped by thousands of years of history.",
+    sealens4: "Whether you're a seasoned diver or simply curious, Sealens invites you to immerse yourself in the magic of these hidden worlds. Together, let's imagine a future where harmony between man and the sea is not a dream, but a reality.",
+    iso20022Desc: "Helping clients transition to a new financial standard",
+    popinDesc: "The chatbot that makes babies and parents sleep",
+    sgmDesignDesc: "Redesign and migration of a product design team website",
     persoProjectText: "Beside, I also like to capture pixels and play with 0 and 1s.",
     projectPlaceholder: "Coming soon !",
     projectAccessText: "Explore the site",
@@ -22,7 +34,20 @@ const translations = {
     popin3: "When we had all we need : personas, user flows, Q/A content, and a new face for Pop-in, we needed to structure a discussion to make users understand who Pop-in is, what she does and how to talk to her. I tested multiple platforms before finding the write one. It was a way for me to learn how chatbots works, and to quickly get parents interested. Our final solution was to use DialogFlow for a good Natural Language Understanding, and ManyChat, a chatbot development plateform for Facebook Messenger. <br><br> We also needed a website to showcase our goals and values. After making the sitemap, I designed a few prototypes of the website in Adobe XD, to show to parents and coachs how a platform enables them to start a coaching, and launched it using Wix.",
     popin4: "Our chatbot can answer more than 100 questions about sleep and baby health, but is this enough ? Parents can have access to information quickly, and some of our elaborate answers provide an great source of help. But are we missing something ? <br><br> Science facts and tips are great, but to really help parents, they need more than a chatbot. And because every child is different, it was impossible for us to give super personalized answers with Pop-in. And who is the best placed to understand and resolve child's sleep problems ? Specialists ! Around the world, their are a lot a sleep coachs, but in France, it's not well known. And we had to change this. That's why we decided to bring professionals of babies sleep to help parents in their journey.",
     aboutTitle: "About me",
-    aboutText: "I am a lifelong learner, dedicated in making the product and services that surround us more human-centered. Experience has taught me where to focus my energy to make the best out of a project. Designing the things that surround us, I value design that has a positive impact on society. Besides, I enjoy running, swimming and climbing!"
+    aboutText: "I am a lifelong learner, dedicated in making the product and services that surround us more human-centered. Experience has taught me where to focus my energy to make the best out of a project. Designing the things that surround us, I value design that has a positive impact on society. Besides, I enjoy running, swimming and climbing!",
+    experienceTitle: "Experience",
+    expUXText: "Designer of multiple services across various business lines, and co-lead of the Design System team. Find out more at <a href='https://info.sgmarkets.com/' class='link'>SG Markets</a> and our <a href='https://design.sgmarkets.com/' class='link'>design team website</a>.",
+    expTeacherTitle:"UX Design teacher",
+    expTeacherText: "Lectures and workshops with students from the Multimedia and Internet professions program. These courses concluded in end-of-year projects ranging from user research to website development.",
+    expPopinTitle:"UX designer and developer",
+    expPopinText: "Alongside an entrepreneur and a psychologist, I contributed to the development of Pop-in, one of the first chatbots designed to help young children (and their parents) have more restful nights, offering advice and a sleep support program.",
+    educationTitle: "Education",
+    eduEMText: "One-year apprenticeship, learning user research, UI design, and the principles that underpin effective digital experiences.",
+    edu42Title: "Developer",
+    edu42Title: "Developer",
+    edu42Text: "At 42 Paris, I embraced a unique education model, immersing myself in computer science through hands-on projects, from shell scripts to programs in C and Machine learning.",
+    eduMasterTitle: "Psychology & neurosciences of movement",
+    eduMasterText: "My academic foundation in Psychology, paired with extensive research into intelligent systems, has deepened my understanding of how cognitive processes and embodied experiences shape human consciousness. <br><br> Discovering the exciting world of scientific research, this interdisciplinary approach ended with a dissertation exploring the intersection of sensory integration and body awareness, using the famous <i>Rubber hand illusion</i>."
   },
   fr: {
     navProcess: "Méthodologie",
@@ -30,10 +55,22 @@ const translations = {
     navPersonal: "Expérimentations",
     navAbout: "A propos",
     introText: "Moi, c'est Vincent, un <span>product designer</span> avec une formation en sciences cognitives et informatiques, guidé par une méthodologie basée sur la recherche.",
-    proProjectText: "Découvrez ma vision du design à travers mes projets professionels, de la finance à la santé.",
+    proProjectText: "Découvrez ma vision du design à travers mes projets professionels et personnels.",
+    tagPhoto: "Photographie",
+    tagDesign: "Design",
+    tagDev: "Développement",
+    tagResearch: "Recherche",
+    sealensDesc: "Une exposition aquatique immersive",
+    iso20022Desc: "Aider les clients à passer à un nouveau standard financier",
+    popinDesc: "Le chatbot qui fait dormir les bébés et les parents",
+    sgmDesignDesc: "Redesign et migration du site de l'équipe design",
     persoProjectText: "À côté, j'aime aussi capturer des pixels et jouer avec des 0 et des 1.",
     projectPlaceholder: "Bientôt disponible !",
     projectAccessText: "Voir le site",
+    sealens1: "Sealens est une exposition photographique sur la mer Méditerranée, qui vous invite à explorer les paysages sous-marins et à rencontrer ses habitants lors d'une plongée libre.",
+    sealens2: "Chaque plongée raconte une nouvelle histoire, révélant délicatement la beauté et la fragilité d'un monde que nous n'avons jamais imaginé. Laissez-vous porter par les courants, observez avec respect et laissez la Méditerranée murmurer ses secrets.",
+    sealens3: "Notre projet est né d'une conviction simple : comprendre est la clé d'une meilleure protection. <br><br> Chaque image est un témoignage, chaque vue une invitation à prendre conscience de la richesse et de la vulnérabilité de notre patrimoine maritime. <br><br> C'est une ode à l'océan, un voyage visuel qui éveille autant qu'il émerveille. À travers nos images, nous cherchons à capturer l'essence d'un monde vibrant, façonné par des milliers d'années d'histoire.",
+    sealens4: "Que vous soyez un plongeur chevronné ou simplement curieux, Sealens vous invite à plonger dans la magie de ces mondes cachés. Ensemble, imaginons un avenir où l'harmonie entre l'homme et la mer n'est pas un rêve, mais une réalité.",
     sgmIsoTitle: "Un nouveau standard financier",
     sgmIso1: "Ce service a été créé lors d'un challenge, pour permettre aux clients de vérifier le format de leur fichier de transactions de paiement par rapport à la norme ISO (ISO20022) pour l'échange de données électroniques entre les institutions financières.",
     sgmIso2: "Nous avons créé une page d'accueil qui présente la nouvelle norme ISO 20022, ainsi que quelques conseils sur la manière de réussir une migration, et une zone de téléchargement pour ajouter un ou plusieurs fichiers. <br><br> Après l'upload d'un fichier, le document est analysé localement et permet aux clients de prévisualiser toutes les informations de manière lisible, soit en se focalisant uniquement sur les erreurs s'il y en a, soit avec tout les éléments du fichier. Chaque erreur est mises en évidence lorsqu'elles sont détectées, et est accompagnée de détails sur la manière de la résoudre. <br><br>",
@@ -46,7 +83,19 @@ const translations = {
     popin3: "Lorsque nous avions tout ce dont nous avions besoin : personas, user flows, contenu Q/A, et un nouveau visage pour Pop-in, nous devions structurer une discussion pour faire comprendre aux utilisateurs qui est Pop-in, ce qu'elle fait et comment lui parler. J'ai testé plusieurs plateformes avant de trouver la bonne. C'était un moyen pour moi d'apprendre comment fonctionnent les chatbots, et de rapidement intéresser les parents. Notre solution finale a été d'utiliser DialogFlow pour une bonne compréhension du langage naturel, et ManyChat, une plateforme de développement de chatbot pour Facebook Messenger. <br><br> Nous avions également besoin d'un site web pour présenter nos objectifs et nos valeurs. Après la construction d'une sitemap, j'ai conçu quelques prototypes du site web dans Adobe XD, pour montrer aux parents et aux coachs comment une plateforme leur permet de commencer un coaching, et l'ai lancé en utilisant Wix.",
     popin4: "Notre chatbot peut répondre à plus de 100 questions sur le sommeil et la santé des bébés, mais est-ce suffisant ? Les parents peuvent accéder rapidement à des informations, et certaines de nos réponses élaborées fournissent une grande source d'aide. Mais manquons-nous quelque chose ? Les faits scientifiques et les conseils sont excellents, mais pour vraiment aider les parents, ils ont besoin de plus qu'un chatbot. Et parce que chaque enfant est différent, il nous était impossible de donner des réponses super personnalisées avec Pop-in. Et qui est le mieux placé pour comprendre et résoudre les problèmes de sommeil des enfants ? Les spécialistes ! Dans le monde entier, il y a beaucoup de coachs du sommeil, mais en France, ce n'est pas bien connu. Et nous devions changer cela. C'est pourquoi nous avons décidé de faire venir des professionnels du sommeil des bébés pour aider les parents dans leur parcours.",
     aboutTitle: "A propos de moi",
-    aboutText: "Je suis un éternel curieux, dédié à rendre les produits et services qui nous entourent plus centrés sur l'humain. L'expérience m'a appris où concentrer mon énergie pour tirer le meilleur parti d'un projet. En concevant les choses qui nous entourent, je valorise le design qui a un impact positif. En dehors de cela, j'aime courir, nager et grimper !"
+    aboutText: "Je suis un éternel curieux, dédié à rendre les produits et services qui nous entourent plus centrés sur l'humain. L'expérience m'a appris où concentrer mon énergie pour tirer le meilleur parti d'un projet. En concevant les choses qui nous entourent, je valorise le design qui a un impact positif. En dehors de cela, j'aime courir, nager et grimper !",
+    experienceTitle: "Expérience",
+    expUXText: "Designer de plusieurs services à travers différentes lignes de métier, et co-leader de l'équipe Design System. Découvrez-en plus sur <a href='https://info.sgmarkets.com/' class='link'>SG Markets</a> et notre <a href='https://design.sgmarkets.com/' class='link'>site de design</a>.",
+    expTeacherTitle:"Enseignant en UX Design",
+    expTeacherText: "Cours et ateliers avec des étudiants du programme Métiers du Multimédia et de l'Internet. Ces cours se sont terminés par des projets de fin d'année allant de la recherche utilisateur à la création de sites web.",
+    expPopinTitle:"UX designer et développeur",
+    expPopinText: "Aux côtés d'une entrepreneuse et d'une psychologue, j'ai contribué au développement de Pop-in, l'un des premiers chatbots conçu pour aider les jeunes enfants (et leurs parents) à passer de meilleures nuits, en offrant des conseils et un programme de soutien au sommeil.",
+    educationTitle: "Formation",
+    eduEMText: "Apprentissage d'un an, apprenant la recherche utilisateur, le design UI et les principes qui sous-tendent des expériences numériques efficaces.",
+    edu42Title: "Développeur",
+    edu42Text: "À 42 Paris, j'ai adopté un modèle éducatif unique, m'immergeant dans l'informatique à travers des projets pratiques, des scripts shell aux programmes en C et au Machine learning.",
+    eduMasterTitle:"Psychologie & neurosciences du mouvement",
+    eduMasterText: "Ma formation académique en psychologie, associée à des recherches approfondies sur les systèmes intelligents, a approfondi ma compréhension de la manière dont les processus cognitifs et les expériences incarnées façonnent la conscience humaine. <br><br> Découvrant le monde passionnant de la recherche scientifique, cette approche interdisciplinaire s'est terminée par une thèse explorant l'intersection de l'intégration sensorielle et de la conscience corporelle, utilisant le célèbre <i>Rubber hand illusion</i>."
   }
 };
 
@@ -61,11 +110,6 @@ function translate(lang, root = document) {
 // Initial load
 translate('en');
 
-// Language selector
-// document.getElementById('lang').addEventListener('change',
-//   e => translate(e.target.value)
-// );
-
 // ------ Web components ------
 // Navbar
 class NavComponent extends HTMLElement {
@@ -73,7 +117,7 @@ class NavComponent extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
     this.currentPageName = '';
-    this.availableLanguages = ['English', 'Français (en cours)'];
+    this.availableLanguages = ['English', 'Français'];
     this.availableThemes = ['Dark theme', 'Light theme'];
   }
 
