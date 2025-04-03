@@ -241,7 +241,7 @@ function render() {
       const x = i * config.cellSize + halfCell;
       const y = j * config.cellSize + halfCell;
       const ratio = intensity / maxIntensity;
-      const opacity = 0.1 + 0.9 * ratio;
+      const opacity = 0.2 + 0.8 * ratio;
 
       // Ensure our fillStyle is built from a well-formed rgba string.
       const rgbaColor = textColor.replace("rgb(", "rgba(").replace(")", `, ${opacity})`);
