@@ -7,7 +7,8 @@ function getRootCSSVariable(variableName) {
 const config = {
   cellSize: 16,               // pixels
   damping: 0.99,              // wave decay factor
-  densityScale: "···-~++0011", // characters from lightest to heaviest intensity
+  densityScale: "···--~~++0011", // characters from lightest to heaviest intensity
+  // densityScale: "..*01", 
   rippleSpeed: 600,           // pixels per second
   rippleWidth: 4,             // ripple ring width
   rippleIntensity: 6,         // impulse strength from a ripple
@@ -40,10 +41,8 @@ function init() {
   bgRGB = getRootCSSVariable('--rgb-bg');
   // document.body.style.backgroundColor = bgColor;
 
-  canvas = document.createElement("canvas");
-  canvas.id = "canvas";
+  canvas = document.getElementById("header-canvas");
   ctx = canvas.getContext("2d");
-  document.body.appendChild(canvas);
 
   // Set up text rendering properties
   ctx.font = `${config.cellSize}px monospace`;
@@ -222,9 +221,10 @@ function spawnRandomRipple(dt) {
 }
 
 // ----- Rendering -----
+const halfCell = config.cellSize / 2;
+
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const halfCell = config.cellSize / 2;
 
   // Draw each cell as an ASCII character based on its intensity.
   for (let j = 0; j < rows; j++) {

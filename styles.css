@@ -118,12 +118,6 @@ td {
     border: 1px solid;
 }
 
-/* Media */
-
-/* img {
-    max-height: 100vh;
-} */
-
 /* Utilities */
 
 .d-none {
@@ -156,29 +150,28 @@ td {
     z-index: 999;
 }
 
+/* Simplified hover effects for #path */
 #path {
     font-size: 16px;
     font-weight: 300;
     display: flex;
     align-items: center;
     gap: 8px;
-    box-sizing: border-box;
-    border: solid 1px transparent;
-    opacity: .8;
-    transition: all ease-in-out .25s;
+    border: 1px solid transparent;
+    opacity: 0.8;
+    transition: all 0.25s ease-in-out;
 }
 
 #path:hover {
     opacity: 1;
-    border: solid 1px var(--text-color);
+    border-color: var(--text-color);
 }
 
 #path svg path {
-    transition: all ease-in-out .25s;
+    transition: all 0.25s ease-in-out;
 }
 
 #path:hover svg path {
-    /* d: path('M0 0H16L24 0L32 0V16H16V0L16 16L0 16V0Z'); */
     d: path('M16 16 L16 0 L24 8 L32 0 L32 0 L16 0 L16 0 L0 16');
 }
 
@@ -201,24 +194,24 @@ td {
     font-weight: 400;
 }
 
+/* Navbar dropdown */
 #nav-dropdown {
     position: absolute;
     top: -32px;
     width: 100vw;
-    padding: 32px;
-    padding-top: 96px;
+    padding: 96px 32px 32px;
     left: 0;
     z-index: -1;
     opacity: 0;
     pointer-events: none;
     transition: all 0.3s ease-in-out;
-    align-items: end;
+    display: flex;
+    align-items: flex-end;
     justify-content: space-between;
     gap: 16px;
     background-color: rgba(var(--rgb-bg), 0.8);
-    border-bottom: solid 1px rgba(var(--rgb-text), .1);
+    border-bottom: 1px solid rgba(var(--rgb-text), 0.1);
     backdrop-filter: blur(12px);
-    display: flex;
 }
 
 #nav-checkbox {
@@ -229,15 +222,14 @@ td {
     top: 0;
     opacity: 1;
     pointer-events: all;
-    transition: all 0.3s ease-in-out;
 }
 
 /* Navbar icon interactions */
 
 #nav-icon {
     cursor: pointer;
-    opacity: .8;
-    transition: all ease-in .2s;
+    opacity: 0.8;
+    transition: all 0.2s ease-in;
 }
 
 #nav-icon:hover {
@@ -253,22 +245,15 @@ td {
 }
 
 #nav-icon svg path {
-    transition: all ease-in .2s;
+    transition: all 0.2s ease-in;
 }
 
 #nav-icon:hover svg path {
-    d: path('M0 0 L16 0 L16 16 L0 16 Z')
-}
-
-/* #nav-checkbox:checked~#nav-icon svg {
-    transform: rotate(45deg);
-} */
-
-#nav-checkbox:checked~#nav-icon svg path {
     d: path('M0 0 L16 0 L16 16 L0 16 Z');
 }
 
 #nav-checkbox:checked~#nav-icon svg path {
+    d: path('M0 0 L16 0 L16 16 L0 16 Z');
     stroke: var(--text-color);
     stroke-width: 2px;
     fill: transparent;
@@ -360,21 +345,16 @@ header {
     max-width: var(--max-width-container);
     margin-inline: auto;
     min-height: 100dvh;
-    /* max-width: 1000px; */
-    margin: auto;
-    padding: 32px;
-    padding-bottom: 64px;
+    padding: 32px 32px 64px;
     display: flex;
     flex-direction: column;
-    justify-content: end;
+    justify-content: flex-end;
 }
 
 .intro-content {
     margin-top: 128px;
     display: flex;
     flex-wrap: wrap;
-    /* align-items: center; */
-    /* justify-content: end; */
     gap: 48px;
 }
 
@@ -385,14 +365,13 @@ header {
 }
 
 #introduction p {
-    /* display: inline; */
     max-width: 52ch;
     font-size: clamp(1.5rem, 1.3696rem + 0.6522vw, 1.875rem);
     font-weight: 200;
     font-family: "IBM Plex Serif", serif;
     text-shadow: 0 0 168px 200px hsl(199, 83%, 8%);
     background-color: var(--bg-color);
-    box-shadow: 0 0 32px 32px var(--bg-color);
+    box-shadow: 0 0 24px 24px var(--bg-color);
     z-index: 1;
 }
 
@@ -409,7 +388,7 @@ header {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    stroke: rgba(var(--rgb-text), .2);
+    stroke: rgba(var(--rgb-text), 0.2);
     z-index: 99;
 }
 
@@ -419,7 +398,7 @@ header {
     left: 0;
     width: 100vw;
     height: 100vh;
-    opacity: .8;
+    opacity: 0.8;
     z-index: 0;
 }
 

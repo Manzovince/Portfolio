@@ -151,6 +151,13 @@ class NavComponent extends HTMLElement {
     // Apply the saved language
     translate(savedLanguage); // Update main document
     translate(savedLanguage, this.shadowRoot); // Update shadowRoot for NavComponent
+
+    // Set the current page name from the page-name attribute
+    const pageName = this.getAttribute('page-name');
+    if (pageName) {
+      this.currentPageName = pageName;
+      this.updatePageNameDisplay();
+    }
   }
 
   toggleLanguage() {
