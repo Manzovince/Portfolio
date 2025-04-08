@@ -15,6 +15,7 @@ const keys = keyboard.getElementsByClassName('key');
 
 // Update informations
 const chordPatterns = {
+    // Single Intervals
     '0': '+ min Second',
     '1': '+ Second',
     '2': '+ min Third',
@@ -27,18 +28,72 @@ const chordPatterns = {
     '9': '+ min Seventh',
     '10': '+ Seventh',
     '11': '+ Octave',
+
+    // Triads
     '3,2': 'Maj',
     '2,3': 'min',
     '2,2': 'Dim',
     '3,3': 'Aug',
     '1,4': 'sus2',
     '4,1': 'sus4',
+
+    // Triad Inversions
+    '2,7': 'Maj 1st Inv',
+    '7,3': 'Maj 2nd Inv',
+    '3,7': 'min 1st Inv',
+    '7,2': 'min 2nd Inv',
+
+    // Sixth chords
     '3,2,1': 'Maj 6th',
     '2,3,1': 'min 6th',
+
+    // Seventh chords
     '3,2,2': 'Dom 7th',
     '3,2,3': 'Maj 7th',
     '2,3,2': 'min 7th',
     '2,2,2': 'Dim 7th',
+
+    // Seventh chord inversions
+    '2,2,3': 'Dom 7th (1st Inv)',
+    '2,3,2': 'Dom 7th (2nd Inv)',
+    '3,2,2': 'Dom 7th (3rd Inv)',
+
+    // Add chords
+    '3,1,3': 'Maj Add 9',
+    '2,1,3': 'min Add 9',
+    '3,2,4': 'Maj Add 11',
+    '2,3,4': 'min Add 11',
+
+    // Ninth chords
+    '3,2,2,4': 'Dom 9th',
+    '3,2,3,3': 'Maj 9th',
+    '2,3,2,3': 'min 9th',
+    '2,2,2,3': 'Dim 9th',
+
+    // Eleventh chords
+    '3,2,2,4,3': 'Dom 11th',
+    '3,2,3,3,3': 'Maj 11th',
+    '2,3,2,3,3': 'min 11th',
+
+    // Thirteenth chords
+    '3,2,2,4,3,4': 'Dom 13th',
+    '3,2,3,3,3,4': 'Maj 13th',
+    '2,3,2,3,3,4': 'min 13th',
+
+    // Suspended chords with extensions
+    '1,4,2': 'sus2 7th',
+    '4,1,2': 'sus4 7th',
+    '1,4,3': 'sus2 9th',
+    '4,1,3': 'sus4 9th',
+
+    // Quartal and cluster voicings
+    '5,5': 'Quartal (Perfect 4ths)',
+    '1,1': 'Tone Cluster (2nds)',
+
+    // Open chords / wide voicings
+    '7,5': 'Open Fifth (Power chord)',
+    '3,5': 'Maj 10th',
+    '2,5': 'min 10th'
 };
 
 // MIDI input
