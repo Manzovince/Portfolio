@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Styles -->
+    <link rel="stylesheet" href="./styles.css">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <!-- Title -->
+    <title>Vincent Manzoni / Piano keyboard</title>
+</head>
+
+<body>
+    <!-- Informations -->
+    <div id="informations">
+        <div id="chord"></div>
+        <div id="notes"></div>
+        <div id="velocity"></div>
+        <div id="intervals"></div>
+    </div>
+
+    <!-- Exercices -->
+    <div>
+        <div id="exercise-container">
+            <button id="start-exercise" class="button primary">Start Note Exercise</button>
+            <button id="stop-exercise" class="button danger" style="display: none;">Stop</button>
+            <button id="reveal-note" class="button secondary" style="display: none;">Reveal Note</button>
+            <button id="replay-note" class="button secondary" style="display: none;">
+                Replay
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+            </button>
+            <button id="new-note" class="button primary" style="display: none;">
+                New Note
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path d="M12 4V1L8 5l4 4V6a8 8 0 1 1-8 8H2a10 10 0 1 0 10-10z"/>
+                </svg>
+            </button>
+        </div>
+        <div id="settings-container">
+            <button id="toggle-notation">Switch to English Notation</button>
+        </div>
+        <div id="keyboard"></div>
+    </div>
+</body>
+
+<script src="../script.js"></script>
+<script src="./script.js"></script>
+
+</html>
