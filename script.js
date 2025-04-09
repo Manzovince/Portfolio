@@ -6,6 +6,7 @@ const translations = {
     navPersonal: "Experiments",
     navAbout: "About me",
     introText: "I'm Vincent, a product designer with a background in <span>cognitive</span> and <span>computer sciences</span>, driven by a research-backed methodology.",
+    methodologyText:"After earning a master's in psychology, I became fascinated by how cognitive sciences can shape technology. <br><br> My scientific mindset lets me test hypotheses rigorously, while my technical knowledge helps me communicate effectively with engineering teams. <br><br> I'm a visual thinker - I tend to approach problems by visualizing ideas through sketches and diagrams, enabling clear understanding across engineering, design, and business teams.",
     proProjectText: "Discover my vision of design through my professional and personal projects.",
     tagPhoto: "Photography",
     tagDesign: "Design",
@@ -34,7 +35,7 @@ const translations = {
     popin3: "When we had all we need : personas, user flows, Q/A content, and a new face for Pop-in, we needed to structure a discussion to make users understand who Pop-in is, what she does and how to talk to her. I tested multiple platforms before finding the write one. It was a way for me to learn how chatbots works, and to quickly get parents interested. Our final solution was to use DialogFlow for a good Natural Language Understanding, and ManyChat, a chatbot development plateform for Facebook Messenger. <br><br> We also needed a website to showcase our goals and values. After making the sitemap, I designed a few prototypes of the website in Adobe XD, to show to parents and coachs how a platform enables them to start a coaching, and launched it using Wix.",
     popin4: "Our chatbot can answer more than 100 questions about sleep and baby health, but is this enough ? Parents can have access to information quickly, and some of our elaborate answers provide an great source of help. But are we missing something ? <br><br> Science facts and tips are great, but to really help parents, they need more than a chatbot. And because every child is different, it was impossible for us to give super personalized answers with Pop-in. And who is the best placed to understand and resolve child's sleep problems ? Specialists ! Around the world, their are a lot a sleep coachs, but in France, it's not well known. And we had to change this. That's why we decided to bring professionals of babies sleep to help parents in their journey.",
     aboutTitle: "About me",
-    aboutText: "I am a lifelong learner, dedicated in making the product and services that surround us more human-centered. Experience has taught me where to focus my energy to make the best out of a project. Designing the things that surround us, I value design that has a positive impact on society. Besides, I enjoy running, swimming and climbing!",
+    aboutText: "I am a lifelong learner who values design that positively impacts society. <br><br> That's why in my free time, I enjoy experimenting with ideas that blend my skills in photography, music, science or education, continually pushing my creative boundaries. <br><br> Beside, I keep active by running, freediving, and climbing!",
     experienceTitle: "Experience",
     expUXText: "Designer of multiple services across various business lines, and co-lead of the Design System team. Find out more at <a href='https://info.sgmarkets.com/' class='link'>SG Markets</a> and our <a href='https://design.sgmarkets.com/' class='link'>design team website</a>.",
     expTeacherTitle:"UX Design teacher",
@@ -55,6 +56,7 @@ const translations = {
     navPersonal: "Expérimentations",
     navAbout: "A propos",
     introText: "Moi, c'est Vincent, un <span>product designer</span> avec une formation en sciences cognitives et informatiques, guidé par une méthodologie basée sur la recherche.",
+    methodologyText:"Après un master en psychologie, je me suis passionné par la manière dont les sciences cognitives peuvent façonner les nouvelles technologie. <br><br> Mon esprit scientifique me permet de tester rigoureusement des hypothèses, et mes connaissances techniques m'aident à communiquer efficacement avec les ingénieurs. <br><br> Je suis un 'visuel' - j'ai tendance à aborder les problèmes en visualisant des idées à travers des croquis et des diagrammes, permettant une compréhension claire entre les équipes de développement, de design et business.",
     proProjectText: "Découvrez ma vision du design à travers mes projets professionels et personnels.",
     tagPhoto: "Photographie",
     tagDesign: "Design",
@@ -83,7 +85,7 @@ const translations = {
     popin3: "Lorsque nous avions tout ce dont nous avions besoin : personas, user flows, contenu Q/A, et un nouveau visage pour Pop-in, nous devions structurer une discussion pour faire comprendre aux utilisateurs qui est Pop-in, ce qu'elle fait et comment lui parler. J'ai testé plusieurs plateformes avant de trouver la bonne. C'était un moyen pour moi d'apprendre comment fonctionnent les chatbots, et de rapidement intéresser les parents. Notre solution finale a été d'utiliser DialogFlow pour une bonne compréhension du langage naturel, et ManyChat, une plateforme de développement de chatbot pour Facebook Messenger. <br><br> Nous avions également besoin d'un site web pour présenter nos objectifs et nos valeurs. Après la construction d'une sitemap, j'ai conçu quelques prototypes du site web dans Adobe XD, pour montrer aux parents et aux coachs comment une plateforme leur permet de commencer un coaching, et l'ai lancé en utilisant Wix.",
     popin4: "Notre chatbot peut répondre à plus de 100 questions sur le sommeil et la santé des bébés, mais est-ce suffisant ? Les parents peuvent accéder rapidement à des informations, et certaines de nos réponses élaborées fournissent une grande source d'aide. Mais manquons-nous quelque chose ? Les faits scientifiques et les conseils sont excellents, mais pour vraiment aider les parents, ils ont besoin de plus qu'un chatbot. Et parce que chaque enfant est différent, il nous était impossible de donner des réponses super personnalisées avec Pop-in. Et qui est le mieux placé pour comprendre et résoudre les problèmes de sommeil des enfants ? Les spécialistes ! Dans le monde entier, il y a beaucoup de coachs du sommeil, mais en France, ce n'est pas bien connu. Et nous devions changer cela. C'est pourquoi nous avons décidé de faire venir des professionnels du sommeil des bébés pour aider les parents dans leur parcours.",
     aboutTitle: "A propos de moi",
-    aboutText: "Je suis un éternel curieux, dédié à rendre les produits et services qui nous entourent plus centrés sur l'humain. L'expérience m'a appris où concentrer mon énergie pour tirer le meilleur parti d'un projet. En concevant les choses qui nous entourent, je valorise le design qui a un impact positif. En dehors de cela, j'aime courir, nager et grimper !",
+    aboutText: "Je suis un éternel curieux qui accorde une grande importance au design ayant un impact positif sur la société. <br><br> C'est pourquoi pendant mon temps libre, j'aime expérimenter des idées qui mélangent mes compétences en photographie, musique, sciences ou éducation, repoussant continuellement mes limites créatives. <br><br> Le reste du temps, j'aime courir, plonger en apnée et grimper !",
     experienceTitle: "Expérience",
     expUXText: "Designer de plusieurs services à travers différentes lignes de métier, et co-lead de l'équipe Design System. Découvrez-en plus sur <a href='https://info.sgmarkets.com/' class='link'>SG Markets</a> et notre <a href='https://design.sgmarkets.com/' class='link'>site d'équipe'</a>.",
     expTeacherTitle:"Enseignant en UX Design",
@@ -379,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
         methodologySection.classList.remove('hover');
       }
     });
-  }, { threshold: 0.8 }); // Trigger when 50% of the section is visible
+  }, { threshold: 1 }); // Trigger when 50% of the section is visible
 
   observer.observe(methodologySection);
 });
