@@ -35,17 +35,30 @@
     <!-- Exercices -->
     <div>
         <div id="exercise-container">
-            <button id="start-exercise" class="button primary">Start Note Exercise</button>
+            <button id="start-exercise" class="button primary">Note Exercise</button>
+            <button id="start-chord-exercise" class="button primary" style="display: none;">Chord Exercise</button>
             <button id="stop-exercise" class="button danger" style="display: none;">Stop</button>
             <button id="reveal-note" class="button secondary" style="display: none;">Reveal Note</button>
-            <button id="replay-note" class="button secondary" style="display: none;">
+            <button id="replay-note" class="button secondary" style="display: none;" title="Press Spacebar to replay">
                 Replay
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                     <path d="M8 5v14l11-7z" />
                 </svg>
             </button>
-            <button id="new-note" class="button primary" style="display: none;">
+            <button id="new-note" class="button primary" style="display: none;" title="Press 'N' for new note">
                 New Note
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path d="M12 4V1L8 5l4 4V6a8 8 0 1 1-8 8H2a10 10 0 1 0 10-10z" />
+                </svg>
+            </button>
+            <button id="replay-chord" class="button secondary" style="display: none;">
+                Replay Chord
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path d="M8 5v14l11-7z" />
+                </svg>
+            </button>
+            <button id="new-chord" class="button primary" style="display: none;">
+                New Chord
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                     <path d="M12 4V1L8 5l4 4V6a8 8 0 1 1-8 8H2a10 10 0 1 0 10-10z" />
                 </svg>
@@ -58,7 +71,8 @@
     </div>
 </body>
 
-<script src="../script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/webmidi@latest/dist/iife/webmidi.iife.js"></script>
+<script src="WebMIDIAPIPolyfill.js"></script>
 <script src="./script.js"></script>
 
 </html>

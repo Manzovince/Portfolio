@@ -97,7 +97,9 @@ const chordPatterns = {
 };
 
 // MIDI input
-navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+document.addEventListener('DOMContentLoaded', () => {
+    navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+});
 
 function onMIDISuccess(midiAccess) {
     console.log("MIDI access granted. Waiting for MIDI input...");
