@@ -253,9 +253,9 @@ window.onload = function () {
 
 
 // Play sound for a given MIDI note
-function playSound(midiNote) {
+function playSound(midiNote, forcePlay = false) {
     const enableSound = document.getElementById('enable-sound').checked;
-    if (!enableSound) return; // Do not play sound if the checkbox is unchecked
+    if (!enableSound && !forcePlay) return; // Do not play sound if the toggle is off and not forced
 
     const noteName = noteNames[midiNote % 12] + Math.floor(midiNote / 12 - 1);
     const audio = new Audio(`./keys/${noteName}.mp3`);
@@ -464,13 +464,13 @@ function stopExercise() {
 function playRandomNote() {
     const randomMidiNote = Math.floor(Math.random() * (108 - 21 + 1)) + 21; // Random MIDI note between A0 (21) and C8 (108)
     currentNote = randomMidiNote;
-    playSound(randomMidiNote);
+    playSound(randomMidiNote, true); // Force sound to play
     clearKeyboardHighlights();
 }
 
 function replayNote() {
     if (currentNote !== null) {
-        playSound(currentNote);
+        playSound(currentNote, true); // Force sound to play
     }
 }
 
@@ -480,7 +480,7 @@ function revealNote() {
         if (key) key.classList.add('correct');
         const noteName = useSolfège ? noteNamesFR[currentNote % 12] : noteNames[currentNote % 12];
         chordDisplay.textContent = noteName; // Display the chord name
-        playSound(currentNote);
+        playSound(currentNote, true); // Force sound to play
     }
 }
 
