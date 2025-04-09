@@ -39,7 +39,7 @@ const chordPatterns = {
     // Triad Inversions
     '4,3':'Maj (1st inv)',
     '2,4':'Maj (2nd inv)',
-    '4,6':'min (1st inv)',
+    '4,2':'min (1st inv)',
     '3,4':'min (2nd inv)',
 
     // Sixth chords
@@ -314,24 +314,21 @@ const keyLabels = {
 
 function createKeyboard() {
     keyboard.innerHTML = '';
-    const screenWidth = window.innerWidth;
-    const octaves = Math.max(1, Math.min(7, Math.floor(screenWidth / 210))); // 7 white keys per octave, ~30px each
+    const startNote = 21; // MIDI note for A0
+    const endNote = 101; // MIDI note for C8
 
-    for (let octave = 0; octave < octaves; octave++) {
-        for (let i = 0; i < 12; i++) {
-            const key = document.createElement('div');
-            const isBlack = [1, 3, 6, 8, 10].includes(i);
-            key.className = `key ${isBlack ? 'black' : 'white'}`;
-            const midiNote = octave * 12 + i + 24; // Start from A0 (MIDI note 21)
-            key.dataset.note = midiNote;
+    for (let midiNote = startNote; midiNote <= endNote; midiNote++) {
+        const key = document.createElement('div');
+        const isBlack = [1, 3, 6, 8, 10].includes(midiNote % 12); // Black keys based on MIDI note modulo 12
+        key.className = `key ${isBlack ? 'black' : 'white'}`;
+        key.dataset.note = midiNote;
 
-            // Add corresponding keyboard letter if it exists in keyLabels
-            if (keyLabels[midiNote]) {
-                key.textContent = keyLabels[midiNote];
-            }
-
-            keyboard.appendChild(key);
+        // Add corresponding keyboard letter if it exists in keyLabels
+        if (keyLabels[midiNote]) {
+            key.textContent = keyLabels[midiNote];
         }
+
+        keyboard.appendChild(key);
     }
 }
 
@@ -443,7 +440,9 @@ function stopExercise() {
 }
 
 function playRandomNote() {
-    const randomMidiNote = Math.floor(Math.random() * (108 - 21 + 1)) + 21; // Random MIDI note between A0 (21) and C8 (108)
+    const randomMidiNote = Math.floor(Math.random() * (101 - 21 + 1)) + 21; // Random MIDI note between A0 (21) and C8 (108)
+    document.getElementById('chord').textContent = '?';
+    document.getElementById('notes').textContent = ' ';
     currentNote = randomMidiNote;
     playSound(randomMidiNote, true); // Force sound to play
     clearKeyboardHighlights();
@@ -451,6 +450,7 @@ function playRandomNote() {
 
 function replayNote() {
     if (currentNote !== null) {
+        document.getElementById('chord').textContent = '?';
         playSound(currentNote, true); // Force sound to play
     }
 }
