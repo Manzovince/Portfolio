@@ -80,7 +80,6 @@ body {
 #intervals {
 }
 
-
 /* Piano keyboard */
 
 #keyboard {
@@ -273,5 +272,27 @@ select {
     #exercise-container .button {
         font-size: 18px; /* Slightly bigger font size */
         padding: 10px 16px; /* Increase padding for better touch targets */
+    }
+
+    #informations {
+        padding: 16px; /* Add padding for better spacing on smaller screens */
+    }
+
+    #chord {
+        font-size: 4rem; /* Reduce font size for smaller screens */
+        margin-bottom: 16px; /* Adjust spacing */
+    }
+
+    #notes {
+        font-size: 1.2rem; /* Ensure notes are readable on smaller screens */
+        text-align: center;
+    }
+
+    #velocity {
+        font-size: 1rem; /* Adjust font size for better readability */
+    }
+
+    #intervals {
+        font-size: 1rem; /* Adjust font size for better readability */
     }
 }

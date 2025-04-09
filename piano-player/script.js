@@ -150,12 +150,9 @@ function enableWebMIDIJS() {
     console.log(myInput);
 
     myInput.addListener("noteon", e => {
-        console.log(e.note.identifier);
-        console.log(e.note.number);
-        console.log(e.note.attack);
+        console.log(e.note.identifier, e.note.number, e.note.attack);
         noteOn(e.note.number, e.note.attack);
     })
-
 }
 
 // Play sound for a given MIDI note
