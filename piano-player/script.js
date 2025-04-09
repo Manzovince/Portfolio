@@ -97,48 +97,48 @@ const chordPatterns = {
 };
 
 // MIDI input
-document.addEventListener('DOMContentLoaded', () => {
-    navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
-});
+// document.addEventListener('DOMContentLoaded', () => {
+//     navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+// });
 
-function onMIDISuccess(midiAccess) {
-    console.log("MIDI access granted. Waiting for MIDI input...");
-    for (let input of midiAccess.inputs.values()) {
-        input.onmidimessage = getMIDIMessage;
-    }
-}
+// function onMIDISuccess(midiAccess) {
+//     console.log("MIDI access granted. Waiting for MIDI input...");
+//     for (let input of midiAccess.inputs.values()) {
+//         input.onmidimessage = getMIDIMessage;
+//     }
+// }
 
-function onMIDIFailure(error) {
-    console.log("Failed to get MIDI access - ", error);
-}
+// function onMIDIFailure(error) {
+//     console.log("Failed to get MIDI access - ", error);
+// }
 
-function getMIDIMessage(message) {
-    // console.log(message.data);
-    let command = message.data[0];
-    let note = message.data[1];
-    let velocity = (message.data.length > 2) ? message.data[2] : 0;
+// function getMIDIMessage(message) {
+//     // console.log(message.data);
+//     let command = message.data[0];
+//     let note = message.data[1];
+//     let velocity = (message.data.length > 2) ? message.data[2] : 0;
 
-    switch (command) {
-        case 144: // noteOn
-            if (velocity > 0) {
-                noteOn(note, velocity);
-            } else {
-                noteOff(note);
-            }
-            break;
-        case 128: // noteOff
-            noteOff(note);
-            break;
-    }
-}
+//     switch (command) {
+//         case 144: // noteOn
+//             if (velocity > 0) {
+//                 noteOn(note, velocity);
+//             } else {
+//                 noteOff(note);
+//             }
+//             break;
+//         case 128: // noteOff
+//             noteOff(note);
+//             break;
+//     }
+// }
 
 // WebMIDI JS
 function enableWebMIDIJS() {
 
     WebMidi
-    .enable({ sysex: true })
-    .then(() => console.log("WebMidi with sysex enabled!"))
-    .catch(err => alert(err));
+        .enable({ sysex: true })
+        .then(() => console.log("WebMidi with sysex enabled!"))
+        .catch(err => alert(err));
 
     // Inputs
     WebMidi.inputs.forEach(input => console.log(input.manufacturer, ' - ', input.name));
@@ -155,66 +155,163 @@ function enableWebMIDIJS() {
     })
 }
 
+
+var midiAccess = null;
+var midiInputs = null;
+var midiOutputs = null;
+
+function setup() {
+    if (window.navigator.requestMIDIAccess) {
+        window.navigator.requestMIDIAccess().then(success, function () { console.log("requestMIDIAccess() failed."); });
+    } else {
+        console.log("Web MIDI API is not available on your browser.");
+    }
+
+    function setupEventHandler() {
+        var inputs = null;
+        if (typeof midiAccess.inputs === "function") {
+            inputs = midiAccess.inputs();
+        } else {
+            var iter = midiAccess.inputs.values();
+            inputs = [];
+            for (var o = iter.next(); !o.done; o = iter.next()) {
+                inputs.push(o.value);
+            }
+        }
+        for (var port = 0; port < inputs.length; port++) {
+
+            (function () {
+                var _port = port;
+                inputs[_port].onmidimessage = function (event) {
+                    console.log(event.data);
+                    let command = event.data[0];
+                    let note = event.data[1];
+                    let velocity = (event.data.length > 2) ? event.data[2] : 0;
+
+                    switch (command) {
+                        case 144: // noteOn
+                            if (velocity > 0) {
+                                noteOn(note, velocity);
+                            } else {
+                                noteOff(note);
+                            }
+                            break;
+                        case 128: // noteOff
+                            noteOff(note);
+                            break;
+                    }
+                };
+
+                inputs[_port].ondisconnect = function (event) {
+                    var str = "input port:" + _port + ", disconnected.";
+                    console.log(str);
+                };
+            }());
+        }
+
+        var outputs = null;
+        if (typeof midiAccess.outputs === "function") {
+            outputs = midiAccess.outputs();
+        } else {
+            var iter = midiAccess.outputs.values();
+            outputs = [];
+            for (var o = iter.next(); !o.done; o = iter.next()) {
+                outputs.push(o.value);
+            }
+        }
+        for (var port = 0; port < outputs.length; port++) {
+            (function () {
+                var _port = port;
+                outputs[_port].ondisconnect = function (event) {
+                    var str = "output port:" + _port + ", disconnected.";
+                    console.log(str);
+                };
+            }());
+        }
+
+        midiInputs = inputs;
+        midiOutputs = outputs;
+    }
+
+    function success(access) {
+        midiAccess = access;
+
+        midiAccess.onconnect = function (event) {
+            var str = "port: " + event.port.name + ", connected.";
+            console.log(str);
+
+            setupEventHandler();
+        }
+
+        setupEventHandler();
+    }
+}
+
+window.onload = function () {
+    setup();
+}
+
+
 // Play sound for a given MIDI note
 function playSound(midiNote) {
-        const noteName = noteNames[midiNote % 12] + Math.floor(midiNote / 12 - 1);
-        const audio = new Audio(`./keys/${noteName}.mp3`);
-        audio.play();
-    }
+    const noteName = noteNames[midiNote % 12] + Math.floor(midiNote / 12 - 1);
+    const audio = new Audio(`./keys/${noteName}.mp3`);
+    audio.play();
+}
 
 // Note On-Off
 function noteOn(midiNote, velocity) {
-        const noteName = noteNames[midiNote % 12] + Math.floor(midiNote / 12 - 1);
-        activeNotes.push({ name: noteName, midiNote: midiNote, velocity: (velocity / 127).toFixed(1) });
-        playSound(midiNote);
-        updateOutput();
-        updateKeyboard();
+    const noteName = noteNames[midiNote % 12] + Math.floor(midiNote / 12 - 1);
+    activeNotes.push({ name: noteName, midiNote: midiNote, velocity: (velocity / 127).toFixed(1) });
+    playSound(midiNote);
+    updateOutput();
+    updateKeyboard();
 
-        if (exerciseActive) {
-            if (midiNote === currentNote && !isWaitingForNextNote) {
-                isWaitingForNextNote = true; // Set the flag
-                const key = keyboard.querySelector(`[data-note="${midiNote}"]`);
-                if (key) key.classList.add('correct'); // Highlight the correct key
-                setTimeout(() => {
-                    if (key) key.classList.remove('correct');
-                    playRandomNote();
-                    isWaitingForNextNote = false; // Reset the flag
-                }, 3000);
-            } else if (midiNote !== currentNote) {
-                const key = keyboard.querySelector(`[data-note="${midiNote}"]`);
-                if (key) key.classList.add('incorrect');
-            }
+    if (exerciseActive) {
+        if (midiNote === currentNote && !isWaitingForNextNote) {
+            isWaitingForNextNote = true; // Set the flag
+            const key = keyboard.querySelector(`[data-note="${midiNote}"]`);
+            if (key) key.classList.add('correct'); // Highlight the correct key
+            setTimeout(() => {
+                if (key) key.classList.remove('correct');
+                playRandomNote();
+                isWaitingForNextNote = false; // Reset the flag
+            }, 3000);
+        } else if (midiNote !== currentNote) {
+            const key = keyboard.querySelector(`[data-note="${midiNote}"]`);
+            if (key) key.classList.add('incorrect');
         }
     }
+}
 
 function noteOff(midiNote) {
-        activeNotes = activeNotes.filter(n => n.midiNote !== midiNote);
-        updateOutput();
-        updateKeyboard();
-    }
+    activeNotes = activeNotes.filter(n => n.midiNote !== midiNote);
+    updateOutput();
+    updateKeyboard();
+}
 
 function NotesToChordName(notes) {
-        if (notes.length === 0) return "";
-        if (notes.length === 1) {
-            const noteName = useSolfège ? noteNamesFR[notes[0].midiNote % 12] : noteNames[notes[0].midiNote % 12];
-            return noteName;
-        }
-        const intervals = calculateIntervals(notes);
-        const pattern = intervals.join(',');
-        const rootNote = useSolfège ? noteNamesFR[notes[0].midiNote % 12] : noteNames[notes[0].midiNote % 12];
-        return `${rootNote} ${chordPatterns[pattern] || ''}`;
+    if (notes.length === 0) return "";
+    if (notes.length === 1) {
+        const noteName = useSolfège ? noteNamesFR[notes[0].midiNote % 12] : noteNames[notes[0].midiNote % 12];
+        return noteName;
     }
+    const intervals = calculateIntervals(notes);
+    const pattern = intervals.join(',');
+    const rootNote = useSolfège ? noteNamesFR[notes[0].midiNote % 12] : noteNames[notes[0].midiNote % 12];
+    return `${rootNote} ${chordPatterns[pattern] || ''}`;
+}
 
 function updateOutput() {
-        activeNotes.sort((a, b) => a.midiNote - b.midiNote);
+    activeNotes.sort((a, b) => a.midiNote - b.midiNote);
 
-        notesDisplay.textContent = activeNotes
-            .map(note => useSolfège ? noteNamesFR[note.midiNote % 12] : note.name)
-            .join(" ");
-        velocityDisplay.textContent = activeNotes.map(note => note.velocity).join(" ");
-        intervalsDisplay.textContent = calculateIntervals(activeNotes).join('\t');
-        chordDisplay.textContent = NotesToChordName(activeNotes); // Display chord name
-    }
+    notesDisplay.textContent = activeNotes
+        .map(note => useSolfège ? noteNamesFR[note.midiNote % 12] : note.name)
+        .join(" ");
+    velocityDisplay.textContent = activeNotes.map(note => note.velocity).join(" ");
+    intervalsDisplay.textContent = calculateIntervals(activeNotes).join('\t');
+    chordDisplay.textContent = NotesToChordName(activeNotes); // Display chord name
+}
 
 const calculateIntervals = notes => notes.slice(0, -1).map((note, i) => notes[i + 1].midiNote - note.midiNote - 1);
 
