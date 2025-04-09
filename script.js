@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
         methodologySection.classList.remove('hover');
       }
     });
-  }, { threshold: 1 }); // Trigger when 50% of the section is visible
+  }, { threshold: 0.2 }); // Trigger when 50% of the section is visible
 
   observer.observe(methodologySection);
 });
