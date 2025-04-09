@@ -142,6 +142,18 @@ body {
 
 /* Exercice */
 
+#ipad-button {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    font-size: .8rem;
+    color: var(--text-color);
+}
+
 #settings-container {
     width: 100%;
     display: flex;
@@ -159,18 +171,6 @@ body {
     gap: 8px;
     text-align: center;
     margin-bottom: 24px;
-}
-
-button {
-    font-size: 16px;
-    padding: 8px 16px;
-    border: solid 1px var(--text-color);
-    color: var(--text-color);
-    transition: all ease-in-out 250ms;
-}
-
-button:hover {
-    background-color: hsla(35, 45%, 83%, .2);
 }
 
 select {

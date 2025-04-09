@@ -21,9 +21,13 @@
         rel="stylesheet">
     <!-- Title -->
     <title>Vincent Manzoni / Piano keyboard</title>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/webmidi@latest/dist/iife/webmidi.iife.js"></script>
 </head>
 
 <body>
+    <button id="ipad-button" onclick="enableWebMIDIJS();">iPad WebMIDI</button>
+
     <!-- Informations -->
     <div id="informations">
         <div id="chord">Play anything</div>
@@ -71,8 +75,6 @@
     </div>
 </body>
 
-<script src="https://cdn.jsdelivr.net/npm/webmidi@latest/dist/iife/webmidi.iife.js"></script>
-<script src="WebMIDIAPIPolyfill.js"></script>
 <script src="./script.js"></script>
 
 </html>
