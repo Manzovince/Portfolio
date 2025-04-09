@@ -254,6 +254,9 @@ window.onload = function () {
 
 // Play sound for a given MIDI note
 function playSound(midiNote) {
+    const enableSound = document.getElementById('enable-sound').checked;
+    if (!enableSound) return; // Do not play sound if the checkbox is unchecked
+
     const noteName = noteNames[midiNote % 12] + Math.floor(midiNote / 12 - 1);
     const audio = new Audio(`./keys/${noteName}.mp3`);
     audio.play();

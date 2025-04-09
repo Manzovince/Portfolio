@@ -141,16 +141,69 @@ body {
 
 /* Exercice */
 
-#ipad-button {
+#sound-toggle {
     position: fixed;
     top: 24px;
     right: 24px;
     display: flex;
-    justify-content: center;
     align-items: center;
-    z-index: 10;
-    font-size: .8rem;
+    gap: 12px;
+    font-size: 1rem;
     color: var(--text-color);
+    cursor: pointer;
+}
+
+/* Switch container */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+/* Hide the default checkbox */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Slider styling */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-dark);
+    border: 1px solid var(--text-color);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+/* Slider circle */
+.slider::before {
+    content: "";
+    position: absolute;
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text-color);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+/* Checked state */
+.switch input:checked + .slider {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.switch input:checked + .slider::before {
+    transform: translateX(20px);
+    background-color: var(--bg-color);
 }
 
 #settings-container {
@@ -259,6 +312,52 @@ select {
     width: 16px;
     height: 16px;
     fill: currentColor; /* Match the icon color with the text color */
+}
+
+/* Updated styles for exercise buttons */
+#exercise-container .button {
+    font-size: 16px; /* Increase font size */
+    padding: 8px 16px; /* Add more padding for a larger button */
+    border: solid 1px var(--text-color);
+    color: var(--text-color);
+    background-color: transparent;
+    cursor: pointer;
+    transition: all ease-in-out 250ms;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Add spacing between text and icon */
+}
+
+#exercise-container .button:hover {
+    background-color: hsla(35, 45%, 83%, .2);
+}
+
+#exercise-container .button.primary {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+#exercise-container .button.primary:hover {
+    background-color: hsla(175, 43%, 47%, 0.2);
+}
+
+#exercise-container .button.secondary {
+    color: var(--color-secondary);
+    border-color: transparent;
+}
+
+#exercise-container .button.secondary:hover {
+    background-color: hsla(175, 39%, 25%, 0.2);
+}
+
+#exercise-container .button.danger {
+    color: var(--color-incorrect);
+    border-color: transparent
+}
+
+#exercise-container .button.danger:hover {
+    background-color: hsla(0, 79%, 63%, 0.2);
 }
 
 /* Mobile-specific styles */
