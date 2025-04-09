@@ -50,6 +50,15 @@ body {
 
 /* Informations */
 
+#back-to-portfolio {
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    font-size: 1rem;
+    color: var(--text-color);
+    cursor: pointer;
+}
+
 #informations {
     width: 100%;
     height: 100%;
@@ -90,6 +99,7 @@ body {
     left: 0; */
     user-select: none;
     width: 1400px;
+    transform: scale(.9);
     margin: auto;
     height: 180px;
     display: flex;
