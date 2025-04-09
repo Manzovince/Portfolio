@@ -71,6 +71,8 @@ body {
 }
 
 #notes {
+    font-family: monospace;
+    font-style: italic;
 }
 
 #velocity {

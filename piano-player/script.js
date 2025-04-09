@@ -13,7 +13,6 @@ const chordDisplay = document.getElementById('chord'); // Added chord display el
 const toggleNotationButton = document.getElementById('toggle-notation');
 const keys = keyboard.getElementsByClassName('key');
 
-// Update informations
 const chordPatterns = {
     // Single Intervals
     '0': '+ min Second',
@@ -38,10 +37,10 @@ const chordPatterns = {
     '4,1': 'sus4',
 
     // Triad Inversions
-    '2,7': 'Maj 1st Inv',
-    '7,3': 'Maj 2nd Inv',
-    '3,7': 'min 1st Inv',
-    '7,2': 'min 2nd Inv',
+    '4,3':'Maj (1st inv)',
+    '2,4':'Maj (2nd inv)',
+    '4,6':'min (1st inv)',
+    '3,4':'min (2nd inv)',
 
     // Sixth chords
     '3,2,1': 'Maj 6th',
@@ -52,11 +51,6 @@ const chordPatterns = {
     '3,2,3': 'Maj 7th',
     '2,3,2': 'min 7th',
     '2,2,2': 'Dim 7th',
-
-    // Seventh chord inversions
-    '2,2,3': 'Dom 7th (1st Inv)',
-    '2,3,2': 'Dom 7th (2nd Inv)',
-    '3,2,2': 'Dom 7th (3rd Inv)',
 
     // Add chords
     '3,1,3': 'Maj Add 9',
@@ -131,30 +125,6 @@ const chordPatterns = {
 //             break;
 //     }
 // }
-
-// WebMIDI JS
-function enableWebMIDIJS() {
-
-    WebMidi
-        .enable({ sysex: true })
-        .then(() => console.log("WebMidi with sysex enabled!"))
-        .catch(err => alert(err));
-
-    // Inputs
-    WebMidi.inputs.forEach(input => console.log(input.manufacturer, ' - ', input.name));
-
-    // Outputs
-    WebMidi.outputs.forEach(output => console.log(output.manufacturer, ' - ', output.name));
-
-    const myInput = WebMidi.getInputByName("Digital Piano");
-    console.log(myInput);
-
-    myInput.addListener("noteon", e => {
-        console.log(e.note.identifier, e.note.number, e.note.attack);
-        noteOn(e.note.number, e.note.attack);
-    })
-}
-
 
 var midiAccess = null;
 var midiInputs = null;
@@ -251,7 +221,6 @@ window.onload = function () {
     setup();
 }
 
-
 // Play sound for a given MIDI note
 function playSound(midiNote, forcePlay = false) {
     const enableSound = document.getElementById('enable-sound').checked;
@@ -301,7 +270,19 @@ function NotesToChordName(notes) {
     }
     const intervals = calculateIntervals(notes);
     const pattern = intervals.join(',');
-    const rootNote = useSolfège ? noteNamesFR[notes[0].midiNote % 12] : noteNames[notes[0].midiNote % 12];
+    var rootNote = "";
+    if (pattern && chordPatterns[pattern]) {
+        if (chordPatterns[pattern].includes('1st inv')) {
+            rootNote = useSolfège ? noteNamesFR[notes[1].midiNote % 12] : noteNames[notes[1].midiNote % 12];
+        } else if (chordPatterns[pattern].includes('2nd inv')) {
+            rootNote = useSolfège ? noteNamesFR[notes[2].midiNote % 12] : noteNames[notes[2].midiNote % 12];
+        }
+        else {
+            rootNote = useSolfège ? noteNamesFR[notes[0].midiNote % 12] : noteNames[notes[0].midiNote % 12];
+        }
+    } else {
+        rootNote = useSolfège ? noteNamesFR[notes[0].midiNote % 12] : noteNames[notes[0].midiNote % 12];
+    }
     return `${rootNote} ${chordPatterns[pattern] || ''}`;
 }
 
