@@ -392,18 +392,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const methodologySection = document.querySelector('#methodology');
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        // Add hover styles when the section is visible
-        methodologySection.classList.add('hover');
-      } else {
-        // Remove hover styles when the section is not visible
-        methodologySection.classList.remove('hover');
-      }
-    });
-  }, { threshold: 0.5 }); // Trigger when 50% of the section is visible
+  if (window.innerWidth < 768) { // Apply effect only on mobile devices
+    const methodologySection = document.querySelector('#methodology');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          // Add hover styles when the section is visible
+          methodologySection.classList.add('hover');
+        } else {
+          // Remove hover styles when the section is not visible
+          methodologySection.classList.remove('hover');
+        }
+      });
+    }, { threshold: 0.1 }); // Trigger when 50% of the section is visible
 
-  observer.observe(methodologySection);
+    observer.observe(methodologySection);
+  }
 });
