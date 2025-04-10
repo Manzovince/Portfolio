@@ -109,8 +109,30 @@ function translate(lang, root = document) {
   });
 }
 
-// Initial load
-translate('en');
+// Detect the user's preferred language
+function getPreferredLanguage() {
+  const userLang = navigator.language || navigator.userLanguage; // Get the browser's language
+  if (userLang.startsWith('fr')) {
+    return 'fr'; // Use French if the language starts with 'fr'
+  }
+  return 'en'; // Default to English
+}
+
+// Set the default language based on the user's preference
+const defaultLanguage = getPreferredLanguage();
+translate(defaultLanguage); // Apply translations to the main document
+localStorage.setItem('selectedLanguage', defaultLanguage); // Save the language in localStorage
+
+// Update the language toggle in the NavComponent
+document.addEventListener('DOMContentLoaded', () => {
+  const navComponent = document.querySelector('site-nav');
+  if (navComponent) {
+    const languageToggle = navComponent.shadowRoot.getElementById('language-toggle');
+    const languageName = defaultLanguage === 'en' ? 'English' : 'Français';
+    languageToggle.textContent = languageName;
+    translate(defaultLanguage, navComponent.shadowRoot); // Apply translations to the shadow DOM
+  }
+});
 
 // ------ Web components ------
 // Navbar
