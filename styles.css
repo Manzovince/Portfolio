@@ -629,10 +629,11 @@ header {
 
 .project-details {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    /* flex-wrap: wrap; */
+    flex-direction: column;
+    align-items: start;
     justify-content: space-between;
-    gap: 16px;
+    gap: 8px;
 }
 
 .project-details h3 {
