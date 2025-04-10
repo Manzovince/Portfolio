@@ -19,6 +19,12 @@
         rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap"
         rel="stylesheet">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap"
+        rel="stylesheet" media="print" onload="this.media='all'">
     <!-- Title -->
     <title>Vincent Manzoni / Piano keyboard</title>
     <!-- Scripts -->
@@ -27,11 +33,17 @@
 
 <body>
 
-    <a id="back-to-portfolio" href="https://manzovince.com" title="Back to portfolio">
-        <svg width="32" height="16" viewBox="0 0 32 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 0 L16 0 L24 8 L32 0 L32 16 L16 16 L16 0 L0 16" fill="currentColor" />
-        </svg>
-    </a>
+    <nav class="page-path">
+        <a id="back-to-portfolio" href="https://manzovince.com#personal" title="Back to portfolio">
+            <svg width="32" height="16" viewBox="0 0 32 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0 L16 0 L24 8 L32 0 L32 16 L16 16 L16 0 L0 16" fill="currentColor" />
+            </svg>
+        </a>
+        <div id="page-name-container">
+            <div class="path-separator">/</div>
+            <div id="current-page">Piano keyboard</div>
+        </div>
+    </nav>
 
     <label id="sound-toggle">
         Sound
@@ -46,7 +58,7 @@
         <div id="chord">Play anything</div>
         <div id="notes">A keyboard to learn piano basics</div>
         <div id="velocity"></div>
-        <div id="intervals"></div>
+        <div id="intervals">(You can also use any MIDI device to control the keyboard)</div>
     </div>
 
     <!-- Exercices -->

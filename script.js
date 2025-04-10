@@ -20,7 +20,7 @@ const translations = {
     projectPlaceholder: "Coming soon !",
     projectAccessText: "Explore the site",
     sealens1: "Sealens is a photographic exhibition about the Mediterranean Sea, which invites you to explore the underwater landscapes and meet its inhabitants during a freedive.",
-    sealens2: "Each dive tells a new story, revealing the beauty and fragility of a world we never imagined. Let yourself be carried by the currents, observe with respect, and let the Mediterranean whisper its secrets.",
+    sealens2: "I was born near the Mediterranean Sea, and I have always been fascinated by the underwater world. <br><br> Capturing hidden moments of the submarine life since a few years, I wanted to share this experience on the digital media in a similar way. <br><br> Inspired by our children books where we are the hero, I developped this website to show what happens when we do snorkeling and freediving: each dive is short and unique, consisting of 5 random choices to display new pictures.",
     sealens3: "Our project was born from a simple conviction: understanding is key to better protection. <br><br> Each image is a testimony, each view an invitation to become aware of the richness and vulnerability of our maritime heritage. <br><br> It's an ode to the ocean, a visual journey that awakens as much as it amazes. Through our pictures, we seek to capture the essence of a vibrant world, shaped by thousands of years of history.",
     sealens4: "Whether you're a seasoned diver or simply curious, Sealens invites you to immerse yourself in the magic of these hidden worlds. Together, let's imagine a future where harmony between man and the sea is not a dream, but a reality.",
     sgmIsoTitle: "A new financial standard",
@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
         methodologySection.classList.remove('hover');
       }
     });
-  }, { threshold: 0.2 }); // Trigger when 50% of the section is visible
+  }, { threshold: 0.5 }); // Trigger when 50% of the section is visible
 
   observer.observe(methodologySection);
 });

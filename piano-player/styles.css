@@ -48,17 +48,40 @@ body {
     justify-content: space-between;
 }
 
-/* Informations */
+
+/* Navigation */
+
+nav {
+    position: fixed;
+    top: 32px;
+    left: 32px;
+    display: flex;
+    align-items: center;
+}
 
 #back-to-portfolio {
-    position: fixed;
-    top: 24px;
-    left: 24px;
-    font-size: 1rem;
     color: var(--text-color);
     cursor: pointer;
 }
 
+#page-name-container {
+    font-family: 'IBM Plex Serif';
+    font-size: 1rem;
+    font-weight: 300;
+    display: flex;
+    align-items: center;
+}
+
+.page-path {
+    display: flex;
+    align-items: center;
+}
+
+.path-separator {
+    margin: 0 8px;
+}
+
+/* Informations */
 #informations {
     width: 100%;
     height: 100%;
@@ -89,6 +112,7 @@ body {
 }
 
 #intervals {
+    font-size: 1rem;
 }
 
 /* Piano keyboard */
@@ -156,8 +180,8 @@ body {
 
 #sound-toggle {
     position: fixed;
-    top: 24px;
-    right: 24px;
+    top: 32px;
+    right: 32px;
     display: flex;
     align-items: center;
     gap: 12px;
