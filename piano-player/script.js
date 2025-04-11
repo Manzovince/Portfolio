@@ -283,18 +283,18 @@ function NotesToChordName(notes) {
     } else {
         rootNote = useSolfège ? noteNamesFR[notes[0].midiNote % 12] : noteNames[notes[0].midiNote % 12];
     }
-    return `${rootNote} ${chordPatterns[pattern] || ''}`;
+    return `${rootNote} ${chordPatterns[pattern] || '?!'}`;
 }
 
 function updateOutput() {
     activeNotes.sort((a, b) => a.midiNote - b.midiNote);
 
+    chordDisplay.textContent = NotesToChordName(activeNotes) || '♪';
     notesDisplay.textContent = activeNotes
         .map(note => useSolfège ? noteNamesFR[note.midiNote % 12] : note.name)
-        .join(" ");
+        .join(" ") || ' ';
     velocityDisplay.textContent = activeNotes.map(note => note.velocity).join(" ");
-    intervalsDisplay.textContent = calculateIntervals(activeNotes).join('\t');
-    chordDisplay.textContent = NotesToChordName(activeNotes); // Display chord name
+    intervalsDisplay.textContent = calculateIntervals(activeNotes).join('\t') || ' ';
 }
 
 const calculateIntervals = notes => notes.slice(0, -1).map((note, i) => notes[i + 1].midiNote - note.midiNote - 1);
