@@ -5,14 +5,13 @@ function getRootCSSVariable(variableName) {
 
 // ----- Configuration -----
 const config = {
-  cellSize: 16,               // pixels
-  damping: 0.99,              // wave decay factor
-  densityScale: "···--~~++0011", // characters from lightest to heaviest intensity
-  // densityScale: "..*01", 
-  rippleSpeed: 600,           // pixels per second
-  rippleWidth: 4,             // ripple ring width
-  rippleIntensity: 6,         // impulse strength from a ripple
-  cellDecayFactor: 0.99       // overall decay factor per update
+  cellSize: 18,
+  damping: 0.99,
+  densityScale: "···--++0011",
+  rippleSpeed: 600, 
+  rippleWidth: 4,
+  rippleIntensity: 6,
+  cellDecayFactor: 0.99
 };
 
 const maxIntensity = config.densityScale.length;

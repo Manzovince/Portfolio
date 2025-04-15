@@ -6,8 +6,8 @@ const translations = {
     navPersonal: "Experiments",
     navAbout: "About me",
     introText: "I'm Vincent, a product designer with a background in <span>cognitive</span> and <span>computer sciences</span>, driven by a research-backed methodology.",
-    methodologyText:"After earning a master's in psychology, I became fascinated by how cognitive sciences can shape technology. <br><br> My scientific mindset lets me test hypotheses rigorously, while my technical knowledge helps me communicate effectively with engineering teams. <br><br> I'm a visual thinker - I tend to approach problems by visualizing ideas through sketches and diagrams, enabling clear understanding across engineering, design, and business teams.",
-    proProjectText: "Discover my vision of design through my professional and personal projects.",
+    methodologyText:"After earning a master's in psychology, I became fascinated by how cognitive sciences can shape technology. <br><br> My scientific mindset lets me test hypotheses rigorously, while my technical knowledge helps me communicate effectively with engineering teams. <br><br> I'm a visual thinker - I tend to approach problems by visualizing ideas through sketches and diagrams, and breaking down complex issues into simple, understandable steps.",
+    proProjectText: "Discover my vision of design through some of my professional and personal projects.",
     tagPhoto: "Photography",
     tagDesign: "Design",
     tagDev: "Dev",
@@ -37,7 +37,7 @@ const translations = {
     aboutTitle: "About me",
     aboutText: "I am a lifelong learner who values design that positively impacts society. <br><br> That's why in my free time, I enjoy experimenting with ideas that blend my skills in photography, music, science or education, continually pushing my creative boundaries. <br><br> Beside, I keep active by running, freediving, and climbing!",
     experienceTitle: "Experience",
-    expUXText: "Designer of multiple services across various business lines, and co-lead of the Design System team. Find out more at <a href='https://info.sgmarkets.com/' class='link'>SG Markets</a> and our <a href='https://design.sgmarkets.com/' class='link'>design team website</a>.",
+    expUXText: "Designer of multiple services across various business lines, and co-lead of the Design System team. Find out more at <a href='https://info.sgmarkets.com/' class='link'>SG Markets</a> and also our <a href='https://design.sgmarkets.com/' class='link'>design team website</a>.",
     expTeacherTitle:"UX Design teacher",
     expTeacherText: "Lectures and workshops with students from the Multimedia and Internet professions program. These courses concluded in end-of-year projects ranging from user research to website development.",
     expPopinTitle:"UX designer and developer",
@@ -69,13 +69,13 @@ const translations = {
     persoProjectText: "À côté, j'aime aussi capturer des pixels et jouer avec des 0 et des 1.",
     projectPlaceholder: "Bientôt disponible !",
     projectAccessText: "Voir le site",
-    sealens1: "Sealens est une exposition photographique sur la mer Méditerranée, qui vous invite à explorer les paysages sous-marins et à rencontrer ses habitants lors d'une plongée libre.",
-    sealens2: "Je suis né près de la mer Méditerranée, et j'ai toujours été fasciné par le monde sous-marin. <br><br> Capturant des moments cachés de la vie sous-marine depuis quelques années, je voulais partager cette expérience sur le média numérique de manière similaire. <br><br> Inspiré par nos livres où nous sommes le héros, j'ai développé ce site web pour montrer ce qui se passe lorsque nous faisons du snorkeling ou de l'apnée : chaque plongée est courte et unique, composée de 5 choix aléatoires pour afficher de nouvelles images.",
-    sealens3: "Notre projet est né d'une conviction simple : comprendre est la clé d'une meilleure protection. <br><br> Chaque image est un témoignage, chaque vue une invitation à prendre conscience de la richesse et de la vulnérabilité de notre patrimoine maritime. <br><br> C'est une ode à l'océan, un voyage visuel qui éveille autant qu'il émerveille. À travers nos images, nous cherchons à capturer l'essence d'un monde vibrant, façonné par des milliers d'années d'histoire.",
-    sealens4: "Que vous soyez un plongeur chevronné ou simplement curieux, Sealens vous invite à plonger dans la magie de ces mondes cachés. Ensemble, imaginons un avenir où l'harmonie entre l'homme et la mer n'est pas un rêve, mais une réalité.",
+    sealens1: "Sealens est une exposition photographique sur la mer Méditerranée, qui vous invite à explorer les paysages sous-marins et à rencontrer ses habitants le temps d'une plongée.",
+    sealens2: "Je suis né près de la mer Méditerranée, et j'ai toujours été fasciné par le monde sous-marin. <br><br> Capturant des moments cachés de la vie sous-marine depuis quelques années, je voulais partager cette expérience sur le média numérique de manière similaire. <br><br> Inspiré par nos livres où nous sommes le héros, j'ai développé ce site pour montrer ce qui se passe lorsque nous faisons du snorkeling ou de l'apnée : chaque plongée est courte, unique, composée de rencontres aléatoires et inattendues.",
+    sealens3: "Notre projet est né d'une conviction simple : comprendre est la clé d'une meilleure protection. <br><br> Chaque image est un témoignage, chaque paysage une invitation à prendre conscience de la richesse et de la vulnérabilité de notre patrimoine maritime. <br><br> C'est une ode à l'océan, un voyage visuel qui éveille autant qu'il émerveille. À travers nos images, nous cherchons à capturer l'essence d'un monde vibrant, façonné par des milliers d'années d'histoire.",
+    sealens4: "Que vous soyez un plongeur chevronné ou simplement curieux, <a href='https://sealens.art' target='_blank' class='link'>Sealens</a> vous invite à plonger dans la magie de ces mondes cachés. Ensemble, imaginons un avenir où l'harmonie entre l'homme et la mer n'est pas un rêve, mais une réalité. <br><br> ",
     sgmIsoTitle: "Un nouveau standard financier",
     sgmIso1: "Ce service a été créé lors d'un challenge sur une journée, pour concevoir un service qui permet aux clients de vérifier le format de leur fichier de transactions de paiement par rapport à la norme ISO (ISO20022) pour l'échange de données électroniques entre les institutions financières.",
-    sgmIso2: "Nous avons créé une page d'accueil qui présente la nouvelle norme ISO 20022, ainsi que quelques conseils sur la manière de réussir une migration, et une zone de téléchargement pour ajouter un ou plusieurs fichiers. <br><br> Après l'upload d'un fichier, le document est analysé localement et permet aux clients de prévisualiser toutes les informations de manière lisible, soit en se focalisant uniquement sur les erreurs s'il y en a, soit avec tout les éléments du fichier. Chaque erreur est mises en évidence lorsqu'elles sont détectées, et est accompagnée de détails sur la manière de la résoudre. <br><br>",
+    sgmIso2: "Nous avons créé une page d'accueil qui présente la nouvelle norme ISO 20022, ainsi que quelques conseils sur la manière de réussir une migration, et une zone de téléchargement pour ajouter un ou plusieurs fichiers. <br><br> Après l'upload d'un fichier, le document est analysé localement et permet aux clients de prévisualiser toutes les informations de manière lisible, soit en se focalisant uniquement sur les erreurs s'il y en a, soit avec tout les éléments du fichier. Chaque erreur est mise en évidence lorsqu'elle est détectée, et est accompagnée de détails sur la manière de la résoudre. <br><br>",
     sgmIso3: "À partir d'un bref résumé, nous avons été introduits à un site web Proof-of-Concept où nous pouvions télécharger et prévisualiser un document. Nous avons décidé de conserver cette vue pour les utilisateurs avancés, mais parce que le format de fichier XML est complexe, nous avons également travailler sur une vue simplifiée qui permet de traiter rapidement les erreurs. <br><br> Après une phase d'idéation, nous avons décidé de faire une interface qui permet de naviguer rapidement entre les batchs de paiement (sous forme d'onglets) et les transaction (dans un panneau sur le côté). Les éléments d'une transaction peuvent alors s'articuler au centre de l'écran, avec des détails sur chaque bloc d'information.",
     sgmDesign1: "J'ai travaillé sur la migration de la page Design de SG Markets vers la dernière version du Design system, et implémenté un redesign complet de la page <i>Rejoignez-nous</i>.",
     sgmDesign2: "Lors d'un évènement d'équipe, nous nous sommes lancés dans un projet de redesign collaboratif de la page. J'ai ensuite eu pour objectif de développer cette nouvelle page en mettant l'accent sur des interactions engageantes.",
@@ -87,7 +87,7 @@ const translations = {
     aboutTitle: "A propos de moi",
     aboutText: "Je suis un éternel curieux qui accorde une grande importance au design ayant un impact positif sur la société. <br><br> C'est pourquoi pendant mon temps libre, j'aime expérimenter avec des idées qui mélangent mes compétences en photographie, sciences et éducation, repoussant continuellement mes limites créatives. <br><br> Le reste du temps, j'aime courir, grimper et plonger en apnée !",
     experienceTitle: "Expérience",
-    expUXText: "Designer référent sur plusieurs services à travers différentes lignes de métier, et co-lead de l'équipe Design System. Pour en savoir plus, rendez-vous sur <a href='https://info.sgmarkets.com/' class='link'>SG Markets</a> et notre <a href='https://design.sgmarkets.com/' class='link'>site d'équipe</a>.",
+    expUXText: "Designer référent sur plusieurs services à travers différentes lignes de métier, et co-lead de l'équipe Design System. Pour en savoir plus, rendez-vous sur <a href='https://info.sgmarkets.com/' class='link'>SG Markets</a> ainsi que notre <a href='https://design.sgmarkets.com/' class='link'>site d'équipe</a>.",
     expTeacherTitle:"Enseignant en UX Design",
     expTeacherText: "J'ai donné des cours magistraux et animer des ateliers avec des étudiants du programme Métiers du Multimédia et de l'Internet. Ces cours se sont terminés par des projets de fin d'année allant de la recherche utilisateur à la création de sites web.",
     expPopinTitle:"UX designer et développeur",
@@ -152,7 +152,7 @@ class NavComponent extends HTMLElement {
       </style>
       <nav id="nav">
         <div class="page-path">
-          <a id="path" href="./index.html#introduction">
+          <a id="path" href="./index.html#featured">
             <svg width="32" height="16" viewBox="0 0 32 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M0 0 L16 0 L24 8 L32 0 L32 16 L16 16 L16 0 L0 16" fill="currentColor"/>
             </svg>
