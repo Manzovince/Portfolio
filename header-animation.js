@@ -5,7 +5,7 @@ function getRootCSSVariable(variableName) {
 
 // ----- Configuration -----
 const config = {
-  cellSize: 18,
+  cellSize: 16,
   damping: 0.99,
   densityScale: "···--++0011",
   rippleSpeed: 600, 
