@@ -81,6 +81,106 @@ nav {
     margin: 0 8px;
 }
 
+/* Settings */
+
+#settingsToggle {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    font-size: 1.2rem;
+    padding: 6px 12px;
+}
+
+#settingsPanel {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 400px;
+    height: 100%;
+    background-color: #222;
+    color: white;
+    padding: 16px;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.4);
+    transition: right 0.3s ease;
+    z-index: 999;
+}
+
+#settingsPanel.open {
+    right: 0;
+}
+
+#settingsPanel label {
+    display: block;
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+#settingsPanel input[type="range"] {
+    width: 100%;
+}
+
+#sound-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+/* Switch container */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+/* Hide the default checkbox */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Slider styling */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-dark);
+    border: 1px solid var(--text-color);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+/* Slider circle */
+.slider::before {
+    content: "";
+    position: absolute;
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text-color);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+/* Checked state */
+.switch input:checked+.slider {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.switch input:checked+.slider::before {
+    transform: translateX(20px);
+    background-color: var(--bg-color);
+}
+
 /* Informations */
 #informations {
     width: 100%;
@@ -178,71 +278,6 @@ nav {
 }
 
 /* Exercice */
-
-#sound-toggle {
-    position: fixed;
-    top: 32px;
-    right: 32px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 1rem;
-    color: var(--text-color);
-    cursor: pointer;
-}
-
-/* Switch container */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 40px;
-    height: 20px;
-}
-
-/* Hide the default checkbox */
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-/* Slider styling */
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--color-dark);
-    border: 1px solid var(--text-color);
-    border-radius: 20px;
-    transition: all 0.3s ease;
-}
-
-/* Slider circle */
-.slider::before {
-    content: "";
-    position: absolute;
-    height: 14px;
-    width: 14px;
-    left: 2px;
-    bottom: 2px;
-    background-color: var(--text-color);
-    border-radius: 50%;
-    transition: all 0.3s ease;
-}
-
-/* Checked state */
-.switch input:checked + .slider {
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
-}
-
-.switch input:checked + .slider::before {
-    transform: translateX(20px);
-    background-color: var(--bg-color);
-}
 
 #settings-container {
     width: 100%;

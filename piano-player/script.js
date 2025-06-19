@@ -13,118 +13,214 @@ const chordDisplay = document.getElementById('chord'); // Added chord display el
 const toggleNotationButton = document.getElementById('toggle-notation');
 const keys = keyboard.getElementsByClassName('key');
 
-const chordPatterns = {
-    // Single Intervals
-    '0': '+ min Second',
-    '1': '+ Second',
-    '2': '+ min Third',
-    '3': '+ Third',
-    '4': '+ Fourth',
-    '5': '+ Augmented Fourth',
-    '6': '+ Fifth',
-    '7': '+ min Sixth',
-    '8': '+ Sixth',
-    '9': '+ min Seventh',
-    '10': '+ Seventh',
-    '11': '+ Octave',
+// const chordPatterns = {
+//     // Single Intervals
+//     '0': '+ min Second',
+//     '1': '+ Second',
+//     '2': '+ min Third',
+//     '3': '+ Third',
+//     '4': '+ Fourth',
+//     '5': '+ Augmented Fourth',
+//     '6': '+ Fifth',
+//     '7': '+ min Sixth',
+//     '8': '+ Sixth',
+//     '9': '+ min Seventh',
+//     '10': '+ Seventh',
+//     '11': '+ Octave',
 
-    // Triads
-    '3,2': 'Maj',
-    '2,3': 'min',
-    '2,2': 'Dim',
-    '3,3': 'Aug',
-    '1,4': 'sus2',
-    '4,1': 'sus4',
+//     // Triads
+//     '3,2': 'Maj',
+//     '2,3': 'min',
+//     '2,2': 'Dim',
+//     '3,3': 'Aug',
+//     '1,4': 'sus2',
+//     '4,1': 'sus4',
 
-    // Triad Inversions
-    '4,3':'Maj (1st inv)',
-    '2,4':'Maj (2nd inv)',
-    '4,2':'min (1st inv)',
-    '3,4':'min (2nd inv)',
+//     // Triad Inversions
+//     '4,3': 'Maj (1st inv)',
+//     '2,4': 'Maj (2nd inv)',
+//     '4,2': 'min (1st inv)',
+//     '3,4': 'min (2nd inv)',
 
-    // Sixth chords
-    '3,2,1': 'Maj 6th',
-    '2,3,1': 'min 6th',
+//     // Sixth chords
+//     '3,2,1': 'Maj 6th',
+//     '2,3,1': 'min 6th',
 
-    // Seventh chords
-    '3,2,2': 'Dom 7th',
-    '3,2,3': 'Maj 7th',
-    '2,3,2': 'min 7th',
-    '2,2,2': 'Dim 7th',
+//     // Seventh chords
+//     '3,2,2': 'Dom 7th',
+//     '3,2,3': 'Maj 7th',
+//     '2,3,2': 'min 7th',
+//     '2,2,2': 'Dim 7th',
 
-    // Add chords
-    '3,1,3': 'Maj Add 9',
-    '2,1,3': 'min Add 9',
-    '3,2,4': 'Maj Add 11',
-    '2,3,4': 'min Add 11',
+//     // Add chords
+//     '3,1,3': 'Maj Add 9',
+//     '2,1,3': 'min Add 9',
+//     '3,2,4': 'Maj Add 11',
+//     '2,3,4': 'min Add 11',
 
-    // Ninth chords
-    '3,2,2,4': 'Dom 9th',
-    '3,2,3,3': 'Maj 9th',
-    '2,3,2,3': 'min 9th',
-    '2,2,2,3': 'Dim 9th',
+//     // Ninth chords
+//     '3,2,2,4': 'Dom 9th',
+//     '3,2,3,3': 'Maj 9th',
+//     '2,3,2,3': 'min 9th',
+//     '2,2,2,3': 'Dim 9th',
 
-    // Eleventh chords
-    '3,2,2,4,3': 'Dom 11th',
-    '3,2,3,3,3': 'Maj 11th',
-    '2,3,2,3,3': 'min 11th',
+//     // Eleventh chords
+//     '3,2,2,4,3': 'Dom 11th',
+//     '3,2,3,3,3': 'Maj 11th',
+//     '2,3,2,3,3': 'min 11th',
 
-    // Thirteenth chords
-    '3,2,2,4,3,4': 'Dom 13th',
-    '3,2,3,3,3,4': 'Maj 13th',
-    '2,3,2,3,3,4': 'min 13th',
+//     // Thirteenth chords
+//     '3,2,2,4,3,4': 'Dom 13th',
+//     '3,2,3,3,3,4': 'Maj 13th',
+//     '2,3,2,3,3,4': 'min 13th',
 
-    // Suspended chords with extensions
-    '1,4,2': 'sus2 7th',
-    '4,1,2': 'sus4 7th',
-    '1,4,3': 'sus2 9th',
-    '4,1,3': 'sus4 9th',
+//     // Suspended chords with extensions
+//     '1,4,2': 'sus2 7th',
+//     '4,1,2': 'sus4 7th',
+//     '1,4,3': 'sus2 9th',
+//     '4,1,3': 'sus4 9th',
 
-    // Quartal and cluster voicings
-    '5,5': 'Quartal (Perfect 4ths)',
-    '1,1': 'Tone Cluster (2nds)',
+//     // Quartal and cluster voicings
+//     '5,5': 'Quartal (Perfect 4ths)',
+//     '1,1': 'Tone Cluster (2nds)',
 
-    // Open chords / wide voicings
-    '7,5': 'Open Fifth (Power chord)',
-    '3,5': 'Maj 10th',
-    '2,5': 'min 10th'
+//     // Open chords / wide voicings
+//     '7,5': 'Open Fifth (Power chord)',
+//     '3,5': 'Maj 10th',
+//     '2,5': 'min 10th'
+// };
+
+const knownChords = {
+    // Triades de base
+    "0,4,7": "Major",
+    "0,3,7": "minor",
+    "0,3,6": "Diminished",
+    "0,4,8": "Augmented",
+    "0,5,7": "Sus4",
+    "0,2,7": "Sus2",
+    "0,7": "Power",
+
+    // Accords à 7e
+    "0,4,7,10": "7",
+    "0,4,7,11": "Maj7",
+    "0,3,7,10": "min7",
+    "0,3,6,10": "m7♭5",
+    "0,3,6,9": "dim7",
+    "0,4,8,10": "Aug7",
+
+    // Accords à 6e
+    "0,4,7,9": "6",
+    "0,3,7,9": "min6",
+
+    // Accords add
+    "0,4,7,2": "add9",
+    "0,3,7,2": "min add9",
+    "0,4,7,5": "add11",
+    "0,3,7,5": "min add11",
+
+    // Accords à 9e
+    "0,4,7,10,2": "9",
+    "0,3,7,10,2": "min9",
+    "0,4,7,11,2": "Maj9",
+    "0,3,6,10,2": "m7♭5 add9",
+
+    // Accords à 11e
+    "0,4,7,10,2,5": "11",
+    "0,3,7,10,2,5": "min11",
+    "0,4,7,11,2,5": "Maj11",
+
+    // Accords à 13e
+    "0,4,7,10,2,5,9": "13",
+    "0,3,7,10,2,5,9": "min13",
+    "0,4,7,11,2,5,9": "Maj13",
+
+    // Suspended enrichis
+    "0,5,7,10": "Sus4 7",
+    "0,2,7,10": "Sus2 7",
+    "0,5,7,2": "Sus4 9",
+    "0,2,7,4": "Sus2 add11",
+
+    // Extensions alternatives
+    "0,4,6,10": "7♭5",
+    "0,4,8,11": "Maj7♯5",
+    "0,3,6,11": "minMaj7♭5",
+    "0,3,7,11": "minMaj7",
+
+    // Clusters & modernes
+    "0,1,2": "Cluster (C C♯ D)",
+    "0,2,4": "Quartal",
+    "0,5,10": "Six/Nine",
+    "0,2,5,9": "Sus2/6",
+    "0,3,6,8": "Half-dim add♯9",
+
+    // Ambigus & autres
+    "0,2,4,7": "Lydian triad",
+    "0,4,6": "Augmented ♭5",
+    "0,3,8": "Minor ♯5",
+    "0,3,7,11": "minMaj7",
+    "0,4,7,1": "Maj add♯9"
 };
 
-// MIDI input
-// document.addEventListener('DOMContentLoaded', () => {
-//     navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
-// });
+let ledIntensity = 0.5;
 
-// function onMIDISuccess(midiAccess) {
-//     console.log("MIDI access granted. Waiting for MIDI input...");
-//     for (let input of midiAccess.inputs.values()) {
-//         input.onmidimessage = getMIDIMessage;
-//     }
-// }
+document.getElementById('settingsToggle').addEventListener('click', () => {
+    document.getElementById('settingsPanel').classList.toggle('open');
+});
 
-// function onMIDIFailure(error) {
-//     console.log("Failed to get MIDI access - ", error);
-// }
+document.getElementById('intensitySlider').addEventListener('input', function (e) {
+    ledIntensity = parseFloat(e.target.value);
+});
 
-// function getMIDIMessage(message) {
-//     // console.log(message.data);
-//     let command = message.data[0];
-//     let note = message.data[1];
-//     let velocity = (message.data.length > 2) ? message.data[2] : 0;
+const noteToLed = [
+    176, 174, 172, 170, 168, 166, 164, 162, 160, 158, 156, 154,
+    152, 150, 148, 146, 144, 142, 140, 138, 136, 134, 132, 130,
+    128, 126, 124, 122, 120, 118, 116, 114, 112, 110, 108, 106,
+    104, 102, 100, 98, 96, 94, 92, 90, 88, 86, 84, 82,
+    80, 78, 76, 74, 72, 71, 69, 67, 65, 63, 61, 59,
+    57, 55, 53, 51, 49, 47, 45, 43, 41, 39, 37, 35,
+    33, 31, 29, 27, 25, 23, 21, 19, 17, 15, 13, 11,
+    9, 7, 5, 3
+];
 
-//     switch (command) {
-//         case 144: // noteOn
-//             if (velocity > 0) {
-//                 noteOn(note, velocity);
-//             } else {
-//                 noteOff(note);
-//             }
-//             break;
-//         case 128: // noteOff
-//             noteOff(note);
-//             break;
-//     }
-// }
+const ws = new WebSocket("ws://192.168.1.17:81");
+
+ws.onopen = () => console.log("[WS] Connected to ESP32");
+ws.onerror = (e) => console.error("[WS ERROR]", e);
+ws.onmessage = (msg) => console.log("[WS RECEIVED]", msg.data);
+ws.onclose = () => console.warn("[WS] Disconnected");
+
+function hsvToRGB(h, s = 1.0, v = 1.0) {
+    let r, g, b;
+    const i = Math.floor(h * 6);
+    const f = h * 6 - i;
+    const p = v * (1 - s);
+    const q = v * (1 - f * s);
+    const t = v * (1 - (1 - f) * s);
+
+    switch (i % 6) {
+        case 0: r = v; g = t; b = p; break;
+        case 1: r = q; g = v; b = p; break;
+        case 2: r = p; g = v; b = t; break;
+        case 3: r = p; g = q; b = v; break;
+        case 4: r = t; g = p; b = v; break;
+        case 5: r = v; g = p; b = q; break;
+    }
+
+    return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255)
+    };
+}
+
+function sendToESP(message) {
+    if (ws.readyState === WebSocket.OPEN) {
+        ws.send(message);
+        console.log("[WS SEND]", message);
+    } else {
+        console.warn("WebSocket not ready:", message);
+    }
+}
 
 var midiAccess = null;
 var midiInputs = null;
@@ -254,12 +350,20 @@ function noteOn(midiNote, velocity) {
             if (key) key.classList.add('incorrect');
         }
     }
+
+    const led = noteToLed[midiNote - 21];
+    const hue = (midiNote - 21) / 87;
+    const { r, g, b } = hsvToRGB(hue, 1.0, (velocity / 127) * ledIntensity);
+    sendToESP(`SET ${led} ${r} ${g} ${b}`);
 }
 
 function noteOff(midiNote) {
     activeNotes = activeNotes.filter(n => n.midiNote !== midiNote);
     updateOutput();
     updateKeyboard();
+
+    const led = noteToLed[midiNote - 21];
+    sendToESP(`OFF ${led}`);
 }
 
 function NotesToChordName(notes) {
@@ -286,10 +390,31 @@ function NotesToChordName(notes) {
     return `${rootNote} ${chordPatterns[pattern] || '?!'}`;
 }
 
+function detectChord(noteSet, useSolfège = true) {
+    if (noteSet.length < 2) return null;
+
+    // Extraire les pitch classes et trier
+    const pitches = noteSet.map(n => n.midiNote % 12).sort((a, b) => a - b);
+
+    // Pour chaque note comme fondamentale potentielle
+    for (let i = 0; i < pitches.length; i++) {
+        const root = pitches[i];
+        const intervals = pitches.map(p => (p - root + 12) % 12).sort((a, b) => a - b);
+        const key = "0," + intervals.slice(1).join(",");
+        if (knownChords[key]) {
+            const noteName = useSolfège ? noteNamesFR[root] : noteNames[root];
+            return `${noteName} ${knownChords[key]}`;
+        }
+    }
+
+    return null;
+}
+
 function updateOutput() {
     activeNotes.sort((a, b) => a.midiNote - b.midiNote);
 
-    chordDisplay.textContent = NotesToChordName(activeNotes) || '♪';
+    //chordDisplay.textContent = NotesToChordName(activeNotes) || '♪';
+    chordDisplay.textContent = detectChord(activeNotes, useSolfège) || '♪';
     notesDisplay.textContent = activeNotes
         .map(note => useSolfège ? noteNamesFR[note.midiNote % 12] : note.name)
         .join(" ") || ' ';

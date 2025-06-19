@@ -42,13 +42,20 @@
         </div>
     </nav>
 
-    <label id="sound-toggle">
-        Sound
-        <div class="switch">
-            <input type="checkbox" id="enable-sound" checked>
-            <span class="slider"></span>
-        </div>
-    </label>
+    <button id="settingsToggle">⚙️</button>
+
+    <div id="settingsPanel">
+        <h3>Settings</h3>
+        <label id="sound-toggle">
+            <div>Sound</div>
+            <div class="switch">
+                <input type="checkbox" id="enable-sound" checked>
+                <span class="slider"></span>
+            </div>
+        </label>
+        <label for="intensitySlider">LED Intensity</label>
+        <input type="range" min="0" max="1" step="0.01" value="0.5" id="intensitySlider">
+    </div>
 
     <!-- Informations -->
     <div id="informations">
