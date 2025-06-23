@@ -13,83 +13,6 @@ const chordDisplay = document.getElementById('chord'); // Added chord display el
 const toggleNotationButton = document.getElementById('toggle-notation');
 const keys = keyboard.getElementsByClassName('key');
 
-// const chordPatterns = {
-//     // Single Intervals
-//     '0': '+ min Second',
-//     '1': '+ Second',
-//     '2': '+ min Third',
-//     '3': '+ Third',
-//     '4': '+ Fourth',
-//     '5': '+ Augmented Fourth',
-//     '6': '+ Fifth',
-//     '7': '+ min Sixth',
-//     '8': '+ Sixth',
-//     '9': '+ min Seventh',
-//     '10': '+ Seventh',
-//     '11': '+ Octave',
-
-//     // Triads
-//     '3,2': 'Maj',
-//     '2,3': 'min',
-//     '2,2': 'Dim',
-//     '3,3': 'Aug',
-//     '1,4': 'sus2',
-//     '4,1': 'sus4',
-
-//     // Triad Inversions
-//     '4,3': 'Maj (1st inv)',
-//     '2,4': 'Maj (2nd inv)',
-//     '4,2': 'min (1st inv)',
-//     '3,4': 'min (2nd inv)',
-
-//     // Sixth chords
-//     '3,2,1': 'Maj 6th',
-//     '2,3,1': 'min 6th',
-
-//     // Seventh chords
-//     '3,2,2': 'Dom 7th',
-//     '3,2,3': 'Maj 7th',
-//     '2,3,2': 'min 7th',
-//     '2,2,2': 'Dim 7th',
-
-//     // Add chords
-//     '3,1,3': 'Maj Add 9',
-//     '2,1,3': 'min Add 9',
-//     '3,2,4': 'Maj Add 11',
-//     '2,3,4': 'min Add 11',
-
-//     // Ninth chords
-//     '3,2,2,4': 'Dom 9th',
-//     '3,2,3,3': 'Maj 9th',
-//     '2,3,2,3': 'min 9th',
-//     '2,2,2,3': 'Dim 9th',
-
-//     // Eleventh chords
-//     '3,2,2,4,3': 'Dom 11th',
-//     '3,2,3,3,3': 'Maj 11th',
-//     '2,3,2,3,3': 'min 11th',
-
-//     // Thirteenth chords
-//     '3,2,2,4,3,4': 'Dom 13th',
-//     '3,2,3,3,3,4': 'Maj 13th',
-//     '2,3,2,3,3,4': 'min 13th',
-
-//     // Suspended chords with extensions
-//     '1,4,2': 'sus2 7th',
-//     '4,1,2': 'sus4 7th',
-//     '1,4,3': 'sus2 9th',
-//     '4,1,3': 'sus4 9th',
-
-//     // Quartal and cluster voicings
-//     '5,5': 'Quartal (Perfect 4ths)',
-//     '1,1': 'Tone Cluster (2nds)',
-
-//     // Open chords / wide voicings
-//     '7,5': 'Open Fifth (Power chord)',
-//     '3,5': 'Maj 10th',
-//     '2,5': 'min 10th'
-// };
-
 const knownChords = {
     // Triades de base
     "0,4,7": "Major",
@@ -161,7 +84,7 @@ const knownChords = {
     "0,4,7,1": "Maj add♯9"
 };
 
-let ledIntensity = 0.5;
+let ledIntensity = parseFloat(document.getElementById('intensitySlider').value);
 
 document.getElementById('settingsToggle').addEventListener('click', () => {
     document.getElementById('settingsPanel').classList.toggle('open');
@@ -170,6 +93,15 @@ document.getElementById('settingsToggle').addEventListener('click', () => {
 document.getElementById('intensitySlider').addEventListener('input', function (e) {
     ledIntensity = parseFloat(e.target.value);
 });
+
+const intensitySlider = document.getElementById('intensitySlider');
+const intensityValue = document.getElementById('intensityValue');
+
+intensitySlider.addEventListener('input', function (e) {
+    ledIntensity = parseFloat(e.target.value);
+    intensityValue.textContent = ledIntensity.toFixed(2); // updates the text live
+});
+
 
 const noteToLed = [
     176, 174, 172, 170, 168, 166, 164, 162, 160, 158, 156, 154,
@@ -182,9 +114,18 @@ const noteToLed = [
     9, 7, 5, 3
 ];
 
+let ledMode = "classic"; // ou "invert", "fade", etc.
+
 const ws = new WebSocket("ws://192.168.1.17:81");
 
-ws.onopen = () => console.log("[WS] Connected to ESP32");
+ws.onopen = () => {
+    console.log("[WS] Connected to ESP32");
+
+    // Flash all LEDs at low intensity (e.g. 0.1) once
+    toggleAllLeds(0.1); // ON
+    setTimeout(() => toggleAllLeds(0.1), 500); // OFF after 300ms
+};
+
 ws.onerror = (e) => console.error("[WS ERROR]", e);
 ws.onmessage = (msg) => console.log("[WS RECEIVED]", msg.data);
 ws.onclose = () => console.warn("[WS] Disconnected");
@@ -213,6 +154,76 @@ function hsvToRGB(h, s = 1.0, v = 1.0) {
     };
 }
 
+let ledsAreOn = false;
+
+document.getElementById('ledModeSelector').addEventListener('change', (e) => {
+    ledMode = e.target.value;
+});
+
+function applyLedMode(midiNote, velocity = 127, isNoteOn = true) {
+    const led = noteToLed[midiNote - 21];
+    const hue = (midiNote - 21) / 87;
+    const velocityFactor = velocity / 127;
+    const baseIntensity = velocityFactor * ledIntensity;
+
+    switch (ledMode) {
+        case "rainbow":
+            if (isNoteOn) {
+                const { r, g, b } = hsvToRGB(hue, 1.0, baseIntensity);
+                sendToESP(`SET ${led} ${r} ${g} ${b}`);
+            } else {
+                sendToESP(`OFF ${led}`);
+            }
+            break;
+
+        case "rainbow-invert":
+            if (isNoteOn) {
+                // Opposite hue
+                const { r, g, b } = hsvToRGB((hue + 0.5) % 1.0, 1.0, baseIntensity);
+                sendToESP(`SET ${led} ${r} ${g} ${b}`);
+            } else {
+                sendToESP(`OFF ${led}`);
+            }
+            break;
+
+        case "always-on":
+            // Always visible, pulse brighter when played
+            const intensity = isNoteOn ? baseIntensity : 0.1 * ledIntensity;
+            const { r, g, b } = hsvToRGB(hue, 1.0, intensity);
+            sendToESP(`SET ${led} ${r} ${g} ${b}`);
+            break;
+
+        case "white":
+        default:
+            if (isNoteOn) {
+                sendToESP(`SET ${led} 8 8 8`); // blanc par défaut
+            } else {
+                sendToESP(`OFF ${led}`);
+            }
+            break;
+
+        case "off":
+            sendToESP(`OFF ${led}`);
+            break;
+    }
+}
+
+function toggleAllLeds(intensity = 0.1) {
+    ledsAreOn = !ledsAreOn;
+
+    if (ledsAreOn) {
+        noteToLed.forEach((led, i) => {
+            const hue = i / noteToLed.length;
+            const { r, g, b } = hsvToRGB(hue, 1.0, intensity);
+            sendToESP(`SET ${led} ${r} ${g} ${b}`);
+        });
+    } else {
+        noteToLed.forEach(led => {
+            sendToESP(`OFF ${led}`);
+        });
+    }
+}
+
 function sendToESP(message) {
     if (ws.readyState === WebSocket.OPEN) {
         ws.send(message);
@@ -225,6 +236,27 @@ function sendToESP(message) {
 var midiAccess = null;
 var midiInputs = null;
 var midiOutputs = null;
+
+let sustainOn = false;
+let sustainedNotes = new Set();
+
+function handleSustain(isOn) {
+    sustainOn = isOn;
+
+    if (!isOn) {
+        // Release all notes that were held only by pedal
+        for (const note of sustainedNotes) {
+            noteOff(note);
+        }
+        sustainedNotes.clear();
+    }
+
+    // Optional display
+    const pedalDisplay = document.getElementById("pedal-status");
+    if (pedalDisplay) {
+        pedalDisplay.textContent = isOn ? "🎹 Pedal ON" : "Pedal OFF";
+    }
+}
 
 function setup() {
     if (window.navigator.requestMIDIAccess) {
@@ -253,6 +285,13 @@ function setup() {
                     let command = event.data[0];
                     let note = event.data[1];
                     let velocity = (event.data.length > 2) ? event.data[2] : 0;
+
+                    // inside onmidimessage
+                    if (command === 176 && note === 64) {
+                        const sustainNow = velocity >= 64;
+                        handleSustain(sustainNow);
+                        return;
+                    }
 
                     switch (command) {
                         case 144: // noteOn
@@ -329,21 +368,25 @@ function playSound(midiNote, forcePlay = false) {
 
 // Note On-Off
 function noteOn(midiNote, velocity) {
+    // Ne pas ajouter de doublon
+    if (activeNotes.some(n => n.midiNote === midiNote)) return;
+
     const noteName = noteNames[midiNote % 12] + Math.floor(midiNote / 12 - 1);
     activeNotes.push({ name: noteName, midiNote: midiNote, velocity: (velocity / 127).toFixed(1) });
     playSound(midiNote);
     updateOutput();
     updateKeyboard();
+    applyLedMode(midiNote, velocity, true);
 
     if (exerciseActive) {
         if (midiNote === currentNote && !isWaitingForNextNote) {
-            isWaitingForNextNote = true; // Set the flag
+            isWaitingForNextNote = true;
             const key = keyboard.querySelector(`[data-note="${midiNote}"]`);
-            if (key) key.classList.add('correct'); // Highlight the correct key
+            if (key) key.classList.add('correct');
             setTimeout(() => {
                 if (key) key.classList.remove('correct');
                 playRandomNote();
-                isWaitingForNextNote = false; // Reset the flag
+                isWaitingForNextNote = false;
             }, 3000);
         } else if (midiNote !== currentNote) {
             const key = keyboard.querySelector(`[data-note="${midiNote}"]`);
@@ -351,19 +394,25 @@ function noteOn(midiNote, velocity) {
         }
     }
 
-    const led = noteToLed[midiNote - 21];
-    const hue = (midiNote - 21) / 87;
-    const { r, g, b } = hsvToRGB(hue, 1.0, (velocity / 127) * ledIntensity);
-    sendToESP(`SET ${led} ${r} ${g} ${b}`);
+    // const led = noteToLed[midiNote - 21];
+    // const hue = (midiNote - 21) / 87;
+    // const { r, g, b } = hsvToRGB(hue, 1.0, (velocity / 127) * ledIntensity);
+    // sendToESP(`SET ${led} ${r} ${g} ${b}`);
 }
 
 function noteOff(midiNote) {
+    if (sustainOn) {
+        sustainedNotes.add(midiNote);
+        return;
+    }
+
     activeNotes = activeNotes.filter(n => n.midiNote !== midiNote);
     updateOutput();
     updateKeyboard();
+    applyLedMode(midiNote, 0, false);
 
-    const led = noteToLed[midiNote - 21];
-    sendToESP(`OFF ${led}`);
+    // const led = noteToLed[midiNote - 21];
+    // sendToESP(`OFF ${led}`);
 }
 
 function NotesToChordName(notes) {

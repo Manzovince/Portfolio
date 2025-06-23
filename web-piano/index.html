@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Styles -->
+    <link rel="stylesheet" href="./styles.css">
+    <!-- Page title -->
+    <title>Web PianoLED</title>
+</head>
+
+<body>
+    <nav>
+        <svg data-v-14c8c335="" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+            class="lucide lucide-piano-icon lucide-piano lucide-icon customizable">
+            <path
+                d="M18.5 8c-1.4 0-2.6-.8-3.2-2A6.87 6.87 0 0 0 2 9v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-8.5C22 9.6 20.4 8 18.5 8">
+            </path>
+            <path d="M2 14h20"></path>
+            <path d="M6 14v4"></path>
+            <path d="M10 14v4"></path>
+            <path d="M14 14v4"></path>
+            <path d="M18 14v4"></path>
+        </svg>
+        <div>Web piano</div>
+    </nav>
+
+    <input type="checkbox" id="settingsToggle" hidden>
+    <label id="settingsIcon" for="settingsToggle">
+        <svg data-v-14c8c335="" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+            class="lucide lucide-settings-icon lucide-settings lucide-icon customizable">
+            <path
+                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z">
+            </path>
+            <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+    </label>
+    <aside id="settingsPanel">
+        <h4>Settings</h4>
+        <div class="settingsCategory">
+            <div class="settingsItem">
+                <label for="notation">Notation</label>
+                <select name="notation" id="notation">
+                    <option value="solfege" selected>Solfège</option>
+                    <option value="english">English</option>
+                </select>
+            </div>
+        </div>
+        <hr>
+        <div class="settingsCategory">
+            <div class="settingsItem">
+                <label for="soundEnabled">Sound</label>
+                <input type="checkbox" id="soundEnabled">
+            </div>
+            <div class="settingsItem">
+                <label for="instrument">Instrument</label>
+                <select id="instrument">
+                    <option value="piano" selected>Piano</option>
+                    <!-- <option value="guitar">Guitar</option> -->
+                    <option value="sine">Sine Wave</option>
+                    <option value="triangle">Triangle Wave</option>
+                    <option value="square">Square Wave</option>
+                    <option value="sawtooth">Sawtooth Wave</option>                    
+                </select>
+            </div>
+            <div class="settingsItem" style="display: none;">
+                <label for="attack">Attack</label>
+                <input type="number" id="attack" value="0.01">
+            </div>
+            <div class="settingsItem" style="display: none;">
+                <label for="decay">Decay</label>
+                <input type="number" id="decay" value="0.1">
+            </div>
+            <div class="settingsItem" style="display: none;">
+                <label for="sustain">Sustain</label>
+                <input type="number" id="sustain" value="0.2">
+            </div>
+            <div class="settingsItem" style="display: none;">
+                <label for="release">Release</label>
+                <input type="number" id="release" value="0.8">
+            </div>
+        </div>
+        <hr>
+        <div class="settingsCategory">
+            <div class="settingsItem">
+                <label for="ledMode">Mode</label>
+                <select name="ledMode" id="ledMode">
+                    <option value="rainbow" selected>Rainbow</option>
+                    <option value="octave-rainbow">Octave rainbow</option>
+                    <option value="wave-pulse">Wave Pulse (LED)</option>
+                    <option value="ripple">Ripple (LED)</option>
+                </select>
+            </div>
+            <div class="settingsItem">
+                <div class="ledIntensityLabel">
+                    <label for="ledIntensity">Intensity</label>
+                    <div id="intensityValue">0.2</div>
+                </div>
+                <input type="range" min="0" max="1" step="0.01" value="0.2" id="ledIntensity">
+                </div>
+        </div>
+    </aside>
+
+    <main>
+        <canvas id="pianoRoll"></canvas>
+
+        <div class="notesAnalysis">
+            <div id="chordName">No chord</div>
+            <div id="activeNotes">No notes</div>
+        </div>
+        <div id="virtualKeyboard"></div>
+    </main>
+</body>
+
+<!-- <script src="./js/app.js"></script> -->
+<script type="module" src="./js/main.js"></script>
+
+</html>

@@ -1,0 +1,225 @@
+/* Style variables */
+
+:root {
+    --color-light: hsl(35, 45%, 83%);
+    --color-dark: hsl(198, 82%, 9%);
+    --color-primary: hsl(175, 43%, 47%);
+    --color-secondary: hsl(175, 39%, 25%);
+    --color-link: hsl(10, 84%, 76%);
+
+    --bg-color: var(--color-dark);
+    --text-color: var(--color-light);
+}
+
+/* Reset styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    border: none;
+    color: var(--text-color);
+    background: none;
+    background-color: none;
+    box-sizing: border-box;
+    text-decoration: none;
+}
+
+button {
+    cursor: pointer;
+}
+
+/* General styles */
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    font-family: sans-serif;
+    font-size: 1.2rem;
+    overflow: hidden;
+}
+
+/* Navigation */
+
+nav {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 200;
+}
+
+#settingsIcon {
+    cursor: pointer;
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    font-size: 16px;
+    z-index: 1000;
+}
+
+#settingsToggle:checked+#settingsIcon+#settingsPanel {
+    transform: translateX(0%);
+    pointer-events: auto;
+}
+
+#settingsPanel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 400px;
+    height: 100%;
+    background-color: var(--bg-color);
+    border-left: solid 1px hsla(35, 45%, 83%, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px;
+    z-index: 999;
+    transform: translateX(100%);
+    transition: all 0.3s ease-in-out;
+    pointer-events: none;
+}
+
+#settingsPanel.visible {
+    transform: translateX(0%);
+    box-shadow: -4px 0 32px hsl(199, 83%, 6%);
+    pointer-events: auto;
+}
+
+#settingsPanel hr {
+    border-top: solid 1px var(--text-color);
+    opacity: .1;
+}
+
+.settingsCategory {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.settingsItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.settingsItem label {
+    font-size: 16px;
+    font-weight: 300;
+}
+
+.settingsItem select {
+    cursor: pointer;
+    border: solid 1px hsla(35, 45%, 83%, 0.05);
+    transition: all ease-in-out .2s;
+}
+
+.settingsItem select:hover {
+    border: solid 1px hsla(35, 45%, 83%, 0.2);
+}
+
+.ledIntensityLabel {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-right: 8px;
+}
+
+#intensityValue {
+    font-size: 14px;
+    font-weight: 200;
+}
+
+/* Main */
+
+main {
+
+}
+
+/* UI Informations */
+
+.notesAnalysis {
+    position: absolute;
+    left: 72px;
+    bottom: 144px;
+    font-size: 16px;
+    font-weight: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#chordName {}
+
+#activeNotes {
+    opacity: .6;
+}
+
+/* Virtual keyboard */
+
+#virtualKeyboard {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    user-select: none;
+    width: 100%;
+    height: 130px;
+    transform: scale(.9);
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-x: auto;
+}
+
+.key {
+    user-select: none;
+    -webkit-user-select: none;
+    width: 30px;
+    height: 120px;
+    border: 1px solid var(--bg-color);
+    background-color: var(--text-color);
+    margin-right: -1px;
+    z-index: 1;
+    font-size: 10px;
+    color: gray;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    transition: all ease-in-out 100ms;
+}
+
+.key.black {
+    width: 20px;
+    height: 80px;
+    background-color: var(--bg-color);
+    /* border: 1px solid var(--bg-color); */
+    margin-left: -10px;
+    margin-right: -10px;
+    z-index: 2;
+}
+
+.key.active {
+    margin-top: 4px;
+}
+
+/* Piano roll */
+
+#pianoRoll {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: calc(100% - 130px);
+    z-index: 0;
+    /* background-color: #111; */
+}

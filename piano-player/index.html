@@ -49,12 +49,30 @@
         <label id="sound-toggle">
             <div>Sound</div>
             <div class="switch">
-                <input type="checkbox" id="enable-sound" checked>
+                <input type="checkbox" id="enable-sound">
                 <span class="slider"></span>
             </div>
         </label>
-        <label for="intensitySlider">LED Intensity</label>
-        <input type="range" min="0" max="1" step="0.01" value="0.5" id="intensitySlider">
+        <hr>
+        <button id="toggleAllLeds" onclick="toggleAllLeds(0.1)">Toggle All LEDs</button>
+        <div class="led-intensity">
+            <div class="led-intensity-label">
+                <label for="intensitySlider">LED Intensity</label>
+                <div id="intensityValue">0.2</div>
+            </div>
+            <input type="range" min="0" max="1" step="0.01" value="0.2" id="intensitySlider">
+        </div>
+        <div class="led-mode">
+            <label for="ledModeSelector">LED Mode</label>
+            <select id="ledModeSelector">
+                <option value="rainbow">Rainbow</option>
+                <option value="rainbow-invert">Inverted rainbow</option>
+                <option value="per-octave">Per octave</option>
+                <option value="always-on">Always On</option>
+                <option value="white">White</option>
+                <option value="off">Off</option>
+            </select>
+        </div>
     </div>
 
     <!-- Informations -->
