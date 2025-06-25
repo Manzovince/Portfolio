@@ -8,12 +8,14 @@ export { initMIDI, noteOn, noteOff };
 export let activeNotes = new Map(); // {note: {startTime, velocity}}
 export let timelineNotes = []; // Array of {note, startTime, endTime, velocity}
 
+const MAX_TIMELINE_NOTES = 500;
+
 let sustainPedal = false;
 
 function initMIDI() {
     if (!navigator.requestMIDIAccess) {
-        console.warn("Web MIDI API not supported");
-        return;
+        console.warn("Web MIDI API not supported.");
+        // return;
     }
     navigator.requestMIDIAccess().then(midiAccess => {
         for (const input of midiAccess.inputs.values()) {
@@ -32,7 +34,6 @@ function noteOn(note, velocity, time) {
         velocity
     });
 
-    const MAX_TIMELINE_NOTES = 500;
     if (timelineNotes.length > MAX_TIMELINE_NOTES) {
         timelineNotes.splice(0, timelineNotes.length - MAX_TIMELINE_NOTES);
     }

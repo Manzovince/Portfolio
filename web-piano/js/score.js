@@ -17,7 +17,7 @@ import { timelineNotes } from "./midi.js";
 export { initScore };
 
 // ─────────────────────────────────────────────────── constants ──
-const STAFF_HEIGHT = 100;
+const STAFF_HEIGHT = 120;
 const QUARTER_MS = 500;
 const NOTE_SPACING = 40; // px between chords
 const CHORD_THRESHOLD_MS = 1000;
