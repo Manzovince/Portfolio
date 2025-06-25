@@ -41,6 +41,8 @@ function createKeyboard() {
 
 createKeyboard();
 
+// === UPDATE KEYBOARD ===
+
 function updateKeyboard() {
     const keyboard = document.getElementById("virtualKeyboard");
 

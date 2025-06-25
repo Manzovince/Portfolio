@@ -1,6 +1,6 @@
 // === LEDs controls ===
 
-import { hsvToRGB } from "./utils.js";
+import { hsvToRGB, getScaleNotes } from "./utils.js";
 
 export { applyLedMode,  ledMode, ledIntensity }
 
@@ -28,7 +28,7 @@ ws.onopen = () => {
 };
 
 ws.onerror = (e) => console.error("[WS ERROR]", e);
-ws.onmessage = (msg) => console.log("[WS RECEIVED]", msg.data);
+// ws.onmessage = (msg) => console.log("[WS RECEIVED]", msg.data);
 ws.onclose = () => console.warn("[WS] Disconnected");
 
 function sendToESP(message) {
@@ -62,6 +62,15 @@ function applyLedMode(midiNote, velocity = 127, isNoteOn = true) {
     const baseIntensity = velocityFactor * ledIntensity;
 
     switch (ledMode) {
+        case "scale-highlight":
+            if (selectedScaleNotes.includes(midiNote)) {
+                const { r, g, b } = hsvToRGB(hue, 1.0, isNoteOn ? baseIntensity : 0.1);
+                sendToESP(`SET ${led} ${r} ${g} ${b}`);
+            } else {
+                sendToESP(`OFF ${led}`);
+            }
+            break;
+        
         case "rainbow":
             if (isNoteOn) {
                 const { r, g, b } = hsvToRGB(hue, 1.0, baseIntensity);
@@ -149,7 +158,6 @@ function applyLedMode(midiNote, velocity = 127, isNoteOn = true) {
             }
             break;
             
-
         case "white":
         default:
             if (isNoteOn) {
@@ -164,6 +172,12 @@ function applyLedMode(midiNote, velocity = 127, isNoteOn = true) {
             break;
     }
 }
+
+// Scales
+
+let selectedScaleNotes = [];
+
+
 
 // LED Utilities
 

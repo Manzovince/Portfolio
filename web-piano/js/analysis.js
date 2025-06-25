@@ -19,9 +19,15 @@ const chordTypes = {
     "0,2,7": "Sus2",
     "0,7": "Power",
 
-    // 6th chords
+    // Added triads
+    "0,4,7,2": "add9",
+    "0,3,7,2": "min add9",
+    "0,4,7,5": "add11",
+    "0,3,7,5": "min add11",
     "0,4,7,9": "6",
     "0,3,7,9": "min6",
+    "0,4,7,1": "Maj♭9",
+    "0,3,7,1": "min♭9",
 
     // 7th chords
     "0,4,7,10": "7",
@@ -33,6 +39,10 @@ const chordTypes = {
     "0,4,8,10": "aug7",
     "0,4,8,11": "augMaj7",
 
+    // Suspended 7 chords
+    "0,5,7,10": "7sus4",
+    "0,2,7,10": "7sus2",
+
     // 9th chords
     "0,4,7,10,2": "9",
     "0,3,7,10,2": "min9",
@@ -40,16 +50,6 @@ const chordTypes = {
     "0,3,7,11,2": "minMaj9",
     "0,3,6,10,2": "m7♭5(9)",
     "0,3,6,9,2": "dim9",
-
-    // Add chords
-    "0,4,7,2": "add9",
-    "0,3,7,2": "min add9",
-    "0,4,7,5": "add11",
-    "0,3,7,5": "min add11",
-
-    // Suspended 7 chords
-    "0,5,7,10": "7sus4",
-    "0,2,7,10": "7sus2",
 
     // Extended chords (11th, 13th)
     "0,4,7,10,2,5": "11",
@@ -63,11 +63,20 @@ const chordTypes = {
     "0,4,7,10,6": "7#11",
     "0,4,7,10,8": "7♯13",
 
-    // Special voicings
-    "0,5,9": "Quartal",
+    // Quartal and special voicings
+    "0,5,10": "Quartal",
     "0,7,14": "Fifth Stack",
     "0,3,6,8": "French Augmented 6th",
-    "0,3,6,10,2": "dim7 add9"
+    "0,3,6,10,2": "dim7 add9",
+
+    // More 4-note chords
+    "0,3,6,9": "Diminished Seventh",
+    "0,4,8,10": "Augmented Seventh",
+    "0,2,5,9": "Sixth/Ninth",
+    "0,5,9": "Sus4(6)",
+    "0,3,7,8": "min(maj6)",
+    "0,4,7,8": "Maj6(add♭6)",
+    "0,3,7,8,10": "min7(add6)",
 };
 
 function getNoteNames(notes, notation) {
@@ -89,13 +98,22 @@ function getChordName(activeNotes, notation) {
     const noteNums = [...activeNotes.keys()].sort((a, b) => a - b);
     if (noteNums.length < 2) return null;
 
-    const root = Math.min(...noteNums);
-    const intervals = noteNums.map(n => (n - root + 12) % 12).sort((a, b) => a - b);
-    const chordKey = intervals.join(",");
-
     const names = notationMap[notation];
-    const rootName = names[root % 12];
-    const chordName = chordTypes[chordKey];
 
-    return chordName ? `${rootName} ${chordName}` : null;
+    for (let i = 0; i < noteNums.length; i++) {
+        // Rotate notes
+        const rotated = noteNums.slice(i).concat(noteNums.slice(0, i));
+        const root = rotated[0];
+        // Calculate intervals from this root
+        const intervals = rotated.map(n => (n - root + 12) % 12).sort((a, b) => a - b);
+        const chordKey = intervals.join(",");
+        const chordName = chordTypes[chordKey];
+        if (chordName) {
+            const rootName = names[root % 12];
+            // Optionally, add inversion info:
+            if (i > 0) return `${rootName} ${chordName} (inv)`;
+            return `${rootName} ${chordName}`;
+        }
+    }
+    return null;
 }

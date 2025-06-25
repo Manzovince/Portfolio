@@ -24,3 +24,22 @@ function hsvToRGB(h, s = 1.0, v = 1.0) {
         b: Math.round(b * 255)
     };
 }
+
+export function getScaleNotes(scaleName) {
+    const scales = {
+        C_major: [60, 62, 64, 65, 67, 69, 71], // C4 to B4
+        A_minor: [57, 59, 60, 62, 64, 65, 67], // A3 to G4
+        G_major: [55, 57, 59, 60, 62, 64, 66],
+        D_minor: [50, 52, 53, 55, 57, 58, 60]
+    };
+    const base = scaleName.includes("minor") ? 21 : 24; // optional transposition
+    return (scales[scaleName] || []).flatMap(n => {
+        // Expand across all octaves
+        const notes = [];
+        for (let o = -2; o <= 4; o++) {
+            const transposed = n + o * 12;
+            if (transposed >= 21 && transposed <= 108) notes.push(transposed);
+        }
+        return notes;
+    });
+}

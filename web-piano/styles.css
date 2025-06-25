@@ -48,6 +48,9 @@ nav {
     position: absolute;
     top: 24px;
     left: 24px;
+}
+
+nav a {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -55,12 +58,39 @@ nav {
     font-weight: 200;
 }
 
+#soundIcons {
+    cursor: pointer;
+    position: absolute;
+    top: 24px;
+    right: 64px;
+    z-index: 1000;
+}
+
+#soundIconOn {
+    display: none;
+}
+
+#soundToggle:checked+#soundIcons #soundIconOn {
+    display: inline;
+}
+
+#soundToggle:checked+#soundIcons #soundIconOff {
+    display: none;
+}
+
+#soundToggle:not(:checked)+#soundIcons #soundIconOff {
+    display: inline;
+}
+
+#soundToggle:not(:checked)+#soundIcons #soundIconOn {
+    display: none;
+}
+
 #settingsIcon {
     cursor: pointer;
     position: absolute;
     top: 24px;
     right: 24px;
-    font-size: 16px;
     z-index: 1000;
 }
 
@@ -89,7 +119,7 @@ nav {
 
 #settingsPanel.visible {
     transform: translateX(0%);
-    box-shadow: -4px 0 32px hsl(199, 83%, 6%);
+    box-shadow: -4px 0 32px hsl(199, 83%, 8%);
     pointer-events: auto;
 }
 
@@ -140,9 +170,7 @@ nav {
 
 /* Main */
 
-main {
-
-}
+main {}
 
 /* UI Informations */
 
@@ -220,6 +248,41 @@ main {
     right: 0;
     width: 100%;
     height: calc(100% - 130px);
-    z-index: 0;
+    z-index: -1;
     /* background-color: #111; */
+}
+
+/* Notes stats */
+
+#noteStats {
+    display: none;
+    position: absolute;
+    left: 50%;
+    bottom: 130px;
+    max-width: 100vw;
+    height: 120px;
+    z-index: 10;
+    transform: translateX(-50%);
+}
+
+/* Score view */
+
+#scoreView {
+    position: absolute;
+    top: 0;
+    left: 64px;
+    width: 100%;
+    height: 300px;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: .6;
+}
+
+#scoreView svg {
+    color: var(--text-color);
+    fill: var(--text-color);
+    stroke: var(--text-color);
+    stroke-width: .5;
 }

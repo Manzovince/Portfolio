@@ -2,10 +2,11 @@ import { activeNotes, timelineNotes } from './midi.js';
 import { createKeyboard, updateKeyboard } from './keyboard.js';
 import { getNoteNames, getChordName } from './analysis.js';
 import { setInstrument, toggleSound, audioContext } from './sound.js';
+import { drawPianoRoll } from './pianoroll.js';
 import { ledMode, ledIntensity } from './leds.js';
 import { hsvToRGB } from './utils.js';
 
-export { setupUI, updateUI, drawPianoRoll };
+export { setupUI, updateUI, drawPianoRoll, drawNoteStats };
 
 // === SETUP UI ===
 
@@ -18,7 +19,8 @@ function setupUI() {
         document.getElementById("settingsPanel").classList.toggle("visible");
     });
 
-    document.getElementById("soundEnabled").addEventListener("change", (e) => {
+    document.getElementById("soundToggle");
+    soundToggle.addEventListener("change", (e) => {
         toggleSound(e.target.checked);
     });
 
@@ -40,6 +42,14 @@ function setupUI() {
         }, { once: true })
     );    
 
+    // Show/hide note statistics canvas on checkbox change
+    const noteStatsCheckbox = document.getElementById("noteStatistics");
+    const noteStatsCanvas = document.getElementById("noteStats");
+    noteStatsCheckbox.addEventListener("change", () => {
+        noteStatsCanvas.style.display = noteStatsCheckbox.checked ? "block" : "none";
+        updateUI();
+    });
+
     createKeyboard();
     updateUI();
 }
@@ -51,62 +61,52 @@ function updateUI() {
     document.getElementById("chordName").innerText = getChordName(activeNotes, getCurrentNotation()) || "";
     updateKeyboard();
 
-    // Debugging
-    //console.log("Active notes:", [...activeNotes.keys()]);
-    //console.log("Timeline notes:", timelineNotes);
+    // Draw note statistics if enabled
+    const noteStatsCheckbox = document.getElementById("noteStatistics");
+    const noteStatsCanvas = document.getElementById("noteStats");
+    if (noteStatsCheckbox.checked) {
+        noteStatsCanvas.style.display = "block";
+        drawNoteStats();
+    } else {
+        noteStatsCanvas.style.display = "none";
+    }
 }
 
-// === PIANO ROLL ===
+// === NOTE STATISTICS CHART ===
 
-const canvas = document.getElementById("pianoRoll");
-const ctx = canvas.getContext("2d");
+function drawNoteStats() {
+    const canvas = document.getElementById("noteStats");
+    const ctx = canvas.getContext("2d");
 
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight - 130;
-}
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
+    // Set canvas size to match style (fixed width like piano roll)
+    canvas.width = 1286;
+    canvas.height = canvas.offsetHeight;
 
-const pixelsPerMs = 0.05; // vitesse de scroll
-
-function drawPianoRoll() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const now = performance.now();
-
+    // Count frequency of each MIDI note in timelineNotes
+    const noteCounts = new Array(128).fill(0);
     timelineNotes.forEach(n => {
-        const duration = (n.endTime ?? now) - n.startTime; // durée soit connue, soit en cours
-        const y = canvas.height - (now - n.startTime) * pixelsPerMs;
-        const height = duration * pixelsPerMs;
-        const totalWidth = 1286;
-        const noteRange = 88;
-        const noteWidth = totalWidth / noteRange;
-        const offsetX = (canvas.width - totalWidth) / 2;
-        const x = (n.note - 21) * noteWidth + offsetX;
-
-        let color;
-        const hue = (n.note - 21) / 87;
-        const intensity = 1;
-
-        switch (ledMode) {
-            case "rainbow":
-                color = hsvToRGB(hue, 1.0, intensity);
-                break;
-
-            case "octave-rainbow": {
-                const octaveHue = (n.note % 12) / 12;
-                color = hsvToRGB(octaveHue, 1.0, intensity);
-                break;
-            }
-
-            default:
-                color = hsvToRGB(hue, 1.0, intensity);
-                break;
-        }           
-
-        ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
-        ctx.fillRect(x, y, noteWidth, height);
+        if (n.note >= 0 && n.note < 128) noteCounts[n.note]++;
     });
 
-    requestAnimationFrame(drawPianoRoll);
+    // Find max count for scaling
+    const maxCount = Math.max(...noteCounts);
+
+    // Piano key range (A0=21 to C8=108)
+    const firstNote = 21, lastNote = 108;
+    const keyCount = lastNote - firstNote + 1;
+    const barWidth = canvas.width / keyCount;
+
+    // Draw bars
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < keyCount; i++) {
+        const midi = firstNote + i;
+        const x = i * barWidth;
+        const count = noteCounts[midi];
+        const barHeight = maxCount > 0 ? (count / maxCount) * (canvas.height - 10) : 0;
+
+        // Color: black keys darker
+        const isBlack = [1, 3, 6, 8, 10].includes(midi % 12);
+        ctx.fillStyle = isBlack ? "rgba(80,80,80,0.8)" : "rgba(180,220,255,0.8)";
+        ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
+    }
 }

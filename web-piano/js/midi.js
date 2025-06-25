@@ -32,6 +32,11 @@ function noteOn(note, velocity, time) {
         velocity
     });
 
+    const MAX_TIMELINE_NOTES = 500;
+    if (timelineNotes.length > MAX_TIMELINE_NOTES) {
+        timelineNotes.splice(0, timelineNotes.length - MAX_TIMELINE_NOTES);
+    }
+
     playNote(note);
     updateUI();
     applyLedMode(note, velocity, true);
@@ -54,7 +59,7 @@ function handleMIDIMessage(event) {
             if (data2 > 0) {
                 noteOn(data1, data2, now);
             } else {
-                noteOff(data1, now); // velocity 0 = note off
+                noteOff(data1, now);
             }
             break;
         case 0x80: // Note off
@@ -69,18 +74,12 @@ function handleMIDIMessage(event) {
 }
 
 function endNote(note, time) {
-    const data = activeNotes.get(note);
-    if (data) {
-        // Find the latest timeline note with null endTime
-        const entry = [...timelineNotes].reverse().find(n => n.note === note && n.endTime === null);
-        if (entry) {
-            entry.endTime = time;
-        }
+    const entries = timelineNotes.filter(n => n.note === note && n.endTime === null);
+    entries.forEach(entry => entry.endTime = time);
 
-        activeNotes.delete(note);
-        updateUI();
-        applyLedMode(note, 0, false);
-    }
+    activeNotes.delete(note);
+    updateUI();
+    applyLedMode(note, 0, false);
 }
 
 function handleSustain(isOn, time) {
