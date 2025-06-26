@@ -37,6 +37,7 @@ function sendToESP(message) {
         //console.log("[WS SEND]", message);
     } else {
         console.warn("WebSocket not ready:", message);
+        return;
     }
 }
 
