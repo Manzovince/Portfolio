@@ -6,7 +6,7 @@ const translations = {
     navPersonal: "Experiments",
     navAbout: "About me",
     introText: "I'm Vincent, a product designer with a background in <span>cognitive</span> and <span>computer sciences</span>, driven by a research-backed methodology.",
-    methodologyText:"After earning a master's in psychology, I became fascinated by how cognitive sciences can shape technology. <br><br> My scientific mindset lets me test hypotheses rigorously, while my technical knowledge helps me communicate effectively with engineering teams. <br><br> I'm a visual thinker - I tend to approach problems by visualizing ideas through sketches and diagrams, and breaking down complex issues into simple, understandable steps.",
+    methodologyText: "After earning a master's in psychology, I became fascinated by how cognitive sciences can shape technology. <br><br> My scientific mindset lets me test hypotheses rigorously, while my technical knowledge helps me communicate effectively with engineering teams. <br><br> I'm a visual thinker - I tend to approach problems by visualizing ideas through sketches and diagrams, and breaking down complex issues into simple, understandable steps.",
     proProjectText: "Discover my vision of design through some of my professional and personal projects.",
     tagPhoto: "Photography",
     tagDesign: "Design",
@@ -38,9 +38,9 @@ const translations = {
     aboutText: "I am a lifelong learner who values design that positively impacts society. <br><br> That's why in my free time, I enjoy experimenting with ideas that blend my skills in photography, music, science or education, continually pushing my creative boundaries. <br><br> Beside, I keep active by running, freediving, and climbing!",
     experienceTitle: "Experience",
     expUXText: "Designer of multiple services across various business lines, and co-lead of the Design System team. Find out more at <a href='https://info.sgmarkets.com/' class='link'>SG Markets</a> and also our <a href='https://design.sgmarkets.com/' class='link'>design team website</a>.",
-    expTeacherTitle:"UX Design teacher",
+    expTeacherTitle: "UX Design teacher",
     expTeacherText: "Lectures and workshops with students from the Multimedia and Internet professions program. These courses concluded in end-of-year projects ranging from user research to website development.",
-    expPopinTitle:"UX designer and developer",
+    expPopinTitle: "UX designer and developer",
     expPopinText: "Alongside an entrepreneur and a psychologist, I contributed to the development of Pop-in, one of the first chatbots designed to help young children (and their parents) have more restful nights, offering advice and a sleep support program.",
     educationTitle: "Education",
     eduEMText: "One-year apprenticeship, learning user research, UI design, and the principles that underpin effective digital experiences.",
@@ -56,7 +56,7 @@ const translations = {
     navPersonal: "Expérimentations",
     navAbout: "A propos de moi",
     introText: "Moi, c'est Vincent, un <span>product designer</span> avec une formation en sciences cognitives et en informatique, guidé par une méthodologie basée sur la recherche.",
-    methodologyText:"Après un master en psychologie, je me suis passionné par la manière dont les sciences cognitives peuvent façonner les nouvelles technologie. <br><br> Mon esprit scientifique me permet de tester rigoureusement des hypothèses, et mes connaissances techniques m'aident à communiquer efficacement avec les ingénieurs. <br><br> J'ai tendance à aborder les problèmes en visualisant des idées à travers des croquis et des diagrammes, et en décomposant les problèmes complexes en étapes simples et compréhensibles.",
+    methodologyText: "Après un master en psychologie, je me suis passionné par la manière dont les sciences cognitives peuvent façonner les nouvelles technologie. <br><br> Mon esprit scientifique me permet de tester rigoureusement des hypothèses, et mes connaissances techniques m'aident à communiquer efficacement avec les ingénieurs. <br><br> J'ai tendance à aborder les problèmes en visualisant des idées à travers des croquis et des diagrammes, et en décomposant les problèmes complexes en étapes simples et compréhensibles.",
     proProjectText: "Découvrez ma vision du design à travers mes projets professionels et personnels.",
     tagPhoto: "Photographie",
     tagDesign: "Design",
@@ -88,15 +88,15 @@ const translations = {
     aboutText: "Je suis un éternel curieux qui accorde une grande importance au design ayant un impact positif sur la société. <br><br> C'est pourquoi pendant mon temps libre, j'aime expérimenter avec des idées qui mélangent mes compétences en photographie, sciences et éducation, repoussant continuellement mes limites créatives. <br><br> Le reste du temps, j'aime courir, grimper et plonger en apnée !",
     experienceTitle: "Expérience",
     expUXText: "Designer référent sur plusieurs services à travers différentes lignes de métier, et co-lead de l'équipe Design System. Pour en savoir plus, rendez-vous sur <a href='https://info.sgmarkets.com/' class='link'>SG Markets</a> ainsi que notre <a href='https://design.sgmarkets.com/' class='link'>site d'équipe</a>.",
-    expTeacherTitle:"Enseignant en UX Design",
+    expTeacherTitle: "Enseignant en UX Design",
     expTeacherText: "J'ai donné des cours magistraux et animer des ateliers avec des étudiants du programme Métiers du Multimédia et de l'Internet. Ces cours se sont terminés par des projets de fin d'année allant de la recherche utilisateur à la création de sites web.",
-    expPopinTitle:"UX designer et développeur",
+    expPopinTitle: "UX designer et développeur",
     expPopinText: "Aux côtés d'une entrepreneuse et d'une psychologue, j'ai contribué au développement de Pop-in, l'un des premiers chatbots conçu pour aider les jeunes enfants (et leurs parents) à passer de meilleures nuits, en offrant des conseils et un programme de soutien au sommeil.",
     educationTitle: "Formation",
     eduEMText: "J'ai suivi une formation en aprentissage sur un an, pour monter en compétence sur la recherche utilisateur, le design UI et les principes qui sous-tendent des expériences numériques efficaces.",
     edu42Title: "Développeur",
     edu42Text: "À 42 Paris, j'ai adopté un modèle éducatif unique, m'immergeant dans l'informatique à travers des projets pratiques, des scripts shell aux programmes en C, ainsi qu'au Machine learning et plus généralement l'intelligence artificielle.",
-    eduMasterTitle:"Psychologie & neurosciences du mouvement",
+    eduMasterTitle: "Psychologie & neurosciences du mouvement",
     eduMasterText: "Ma formation académique en psychologie, associée à des recherches approfondies sur les systèmes intelligents, a approfondi ma compréhension de la manière dont les processus cognitifs et les expériences incarnées façonnent la conscience humaine. <br><br> Découvrant le monde passionnant de la recherche scientifique, cette approche interdisciplinaire s'est terminée par un mémoire explorant l'intersection de l'intégration sensorielle et de la conscience corporelle, utilisant le célèbre <i>Rubber hand illusion</i>."
   }
 };
@@ -301,7 +301,7 @@ class FooterComponent extends HTMLElement {
         </div>
         <div class="footer-item">
           <div class="footer-label">Location</div>
-          <div class="footer-content">48.8575° N, 2.3514° E</div>
+          <div class="footer-content">43.07541 N, 5.92724 E</div>
         </div>
         <div class="footer-item">
           <div class="footer-label">Copyright</div>
