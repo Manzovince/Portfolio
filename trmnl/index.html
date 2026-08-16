@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="description" content="trmnl — a terminal-like browser startpage with a horizon task board.">
+    <title>trmnl.</title>
+
+    <!-- Favicon: inlined so the page has no missing-asset request -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2315181A'/><path d='M8 11l5 5-5 5M17 21h8' fill='none' stroke='%23F1ECE2' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+
+    <!-- Styles -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;700&display=swap">
+    <link rel="stylesheet" href="./styles.css">
+
+    <script type="module" src="./src/main.js"></script>
+</head>
+
+<body>
+    <nav id="tabs" class="tabs" role="tablist" aria-label="Views">
+        <button type="button" class="tab" role="tab" id="tab-start"
+            aria-controls="view-start" aria-selected="true" data-view="start">start</button>
+        <button type="button" class="tab" role="tab" id="tab-horizon"
+            aria-controls="view-horizon" aria-selected="false" data-view="horizon">horizon</button>
+    </nav>
+
+    <!--========================
+        View: start
+    ========================-->
+    <main id="view-start" class="view" role="tabpanel" aria-labelledby="tab-start">
+        <header id="header">
+            <time id="time" class="time">--<span class="blink" aria-hidden="true">·</span>--</time>
+            <p id="date" class="date"></p>
+
+            <form id="terminal" autocomplete="off">
+                <label for="input" aria-label="Command prompt">~</label>
+                <input id="input" type="text" autofocus autocomplete="off" spellcheck="false"
+                    autocapitalize="none" autocorrect="off" enterkeyhint="go"
+                    placeholder="search or “?” for help">
+            </form>
+
+            <div id="message" role="status" aria-live="polite" hidden></div>
+
+            <nav class="header-links">
+                <button type="button" id="btn-help" class="link-button">? help</button>
+                <a href="#bookmarks" class="link-button">bookmarks ↓</a>
+            </nav>
+        </header>
+
+        <section id="bookmarks" aria-labelledby="bookmarks-title">
+            <div id="bookmark-header">
+                <h1 class="title" id="bookmarks-title">
+                    Bookmarks <span id="bookmark-count" class="count"></span>
+                </h1>
+                <button type="button" id="btn-add" aria-label="Add a bookmark" title="Add a bookmark">+</button>
+            </div>
+
+            <ul id="tag-list"></ul>
+
+            <input type="search" id="searchbar" placeholder="Filter bookmarks — press “/”"
+                aria-label="Filter bookmarks" autocomplete="off" spellcheck="false">
+            <hr>
+
+            <ul id="url-list"></ul>
+        </section>
+    </main>
+
+    <!--========================
+        View: horizon
+    ========================-->
+    <main id="view-horizon" class="view" role="tabpanel" aria-labelledby="tab-horizon" hidden>
+        <form id="task-form" class="toolbar">
+            <div class="input-group">
+                <input type="text" id="task-input" placeholder="Add a task…" autocomplete="off" required>
+                <select id="task-column" aria-label="Column">
+                    <option value="today">Today</option>
+                    <option value="week">Week</option>
+                    <option value="month">Month</option>
+                    <option value="year">Year</option>
+                    <option value="someday">Someday</option>
+                </select>
+            </div>
+            <div class="toolbar-actions">
+                <button type="submit" class="btn btn-primary">Add</button>
+                <button type="button" id="ai-toggle" class="btn btn-icon" aria-pressed="false"
+                    title="Generate an AI plan on creation" aria-label="Generate an AI plan on creation">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-robot-off"></use></svg>
+                </button>
+            </div>
+        </form>
+
+        <div class="board">
+            <section class="column" data-column="today">
+                <header class="column-header">
+                    <h2>Today</h2>
+                    <span class="meta" data-meta="today"></span>
+                </header>
+                <ul class="task-list" data-list="today"></ul>
+                <div class="column-add">
+                    <button type="button" class="column-add-btn">+ New task</button>
+                    <form class="column-add-form" hidden>
+                        <input type="text" class="column-add-input" placeholder="New task…" autocomplete="off">
+                    </form>
+                </div>
+            </section>
+
+            <section class="column" data-column="week">
+                <header class="column-header">
+                    <h2>Week</h2>
+                    <span class="meta" data-meta="week"></span>
+                </header>
+                <ul class="task-list" data-list="week"></ul>
+                <div class="column-add">
+                    <button type="button" class="column-add-btn">+ New task</button>
+                    <form class="column-add-form" hidden>
+                        <input type="text" class="column-add-input" placeholder="New task…" autocomplete="off">
+                    </form>
+                </div>
+            </section>
+
+            <section class="column" data-column="month">
+                <header class="column-header">
+                    <h2>Month</h2>
+                    <span class="meta" data-meta="month"></span>
+                </header>
+                <ul class="task-list" data-list="month"></ul>
+                <div class="column-add">
+                    <button type="button" class="column-add-btn">+ New task</button>
+                    <form class="column-add-form" hidden>
+                        <input type="text" class="column-add-input" placeholder="New task…" autocomplete="off">
+                    </form>
+                </div>
+            </section>
+
+            <section class="column" data-column="year">
+                <header class="column-header">
+                    <h2>Year</h2>
+                    <span class="meta" data-meta="year"></span>
+                </header>
+                <ul class="task-list" data-list="year"></ul>
+                <div class="column-add">
+                    <button type="button" class="column-add-btn">+ New task</button>
+                    <form class="column-add-form" hidden>
+                        <input type="text" class="column-add-input" placeholder="New task…" autocomplete="off">
+                    </form>
+                </div>
+            </section>
+
+            <section class="column" data-column="someday">
+                <header class="column-header">
+                    <h2>Someday</h2>
+                </header>
+                <ul class="task-list" data-list="someday"></ul>
+                <div class="column-add">
+                    <button type="button" class="column-add-btn">+ New task</button>
+                    <form class="column-add-form" hidden>
+                        <input type="text" class="column-add-input" placeholder="New task…" autocomplete="off">
+                    </form>
+                </div>
+            </section>
+        </div>
+
+        <footer class="board-footer">
+            <button type="button" id="ai-key-btn" class="link-button">AI key</button>
+        </footer>
+    </main>
+
+    <!--========================
+        Add-bookmark dialog
+    ========================-->
+    <dialog id="modal-addbookmark" aria-labelledby="modal-title">
+        <form id="form-addbookmark" method="dialog" class="modal-content">
+            <h2 class="modal-title" id="modal-title">Add new bookmark</h2>
+
+            <div class="form-group">
+                <label for="field-url">URL</label>
+                <input type="text" id="field-url" name="url" class="form-input" required
+                    placeholder="example.com" spellcheck="false" autocapitalize="none">
+            </div>
+            <div class="form-group">
+                <label for="field-title">Title <span class="hint">optional</span></label>
+                <input type="text" id="field-title" name="title" class="form-input"
+                    placeholder="defaults to the domain name">
+            </div>
+            <div class="form-group">
+                <label for="field-tags">Tags <span class="hint">comma separated</span></label>
+                <input type="text" id="field-tags" name="tags" class="form-input"
+                    placeholder="Design, Tool" spellcheck="false">
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" value="cancel" class="btn btn-ghost" formnovalidate>Cancel</button>
+                <button type="submit" value="save" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!--========================
+        Icon sprite — replaces the Iconify CDN the standalone board used
+    ========================-->
+    <svg hidden aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <symbol id="i-close" viewBox="0 0 24 24">
+            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                d="M6 6l12 12M18 6L6 18" />
+        </symbol>
+        <symbol id="i-robot" viewBox="0 0 24 24">
+            <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect x="4" y="8" width="16" height="12" rx="3" />
+                <path d="M12 4v4M2 13h2M20 13h2" />
+                <circle cx="9" cy="13" r="1.2" fill="currentColor" stroke="none" />
+                <circle cx="15" cy="13" r="1.2" fill="currentColor" stroke="none" />
+                <path d="M9 17h6" />
+            </g>
+        </symbol>
+        <symbol id="i-robot-off" viewBox="0 0 24 24">
+            <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect x="4" y="8" width="16" height="12" rx="3" />
+                <path d="M12 4v4M2 13h2M20 13h2M9 17h6M3 3l18 18" />
+            </g>
+        </symbol>
+    </svg>
+</body>
+
+</html>
