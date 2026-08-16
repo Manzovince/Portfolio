@@ -114,6 +114,10 @@ Five columns — Today, Week, Month, Year, Someday — each a bucket for how far
 out a task sits rather than a status. Add from the toolbar (pick the column
 from the select) or from the `+ New task` button inside a column.
 
+On a narrow screen the board gives each column the full width and snaps, so a
+swipe always lands on a whole column instead of halfway between two. Wider
+screens show all five side by side.
+
 A task is a markdown document: the `# heading` is the title shown in the list,
 everything under it is the note. Click a task to expand it, click the note to
 edit it; new tasks are stamped with a `created:` date and a `horizon:` code

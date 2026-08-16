@@ -1018,8 +1018,16 @@ hr {
         margin-left: auto;
     }
 
+    /* One column per screen, snapping so a swipe always lands on a whole
+       column rather than halfway between two. */
     .board {
-        grid-auto-columns: minmax(min(17rem, 82vw), 1fr);
+        grid-auto-columns: 100%;
+        scroll-snap-type: x mandatory;
+    }
+
+    .column {
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
     }
 
     .delete-btn,
