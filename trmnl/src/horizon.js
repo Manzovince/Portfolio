@@ -247,9 +247,7 @@ export function initHorizon({ root }) {
     function updateDateMeta() {
         const now = new Date();
 
-        $('[data-meta="today"]').textContent =
-            `${pad2(now.getDate())}/${pad2(now.getMonth() + 1)} · ` +
-            `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+        $('[data-meta="today"]').textContent = `${pad2(now.getDate())}/${pad2(now.getMonth() + 1)}`;
 
         $('[data-meta="week"]').textContent = `W${getISOWeek(now)}`;
         $('[data-meta="month"]').textContent = MONTHS[now.getMonth()];
