@@ -118,21 +118,28 @@ function getPreferredLanguage() {
   return 'en'; // Default to English
 }
 
-// Set the default language based on the user's preference
-const defaultLanguage = getPreferredLanguage();
-translate(defaultLanguage); // Apply translations to the main document
-localStorage.setItem('selectedLanguage', defaultLanguage); // Save the language in localStorage
-
-// Update the language toggle in the NavComponent
-document.addEventListener('DOMContentLoaded', () => {
-  const navComponent = document.querySelector('site-nav');
-  if (navComponent) {
-    const languageToggle = navComponent.shadowRoot.getElementById('language-toggle');
-    const languageName = defaultLanguage === 'en' ? 'English' : 'Français';
-    languageToggle.textContent = languageName;
-    translate(defaultLanguage, navComponent.shadowRoot); // Apply translations to the shadow DOM
+// Read back a language the visitor picked on an earlier visit
+function getStoredLanguage() {
+  try {
+    const saved = localStorage.getItem('selectedLanguage');
+    return saved === 'en' || saved === 'fr' ? saved : null;
+  } catch (err) {
+    return null; // Storage blocked (private browsing) - fall back to the browser
   }
-});
+}
+
+function saveLanguage(lang) {
+  try {
+    localStorage.setItem('selectedLanguage', lang);
+  } catch (err) {
+    // Nothing to persist to - the page still translates for this visit
+  }
+}
+
+// A choice made with the toggle wins over the browser's preference, so it
+// survives a reload and a move to another page.
+let currentLanguage = getStoredLanguage() || getPreferredLanguage();
+translate(currentLanguage); // Apply translations to the main document
 
 // ------ Web components ------
 // Navbar
@@ -211,14 +218,13 @@ class NavComponent extends HTMLElement {
     languageToggle.addEventListener('click', () => this.toggleLanguage());
     themeToggle.addEventListener('click', () => this.toggleTheme());
 
-    // Load the saved language from localStorage
-    const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
-    const languageName = savedLanguage === 'en' ? 'English' : 'Français';
+    // Show the language currently applied (saved choice, or browser default)
+    const languageName = currentLanguage === 'en' ? 'English' : 'Français';
     languageToggle.textContent = languageName;
 
-    // Apply the saved language
-    translate(savedLanguage); // Update main document
-    translate(savedLanguage, this.shadowRoot); // Update shadowRoot for NavComponent
+    // Apply that language
+    translate(currentLanguage); // Update main document
+    translate(currentLanguage, this.shadowRoot); // Update shadowRoot for NavComponent
 
     // Set the current page name from the page-name attribute
     const pageName = this.getAttribute('page-name');
@@ -230,17 +236,17 @@ class NavComponent extends HTMLElement {
 
   toggleLanguage() {
     const languageToggle = this.shadowRoot.getElementById('language-toggle');
-    const currentLanguage = languageToggle.textContent.trim();
-    const nextLanguage = this.availableLanguages.find(lang => lang !== currentLanguage);
+    const currentLabel = languageToggle.textContent.trim();
+    const nextLanguage = this.availableLanguages.find(lang => lang !== currentLabel);
     languageToggle.textContent = nextLanguage;
 
-    // Save the selected language in localStorage
-    const langCode = nextLanguage === 'English' ? 'en' : 'fr';
-    localStorage.setItem('selectedLanguage', langCode);
+    // Save the selected language so it holds on the next page and next visit
+    currentLanguage = nextLanguage === 'English' ? 'en' : 'fr';
+    saveLanguage(currentLanguage);
 
     // Update translations for the entire page
-    translate(langCode); // Update main document
-    translate(langCode, this.shadowRoot); // Update shadowRoot for NavComponent
+    translate(currentLanguage); // Update main document
+    translate(currentLanguage, this.shadowRoot); // Update shadowRoot for NavComponent
   }
 
   toggleTheme() {

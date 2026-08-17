@@ -16,11 +16,14 @@ let soundEnabled = false;
 const audioCache = new Map();
 const activeOscillators = new Map();
 
+// Sample files are named with flats (Db4.mp3, Eb4.mp3...), so the accidentals
+// have to be spelled that way here. Sharps would 404 - and "#" would be read as
+// a URL fragment on top of that.
 function noteNameFromMidi(midiNote) {
-    const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+    const names = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
     const name = names[midiNote % 12];
     const octave = Math.floor(midiNote / 12) - 1;
-    return name.replace("#", "♯").replace("b", "♭").replace("♯", "#").replace("♭", "b") + octave;
+    return name + octave;
 }
 
 function midiToFreq(note) {
