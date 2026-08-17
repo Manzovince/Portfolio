@@ -7,17 +7,40 @@
 // `horizon-tasks`; the key and shape are unchanged from the standalone app,
 // so an existing board carries over.
 
+import * as llm from './llm.js';
+import { initSelect } from './select.js';
+
 const STORAGE_KEY = 'horizon-tasks';
 const AI_KEY_STORAGE = 'horizon-ai-key';
 const AI_MODEL = 'claude-haiku-4-5-20251001';
 
 const COLUMNS = ['today', 'week', 'month', 'year', 'someday'];
 
-const MONTHS = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
-];
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+/**
+ * Month and day names in the reader's own locale, so a French browser plans
+ * in "Août" rather than "August". Built from fixed reference dates: 2000 was
+ * a leap year starting on a Saturday, so every month and weekday is reachable.
+ */
+function localeNames(options, dates) {
+    const format = new Intl.DateTimeFormat(undefined, options).format;
+    // Locales that lowercase these (French, Spanish…) still want a capital
+    // here, since each name opens a line of its own.
+    return dates.map((d) => {
+        const name = format(d);
+        return name.charAt(0).toUpperCase() + name.slice(1);
+    });
+}
+
+const MONTHS = localeNames(
+    { month: 'long' },
+    Array.from({ length: 12 }, (_, m) => new Date(2000, m, 1))
+);
+
+// 3 January 2000 was a Monday.
+const DAYS = localeNames(
+    { weekday: 'long' },
+    Array.from({ length: 7 }, (_, d) => new Date(2000, 0, 3 + d))
+);
 
 //========================
 // Storage
@@ -106,6 +129,14 @@ const escapeHtml = (str) =>
 function renderMarkdown(text) {
     if (!text.trim()) return '';
     return escapeHtml(text)
+        // Checklist lines get a mark, not a real <input>: this preview turns
+        // into the editor as soon as it is clicked, so a checkbox inside it
+        // could never be ticked without opening the textarea at the same
+        // time. The markdown stays the source of truth — tick a line by
+        // editing `[ ]` into `[x]`. Handled before the emphasis rules below,
+        // which would otherwise read a leading `*` as the start of italics.
+        .replace(/^[-*] \[[xX]\]\s*/gm, '<span class="md-check is-done">☑</span> ')
+        .replace(/^[-*] \[ ?\]\s*/gm, '<span class="md-check">☐</span> ')
         .replace(/`([^`]+)`/g, '<code>$1</code>')
         .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
         .replace(/\*([^*]+)\*/g, '<em>$1</em>')
@@ -137,8 +168,9 @@ export function initHorizon({ root }) {
 
     const form = $('#task-form');
     const input = $('#task-input');
-    const columnSelect = $('#task-column');
+    const columnSelect = initSelect($('#task-column'));
     const aiToggle = $('#ai-toggle');
+    const aiStatus = $('#ai-status');
     const board = $('.board');
 
     let tasks = loadTasks();
@@ -248,17 +280,9 @@ export function initHorizon({ root }) {
     // AI plan
     //========================
 
+    // No UI sets this any more — the local model is the only path now — but a
+    // key left over from before the switch still routes through the API.
     const getAiKey = () => localStorage.getItem(AI_KEY_STORAGE);
-
-    function promptAiKey() {
-        const key = window.prompt(
-            'Anthropic API key (kept in this browser only):',
-            getAiKey() || ''
-        );
-        if (key === null) return;
-        if (key.trim()) localStorage.setItem(AI_KEY_STORAGE, key.trim());
-        else localStorage.removeItem(AI_KEY_STORAGE);
-    }
 
     /** The sub-periods a horizon still contains — months left in the year, and so on. */
     function getRemainingPeriods(column, date) {
@@ -270,7 +294,7 @@ export function initHorizon({ root }) {
                 const monthIdx = date.getMonth();
                 const cursor = new Date(date);
                 while (cursor.getMonth() === monthIdx) {
-                    weeks.push(`Week of ${pad2(cursor.getDate())}/${pad2(monthIdx + 1)}`);
+                    weeks.push(`W${pad2(getISOWeek(cursor))}`);
                     cursor.setDate(cursor.getDate() + 7);
                 }
                 return weeks;
@@ -282,21 +306,119 @@ export function initHorizon({ root }) {
         }
     }
 
+    /**
+     * The language has to be named outright. "Answer in the same language as
+     * the task" was not enough: a small model reads the English example below
+     * and writes English themes under French month names. Naming the target
+     * language explicitly, twice, is what actually holds it.
+     */
+    const TARGET_LANGUAGE = (() => {
+        const tag = (navigator.language || 'en').split('-')[0];
+        try {
+            return new Intl.DisplayNames(['en'], { type: 'language' }).of(tag) || 'English';
+        } catch {
+            return 'English';
+        }
+    })();
+
+    /**
+     * The model is asked for the themes only — never for the markdown around
+     * them. Measured on a 1.5B and a 3B: asking for `- [ ] Month — theme`
+     * lines gets you a missing bracket, a stray `[]{ }`, the wrong number of
+     * lines, or the month names silently translated. Asking for bare themes
+     * and pairing them with the periods in code removes all of that at once,
+     * and leaves the model doing the one part code cannot do.
+     */
     function buildAiPrompt(title, column, date) {
         const periods = getRemainingPeriods(column, date);
+
         if (periods && periods.length) {
-            return `Task: "${title}". Write a markdown checkbox list, one line per item below, ` +
-                `in the format "- [ ] Name — short theme (2-5 words)":\n${periods.join('\n')}\n` +
-                `Reply with the list only, no text before or after.`;
+            return [
+                `Task: "${title}".`,
+                `List exactly ${periods.length} themes, one per line, in order, so that each`,
+                'builds on the one before it.',
+                'Each theme is 2 to 5 words naming what to focus on.',
+                'No numbering, no bullets, no dashes, no other text.',
+                // Last line on purpose: the closest instruction to the answer
+                // is the one a small model is most likely to actually obey.
+                `Write them in ${TARGET_LANGUAGE}.`,
+            ].join('\n');
         }
-        return `Task: "${title}". Write a short markdown checkbox list (3 to 6 steps) to get this ` +
-            `done, in the format "- [ ] step". Reply with the list only, no text before or after.`;
+
+        return [
+            `Task: "${title}".`,
+            'List 3 to 6 concrete steps to get it done, one per line, in order.',
+            'Each step is a short action of 2 to 6 words.',
+            'No numbering, no bullets, no dashes, no other text.',
+            `Write them in ${TARGET_LANGUAGE}.`,
+        ].join('\n');
     }
 
-    async function generateAiPlan(title, column, date) {
-        const apiKey = getAiKey();
-        if (!apiKey) throw new Error('No AI API key set.');
+    const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+    /**
+     * Take the model's lines back to bare themes: drop code fences, bullets,
+     * numbering, any checkbox marker it added anyway, and a repeated period
+     * name at the head of the line.
+     */
+    function parseThemes(raw, periods, count) {
+        const cleaned = raw
+            .split('\n')
+            .map((line) => line.trim())
+            .filter((line) => line && !line.startsWith('```'))
+            .map((line) =>
+                line
+                    .replace(/^[-*+]\s*/, '')
+                    .replace(/^\[[^\]]{0,3}\]\s*/, '')
+                    .replace(/^\d+\s*[.)]\s*/, '')
+                    .trim()
+            )
+            .filter(Boolean);
+
+        return cleaned.slice(0, count).map((line, i) => {
+            const period = periods?.[i];
+            if (!period) return line;
+            // "Août — Les bases" collapses back to "Les bases"; the period is
+            // added once, by us, below.
+            return line
+                .replace(new RegExp(`^${escapeRegExp(period)}\\s*[—–:-]\\s*`, 'i'), '')
+                .trim();
+        });
+    }
+
+    /** Pair each period with its theme. The markdown shape is ours, not the model's. */
+    function assemblePlan(themes, periods) {
+        if (!periods) return themes.map((theme) => `- [ ] ${theme}`).join('\n');
+        return periods
+            .slice(0, themes.length)
+            .map((period, i) => `- [ ] ${period} — ${themes[i]}`)
+            .join('\n');
+    }
+
+    /**
+     * Two engines, one rule: an Anthropic key set through "AI key" wins,
+     * otherwise the plan is generated locally by WebLLM. The local model is
+     * the default because it needs no account and no network per task; the
+     * key stays supported as the better-quality escape hatch, and as the only
+     * option on a browser without WebGPU.
+     */
+    async function generateAiPlan(title, column, date) {
+        const periods = getRemainingPeriods(column, date);
+        const prompt = buildAiPrompt(title, column, date);
+        const apiKey = getAiKey();
+        const raw = apiKey
+            ? await completeRemote(prompt, apiKey)
+            : await llm.complete(prompt, showModelProgress);
+
+        const count = periods?.length ?? 6;
+        const themes = parseThemes(raw, periods, count);
+
+        // Nothing usable came back — keep the raw reply rather than appending
+        // an empty plan, so the failure is visible instead of silent.
+        return themes.length ? assemblePlan(themes, periods) : raw.trim();
+    }
+
+    async function completeRemote(prompt, apiKey) {
         const res = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
@@ -308,7 +430,7 @@ export function initHorizon({ root }) {
             body: JSON.stringify({
                 model: AI_MODEL,
                 max_tokens: 512,
-                messages: [{ role: 'user', content: buildAiPrompt(title, column, date) }],
+                messages: [{ role: 'user', content: prompt }],
             }),
         });
 
@@ -320,11 +442,28 @@ export function initHorizon({ root }) {
         return (data.content?.[0]?.text ?? '').trim();
     }
 
+    /** The first run downloads gigabytes — say so, rather than looking hung. */
+    function setStatus(text) {
+        aiStatus.textContent = text ?? '';
+        aiStatus.hidden = !text;
+    }
+
+    // WebLLM's own progress strings ("Finish loading on WebGPU - intel") are
+    // internal detail, so only the percentage is taken from it.
+    function showModelProgress(progress) {
+        setStatus(
+            progress >= 1
+                ? 'Writing the plan…'
+                : `Loading the local model — ${Math.round(progress * 100)}%`
+        );
+    }
+
     async function appendAiPlan(id, column) {
         const task = tasks.find((t) => t.id === id);
         if (!task) return;
 
         aiToggle.classList.add('loading');
+        setStatus(getAiKey() || llm.isReady() ? 'Writing the plan…' : 'Preparing the local model…');
         try {
             const plan = await generateAiPlan(extractTitle(task.content), column, new Date());
             if (plan) {
@@ -333,7 +472,9 @@ export function initHorizon({ root }) {
                 expandedIds.add(id);
                 render();
             }
+            setStatus(null);
         } catch (err) {
+            setStatus(null);
             window.alert(err.message);
         } finally {
             aiToggle.classList.remove('loading');
@@ -350,8 +491,6 @@ export function initHorizon({ root }) {
         aiToggle.replaceChildren(icon(aiEnabled ? 'i-robot' : 'i-robot-off'));
     });
 
-    $('#ai-key-btn').addEventListener('click', promptAiKey);
-
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
         const text = input.value.trim();
@@ -363,10 +502,8 @@ export function initHorizon({ root }) {
         input.value = '';
         input.focus();
 
-        if (aiEnabled) {
-            if (!getAiKey()) promptAiKey();
-            if (getAiKey()) await appendAiPlan(id, column);
-        }
+        // No key needed any more: without one the local model handles it.
+        if (aiEnabled) await appendAiPlan(id, column);
     });
 
     function openColumnAdd(wrapper) {

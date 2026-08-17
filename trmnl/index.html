@@ -35,11 +35,11 @@
     ========================-->
     <main id="view-start" class="view" role="tabpanel" aria-labelledby="tab-start">
         <header id="header">
-            <time id="time" class="time">--<span class="blink" aria-hidden="true">·</span>--</time>
             <p id="date" class="date"></p>
+            <time id="time" class="time">--<span class="blink" aria-hidden="true">·</span>--</time>
 
             <form id="terminal" autocomplete="off">
-                <label for="input" aria-label="Command prompt">~</label>
+                <label for="input" aria-label="Command prompt">&gt;</label>
                 <input id="input" type="text" autofocus autocomplete="off" spellcheck="false"
                     autocapitalize="none" autocorrect="off" enterkeyhint="go"
                     placeholder="search or “?” for help">
@@ -81,13 +81,17 @@
         <form id="task-form" class="toolbar">
             <div class="input-group">
                 <input type="text" id="task-input" placeholder="Add a task…" autocomplete="off" required>
-                <select id="task-column" aria-label="Column">
-                    <option value="today">Today</option>
-                    <option value="week">Week</option>
-                    <option value="month">Month</option>
-                    <option value="year">Year</option>
-                    <option value="someday">Someday</option>
-                </select>
+                <div class="select" id="task-column">
+                    <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false"
+                        aria-label="Column: Today">Today</button>
+                    <ul class="select-list" role="listbox" tabindex="-1" hidden>
+                        <li role="option" data-value="today" aria-selected="true" class="is-selected">Today</li>
+                        <li role="option" data-value="week" aria-selected="false">Week</li>
+                        <li role="option" data-value="month" aria-selected="false">Month</li>
+                        <li role="option" data-value="year" aria-selected="false">Year</li>
+                        <li role="option" data-value="someday" aria-selected="false">Someday</li>
+                    </ul>
+                </div>
             </div>
             <div class="toolbar-actions">
                 <button type="submit" class="btn btn-primary">Add</button>
@@ -170,7 +174,7 @@
         </div>
 
         <footer class="board-footer">
-            <button type="button" id="ai-key-btn" class="link-button">AI key</button>
+            <span id="ai-status" class="ai-status" role="status" aria-live="polite" hidden></span>
         </footer>
     </main>
 
