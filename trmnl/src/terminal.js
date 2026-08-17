@@ -50,7 +50,10 @@ export function parse(raw) {
 
 /**
  * Turn parsed input into an action.
- * @returns {{type:'navigate', url:string, newTab:boolean} | {type:'help'} | null}
+ * @returns {{type:'navigate', url:string, newTab:boolean}
+ *          | {type:'help'}
+ *          | {type:'action', name:string}
+ *          | null}
  */
 export function evaluate(raw) {
     const parsed = parse(raw);
@@ -61,6 +64,8 @@ export function evaluate(raw) {
     if (canonical(command) === 'help') return { type: 'help' };
 
     const site = lookup(command);
+    // Commands that do something to this page rather than leaving it.
+    if (site?.action) return { type: 'action', name: site.action };
     if (site) return { type: 'navigate', url: target(site, args), newTab };
 
     // Not a command: a bare URL goes straight there, anything else is searched.
@@ -99,7 +104,12 @@ function saveHistory(entries) {
 // Wiring
 //========================
 
-export function initTerminal({ form, input, message }) {
+/**
+ * `actions` maps the `action` name of a command to a handler. A handler may
+ * return a string to print where the help screen goes; returning nothing
+ * leaves the panel alone.
+ */
+export function initTerminal({ form, input, message, actions = {} }) {
     const history = loadHistory();
     let cursor = history.length;
     let draft = '';
@@ -130,8 +140,13 @@ export function initTerminal({ form, input, message }) {
         draft = '';
         input.value = '';
 
-        if (action.type === 'help') show(helpScreen());
-        else {
+        if (action.type === 'help') {
+            show(helpScreen());
+        } else if (action.type === 'action') {
+            const note = actions[action.name]?.();
+            if (typeof note === 'string' && note !== '') show(notice(note));
+            else clear();
+        } else {
             clear();
             go(action.url, action.newTab || forceNewTab);
         }
@@ -190,6 +205,13 @@ function commonPrefix(words) {
         while (!word.startsWith(prefix)) prefix = prefix.slice(0, -1);
     }
     return prefix;
+}
+
+function notice(text) {
+    const p = document.createElement('p');
+    p.className = 'message-notice';
+    p.textContent = text;
+    return p;
 }
 
 function chips(matches) {

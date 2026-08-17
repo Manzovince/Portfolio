@@ -24,6 +24,8 @@
     <nav id="tabs" class="tabs" role="tablist" aria-label="Views">
         <button type="button" class="tab" role="tab" id="tab-start"
             aria-controls="view-start" aria-selected="true" data-view="start">start</button>
+        <button type="button" class="tab" role="tab" id="tab-bookmarks"
+            aria-controls="view-bookmarks" aria-selected="false" data-view="bookmarks">bookmarks</button>
         <button type="button" class="tab" role="tab" id="tab-horizon"
             aria-controls="view-horizon" aria-selected="false" data-view="horizon">horizon</button>
     </nav>
@@ -47,26 +49,29 @@
 
             <nav class="header-links">
                 <button type="button" id="btn-help" class="link-button">? help</button>
-                <a href="#bookmarks" class="link-button">bookmarks ↓</a>
+                <a href="#bookmarks" class="link-button">bookmarks →</a>
             </nav>
         </header>
+    </main>
 
-        <section id="bookmarks" aria-labelledby="bookmarks-title">
-            <div id="bookmark-header">
-                <h1 class="title" id="bookmarks-title">
-                    Bookmarks <span id="bookmark-count" class="count"></span>
-                </h1>
-                <button type="button" id="btn-add" aria-label="Add a bookmark" title="Add a bookmark">+</button>
-            </div>
+    <!--========================
+        View: bookmarks
+    ========================-->
+    <main id="view-bookmarks" class="view" role="tabpanel" aria-labelledby="tab-bookmarks" hidden>
+        <div id="bookmark-header">
+            <h1 class="title" id="bookmarks-title">
+                Bookmarks <span id="bookmark-count" class="count"></span>
+            </h1>
+            <button type="button" id="btn-add" aria-label="Add a bookmark" title="Add a bookmark">+</button>
+        </div>
 
-            <ul id="tag-list"></ul>
+        <ul id="tag-list"></ul>
 
-            <input type="search" id="searchbar" placeholder="Filter bookmarks — press “/”"
-                aria-label="Filter bookmarks" autocomplete="off" spellcheck="false">
-            <hr>
+        <input type="search" id="searchbar" placeholder="Filter bookmarks — press “/”"
+            aria-label="Filter bookmarks" autocomplete="off" spellcheck="false">
+        <hr>
 
-            <ul id="url-list"></ul>
-        </section>
+        <ul id="url-list"></ul>
     </main>
 
     <!--========================

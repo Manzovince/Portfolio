@@ -16,13 +16,7 @@ const dialog = $('#modal-addbookmark');
 
 initClock({ time: $('#time'), date: $('#date') });
 
-const terminal = initTerminal({
-    form: $('#terminal'),
-    input,
-    message: $('#message'),
-});
-
-initBookmarks({
+const bookmarks = initBookmarks({
     tagList: $('#tag-list'),
     urlList: $('#url-list'),
     searchbar,
@@ -38,11 +32,32 @@ const tabs = initTabs({
     tablist: $('#tabs'),
     views: {
         start: $('#view-start'),
+        bookmarks: $('#view-bookmarks'),
         horizon: $('#view-horizon'),
     },
     onShow: (name) => {
         if (name === 'start') input.focus();
+        else if (name === 'bookmarks') searchbar.focus();
         else horizon.focus();
+    },
+});
+
+// Built last: `reset` needs the bookmark list that already exists.
+const terminal = initTerminal({
+    form: $('#terminal'),
+    input,
+    message: $('#message'),
+    actions: {
+        // Wiping a list someone has curated is not undoable, so it asks first.
+        reset: () => {
+            const stored = bookmarks.count();
+            if (!window.confirm(
+                `Replace the current ${stored} bookmarks with the defaults? Anything added here is lost.`,
+            )) {
+                return 'Left alone.';
+            }
+            return `Restored ${bookmarks.reset()} default bookmarks — “bm” to see them.`;
+        },
     },
 });
 
@@ -59,8 +74,9 @@ $('#header').addEventListener('click', (event) => {
     input.focus();
 });
 
-// Typing anywhere goes to the prompt; `/` jumps to the bookmark search. Both
-// only apply on the start view — the board has fields of its own.
+// Typing goes to whichever field the current view is built around: the prompt
+// on start, the filter on bookmarks. The board has fields of its own, so it
+// only answers to Escape.
 document.addEventListener('keydown', (event) => {
     if (event.metaKey || event.ctrlKey || event.altKey) return;
 
@@ -71,18 +87,23 @@ document.addEventListener('keydown', (event) => {
         active instanceof HTMLSelectElement;
     if (inField || dialog.open) return;
 
-    // On the board, Escape is the way back to the prompt.
-    if (tabs.current() !== 'start') {
+    const view = tabs.current();
+
+    // Away from start, Escape is the way back to the prompt.
+    if (view !== 'start') {
         if (event.key === 'Escape') {
             event.preventDefault();
             tabs.show('start');
+            return;
         }
+        if (view === 'bookmarks' && event.key.length === 1) searchbar.focus();
         return;
     }
 
+    // `/` still reaches the bookmark filter - it now opens that view first.
     if (event.key === '/') {
         event.preventDefault();
-        searchbar.focus();
+        tabs.show('bookmarks');
         return;
     }
     if (event.key.length === 1) input.focus();
