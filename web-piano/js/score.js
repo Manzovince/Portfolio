@@ -20,7 +20,7 @@ export { initScore };
 const STAFF_HEIGHT = 120;
 const QUARTER_MS = 500;
 const NOTE_SPACING = 50; // px between chords
-const CHORD_THRESHOLD_MS = 1000;
+const CHORD_THRESHOLD_MS = 1500;
 
 // ─────────────────────────────────────────────── module state ──
 let renderer, ctx, stave;

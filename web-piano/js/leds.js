@@ -179,7 +179,6 @@ function applyLedMode(midiNote, velocity = 127, isNoteOn = true) {
 let selectedScaleNotes = [];
 
 
-
 // LED Utilities
 
 function toggleAllLeds(intensity = 0.1) {
