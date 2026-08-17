@@ -196,7 +196,7 @@ export function initTerminal({ form, input, message, actions = {} }) {
         input.setSelectionRange(input.value.length, input.value.length);
     });
 
-    return { clear, showHelp: () => show(helpScreen()) };
+    return { clear };
 }
 
 function commonPrefix(words) {
@@ -232,7 +232,7 @@ function helpScreen() {
     const intro = document.createElement('p');
     intro.className = 'help-intro';
     intro.textContent =
-        'Type a command, then a query — separated by a space or a “;”. Anything unrecognised is searched on Google. Shift+Enter (or a trailing “; n”) opens in a new tab. ↑/↓ for history, Tab to complete, Esc to clear.';
+        'Command then query, separated by a space or “;”. Unrecognised input searches Google. Shift+Enter (or “; n”) opens a new tab. ↑/↓ history, Tab to complete, Esc to clear.';
     wrap.append(intro);
 
     // Groups flow into columns, so each one stays whole (see .help-section).

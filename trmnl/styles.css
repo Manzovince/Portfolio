@@ -21,7 +21,7 @@
        views line up on the same left and right edge and switching between them
        never shifts the content sideways. */
     --tabs-h: 2.75rem;
-    --gutter: clamp(1.25rem, 4vw, 3rem);
+    --gutter: clamp(1rem, 3vw, 2rem);
     --gutter-y: clamp(1rem, 2.5vw, 1.75rem);
     --stack: 1.25rem;
 }
@@ -168,12 +168,6 @@ p {
     gap: 0.6em;
     margin: 2rem 0 0.75rem;
     padding-bottom: 0.6rem;
-    border-bottom: 1px solid var(--line);
-    transition: border-color var(--ease);
-}
-
-#terminal:focus-within {
-    border-bottom-color: var(--fg);
 }
 
 #terminal label {

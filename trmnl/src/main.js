@@ -43,7 +43,7 @@ const tabs = initTabs({
 });
 
 // Built last: `reset` needs the bookmark list that already exists.
-const terminal = initTerminal({
+initTerminal({
     form: $('#terminal'),
     input,
     message: $('#message'),
@@ -61,11 +61,6 @@ const terminal = initTerminal({
     },
 });
 
-$('#btn-help').addEventListener('click', () => {
-    input.focus();
-    terminal.showHelp();
-});
-
 // Clicking anywhere in the header returns focus to the prompt, but not when
 // the click was a text selection or landed on a control of its own.
 $('#header').addEventListener('click', (event) => {
@@ -78,14 +73,29 @@ $('#header').addEventListener('click', (event) => {
 // on start, the filter on bookmarks. The board has fields of its own, so it
 // only answers to Escape.
 document.addEventListener('keydown', (event) => {
-    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.metaKey || event.ctrlKey || event.altKey || dialog.open) return;
 
     const active = document.activeElement;
-    const inField =
-        active instanceof HTMLInputElement ||
-        active instanceof HTMLTextAreaElement ||
-        active instanceof HTMLSelectElement;
-    if (inField || dialog.open) return;
+    const field =
+        active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement ? active : null;
+    const inField = field !== null || active instanceof HTMLSelectElement;
+
+    // Left/Right switch tabs, but a field's own cursor movement wins until
+    // it's already at the edge the key would move past.
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        const delta = event.key === 'ArrowLeft' ? -1 : 1;
+        const atEdge =
+            !field ||
+            (delta === -1
+                ? field.selectionStart === 0 && field.selectionEnd === 0
+                : field.selectionStart === field.value.length && field.selectionEnd === field.value.length);
+        if (!atEdge) return;
+        event.preventDefault();
+        tabs.cycle(delta);
+        return;
+    }
+
+    if (inField) return;
 
     const view = tabs.current();
 

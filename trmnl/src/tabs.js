@@ -46,6 +46,11 @@ export function initTabs({ tablist, views, onShow }) {
         tab.addEventListener('click', () => show(tab.dataset.view));
     }
 
+    function cycle(delta) {
+        const index = names.indexOf(document.body.dataset.view);
+        show(names[(index + delta + names.length) % names.length]);
+    }
+
     window.addEventListener('hashchange', () => {
         const name = location.hash.slice(1);
         if (isView(name)) show(name, { updateHash: false });
@@ -62,5 +67,5 @@ export function initTabs({ tablist, views, onShow }) {
     const initial = isView(fromHash) ? fromHash : (isView(stored) ? stored : DEFAULT_VIEW);
     show(initial, { updateHash: isView(fromHash) === false });
 
-    return { show, current: () => document.body.dataset.view };
+    return { show, current: () => document.body.dataset.view, cycle };
 }
