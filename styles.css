@@ -102,6 +102,14 @@ button {
     cursor: pointer;
 }
 
+/* `all: unset` strips the browser's focus ring, so put a visible one back.
+   :focus-visible keeps it to keyboard navigation, not mouse clicks. */
+:focus-visible {
+    outline: 2px solid var(--text-color);
+    outline-offset: 4px;
+    border-radius: 2px;
+}
+
 .link {
     color: var(--color-link);
 }

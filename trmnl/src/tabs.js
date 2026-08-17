@@ -1,11 +1,11 @@
 //========================
-// View tabs — start / horizon
+// View tabs — start / bookmarks / horizon
 //========================
 //
-// Two top-level views share the page. The active one is reflected in the URL
-// hash so a view can be bookmarked, and remembered in localStorage so the
-// page reopens where it was left. `#bookmarks` still scrolls within `start`,
-// so only a hash naming a known view switches anything.
+// Three top-level views share the page. The active one is reflected in the URL
+// hash so a view can be bookmarked, and remembered in localStorage so the page
+// reopens where it was left. Only a hash naming a known view switches anything,
+// which is also what makes the `bm` and `hz` terminal commands work.
 
 const KEY = 'trmnl.view.v1';
 const DEFAULT_VIEW = 'start';

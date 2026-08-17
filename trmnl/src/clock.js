@@ -18,6 +18,19 @@ function msUntilNextMinute(now) {
     return 60_000 - (now.getSeconds() * 1000 + now.getMilliseconds());
 }
 
+/**
+ * ISO-8601 week number. A week belongs to the year holding its Thursday, which
+ * is why the date is shifted to that Thursday before counting — otherwise the
+ * turn of the year lands on 0 or 53 depending on which weekday it falls on.
+ * UTC throughout so a timezone offset cannot roll the date over.
+ */
+function isoWeek(now) {
+    const thursday = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    thursday.setUTCDate(thursday.getUTCDate() + 4 - (thursday.getUTCDay() || 7));
+    const jan1 = Date.UTC(thursday.getUTCFullYear(), 0, 1);
+    return Math.ceil(((thursday - jan1) / 86_400_000 + 1) / 7);
+}
+
 export function initClock({ time, date }) {
     let dayStamp = '';
 
@@ -32,7 +45,7 @@ export function initClock({ time, date }) {
         const today = now.toDateString();
         if (today !== dayStamp) {
             dayStamp = today;
-            date.textContent = dateFormat.format(now);
+            date.replaceChildren(dateFormat.format(now), week(now));
         }
 
         // Re-align to the top of the minute instead of drifting on a fixed delay.
@@ -40,6 +53,13 @@ export function initClock({ time, date }) {
     }
 
     render();
+}
+
+function week(now) {
+    const span = document.createElement('span');
+    span.className = 'week';
+    span.textContent = `(W${String(isoWeek(now)).padStart(2, '0')})`;
+    return span;
 }
 
 function blink() {

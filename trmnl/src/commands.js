@@ -12,11 +12,15 @@
 //
 // A command with none of those is "go only": it always opens its base url.
 // `group` only decides where the command lands on the help screen.
+//
+// A command carrying `action` instead of `url` does not navigate at all: the
+// name is handed to the page, which runs whatever it has registered under it.
 
 export const sites = {
     //--- This page ---
     hz: { group: 'Page', name: 'Horizon board', url: '#horizon' },
     bm: { group: 'Page', name: 'Bookmarks', url: '#bookmarks' },
+    reset: { group: 'Page', name: 'Restore the default bookmarks', action: 'reset' },
 
     //--- Search ---
     g: { group: 'Search', name: 'Google', url: 'https://google.com', query: '/search?q=' },

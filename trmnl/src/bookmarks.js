@@ -6,7 +6,8 @@ import { load, save, reset, tagsOf, hostOf, withProtocol } from './store.js';
 
 /**
  * A bookmark matches when it carries at least one selected tag (or nothing is
- * selected) AND its title, host or tags contain the search query.
+ * selected) AND its title, host or tags contain the search query. Selected tags
+ * union rather than intersect, so combining two of them widens the list.
  */
 export function matches(bookmark, { query, selected }) {
     if (selected.size > 0 && !bookmark.tags.some((tag) => selected.has(tag))) {
@@ -26,21 +27,56 @@ export function initBookmarks({ tagList, urlList, searchbar, count, dialog, form
 
     //--- Rendering ---
 
+    /**
+     * A plain click filters by that tag alone; holding a modifier combines it
+     * with what is already selected. Clicking the only selected tag clears the
+     * filter, which is what makes the exclusive mode escapable without a
+     * separate "all" chip.
+     */
+    function toggleTag(tag, { additive }) {
+        const wasOnlySelection = state.selected.size === 1 && state.selected.has(tag);
+
+        if (additive) {
+            if (state.selected.has(tag)) state.selected.delete(tag);
+            else state.selected.add(tag);
+        } else if (wasOnlySelection) {
+            state.selected.clear();
+        } else {
+            state.selected.clear();
+            state.selected.add(tag);
+        }
+
+        syncTags();
+        renderList();
+    }
+
+    // The chips are rebuilt only when the bookmarks change. Selecting one just
+    // syncs the checkboxes in place, so keyboard focus survives a click.
+    const tagInputs = new Map();
+
+    function syncTags() {
+        for (const [tag, input] of tagInputs) input.checked = state.selected.has(tag);
+    }
+
     function renderTags() {
+        tagInputs.clear();
         const nodes = tagsOf(bookmarks).map(({ tag, count: n }) => {
             const li = document.createElement('li');
             li.className = 'tag';
 
             const label = document.createElement('label');
+            label.title = `Show ${tag} — hold ⌘/Ctrl to combine tags`;
+
             const input = document.createElement('input');
             input.type = 'checkbox';
             input.className = 'tag-input';
             input.checked = state.selected.has(tag);
-            input.addEventListener('change', () => {
-                if (input.checked) state.selected.add(tag);
-                else state.selected.delete(tag);
-                renderList();
+            // `click` rather than `change`: it carries the modifier keys, and it
+            // fires for Space on a focused checkbox too.
+            input.addEventListener('click', (event) => {
+                toggleTag(tag, { additive: event.metaKey || event.ctrlKey || event.shiftKey });
             });
+            tagInputs.set(tag, input);
 
             const span = document.createElement('span');
             span.append(tag);
@@ -54,6 +90,13 @@ export function initBookmarks({ tagList, urlList, searchbar, count, dialog, form
             return li;
         });
         tagList.replaceChildren(...nodes);
+
+        // Deleting the last bookmark carrying a tag would otherwise leave it
+        // selected but with no chip left to switch it back off.
+        const live = new Set(tagInputs.keys());
+        for (const tag of state.selected) {
+            if (!live.has(tag)) state.selected.delete(tag);
+        }
     }
 
     function renderList() {
@@ -197,12 +240,23 @@ export function initBookmarks({ tagList, urlList, searchbar, count, dialog, form
     renderList();
 
     return {
-        /** Restore the seed list, dropping anything stored locally. */
+        /** How many bookmarks are stored, filter ignored. */
+        count: () => bookmarks.length,
+
+        /**
+         * Restore the seed list, dropping anything stored locally. The filter
+         * is cleared too — landing on the defaults behind a stale search would
+         * look like the reset had failed.
+         * @returns {number} how many bookmarks the seed put back.
+         */
         reset() {
             bookmarks = reset();
             state.selected.clear();
+            state.query = '';
+            searchbar.value = '';
             renderTags();
             renderList();
+            return bookmarks.length;
         },
     };
 }
