@@ -106,6 +106,12 @@ function getHorizonLine(column, date) {
     }
 }
 
+/** Dragging a task to another column stamps its `horizon:` line for the column it lands in. */
+function updateHorizonMeta(content, column) {
+    if (!/^horizon: /m.test(content)) return content;
+    return content.replace(/^horizon: .*/m, `horizon: ${getHorizonLine(column, new Date())}`);
+}
+
 //========================
 // Markdown
 //========================
@@ -128,20 +134,39 @@ const escapeHtml = (str) =>
 
 function renderMarkdown(text) {
     if (!text.trim()) return '';
-    return escapeHtml(text)
-        // Checklist lines get a mark, not a real <input>: this preview turns
-        // into the editor as soon as it is clicked, so a checkbox inside it
-        // could never be ticked without opening the textarea at the same
-        // time. The markdown stays the source of truth — tick a line by
-        // editing `[ ]` into `[x]`. Handled before the emphasis rules below,
-        // which would otherwise read a leading `*` as the start of italics.
-        .replace(/^[-*] \[[xX]\]\s*/gm, '<span class="md-check is-done">☑</span> ')
-        .replace(/^[-*] \[ ?\]\s*/gm, '<span class="md-check">☐</span> ')
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
-        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
-        .replace(/\n/g, '<br>');
+    // Each checklist mark carries the body-relative line it came from
+    // (data-line), so a click can be mapped back to that exact line in the
+    // stored markdown without touching the editor. Handled per-line, and
+    // before the emphasis rules below, which would otherwise read a leading
+    // `*` as the start of italics.
+    return text
+        .split(/\r?\n/)
+        .map((line, i) => escapeHtml(line)
+            .replace(/^[-*] \[[xX]\]\s*/, `<span class="md-check is-done" data-line="${i}" role="checkbox" aria-checked="true" tabindex="0">☑</span> `)
+            .replace(/^[-*] \[ ?\]\s*/, `<span class="md-check" data-line="${i}" role="checkbox" aria-checked="false" tabindex="0">☐</span> `)
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>'))
+        .join('<br>');
+}
+
+/**
+ * A checklist mark's `data-line` is an index into the *body* (the content
+ * with its `# Title` line and the blank line after it stripped away — see
+ * `extractBody`). This maps that index back to a line in the full stored
+ * `content` so a click can flip `[ ]`/`[x]` in place.
+ */
+function bodyLineToContentLine(content, bodyLine) {
+    const lines = content.split(/\r?\n/);
+    const offset = lines.length > 1 && lines[1] === '' ? 2 : 1;
+    return offset + bodyLine;
+}
+
+/** How many checklist lines a task's note body has, and how many are ticked. */
+function getChecklistStats(content) {
+    const marks = extractBody(content).match(/^[-*] \[[ xX]?\]/gm) || [];
+    return { total: marks.length, done: marks.filter((m) => /\[[xX]\]/.test(m)).length };
 }
 
 //========================
@@ -157,6 +182,24 @@ function icon(id) {
     use.setAttribute('href', `#${id}`);
     svg.append(use);
     return svg;
+}
+
+/** A tiny conic-gradient pie standing in for the done checkbox on non-today columns. */
+function createChecklistPie(done, total) {
+    const pct = Math.round((done / total) * 100);
+    const pie = document.createElement('div');
+    pie.className = 'task-pie';
+    pie.style.setProperty('--pct', pct);
+    pie.setAttribute('role', 'img');
+    pie.setAttribute('aria-label', `${done} of ${total} done (${pct}%)`);
+
+    const label = document.createElement('b');
+    label.className = 'task-pie-pct';
+    label.textContent = pct;
+    label.setAttribute('aria-hidden', 'true');
+    pie.append(label);
+
+    return pie;
 }
 
 //========================
@@ -178,6 +221,7 @@ export function initHorizon({ root }) {
 
     const expandedIds = new Set();
     const editingIds = new Set();
+    let draggingId = null;
 
     //========================
     // Rendering
@@ -187,14 +231,12 @@ export function initHorizon({ root }) {
         const li = document.createElement('li');
         li.className = 'task' + (task.done ? ' done' : '');
         li.dataset.id = task.id;
+        // The card itself is the drag handle; interactive children opt back
+        // out below so a click on them can't be mistaken for a drag start.
+        li.draggable = true;
 
         const row = document.createElement('div');
         row.className = 'task-row';
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.checked = task.done;
-        checkbox.setAttribute('aria-label', 'Mark as done');
 
         const label = document.createElement('span');
         label.textContent = extractTitle(task.content);
@@ -202,10 +244,35 @@ export function initHorizon({ root }) {
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
         deleteBtn.className = 'btn btn-icon delete-btn';
+        deleteBtn.draggable = false;
         deleteBtn.setAttribute('aria-label', 'Delete task');
         deleteBtn.append(icon('i-close'));
 
-        row.append(checkbox, label, deleteBtn);
+        // A note with its own checklist tracks completion by that checklist,
+        // so it gets the progress pie — unless every item is already ticked,
+        // in which case a filled pie is just a checkmark wearing a costume.
+        // Without a checklist at all, the task is done or not as a whole, so
+        // it gets the plain checkbox — in every column.
+        const { total, done } = getChecklistStats(task.content);
+        if (total > 0 && done < total) {
+            const pie = createChecklistPie(done, total);
+            pie.draggable = false;
+            row.append(pie);
+        } else {
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.draggable = false;
+            checkbox.checked = total > 0 ? true : task.done;
+            if (total > 0) {
+                checkbox.disabled = true;
+                checkbox.setAttribute('aria-label', `All ${total} done`);
+            } else {
+                checkbox.setAttribute('aria-label', 'Mark as done');
+            }
+            row.append(checkbox);
+        }
+
+        row.append(label, deleteBtn);
         li.append(row);
 
         if (expandedIds.has(task.id)) {
@@ -215,6 +282,7 @@ export function initHorizon({ root }) {
             if (editingIds.has(task.id)) {
                 const textarea = document.createElement('textarea');
                 textarea.className = 'task-notes';
+                textarea.draggable = false;
                 textarea.placeholder = '# Title\n\nDetails (markdown)…';
                 textarea.value = task.content || '';
                 details.append(textarea);
@@ -223,9 +291,17 @@ export function initHorizon({ root }) {
                 const hasBody = body.trim().length > 0;
                 const preview = document.createElement('div');
                 preview.className = 'task-preview' + (hasBody ? '' : ' empty');
+                preview.draggable = false;
                 if (hasBody) preview.innerHTML = renderMarkdown(body);
                 else preview.textContent = 'Add a note…';
                 details.append(preview);
+
+                const editBtn = document.createElement('button');
+                editBtn.type = 'button';
+                editBtn.className = 'edit-btn';
+                editBtn.draggable = false;
+                editBtn.textContent = 'Edit';
+                details.append(editBtn);
             }
 
             li.append(details);
@@ -513,6 +589,20 @@ export function initHorizon({ root }) {
         addForm.querySelector('.column-add-input').focus();
     }
 
+    function toggleMdCheck(taskId, check) {
+        const task = tasks.find((t) => t.id === taskId);
+        if (!task) return;
+        const lines = task.content.split(/\r?\n/);
+        const lineIdx = bodyLineToContentLine(task.content, Number(check.dataset.line));
+        lines[lineIdx] = lines[lineIdx].replace(
+            /^([-*] \[)[ xX]?(\])/,
+            (_m, open, close) => `${open}${check.classList.contains('is-done') ? ' ' : 'x'}${close}`
+        );
+        task.content = lines.join('\n');
+        saveTasks(tasks);
+        render();
+    }
+
     board.addEventListener('click', (event) => {
         const addBtn = event.target.closest('.column-add-btn');
         if (addBtn) {
@@ -543,7 +633,13 @@ export function initHorizon({ root }) {
             return;
         }
 
-        if (event.target.closest('.task-preview')) {
+        const check = event.target.closest('.md-check');
+        if (check) {
+            toggleMdCheck(id, check);
+            return;
+        }
+
+        if (event.target.closest('.edit-btn')) {
             editingIds.add(id);
             render();
             const textarea = $(`.task[data-id="${id}"] .task-notes`);
@@ -563,6 +659,71 @@ export function initHorizon({ root }) {
             }
             render();
         }
+    });
+
+    board.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const check = event.target.closest('.md-check');
+        if (!check) return;
+        event.preventDefault();
+        const id = event.target.closest('.task')?.dataset.id;
+        if (id) toggleMdCheck(id, check);
+    });
+
+    //========================
+    // Drag & drop between columns
+    //========================
+
+    board.addEventListener('dragstart', (event) => {
+        const item = event.target.closest('.task');
+        if (!item) return;
+        draggingId = item.dataset.id;
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', draggingId);
+        // Applied next frame so the drag ghost image is captured before the
+        // card fades, instead of showing the faded state as the ghost.
+        requestAnimationFrame(() => item.classList.add('dragging'));
+    });
+
+    board.addEventListener('dragend', () => {
+        draggingId = null;
+        board.querySelectorAll('.dragging').forEach((el) => el.classList.remove('dragging'));
+        board.querySelectorAll('.drag-over').forEach((el) => el.classList.remove('drag-over'));
+    });
+
+    board.addEventListener('dragover', (event) => {
+        if (!draggingId) return;
+        const column = event.target.closest('.column');
+        if (!column) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        if (column.classList.contains('drag-over')) return;
+        board.querySelectorAll('.drag-over').forEach((el) => el.classList.remove('drag-over'));
+        column.classList.add('drag-over');
+    });
+
+    board.addEventListener('dragleave', (event) => {
+        const column = event.target.closest('.column');
+        if (!column || column.contains(event.relatedTarget)) return;
+        column.classList.remove('drag-over');
+    });
+
+    board.addEventListener('drop', (event) => {
+        const column = event.target.closest('.column');
+        if (!column) return;
+        event.preventDefault();
+        column.classList.remove('drag-over');
+
+        const id = draggingId || event.dataTransfer.getData('text/plain');
+        const newColumn = column.dataset.column;
+        const task = tasks.find((t) => t.id === id);
+        if (task && task.column !== newColumn) {
+            task.column = newColumn;
+            task.content = updateHorizonMeta(task.content, newColumn);
+            saveTasks(tasks);
+            render();
+        }
+        draggingId = null;
     });
 
     board.addEventListener('submit', (event) => {

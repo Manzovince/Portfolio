@@ -232,7 +232,7 @@ function helpScreen() {
     const intro = document.createElement('p');
     intro.className = 'help-intro';
     intro.textContent =
-        'Command then query, separated by a space or “;”. Unrecognised input searches Google. Shift+Enter (or “; n”) opens a new tab. ↑/↓ history, Tab to complete, Esc to clear.';
+        'Command then query, separated by a space or “;”. Shift+Enter (or “; n”) opens a new tab. ↑/↓ history, Tab to complete, Esc to clear.';
     wrap.append(intro);
 
     // Groups flow into columns, so each one stays whole (see .help-section).

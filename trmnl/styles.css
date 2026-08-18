@@ -223,7 +223,6 @@ p {
 
 .help-intro {
     color: var(--fg-dim);
-    max-width: 60ch;
     margin-bottom: var(--stack);
 }
 
@@ -518,7 +517,7 @@ hr {
     width: min(30rem, calc(100vw - 2rem));
     padding: 0;
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: 0;
     background-color: #1c2023;
     color: var(--fg);
 }
@@ -559,7 +558,7 @@ hr {
     padding: 0.5rem 0.7rem;
     background-color: rgb(0 0 0 / 0.25);
     border: 1px solid var(--line);
-    border-radius: 4px;
+    border-radius: 0;
     outline: none;
     transition: border-color var(--ease);
 }
@@ -852,6 +851,12 @@ hr {
     background-color: var(--surface-raised);
     border: 1px solid var(--line-faint);
     border-radius: 0;
+    transition: background-color var(--ease), border-color var(--ease);
+}
+
+.column.drag-over {
+    background-color: var(--surface);
+    border-color: var(--fg-faint);
 }
 
 .column-header {
@@ -955,11 +960,15 @@ hr {
     border-radius: 0;
 }
 
+.task.dragging {
+    opacity: 0.4;
+}
+
 .task-row {
     display: flex;
     align-items: center;
     gap: 0.55rem;
-    cursor: pointer;
+    cursor: grab;
 }
 
 .task-row input[type="checkbox"] {
@@ -967,7 +976,29 @@ hr {
     width: 0.95rem;
     height: 0.95rem;
     accent-color: var(--fg);
+    border-radius: 0;
     cursor: pointer;
+}
+
+.task-pie {
+    position: relative;
+    flex: none;
+    width: 1.15rem;
+    height: 1.15rem;
+    border-radius: 50%;
+    background: conic-gradient(var(--fg-dim) calc(var(--pct) * 1%), var(--surface-strong) 0);
+}
+
+.task-pie-pct {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: 400;
+    color: #fff;
+    mix-blend-mode: difference;
 }
 
 .task-row span {
@@ -1025,7 +1056,6 @@ hr {
     line-height: 1.6;
     color: var(--fg-dim);
     overflow-wrap: anywhere;
-    cursor: text;
 }
 
 .task-preview.empty {
@@ -1036,10 +1066,33 @@ hr {
 .md-check {
     color: var(--fg-faint);
     margin-right: 0.15em;
+    cursor: pointer;
 }
 
 .md-check.is-done {
     color: var(--fg-dim);
+}
+
+.md-check:hover {
+    color: var(--fg);
+}
+
+.md-check:focus-visible {
+    outline: 1px solid var(--fg-faint);
+    outline-offset: 1px;
+}
+
+.edit-btn {
+    align-self: flex-start;
+    margin-top: 0.5rem;
+    padding: 0.15rem 0;
+    font-size: 0.75rem;
+    color: var(--fg-faint);
+    transition: color var(--ease);
+}
+
+.edit-btn:hover {
+    color: var(--fg);
 }
 
 .task-preview a {
