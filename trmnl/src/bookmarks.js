@@ -21,7 +21,7 @@ export function matches(bookmark, { query, selected }) {
     return haystack.includes(query);
 }
 
-export function initBookmarks({ tagList, urlList, searchbar, count, dialog, form, addButton }) {
+export function initBookmarks({ tagList, urlList, searchbar, dialog, form, addButton }) {
     let bookmarks = load();
     const state = { query: '', selected: new Set() };
 
@@ -112,10 +112,6 @@ export function initBookmarks({ tagList, urlList, searchbar, count, dialog, form
         } else {
             urlList.replaceChildren(...visible.map(row));
         }
-
-        count.textContent = visible.length === bookmarks.length
-            ? `${bookmarks.length}`
-            : `${visible.length}/${bookmarks.length}`;
     }
 
     function row(bookmark) {

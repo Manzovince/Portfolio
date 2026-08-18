@@ -103,7 +103,7 @@ p {
    bookmark list, the board) turns this one off and delegates. */
 .view {
     height: 100svh;
-    padding: calc(var(--tabs-h) + 0.5rem) var(--gutter) var(--gutter-y);
+    padding: var(--gutter-y) var(--gutter) calc(var(--tabs-h) + 0.5rem);
     overflow-y: auto;
     overscroll-behavior: contain;
 }
@@ -120,7 +120,7 @@ p {
 #header {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     flex: 1 0 auto;
 }
 
@@ -264,23 +264,6 @@ p {
     overflow-wrap: anywhere;
 }
 
-.header-links {
-    display: flex;
-    gap: 1.5rem;
-    margin-top: auto;
-    padding-top: var(--stack);
-}
-
-.link-button {
-    color: var(--fg-faint);
-    font-size: 0.9rem;
-    transition: color var(--ease);
-}
-
-.link-button:hover {
-    color: var(--fg);
-}
-
 /*========================
   Bookmarks
 ========================*/
@@ -298,17 +281,6 @@ p {
     align-items: center;
     gap: 1rem;
     margin-bottom: var(--stack);
-}
-
-.title {
-    font-size: clamp(1.8rem, 4vw, 2.6rem);
-    font-weight: 500;
-}
-
-.count {
-    color: var(--fg-faint);
-    font-size: 0.45em;
-    vertical-align: middle;
 }
 
 #btn-add {
@@ -331,9 +303,10 @@ p {
 
 #tag-list {
     display: flex;
+    flex: 1 1 auto;
     flex-wrap: wrap;
+    min-width: 0;
     gap: 0.5rem;
-    margin-bottom: var(--stack);
 }
 
 .tag {
@@ -652,7 +625,7 @@ hr {
 
 .tabs {
     position: fixed;
-    top: 0;
+    bottom: 0;
     left: 0;
     z-index: 10;
     display: flex;

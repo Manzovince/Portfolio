@@ -20,7 +20,6 @@ const bookmarks = initBookmarks({
     tagList: $('#tag-list'),
     urlList: $('#url-list'),
     searchbar,
-    count: $('#bookmark-count'),
     dialog,
     form: $('#form-addbookmark'),
     addButton: $('#btn-add'),
