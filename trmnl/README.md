@@ -120,8 +120,12 @@ screens show all five side by side.
 
 A task is a markdown document: the `# heading` is the title shown in the list,
 everything under it is the note. Click a task to expand it, click the note to
-edit it; new tasks are stamped with a `created:` date and a `horizon:` code
-(`D20260816`, `W33`, `M08`, `Y2026`, `S`).
+edit it; new tasks are stamped with `[[created:2026-08-16]]` and a
+`[[horizon:…]]` code (`D20260816`, `W33`, `M08`, `Y2026`, `S`).
+
+Any `[[key:value]]` stays raw text in the editor and renders as a chip in the
+preview, with the codes spelled out — `M08` reads as the month name, `S` as
+*Someday*. Dropping a task in another column restamps its `horizon` tag.
 
 Tasks live in `localStorage` under `horizon-tasks` — the same key the
 standalone board used, so an existing board carries over untouched.

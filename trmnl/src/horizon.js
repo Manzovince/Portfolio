@@ -46,22 +46,32 @@ const DAYS = localeNames(
 // Storage
 //========================
 
+/**
+ * Metadata used to be two bare `key: value` lines. It is now written as
+ * `[[key:value]]` tags on a single line, which the preview renders as chips
+ * (see `renderTag`). Boards written before the change are converted on load.
+ */
+function migrateMeta(content) {
+    return (content || '')
+        .replace(/^created: *(.+?)[ \t]*\r?\n[ \t]*horizon: *(.+?)[ \t]*$/m, '[[created:$1]] [[horizon:$2]]')
+        .replace(/^created: *(.+?)[ \t]*$/m, '[[created:$1]]')
+        .replace(/^horizon: *(.+?)[ \t]*$/m, '[[horizon:$1]]');
+}
+
 function loadTasks() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
         const parsed = raw ? JSON.parse(raw) : [];
         if (!Array.isArray(parsed)) return [];
         // Pre-markdown tasks stored `text` + `notes` instead of `content`.
-        return parsed.map((t) =>
-            'content' in t
-                ? t
-                : {
-                    id: t.id,
-                    column: t.column,
-                    done: t.done,
-                    content: `# ${t.text ?? ''}` + (t.notes ? `\n\n${t.notes}` : ''),
-                }
-        );
+        return parsed.map(({ id, column, done, content, text, notes }) => ({
+            id,
+            column,
+            done,
+            content: migrateMeta(
+                content ?? `# ${text ?? ''}` + (notes ? `\n\n${notes}` : '')
+            ),
+        }));
     } catch {
         return [];
     }
@@ -106,10 +116,44 @@ function getHorizonLine(column, date) {
     }
 }
 
-/** Dragging a task to another column stamps its `horizon:` line for the column it lands in. */
+/** Dragging a task to another column restamps its `[[horizon:…]]` tag for the column it lands in. */
 function updateHorizonMeta(content, column) {
-    if (!/^horizon: /m.test(content)) return content;
-    return content.replace(/^horizon: .*/m, `horizon: ${getHorizonLine(column, new Date())}`);
+    if (!/\[\[horizon:[^\]]*\]\]/.test(content)) return content;
+    return content.replace(
+        /\[\[horizon:[^\]]*\]\]/,
+        `[[horizon:${getHorizonLine(column, new Date())}]]`
+    );
+}
+
+/**
+ * The stamped code read back out for the preview chips: `D20260824` is a date,
+ * `M08` a month, and so on. Same vocabulary as the column headers, so a tag
+ * and the column it sits in read the same way.
+ */
+function humanizeHorizon(code) {
+    const day = /^D(\d{4})(\d{2})(\d{2})$/.exec(code);
+    if (day) return `${day[3]}/${day[2]}`;
+
+    const week = /^W(\d{1,2})$/.exec(code);
+    if (week) return `W${Number(week[1])}`;
+
+    const month = /^M(\d{1,2})$/.exec(code);
+    if (month) return MONTHS[Number(month[1]) - 1] ?? code;
+
+    const year = /^Y(\d{4})$/.exec(code);
+    if (year) return year[1];
+
+    return code === 'S' ? 'Someday' : code;
+}
+
+/** `2026-08-24` as `24/08`, carrying the year only when it isn't this one. */
+function humanizeDate(value) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+    if (!match) return value;
+    const [, year, month, day] = match;
+    return Number(year) === new Date().getFullYear()
+        ? `${day}/${month}`
+        : `${day}/${month}/${year}`;
 }
 
 //========================
@@ -132,6 +176,35 @@ function extractBody(content) {
 const escapeHtml = (str) =>
     str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+/**
+ * `[[key:value]]` — the metadata syntax — as a chip. The raw tag is what the
+ * editor shows and what the code stamps and rewrites; this is the same fact
+ * dressed for reading. Values whose shape we recognise are spelled out
+ * (`M08` → `Août`), anything else is shown as written, so a hand-typed
+ * `[[waiting on Ana]]` still renders as a chip.
+ */
+function renderTag(inner) {
+    const split = inner.indexOf(':');
+    const key = split === -1 ? '' : inner.slice(0, split).trim();
+    const value = (split === -1 ? inner : inner.slice(split + 1)).trim();
+
+    const label = key.toLowerCase();
+    const shown = label === 'horizon'
+        ? humanizeHorizon(value)
+        : label === 'created' || label === 'due'
+            ? humanizeDate(value)
+            : value;
+
+    // The line was escaped before this ran, so key and value are safe as text;
+    // the attribute gets its own scrub since quotes survive that escaping.
+    const attr = label.replace(/[^a-z0-9-]/g, '');
+    const parts = [`<span class="md-tag"${attr ? ` data-tag="${attr}"` : ''}>`];
+    if (key) parts.push(`<em class="md-tag-key">${key}</em>`);
+    if (shown) parts.push(`<b class="md-tag-value">${shown}</b>`);
+    parts.push('</span>');
+    return parts.join('');
+}
+
 function renderMarkdown(text) {
     if (!text.trim()) return '';
     // Each checklist mark carries the body-relative line it came from
@@ -144,6 +217,9 @@ function renderMarkdown(text) {
         .map((line, i) => escapeHtml(line)
             .replace(/^[-*] \[[xX]\]\s*/, `<span class="md-check is-done" data-line="${i}" role="checkbox" aria-checked="true" tabindex="0">☑</span> `)
             .replace(/^[-*] \[ ?\]\s*/, `<span class="md-check" data-line="${i}" role="checkbox" aria-checked="false" tabindex="0">☐</span> `)
+            // Before the emphasis and link rules, which would otherwise eat
+            // the brackets a tag is made of.
+            .replace(/\[\[([^\]]+)\]\]/g, (_m, inner) => renderTag(inner))
             .replace(/`([^`]+)`/g, '<code>$1</code>')
             .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
             .replace(/\*([^*]+)\*/g, '<em>$1</em>')
@@ -336,7 +412,8 @@ export function initHorizon({ root }) {
 
     function addTask(text, column) {
         const now = new Date();
-        const meta = `created: ${formatDateISO(now)}\nhorizon: ${getHorizonLine(column, now)}`;
+        // One line, so the two chips sit side by side in the preview.
+        const meta = `[[created:${formatDateISO(now)}]] [[horizon:${getHorizonLine(column, now)}]]`;
 
         const task = {
             id: crypto.randomUUID(),

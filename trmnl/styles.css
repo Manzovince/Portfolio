@@ -1055,6 +1055,32 @@ hr {
     outline-offset: 1px;
 }
 
+/* `[[key:value]]` metadata, shown raw in the editor and as a chip here. */
+.md-tag {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35em;
+    /* Bottom margin too: chips wrap onto their own row in a narrow column. */
+    margin: 0 0.3em 0.25em 0;
+    padding: 0 0.5em;
+    font-size: 0.85em;
+    line-height: 1.6;
+    background-color: var(--surface);
+    border: 1px solid var(--line-faint);
+    border-radius: 999px;
+}
+
+.md-tag-key {
+    font-style: normal;
+    font-size: 0.85em;
+    color: var(--fg-faint);
+}
+
+.md-tag-value {
+    font-weight: 400;
+    color: var(--fg);
+}
+
 .edit-btn {
     align-self: flex-start;
     margin-top: 0.5rem;
