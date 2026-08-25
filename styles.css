@@ -736,7 +736,7 @@ header {
 }
 
 #sealens {
-    cursor: alias;
+    cursor: pointer;
 }
 
 #sealens .project-cover {

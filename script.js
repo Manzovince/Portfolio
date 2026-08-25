@@ -306,10 +306,6 @@ class FooterComponent extends HTMLElement {
           <a href="mailto:hello@manzovince.com" class="footer-content">hello@manzovince.com</a>
         </div>
         <div class="footer-item">
-          <div class="footer-label">Location</div>
-          <div class="footer-content">43.07541 N, 5.92724 E</div>
-        </div>
-        <div class="footer-item">
           <div class="footer-label">Copyright</div>
           <div class="footer-content">&copy; ${new Date().getFullYear()} Vincent Manzoni.</div>
         </div>
