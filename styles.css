@@ -451,8 +451,7 @@ header {
     transition: all cubic-bezier(0.85, 0, 0.15, 1) 2s;
 }
 
-#methodology:hover .methodology-text,
-#methodology.hover .methodology-text {
+#methodology.revealed .methodology-text {
     transform: translateX(0);
     opacity: 1;
     transition: all cubic-bezier(0.85, 0, 0.15, 1) 2s;
@@ -506,7 +505,8 @@ header {
     --y-offset: 24vh;
 }
 
-#methodology:hover .layer {
+#methodology.revealed .layer {
+    color: var(--text-color);
     transform:
         translateY(var(--y-offset))
         translateX(0)
@@ -535,7 +535,7 @@ header {
     margin: auto;
 }
 
-#methodology:hover .layer-text {
+#methodology.revealed .layer-text {
     color: var(--text-color);
 }
 
@@ -565,7 +565,7 @@ header {
     opacity: 0;
 }
 
-#methodology:hover .layer-padding {
+#methodology.revealed .layer-padding {
     opacity: 0.8;
 }
 
@@ -575,7 +575,7 @@ header {
     opacity: 0;
 }
 
-#methodology:hover .layer-border {
+#methodology.revealed .layer-border {
     opacity: 1;
 }
 
@@ -589,31 +589,6 @@ header {
     z-index: 1;
     background-color: rgba(var(--rgb-text), 0.1);
     filter: blur(32px);
-}
-
-/* Hover styles */
-#methodology:hover .methodology-text,
-#methodology.hover .methodology-text {
-    transform: translateX(0);
-    opacity: 1;
-    transition: all 2s cubic-bezier(0.85, 0, 0.15, 1);
-}
-
-#methodology:hover .layer,
-#methodology.hover .layer {
-    color: var(--text-color);
-    transform: translateY(var(--y-offset)) translateX(0) rotate(45deg) rotateX(45deg) rotateY(-45deg) rotateZ(0deg);
-    transition: all 2s cubic-bezier(0.85, 0, 0.15, 1);
-}
-
-#methodology:hover .layer-padding,
-#methodology.hover .layer-padding {
-    opacity: 0.8;
-}
-
-#methodology:hover .layer-border,
-#methodology.hover .layer-border {
-    opacity: 1;
 }
 
 /* Projects */

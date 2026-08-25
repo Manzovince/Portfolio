@@ -394,20 +394,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (window.innerWidth < 768) { // Apply effect only on mobile devices
-    const methodologySection = document.querySelector('#methodology');
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          // Add hover styles when the section is visible
-          methodologySection.classList.add('hover');
-        } else {
-          // Remove hover styles when the section is not visible
-          methodologySection.classList.remove('hover');
-        }
-      });
-    }, { threshold: 0.1 }); // Trigger when 50% of the section is visible
+  // Methodology reveals on scroll and keeps its end state once played
+  const methodologySection = document.querySelector('#methodology');
+  if (methodologySection) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      methodologySection.classList.add('revealed');
+    } else {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            methodologySection.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+        // Trigger once the section reaches the middle band of the viewport,
+        // which holds whether the section is taller or shorter than the screen.
+      }, { threshold: 0, rootMargin: '-25% 0px -25% 0px' });
 
-    observer.observe(methodologySection);
+      observer.observe(methodologySection);
+    }
   }
 });
