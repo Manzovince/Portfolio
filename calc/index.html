@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Calculator</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Calculator">
+<meta name="theme-color" content="#000000">
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<style>
+:root{
+  --w: min(100vw, 430px, 54dvh);
+  --gap: calc(var(--w) * 0.023);
+  --pad: calc(var(--w) * 0.055);
+  --orange:#ff9f0a;
+  --fn:#656568;
+  --dig:#333335;
+}
+*{box-sizing:border-box; margin:0; padding:0;
+  -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none;
+  -webkit-user-select:none; user-select:none;}
+html,body{height:100%; background:#000; overscroll-behavior:none;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  color:#fff; display:flex; justify-content:center;
+  touch-action:manipulation;
+}
+#app{
+  width:var(--w); height:100dvh; display:flex; flex-direction:column;
+  padding: max(env(safe-area-inset-top), 10px) var(--pad) max(env(safe-area-inset-bottom), calc(var(--w)*0.055));
+}
+
+/* ---------- top bar ---------- */
+#topbar{display:flex; justify-content:space-between; align-items:center;
+  padding: calc(var(--w)*0.022) calc(var(--w)*0.008) 0;}
+.chrome{width:calc(var(--w)*0.098); height:calc(var(--w)*0.098); padding:0;
+  border:1px solid rgba(255,255,255,.16); border-radius:50%; background:transparent;
+  color:#fff; display:flex; align-items:center; justify-content:center;
+  transition:background-color .12s ease;}
+.chrome:active{background:rgba(255,255,255,.14);}
+.chrome svg{width:54%; height:54%; display:block;}
+
+/* ---------- display ---------- */
+#display{flex:1; display:flex; flex-direction:column; justify-content:flex-end;
+  align-items:flex-end; text-align:right; overflow:hidden;
+  padding:0 calc(var(--w)*0.035) calc(var(--w)*0.03);}
+#expr{color:#8e8e93; font-size:calc(var(--w)*0.062); font-weight:400;
+  letter-spacing:.01em; min-height:calc(var(--w)*0.088); white-space:nowrap;
+  overflow:hidden; direction:rtl; width:100%;}
+#expr span{direction:ltr; unicode-bidi:isolate;}
+#measure{position:absolute; left:-99999px; top:0; white-space:nowrap; visibility:hidden;
+  pointer-events:none; font-size:calc(var(--w)*0.215); font-weight:300;
+  letter-spacing:-0.022em; font-family:inherit;}
+#result{font-size:calc(var(--w)*0.215); font-weight:300; letter-spacing:-0.022em;
+  line-height:1.08; white-space:nowrap; width:100%; direction:ltr;
+  transform-origin:0% 50%;}
+
+/* ---------- keypad ---------- */
+#pad{display:grid; grid-template-columns:repeat(4,1fr); gap:var(--gap);}
+.k{aspect-ratio:1/1; border:0; border-radius:50%; color:#fff; background:var(--dig);
+  font-size:calc(var(--w)*0.086); font-weight:400; font-family:inherit;
+  display:flex; align-items:center; justify-content:center; line-height:1;
+  transition:background-color .08s ease, color .08s ease; padding-bottom:.06em;}
+.k.fn{background:var(--fn); font-size:calc(var(--w)*0.080);}
+.k.op{background:var(--orange); font-size:calc(var(--w)*0.103); font-weight:400;}
+.k.down{background:#5a5a5e;}
+.k.fn.down{background:#9c9c9f;}
+.k.op.down{background:#fcc072;}
+.k.op.on{background:#fff; color:var(--orange);}
+.k[data-k="del"]{font-size:calc(var(--w)*0.086);}
+
+/* ---------- sheets ---------- */
+.sheet{position:fixed; inset:0; z-index:50; background:#000; display:none;
+  flex-direction:column; overscroll-behavior:contain;}
+.sheet.open{display:flex;}
+.sheet-hd{display:flex; align-items:center; justify-content:space-between;
+  padding: max(env(safe-area-inset-top), 12px) 18px 12px; border-bottom:.5px solid #2c2c2e;}
+.sheet-hd h1{font-size:17px; font-weight:600;}
+.sheet-hd button{background:none; border:0; color:var(--orange); font:inherit;
+  font-size:17px; font-weight:600; font-family:inherit;}
+.sheet-bd{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  padding:18px 16px max(env(safe-area-inset-bottom),24px);}
+
+/* ---------- settings ---------- */
+.grp{background:#1c1c1e; border-radius:12px; margin-bottom:22px; overflow:hidden;}
+.grp-t{font-size:12.5px; color:#8e8e93; text-transform:uppercase; letter-spacing:.05em;
+  padding:0 16px 7px; margin-top:-14px;}
+.row{display:flex; align-items:center; justify-content:space-between; gap:14px;
+  padding:12px 16px; min-height:47px; border-top:.5px solid #2c2c2e;}
+.row:first-child{border-top:0;}
+.row label,.row .lb{font-size:16px; flex:0 0 auto;}
+.row .hint{font-size:12.5px; color:#8e8e93; margin-top:3px; line-height:1.35;}
+.row.col{flex-direction:column; align-items:stretch; gap:8px;}
+input[type=text],input[type=number],select{
+  background:#2c2c2e; border:0; border-radius:9px; color:#fff; font:inherit;
+  font-size:16px; padding:10px 12px; width:100%; -webkit-user-select:text; user-select:text;
+  font-family:inherit;}
+input[type=text]#f-force{font-size:22px; font-weight:500; letter-spacing:.01em;}
+select{appearance:none; padding-right:30px;
+  background-image:linear-gradient(45deg,transparent 50%,#8e8e93 50%),linear-gradient(135deg,#8e8e93 50%,transparent 50%);
+  background-position:calc(100% - 16px) 50%, calc(100% - 11px) 50%;
+  background-size:5px 5px,5px 5px; background-repeat:no-repeat;}
+.sw{position:relative; width:51px; height:31px; flex:0 0 51px;}
+.sw input{position:absolute; opacity:0; width:100%; height:100%; margin:0;}
+.sw i{position:absolute; inset:0; background:#39393d; border-radius:16px; transition:background .2s;}
+.sw i::after{content:""; position:absolute; top:2px; left:2px; width:27px; height:27px;
+  background:#fff; border-radius:50%; transition:transform .2s;
+  box-shadow:0 2px 5px rgba(0,0,0,.35);}
+.sw input:checked + i{background:#30d158;}
+.sw input:checked + i::after{transform:translateX(20px);}
+.btn{display:block; width:100%; text-align:center; background:#1c1c1e; border:0;
+  border-radius:12px; color:var(--orange); font:inherit; font-size:16px; font-family:inherit;
+  padding:14px; margin-bottom:12px;}
+.btn.danger{color:#ff453a;}
+.status{display:flex; align-items:center; gap:9px; font-size:13.5px; color:#8e8e93;
+  padding:0 4px 16px;}
+.dot{width:9px; height:9px; border-radius:50%; background:#ff453a; flex:0 0 9px;}
+.dot.on{background:#30d158;}
+.log{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px; color:#c7c7cc;
+  line-height:1.7; -webkit-user-select:text; user-select:text; word-break:break-all;}
+.log div{border-top:.5px solid #2c2c2e; padding:6px 0;}
+.log div:first-child{border-top:0;}
+.empty{color:#636366; font-size:14px; text-align:center; padding:22px 0;}
+
+/* ---------- history + mode menu ---------- */
+.hist-item{padding:14px 4px; border-bottom:.5px solid #1c1c1e; text-align:right;}
+.hist-item .he{font-size:14px; color:#8e8e93;}
+.hist-item .hr{font-size:26px; font-weight:300; margin-top:2px;}
+#modemenu{position:fixed; z-index:60; inset:0; display:none; background:transparent;}
+#modemenu.open{display:block;}
+#modemenu .card{position:absolute; top:calc(max(env(safe-area-inset-top),8px) + var(--w)*0.16);
+  right:calc((100vw - var(--w))/2 + var(--pad)); width:calc(var(--w)*0.58);
+  background:rgba(44,44,46,.92); backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+  border-radius:14px; overflow:hidden; box-shadow:0 12px 40px rgba(0,0,0,.6);}
+#modemenu .mi{display:flex; justify-content:space-between; align-items:center;
+  padding:12px 15px; font-size:16px; border-top:.5px solid rgba(255,255,255,.12);}
+#modemenu .mi:first-child{border-top:0;}
+#modemenu .mi.sel::after{content:"✓"; color:#fff; font-weight:600;}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="topbar">
+    <button class="chrome" id="btn-hist" aria-label="History">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <circle cx="4.2" cy="7" r="1.15" fill="currentColor" stroke="none"/>
+        <circle cx="4.2" cy="12" r="1.15" fill="currentColor" stroke="none"/>
+        <circle cx="4.2" cy="17" r="1.15" fill="currentColor" stroke="none"/>
+        <path d="M8.4 7h11.4M8.4 12h11.4M8.4 17h11.4"/>
+      </svg>
+    </button>
+    <button class="chrome" id="btn-mode" aria-label="Mode">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <rect x="4.2" y="2.4" width="15.6" height="19.2" rx="3.4"/>
+        <rect x="7.1" y="5.4" width="9.8" height="3.6" rx="1.1"/>
+        <circle cx="8.3" cy="12.6" r="1.05" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="12.6" r="1.05" fill="currentColor" stroke="none"/>
+        <circle cx="15.7" cy="12.6" r="1.05" fill="currentColor" stroke="none"/>
+        <circle cx="8.3" cy="17.2" r="1.05" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="17.2" r="1.05" fill="currentColor" stroke="none"/>
+        <circle cx="15.7" cy="17.2" r="1.05" fill="currentColor" stroke="none"/>
+      </svg>
+    </button>
+  </div>
+
+  <div id="display">
+    <div id="expr"><span id="exprin"></span></div>
+    <div id="result">0</div>
+    <span id="measure" aria-hidden="true"></span>
+  </div>
+
+  <div id="pad">
+    <button class="k fn" data-k="del">&#9003;</button>
+    <button class="k fn" data-k="ac">AC</button>
+    <button class="k fn" data-k="pct">%</button>
+    <button class="k op" data-k="/">&#247;</button>
+
+    <button class="k" data-k="7">7</button>
+    <button class="k" data-k="8">8</button>
+    <button class="k" data-k="9">9</button>
+    <button class="k op" data-k="*">&#215;</button>
+
+    <button class="k" data-k="4">4</button>
+    <button class="k" data-k="5">5</button>
+    <button class="k" data-k="6">6</button>
+    <button class="k op" data-k="-">&#8722;</button>
+
+    <button class="k" data-k="1">1</button>
+    <button class="k" data-k="2">2</button>
+    <button class="k" data-k="3">3</button>
+    <button class="k op" data-k="+">+</button>
+
+    <button class="k" data-k="neg">&#43;/&#8722;</button>
+    <button class="k" data-k="0">0</button>
+    <button class="k" data-k=".">.</button>
+    <button class="k op" data-k="=">=</button>
+  </div>
+</div>
+
+<!-- ===== mode menu (decorative, like the real app) ===== -->
+<div id="modemenu"><div class="card">
+  <div class="mi sel">Basic</div>
+  <div class="mi">Scientific</div>
+  <div class="mi">Convert</div>
+</div></div>
+
+<!-- ===== history sheet ===== -->
+<div class="sheet" id="hist">
+  <div class="sheet-hd">
+    <button id="hist-clear">Clear</button>
+    <h1>History</h1>
+    <button id="hist-done">Done</button>
+  </div>
+  <div class="sheet-bd"><div id="hist-body"></div></div>
+</div>
+
+<!-- ===== secret settings ===== -->
+<div class="sheet" id="cfg">
+  <div class="sheet-hd">
+    <h1>Performance</h1>
+    <button id="cfg-done">Done</button>
+  </div>
+  <div class="sheet-bd">
+
+    <div class="status"><span class="dot" id="st-dot"></span><span id="st-txt"></span></div>
+
+    <div class="grp-t">The force</div>
+    <div class="grp">
+      <div class="row col">
+        <input type="text" id="f-force" placeholder="e.g. 14101996" autocomplete="off"
+               autocapitalize="off" autocorrect="off" spellcheck="false">
+        <div class="hint">Shown instead of the real answer when &ldquo;=&rdquo; is pressed.
+          Digits, or any text (try <b>0.7734</b>, or <b>hELLO</b> read upside&#8209;down).</div>
+      </div>
+      <div class="row">
+        <span class="lb">Normal mode</span>
+        <span class="sw"><input type="checkbox" id="f-normal"><i></i></span>
+      </div>
+    </div>
+
+    <div class="grp-t">When it fires</div>
+    <div class="grp">
+      <div class="row">
+        <span class="lb">Force on</span>
+        <select id="f-trigger" style="width:auto; min-width:140px">
+          <option value="every">Every =</option>
+          <option value="1">1st = only</option>
+          <option value="2">2nd =</option>
+          <option value="3">3rd =</option>
+          <option value="4">4th =</option>
+          <option value="5">5th =</option>
+        </select>
+      </div>
+      <div class="row">
+        <span class="lb">Min. operations</span>
+        <select id="f-minops" style="width:auto; min-width:100px">
+          <option value="0">0</option><option value="1">1</option>
+          <option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option>
+        </select>
+      </div>
+      <div class="row col">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="lb">Fire once, then behave</span>
+          <span class="sw"><input type="checkbox" id="f-once"><i></i></span>
+        </div>
+        <div class="hint">After the reveal the calculator goes back to real maths, so it survives
+          being checked afterwards.</div>
+      </div>
+    </div>
+
+    <div class="grp-t">Handling</div>
+    <div class="grp">
+      <div class="row col">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="lb">Secret taps on &#9003;</span>
+        <select id="f-taps" style="width:auto; min-width:80px">
+          <option value="3">3</option><option value="4">4</option>
+          <option value="5">5</option><option value="6">6</option>
+        </select>
+        </div>
+        <div class="hint">Taps only count while the display reads <b>0</b>, so deleting a
+          mistyped number never opens this panel by accident.</div>
+      </div>
+      <div class="row col">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="lb">Quick&#8209;set force</span>
+          <span class="sw"><input type="checkbox" id="f-quick"><i></i></span>
+        </div>
+        <div class="hint">On the keypad: type the number, then double&#8209;tap <b>+/&#8722;</b>
+          to make it the force. Sets it without opening this panel.</div>
+      </div>
+      <div class="row col">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="lb">Spy log</span>
+          <span class="sw"><input type="checkbox" id="f-spy"><i></i></span>
+        </div>
+        <div class="hint">Silently records every calculation with its real answer &mdash; read it
+          back here after they hand the phone over.</div>
+      </div>
+    </div>
+
+    <button class="btn" id="cfg-reset">Re&#8209;arm the trick</button>
+    <button class="btn danger" id="cfg-wipe">Reset everything</button>
+
+    <div class="grp-t" style="margin-top:8px">Spy log</div>
+    <div class="grp"><div class="row col"><div class="log" id="spy-body"></div></div></div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= settings ================= */
+var DEF = {force:"", normal:false, trigger:"every", minops:0, once:false,
+           taps:4, quick:false, spy:false};
+var S = Object.assign({}, DEF);
+var spy = [], hist = [];
+
+try{
+  var raw = localStorage.getItem("calc.cfg");
+  if(raw) S = Object.assign(S, JSON.parse(raw));
+  spy  = JSON.parse(localStorage.getItem("calc.spy")  || "[]");
+  hist = JSON.parse(localStorage.getItem("calc.hist") || "[]");
+}catch(e){}
+
+function save(){
+  try{
+    localStorage.setItem("calc.cfg",  JSON.stringify(S));
+    localStorage.setItem("calc.spy",  JSON.stringify(spy.slice(-80)));
+    localStorage.setItem("calc.hist", JSON.stringify(hist.slice(-80)));
+  }catch(e){}
+}
+
+/* ================= formatting ================= */
+function group(i){
+  var neg = i.charAt(0) === "-"; if(neg) i = i.slice(1);
+  return (neg ? "-" : "") + i.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+function fmtEntry(s){                        /* what is being typed */
+  s = String(s);
+  if(s.indexOf("e") > -1) return s;
+  var p = s.split(".");
+  return group(p[0]) + (p.length > 1 ? "." + p[1] : "");
+}
+function fmtNum(n){                          /* a computed value */
+  if(typeof n !== "number" || !isFinite(n)) return "Error";
+  var a = Math.abs(n);
+  if(a !== 0 && (a >= 1e9 || a < 1e-8))
+    return n.toExponential(8).replace(/\.?0+e/, "e").replace(/e\+/, "e");
+  var s = String(Number(n.toPrecision(9)));
+  if(s.indexOf("e") > -1) return s;
+  var p = s.split(".");
+  return group(p[0]) + (p.length > 1 ? "." + p[1] : "");
+}
+var OPS = {"+":"+", "-":"−", "*":"×", "/":"÷"};
+function esc(s){ return String(s == null ? "" : s)
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ================= state ================= */
+var cur = "0";          /* current entry, raw */
+var acc = null;         /* running total */
+var op  = null;         /* pending operator */
+var fresh = true;       /* next digit starts a new entry */
+var ended = false;      /* last action was "=" */
+var tokens = [];        /* expression pieces for the grey line */
+var exprStr = "";
+var forcedText = null;  /* a forced value currently on screen */
+var opsUsed = 0, eqCount = 0, armed = true;
+var delTaps = 0, lastDelAt = 0, lastNegAt = 0;
+
+var $ = function(id){ return document.getElementById(id); };
+var elResult = $("result"), elExpr = $("exprin"), elMeas = $("measure");
+
+function render(){
+  var txt = forcedText !== null ? forcedText : fmtEntry(cur);
+  elResult.textContent = txt;
+  elExpr.textContent = exprStr;
+  /* shrink to fit the way the real app does — measured, not guessed */
+  /* measured off-screen so an in-flight transition can never skew it */
+  elMeas.textContent = txt;
+  var avail = elResult.clientWidth;                    /* layout width, ignores transforms */
+  var used  = elMeas.getBoundingClientRect().width;
+  elResult.style.transform = (used > avail && avail > 0)
+    ? "scale(" + Math.max(0.28, (avail / used) * 0.99) + ")" : "none";
+  var ks = document.querySelectorAll(".k.op");
+  for(var i = 0; i < ks.length; i++){
+    var on = op !== null && fresh && !ended && ks[i].getAttribute("data-k") === op;
+    ks[i].classList.toggle("on", on);
+  }
+}
+
+function compute(a, o, b){
+  if(o === "+") return a + b;
+  if(o === "-") return a - b;
+  if(o === "*") return a * b;
+  if(o === "/") return b === 0 ? NaN : a / b;
+  return b;
+}
+function val(){ var v = parseFloat(cur); return isFinite(v) ? v : 0; }
+function label(){ return forcedText !== null ? forcedText : fmtEntry(cur); }
+
+function clearAll(){
+  cur = "0"; acc = null; op = null; fresh = true; ended = false;
+  tokens = []; exprStr = ""; opsUsed = 0; forcedText = null;
+}
+
+/* ================= the force ================= */
+function forceValue(){ return (S.force || "").trim(); }
+function forceDisplay(v){ return /^-?\d+(\.\d+)?$/.test(v) ? fmtEntry(v) : v; }
+
+function willForce(){
+  if(S.normal || !armed) return false;
+  if(!forceValue()) return false;
+  if(opsUsed < Number(S.minops)) return false;
+  if(S.trigger === "every") return true;
+  return eqCount === Number(S.trigger);
+}
+
+function log(e, r){
+  hist.push({e:e, r:r});
+  if(S.spy) spy.push({e:e, r:r, t:Date.now()});
+  save();
+}
+
+/* ================= keys ================= */
+function digit(d){
+  if(ended) clearAll();
+  forcedText = null;
+  if(fresh){ cur = d; fresh = false; }
+  else if(cur.replace(/[-.]/g, "").length < 9) cur = (cur === "0" ? d : cur + d);
+  render();
+}
+function dot(){
+  if(ended) clearAll();
+  forcedText = null;
+  if(fresh){ cur = "0."; fresh = false; }
+  else if(cur.indexOf(".") < 0) cur += ".";
+  render();
+}
+function del(){
+  if(ended || fresh || forcedText !== null){
+    cur = "0"; forcedText = null; fresh = false; ended = false; render(); return;
+  }
+  cur = cur.slice(0, -1);
+  if(cur === "" || cur === "-") cur = "0";
+  render();
+}
+function negate(){
+  forcedText = null;
+  cur = cur.charAt(0) === "-" ? cur.slice(1) : (cur === "0" ? cur : "-" + cur);
+  fresh = false; render();
+}
+function percent(){
+  forcedText = null;
+  cur = String(val() / 100); fresh = false; render();
+}
+
+function operator(o){
+  /* changing your mind about the operator */
+  if(op !== null && fresh && !ended){
+    tokens.pop(); tokens.push(OPS[o]);
+    op = o; exprStr = tokens.join(""); render(); return;
+  }
+  var lb = label();
+  forcedText = null;
+  if(ended || op === null){
+    acc = val();
+    tokens = [lb];
+  } else {
+    acc = compute(acc, op, val());
+    tokens.push(lb);
+    cur = String(acc);
+  }
+  tokens.push(OPS[o]);
+  exprStr = tokens.join("");
+  op = o; fresh = true; ended = false; opsUsed++;
+  render();
+}
+
+function equals(){
+  if(op === null) return;
+  tokens.push(label());
+  var expression = tokens.join("");
+  var real = compute(acc, op, val());
+  eqCount++;
+
+  if(willForce()){
+    var v = forceValue(), shown = forceDisplay(v);
+    var asNum = parseFloat(v.replace(/,/g, ""));
+    if(/^-?[\d,]*\.?\d+$/.test(v) && isFinite(asNum)){ cur = String(asNum); acc = asNum; }
+    else { cur = "0"; acc = 0; }
+    forcedText = shown;
+    if(S.once) armed = false;
+    log(expression, shown);
+    if(S.spy) spy[spy.length - 1].real = fmtNum(real);
+  } else if(!isFinite(real)){
+    acc = 0; cur = "0"; forcedText = "Error";
+    log(expression, "Error");
+  } else {
+    acc = real; cur = String(real); forcedText = fmtNum(real);
+    log(expression, forcedText);
+  }
+  exprStr = expression;
+  op = null; fresh = true; ended = true; tokens = [];
+  render();
+}
+
+function flash(){
+  elResult.style.transition = "opacity .11s";
+  elResult.style.opacity = "0.2";
+  setTimeout(function(){
+    elResult.style.opacity = "1";
+    setTimeout(function(){ elResult.style.transition = ""; }, 150);
+  }, 100);
+}
+
+function press(k){
+  var now = Date.now();
+
+  /* secret entrance: N consecutive taps on the delete key */
+  if(k === "del"){
+    /* only count when there is nothing to delete, so correcting a typo
+       can never pop the panel open in front of an audience */
+    if(forcedText === null && cur === "0"){
+      delTaps = (now - lastDelAt < 2200) ? delTaps + 1 : 1;
+      lastDelAt = now;
+      if(delTaps >= Number(S.taps)){ delTaps = 0; openCfg(); return; }
+    } else {
+      delTaps = 0;
+    }
+  } else {
+    delTaps = 0;
+  }
+
+  /* quick-set: type the number, then double-tap +/- */
+  if(k === "neg"){
+    if(S.quick && now - lastNegAt < 800){
+      var v = cur.replace(/^-/, "");
+      if(v && v !== "0"){
+        S.force = v; armed = true; eqCount = 0; save();
+        clearAll(); render(); flash(); lastNegAt = 0; return;
+      }
+    }
+    lastNegAt = now;
+  } else {
+    lastNegAt = 0;
+  }
+
+  if(k >= "0" && k <= "9" && k.length === 1) return digit(k);
+  if(k === ".")   return dot();
+  if(k === "ac")  { clearAll(); return render(); }
+  if(k === "del") return del();
+  if(k === "neg") return negate();
+  if(k === "pct") return percent();
+  if(k === "=")   return equals();
+  if(OPS[k])      return operator(k);
+}
+
+/* ================= input plumbing ================= */
+var keys = document.querySelectorAll(".k");
+for(var i = 0; i < keys.length; i++){
+  (function(b){
+    b.addEventListener("pointerdown", function(e){
+      e.preventDefault(); b.classList.add("down");
+      press(b.getAttribute("data-k"));
+    });
+    ["pointerup","pointerleave","pointercancel"].forEach(function(ev){
+      b.addEventListener(ev, function(){ b.classList.remove("down"); });
+    });
+  })(keys[i]);
+}
+document.addEventListener("keydown", function(e){
+  if(document.querySelector(".sheet.open")) return;
+  var m = {"Enter":"=", "=":"=", "Backspace":"del", "Escape":"ac", "%":"pct",
+           "+":"+", "-":"-", "*":"*", "x":"*", "/":"/", ".":".", ",":"."};
+  var k = /^[0-9]$/.test(e.key) ? e.key : m[e.key];
+  if(k){ e.preventDefault(); press(k); }
+});
+document.addEventListener("gesturestart", function(e){ e.preventDefault(); });
+/* never leave a key stuck in the pressed state */
+["pointerup","pointercancel","blur"].forEach(function(ev){
+  window.addEventListener(ev, function(){
+    var d = document.querySelectorAll(".k.down");
+    for(var j = 0; j < d.length; j++) d[j].classList.remove("down");
+  }, true);
+});
+
+/* ================= sheets ================= */
+function openSheet(id){ $(id).classList.add("open"); }
+function closeSheet(id){ $(id).classList.remove("open"); }
+
+$("btn-hist").addEventListener("click", function(){ drawHist(); openSheet("hist"); });
+$("hist-done").addEventListener("click", function(){ closeSheet("hist"); });
+$("hist-clear").addEventListener("click", function(){ hist = []; save(); drawHist(); });
+function drawHist(){
+  var b = $("hist-body");
+  if(!hist.length){ b.innerHTML = '<div class="empty">No History</div>'; return; }
+  b.innerHTML = hist.slice().reverse().map(function(h){
+    return '<div class="hist-item"><div class="he">' + esc(h.e) +
+           '</div><div class="hr">' + esc(h.r) + '</div></div>';
+  }).join("");
+}
+
+$("btn-mode").addEventListener("click", function(){ $("modemenu").classList.add("open"); });
+$("modemenu").addEventListener("click", function(){ $("modemenu").classList.remove("open"); });
+
+/* ================= settings ================= */
+function openCfg(){
+  $("f-force").value    = S.force;
+  $("f-normal").checked = S.normal;
+  $("f-trigger").value  = S.trigger;
+  $("f-minops").value   = String(S.minops);
+  $("f-once").checked   = S.once;
+  $("f-taps").value     = String(S.taps);
+  $("f-quick").checked  = S.quick;
+  $("f-spy").checked    = S.spy;
+  drawStatus(); drawSpy(); openSheet("cfg");
+}
+function drawStatus(){
+  var live = !S.normal && armed && !!forceValue();
+  $("st-dot").classList.toggle("on", live);
+  $("st-txt").textContent =
+      S.normal        ? "Normal mode — real maths only"
+    : !forceValue()   ? "No force set — behaving normally"
+    : !armed          ? "Already fired — tap “Re-arm the trick”"
+    : "Armed — will show " + forceDisplay(forceValue());
+}
+function drawSpy(){
+  var b = $("spy-body");
+  if(!spy.length){ b.innerHTML = '<div class="empty">Nothing recorded</div>'; return; }
+  b.innerHTML = spy.slice().reverse().map(function(s){
+    return "<div>" + esc(s.e) + " = " + esc(s.r) +
+      (s.real && s.real !== s.r ? ' <span style="color:#8e8e93">(real ' + esc(s.real) + ")</span>" : "") +
+      "</div>";
+  }).join("");
+}
+function bind(id, key, bool){
+  var el = $(id);
+  var h = function(){
+    S[key] = bool ? el.checked : el.value;
+    if(key === "force" || key === "normal"){ armed = true; eqCount = 0; }
+    save(); drawStatus();
+  };
+  el.addEventListener("change", h);
+  if(!bool) el.addEventListener("input", h);
+}
+bind("f-force","force");   bind("f-trigger","trigger"); bind("f-minops","minops");
+bind("f-taps","taps");     bind("f-normal","normal",1); bind("f-once","once",1);
+bind("f-quick","quick",1); bind("f-spy","spy",1);
+
+$("cfg-done").addEventListener("click", function(){
+  closeSheet("cfg"); clearAll(); eqCount = 0; render();
+});
+$("cfg-reset").addEventListener("click", function(){
+  armed = true; eqCount = 0; clearAll(); drawStatus(); render();
+});
+$("cfg-wipe").addEventListener("click", function(){
+  S = Object.assign({}, DEF); spy = []; hist = [];
+  armed = true; eqCount = 0; clearAll(); save(); openCfg(); render();
+});
+
+render();
+})();
+</script>
+</body>
+</html>
