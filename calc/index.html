@@ -107,9 +107,11 @@ select{appearance:none; padding-right:30px;
   background-image:linear-gradient(45deg,transparent 50%,#8e8e93 50%),linear-gradient(135deg,#8e8e93 50%,transparent 50%);
   background-position:calc(100% - 16px) 50%, calc(100% - 11px) 50%;
   background-size:5px 5px,5px 5px; background-repeat:no-repeat;}
-.sw{position:relative; width:51px; height:31px; flex:0 0 51px;}
-.sw input{position:absolute; opacity:0; width:100%; height:100%; margin:0;}
-.sw i{position:absolute; inset:0; background:#39393d; border-radius:16px; transition:background .2s;}
+.sw{position:relative; display:inline-block; width:51px; height:31px; flex:0 0 51px;
+  cursor:pointer; -webkit-tap-highlight-color:transparent;}
+.sw input{position:absolute; opacity:0; width:100%; height:100%; margin:0; z-index:1; cursor:pointer;}
+.sw i{position:absolute; inset:0; background:#39393d; border-radius:16px; transition:background .2s;
+  pointer-events:none;}
 .sw i::after{content:""; position:absolute; top:2px; left:2px; width:27px; height:27px;
   background:#fff; border-radius:50%; transition:transform .2s;
   box-shadow:0 2px 5px rgba(0,0,0,.35);}
@@ -242,7 +244,7 @@ select{appearance:none; padding-right:30px;
       </div>
       <div class="row">
         <span class="lb">Normal mode</span>
-        <span class="sw"><input type="checkbox" id="f-normal"><i></i></span>
+        <label class="sw"><input type="checkbox" id="f-normal"><i></i></label>
       </div>
     </div>
 
@@ -270,7 +272,7 @@ select{appearance:none; padding-right:30px;
       <div class="row col">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span class="lb">Fire once, then behave</span>
-          <span class="sw"><input type="checkbox" id="f-once"><i></i></span>
+          <label class="sw"><input type="checkbox" id="f-once"><i></i></label>
         </div>
         <div class="hint">After the reveal the calculator goes back to real maths, so it survives
           being checked afterwards.</div>
@@ -293,7 +295,7 @@ select{appearance:none; padding-right:30px;
       <div class="row col">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span class="lb">Quick&#8209;set force</span>
-          <span class="sw"><input type="checkbox" id="f-quick"><i></i></span>
+          <label class="sw"><input type="checkbox" id="f-quick"><i></i></label>
         </div>
         <div class="hint">On the keypad: type the number, then double&#8209;tap <b>+/&#8722;</b>
           to make it the force. Sets it without opening this panel.</div>
@@ -301,7 +303,7 @@ select{appearance:none; padding-right:30px;
       <div class="row col">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span class="lb">Spy log</span>
-          <span class="sw"><input type="checkbox" id="f-spy"><i></i></span>
+          <label class="sw"><input type="checkbox" id="f-spy"><i></i></label>
         </div>
         <div class="hint">Silently records every calculation with its real answer &mdash; read it
           back here after they hand the phone over.</div>
