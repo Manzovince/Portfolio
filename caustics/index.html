@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#020818">
+<meta name="robots" content="noindex, nofollow">
+<title>Lagon</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #020818; overflow: hidden; }
+  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+
+  /* Portrait screens: rotate the scene so it is always shown landscape. */
+  @media (orientation: portrait) {
+    canvas { width: 100vh; height: 100vw; inset: auto; top: 50%; left: 50%;
+             transform: translate(-50%, -50%) rotate(90deg); }
+  }
+
+  .debug {
+    position: fixed; left: 16px; right: 16px; bottom: 16px; max-width: 520px; margin: 0 auto;
+    display: none; gap: 10px 14px; align-items: center; grid-template-columns: auto 1fr auto;
+    padding: 12px 14px; border-radius: 12px;
+    background: rgba(4, 12, 22, .62); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    color: #dfeef2; font: 500 13px/1.2 ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  .debug.on { display: grid; }
+  .debug label { opacity: .7; }
+  .debug input[type=range] { width: 100%; accent-color: #7fd6dc; }
+  .debug output { min-width: 5ch; text-align: right; font-variant-numeric: tabular-nums; }
+  .debug button {
+    grid-column: 1 / -1; justify-self: start; font: inherit; color: inherit; cursor: pointer;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); border-radius: 8px; padding: 6px 10px;
+  }
+  .debug button[aria-pressed=true] { background: #7fd6dc; color: #04161c; border-color: transparent; }
+</style>
+</head>
+<body>
+
+<canvas id="water"></canvas>
+
+<div class="debug" id="debug">
+  <label for="t">heure</label>
+  <input id="t" type="range" min="0" max="1439" step="1">
+  <output id="t-out">00:00</output>
+
+  <label for="s">vitesse</label>
+  <input id="s" type="range" min="0" max="8" step="0.1" value="1">
+  <output id="s-out">×1</output>
+
+  <button id="live" aria-pressed="true">temps réel</button>
+</div>
+
+<script>
+/* ---------- Palette through the day ----------
+   h: hour · deep/shallow: water tint · light: sun/moon colour
+   k: caustic strength · glow: surface sheen                   */
+const KEYS = [
+  { h: 0,    deep: '#020818', shallow: '#081a3a', light: '#8fa9e0', k: .16, glow: .05 },
+  { h: 4.5,  deep: '#030a1e', shallow: '#0a1f44', light: '#8aa0d8', k: .14, glow: .05 },
+  { h: 6,    deep: '#0c1f48', shallow: '#23457a', light: '#ffb070', k: .45, glow: .3  },
+  { h: 7.3,  deep: '#0d3264', shallow: '#2f6aa0', light: '#ffc45a', k: 1.0, glow: .55 },  // golden hour
+  { h: 9,    deep: '#0a4488', shallow: '#3a86c8', light: '#ffe6b0', k: .9,  glow: .18 },
+  { h: 13,   deep: '#0752a0', shallow: '#4aa2e0', light: '#ffffff', k: 1.0, glow: .12 },
+  { h: 16.5, deep: '#0a4a90', shallow: '#3e8ccc', light: '#ffe2a8', k: .9,  glow: .2  },
+  { h: 18.2, deep: '#12356a', shallow: '#3e6c9c', light: '#ffbb4a', k: 1.05, glow: .65 },  // golden hour
+  { h: 19.5, deep: '#1a2a5a', shallow: '#4a5588', light: '#ff9448', k: .6,  glow: .45 },
+  { h: 20.5, deep: '#0c1640', shallow: '#1c2d62', light: '#c89ad0', k: .26, glow: .12 },
+  { h: 21.5, deep: '#040c26', shallow: '#0c1f46', light: '#9aaee6', k: .18, glow: .06 },
+  { h: 24,   deep: '#020818', shallow: '#081a3a', light: '#8fa9e0', k: .16, glow: .05 },
+];
+
+const hex = s => [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16) / 255);
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = t => t * t * (3 - 2 * t);
+KEYS.forEach(k => { k.deepV = hex(k.deep); k.shallowV = hex(k.shallow); k.lightV = hex(k.light); });
+
+function paletteAt(hour) {
+  let i = 0;
+  while (i < KEYS.length - 2 && hour >= KEYS[i + 1].h) i++;
+  const a = KEYS[i], b = KEYS[i + 1];
+  const t = smooth((hour - a.h) / (b.h - a.h));
+  const mix3 = (x, y) => x.map((v, j) => lerp(v, y[j], t));
+  return {
+    deep: mix3(a.deepV, b.deepV), shallow: mix3(a.shallowV, b.shallowV), light: mix3(a.lightV, b.lightV),
+    k: lerp(a.k, b.k, t), glow: lerp(a.glow, b.glow, t),
+  };
+}
+
+// Light direction: sun arcs east → west from 6h to 20h, moon the rest of the time.
+function lightDir(hour) {
+  const day = (hour - 6) / 14;
+  const a = (day >= 0 && day <= 1 ? day : ((hour + 24 - 20) % 24) / 10) * Math.PI;
+  const elev = Math.sin(a);                       // 0 at horizon, 1 overhead
+  return [Math.cos(a), 0.35, 1 - elev];           // x, y (fixed tilt), stretch
+}
+
+/* ---------- WebGL ---------- */
+const canvas = document.getElementById('water');
+const gl = canvas.getContext('webgl', { antialias: false, premultipliedAlpha: false });
+
+const VERT = `attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }`;
+const FRAG = `
+precision highp float;
+uniform vec2 uRes;
+uniform float uTime;
+uniform vec3 uDeep, uShallow, uLight, uDir;
+uniform float uK, uGlow;
+
+float hash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float noise(vec2 p){
+  vec2 i = floor(p), f = fract(p);
+  vec2 u = f * f * (3. - 2. * f);
+  return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
+}
+float fbm(vec2 p){
+  float v = 0., a = .5;
+  mat2 r = mat2(.8, .6, -.6, .8);
+  for (int i = 0; i < 4; i++){ v += a * noise(p); p = r * p * 2.03; a *= .5; }
+  return v;
+}
+
+// Smoother fbm for the caustic web: fewer octaves = calmer, more graphic lines.
+float fbm2(vec2 p){
+  mat2 r = mat2(.8, .6, -.6, .8);
+  return .65 * noise(p) + .35 * noise(r * p * 2.1);
+}
+
+// One caustic layer: thin bright ridges where a warped noise field crosses 0.5.
+float causticLayer(vec2 p, float t){
+  vec2 w = vec2(fbm2(p + vec2(t * .9, -t * .6)), fbm2(p + vec2(-t * .7, t * .8) + 7.3));
+  float n = fbm2(p * 1.1 + w * 1.6 + t * .12);
+  return 1. - abs(n * 2. - 1.);
+}
+
+float caustics(vec2 p, float t){
+  float a = causticLayer(p, t);
+  float b = causticLayer(p * 1.4 + 4.1, t * 1.15 + 11.);
+  return max(pow(a, 14.), pow(b, 18.) * .8) + pow(a * b, 10.) * .9;
+}
+
+// Soft posterisation: n flat tones with narrow smooth steps, like a screen print.
+float poster(float v, float n){
+  float x = v * n;
+  float f = fract(x);
+  return (floor(x) + smoothstep(.42, .58, f)) / n;
+}
+
+void main(){
+  vec2 uv = gl_FragCoord.xy / uRes;
+  vec2 p = (gl_FragCoord.xy - .5 * uRes) / uRes.y;
+  float t = uTime;
+
+  // Low light stretches the pattern along its direction.
+  vec2 dir = normalize(uDir.xy);
+  float stretch = 1. + uDir.z * .9;
+  vec2 q = vec2(dot(p, dir) / stretch, dot(p, vec2(-dir.y, dir.x))) * 2.8;
+
+  // Sea floor: three broad flat tones drifting very slowly.
+  float depth = poster(smoothstep(.2, .8, fbm(p * .9 + vec2(t * .03, -t * .02))), 3.);
+  vec3 base = mix(uDeep, uShallow, depth);
+
+  // Chromatic split: each channel sees the web slightly offset.
+  vec2 o = dir * .02;
+  vec3 c = vec3(caustics(q + o, t), caustics(q, t), caustics(q - o, t));
+  c = vec3(poster(c.r, 3.), poster(c.g, 3.), poster(c.b, 3.));
+
+  vec3 col = base + uLight * c * uK * .6;
+
+  // Broad sheen band from the light side.
+  float side = dot(uv - .5, dir) + .5;
+  col += uLight * uGlow * .25 * smoothstep(.55, 1.1, side);
+
+  // Golden hour: the light gets richer while the water stays blue.
+  col += uLight * c * uGlow * .5;
+  col *= mix(.85, 1.05, side);
+  col *= 1. - .3 * pow(length(uv - .5) * 1.3, 2.4);
+
+  // Print grain.
+  float g = hash(floor(gl_FragCoord.xy) + fract(t * 7.)) - .5;
+  col += g * .035 * (.4 + col);
+  gl_FragColor = vec4(col, 1.);
+}`;
+
+function compile(type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+const prog = gl.createProgram();
+gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERT));
+gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAG));
+gl.linkProgram(prog);
+gl.useProgram(prog);
+
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+const loc = gl.getAttribLocation(prog, 'p');
+gl.enableVertexAttribArray(loc);
+gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+const U = {};
+['uRes', 'uTime', 'uDeep', 'uShallow', 'uLight', 'uDir', 'uK', 'uGlow']
+  .forEach(n => U[n] = gl.getUniformLocation(prog, n));
+
+// Render below native resolution: the image is soft by nature, and it keeps small devices cool.
+const SCALE = 0.75;
+function resize() {
+  const portrait = matchMedia('(orientation: portrait)').matches;
+  const w = portrait ? innerHeight : innerWidth, h = portrait ? innerWidth : innerHeight;
+  canvas.width = Math.round(w * SCALE * Math.min(devicePixelRatio, 2));
+  canvas.height = Math.round(h * SCALE * Math.min(devicePixelRatio, 2));
+  gl.viewport(0, 0, canvas.width, canvas.height);
+}
+addEventListener('resize', resize);
+resize();
+
+/* ---------- Time & debug ---------- */
+const $ = id => document.getElementById(id);
+const panel = $('debug'), range = $('t'), out = $('t-out'), speed = $('s'), speedOut = $('s-out'), liveBtn = $('live');
+let live = true, manualMinutes = 0, speedMul = 1;
+
+const nowMinutes = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60; };
+const fmt = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(Math.floor(m % 60)).padStart(2, '0');
+
+function setDebug(on) { panel.classList.toggle('on', on); }
+setDebug(new URLSearchParams(location.search).has('debug'));
+addEventListener('keydown', e => { if (e.key === 'd' || e.key === 'D') setDebug(!panel.classList.contains('on')); });
+
+range.addEventListener('input', () => {
+  live = false; liveBtn.setAttribute('aria-pressed', 'false');
+  manualMinutes = +range.value;
+});
+speed.addEventListener('input', () => { speedMul = +speed.value; speedOut.textContent = '×' + speedMul; });
+liveBtn.addEventListener('click', () => { live = true; liveBtn.setAttribute('aria-pressed', 'true'); });
+
+let anim = 0, last = performance.now();
+function frame(now) {
+  anim += (now - last) / 1000 * 0.045 * speedMul;   // very slow drift
+  last = now;
+
+  const minutes = live ? nowMinutes() : manualMinutes;
+  if (live) range.value = Math.floor(minutes);
+  out.textContent = fmt(minutes);
+
+  const hour = minutes / 60;
+  const pal = paletteAt(hour), dir = lightDir(hour);
+
+  gl.uniform2f(U.uRes, canvas.width, canvas.height);
+  gl.uniform1f(U.uTime, anim);
+  gl.uniform3fv(U.uDeep, pal.deep);
+  gl.uniform3fv(U.uShallow, pal.shallow);
+  gl.uniform3fv(U.uLight, pal.light);
+  gl.uniform3fv(U.uDir, dir);
+  gl.uniform1f(U.uK, pal.k);
+  gl.uniform1f(U.uGlow, pal.glow);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
