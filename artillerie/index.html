@@ -44,6 +44,13 @@
 :root[data-theme="dark"]{
   --paper:#111613;--panel:#182019;--ink:#e2e8df;--muted:#8f9d93;--line:#2b352e;--grid:rgba(160,200,170,.05);
   --accent:#7db0dd;--accent-soft:rgba(125,176,221,.12);--hot:#ee7a69;--warn:#e2b35a;--warn-bg:rgba(226,179,90,.12);--bad-bg:rgba(238,122,105,.12);--shadow:rgba(0,0,0,.45);--scrim:rgba(0,0,0,.55);--mbar-warn:#8a5a00;color-scheme:dark}
+/* Thème choisi dans les réglages : l'emporte sur le thème du système */
+:root[data-mode="light"]{
+  --paper:#e9ece4;--panel:#f6f7f2;--ink:#1b2420;--muted:#5b685f;--line:#c6cdc1;--grid:rgba(60,90,70,.07);
+  --accent:#24557f;--accent-soft:rgba(36,85,127,.1);--hot:#b2352a;--warn:#8a5a00;--warn-bg:rgba(200,140,0,.12);--bad-bg:rgba(178,53,42,.09);--shadow:rgba(20,30,25,.14);--scrim:rgba(10,15,12,.4);--mbar-warn:#f2c25c;color-scheme:light}
+:root[data-mode="dark"]{
+  --paper:#111613;--panel:#182019;--ink:#e2e8df;--muted:#8f9d93;--line:#2b352e;--grid:rgba(160,200,170,.05);
+  --accent:#7db0dd;--accent-soft:rgba(125,176,221,.12);--hot:#ee7a69;--warn:#e2b35a;--warn-bg:rgba(226,179,90,.12);--bad-bg:rgba(238,122,105,.12);--shadow:rgba(0,0,0,.45);--scrim:rgba(0,0,0,.55);--mbar-warn:#8a5a00;color-scheme:dark}
 /* Mode nuit : tout en rouge pour préserver la vision nocturne */
 :root[data-night]{
   --paper:#0b0202;--panel:#140404;--ink:#d8402c;--muted:#8c2b1f;--line:#3a0e09;--grid:rgba(200,40,20,.05);
@@ -274,7 +281,11 @@ body.kp-open .toast{bottom:calc(var(--kph,320px) + 12px)}
 .mbar .mw b{color:var(--mbar-warn)}
 :root[data-big] body{zoom:1.16}
 @media (max-width:700px){.cp{grid-template-columns:1fr 1fr}.cp .del{grid-row:1;grid-column:2;justify-self:end}}
-@media (max-width:440px){.brand b{display:none}}
+/* Le nom ne s'affiche que s'il tient réellement dans la barre (tient compte du grand texte) */
+.top{container-type:inline-size}
+.brand{overflow:hidden}
+#units,#setb{flex:none}
+@container (max-width:400px){.brand b{display:none}}
 
 /* ---------- affichage simplifié ---------- */
 .more{display:none}
@@ -302,14 +313,12 @@ body.kp-open .toast{bottom:calc(var(--kph,320px) + 12px)}
   <div class="seg" id="units" role="group" aria-label="Unité d'angle">
     <button data-unit="mil" aria-pressed="true">mil</button><button data-unit="deg" aria-pressed="false">°</button><button data-unit="gr" aria-pressed="false">gr</button>
   </div>
-  <button class="iconbtn" id="night" aria-pressed="false" title="Mode nuit (rouge)">
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.5 10.5A5.5 5.5 0 0 1 5.5 2.6 5.5 5.5 0 1 0 13.4 10a5.4 5.4 0 0 1-1.9.5z" fill="currentColor"/></svg><span>Nuit</span>
-  </button>
   <button class="iconbtn" id="setb" aria-expanded="false" aria-controls="settings" title="Réglages" aria-label="Réglages">
     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h7M12 4h2M2 12h2M7 12h7"/><circle cx="10.5" cy="4" r="1.6"/><circle cx="5.5" cy="12" r="1.6"/></svg>
   </button>
 </header>
 <div class="settings card" id="settings" hidden>
+  <div class="sr"><span class="fl">Thème</span><div class="seg" data-set="theme"><button type="button" data-v="auto">Auto</button><button type="button" data-v="light">Clair</button><button type="button" data-v="dark">Sombre</button><button type="button" data-v="night">Nuit</button></div><span class="fh">Auto suit le réglage du téléphone. Nuit : tout en rouge, pour préserver la vision nocturne.</span></div>
   <div class="sr"><span class="fl">Clavier de saisie</span><div class="seg" data-set="kbd"><button type="button" data-v="auto">Auto</button><button type="button" data-v="on">Intégré</button><button type="button" data-v="off">Système</button></div><span class="fh">Auto : clavier intégré sur écran tactile, clavier physique sur ordinateur.</span></div>
   <div class="sr"><span class="fl">Taille du clavier intégré</span><div class="seg" data-set="kps"><button type="button" data-v="s">Compact</button><button type="button" data-v="m">Normal</button><button type="button" data-v="l">Grand</button><button type="button" data-v="xl">Très grand</button></div><span class="fh">Grand ou très grand : saisie avec des gants. Compact : laisse voir plus de formulaire.</span></div>
   <div class="sr"><span class="fl">Affichage</span><div class="seg" data-set="simple"><button type="button" data-v="0">Complet</button><button type="button" data-v="1">Simplifié</button></div><span class="fh">Simplifié : saisie et résultats principaux seulement, sans schéma, formule ni aide.</span></div>
@@ -387,7 +396,7 @@ const diurne = (tab, h) => { h = ((h % 24) + 24) % 24; const i = Math.floor(h), 
 
 /* ---------- unités ---------- */
 const UNITS = { mil: { per: 6400, dec: 1, sym: 'mil' }, deg: { per: 360, dec: 4, sym: '°' }, gr: { per: 400, dec: 4, sym: 'gr' } };
-let state = { unit: 'mil', night: false, kbd: 'auto', kps: 'm', simple: false, big: false, wake: false, vib: true, carnet: [], tools: {} };
+let state = { unit: 'mil', theme: 'auto', kbd: 'auto', kps: 'm', simple: false, big: false, wake: false, vib: true, carnet: [], tools: {} };
 const U = () => UNITS[state.unit];
 const toU = (m, u = state.unit) => m * UNITS[u].per / TAU;
 const fromU = (x, u = state.unit) => x * TAU / UNITS[u].per;
@@ -972,7 +981,7 @@ function diurneFig(tab, he, h) {
 
 /* ---------- état ---------- */
 const KEY = 'topo-artillerie:v1';
-function load() { try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.tools) state = { ...state, ...s }; } catch (e) {} if (!Array.isArray(state.carnet)) state.carnet = []; }
+function load() { try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.tools) state = { ...state, ...s }; } catch (e) {} if (!Array.isArray(state.carnet)) state.carnet = []; if (state.night) state.theme = 'night'; delete state.night; if (!['auto', 'light', 'dark', 'night'].includes(state.theme)) state.theme = 'auto'; }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 const clone = o => JSON.parse(JSON.stringify(o));
 function angleKeys(t, vals) {
@@ -1444,12 +1453,11 @@ $('#units').addEventListener('click', e => {
   for (const t of TOOLS) if (state.tools[t.id]) convertVals(t, state.tools[t.id], from, to);
   state.unit = to; save(); syncChrome(); if (current) renderTool();
 });
-$('#night').addEventListener('click', () => { state.night = !state.night; save(); syncChrome(); });
 $('#setb').addEventListener('click', () => { const p = $('#settings'); p.hidden = !p.hidden; $('#setb').setAttribute('aria-expanded', String(!p.hidden)); });
 $('#settings').addEventListener('click', e => {
   const b = e.target.closest('[data-v]'); if (!b) return;
   const k = b.parentElement.dataset.set, val = b.dataset.v;
-  if (k === 'kbd') { state.kbd = val; kbdSys = false; } else if (k === 'kps') state.kps = val; else state[k] = val === '1';
+  if (k === 'kbd') { state.kbd = val; kbdSys = false; } else if (k === 'kps' || k === 'theme') state[k] = val; else state[k] = val === '1';
   save(); syncChrome();
   if (k === 'kbd' && current) { closeKp(); renderTool(); }
   if (k === 'wake') syncWake();
@@ -1475,10 +1483,11 @@ async function syncWake() {
 document.addEventListener('visibilitychange', syncWake);
 function syncChrome() {
   document.querySelectorAll('#units button').forEach(b => b.setAttribute('aria-pressed', b.dataset.unit === state.unit));
-  $('#night').setAttribute('aria-pressed', state.night);
-  document.querySelectorAll('#settings [data-set]').forEach(g => { const k = g.dataset.set, cur = k === 'kbd' || k === 'kps' ? state[k] : state[k] ? '1' : '0'; g.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === cur)); });
+  document.querySelectorAll('#settings [data-set]').forEach(g => { const k = g.dataset.set, cur = ['kbd', 'kps', 'theme'].includes(k) ? state[k] : state[k] ? '1' : '0'; g.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === cur)); });
   const r = document.documentElement;
-  state.night ? r.setAttribute('data-night', '') : r.removeAttribute('data-night');
+  state.theme === 'night' ? r.setAttribute('data-night', '') : r.removeAttribute('data-night');
+  state.theme === 'light' || state.theme === 'dark' ? r.setAttribute('data-mode', state.theme) : r.removeAttribute('data-mode');
+  const tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.content = getComputedStyle(r).getPropertyValue('--paper').trim() || '#e9ece4';
   state.big ? r.setAttribute('data-big', '') : r.removeAttribute('data-big');
   state.simple ? r.setAttribute('data-simple', '') : r.removeAttribute('data-simple');
   r.setAttribute('data-kps', state.kps || 'm');
