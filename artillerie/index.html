@@ -10,6 +10,9 @@
 <title>Topo Artillerie</title>
 <meta name="description" content="Calculs de topographie d'artillerie : rayonnement, intersections, relèvement, cheminement, tir sans carte, angles.">
 <meta name="theme-color" content="#e9ece4">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -222,18 +225,24 @@ nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 74px);align-self:sta
 
 /* ---------- clavier numérique ---------- */
 .kp{position:fixed;left:0;right:0;bottom:0;z-index:35;background:var(--panel);border-top:1px solid var(--line);box-shadow:0 -10px 28px var(--shadow);
-  padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
-.kp-in{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:7px}
-.kph{display:flex;align-items:center;gap:6px}
+  padding:6px 5px calc(6px + env(safe-area-inset-bottom,0px))}
+.kp-in{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:5px}
+.kph{display:flex;align-items:center;gap:3px}
 .kpt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;padding:0 4px;cursor:pointer}
 .kpt span{font:600 12.5px/1.1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kpt b{font:600 15px/1.2 var(--mono);color:var(--hot);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kpt b.kw::after{content:"  ·  " attr(data-nw);color:var(--warn)}
-.kpg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.kpg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
 .kpg button,.kph button{border:1px solid var(--line);background:var(--paper);border-radius:9px;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-.kpg button{height:clamp(46px,7vh,60px);font:500 25px/1 var(--mono);color:var(--ink)}
-.kpg button.fn{font:600 17px/1 var(--display);letter-spacing:.03em;color:var(--accent)}
-.kpg button.ok{background:var(--accent);border-color:var(--accent);color:var(--panel);font:700 17px/1 var(--display);letter-spacing:.06em;text-transform:uppercase}
+.kpg button{height:var(--kh);font:500 var(--kf)/1 var(--mono);color:var(--ink)}
+.kp{--kh:clamp(46px,7vh,60px);--kf:25px;--kfn:17px}
+:root[data-kps="s"] .kp{--kh:clamp(38px,5.4vh,46px);--kf:21px;--kfn:15px}
+:root[data-kps="l"] .kp{--kh:clamp(56px,9vh,76px);--kf:30px;--kfn:20px}
+:root[data-kps="xl"] .kp{--kh:clamp(64px,10.5vh,90px);--kf:34px;--kfn:22px}
+:root[data-kps="s"] .kpg{gap:2px}
+:root[data-kps="l"] .kpg,:root[data-kps="xl"] .kpg{gap:4px}
+.kpg button.fn{font:600 var(--kfn)/1 var(--display);letter-spacing:.03em;color:var(--accent)}
+.kpg button.ok{background:var(--accent);border-color:var(--accent);color:var(--panel);font:700 var(--kfn)/1 var(--display);letter-spacing:.06em;text-transform:uppercase}
 .kpg button:active{background:var(--accent-soft)}
 .kpg button.ok:active{opacity:.8}
 .kpg button:disabled{opacity:.25;cursor:default}
@@ -266,6 +275,22 @@ body.kp-open .toast{bottom:calc(var(--kph,320px) + 12px)}
 :root[data-big] body{zoom:1.16}
 @media (max-width:700px){.cp{grid-template-columns:1fr 1fr}.cp .del{grid-row:1;grid-column:2;justify-self:end}}
 @media (max-width:440px){.brand b{display:none}}
+
+/* ---------- affichage simplifié ---------- */
+.more{display:none}
+:root[data-simple] .head p,:root[data-simple] .formula,:root[data-simple] .fh,:root[data-simple] .note,:root[data-simple] .fig,:root[data-simple] #ex{display:none}
+:root[data-simple] .head{margin-bottom:10px}
+:root[data-simple] .head h1{font-size:clamp(24px,3vw,30px)}
+:root[data-simple] .modes{margin-bottom:10px}
+:root[data-simple] .inputs{gap:10px;padding:12px}
+:root[data-simple] .out{gap:10px}
+:root[data-simple] #res:not(.all) .r:not(.main){display:none}
+:root[data-simple] .more{display:block;width:100%;border:0;border-top:1px solid var(--line);background:none;padding:10px 16px;text-align:left;cursor:pointer;font:600 13px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+@media (max-width:880px){
+  :root[data-simple] .ni{flex-direction:row;align-items:center;min-height:0;padding:11px 12px;gap:10px}
+  :root[data-simple] .ni svg{width:22px;height:22px}
+  :root[data-simple] .ni span small{display:none}
+}
 </style>
 </head>
 <body>
@@ -286,6 +311,8 @@ body.kp-open .toast{bottom:calc(var(--kph,320px) + 12px)}
 </header>
 <div class="settings card" id="settings" hidden>
   <div class="sr"><span class="fl">Clavier de saisie</span><div class="seg" data-set="kbd"><button type="button" data-v="auto">Auto</button><button type="button" data-v="on">Intégré</button><button type="button" data-v="off">Système</button></div><span class="fh">Auto : clavier intégré sur écran tactile, clavier physique sur ordinateur.</span></div>
+  <div class="sr"><span class="fl">Taille du clavier intégré</span><div class="seg" data-set="kps"><button type="button" data-v="s">Compact</button><button type="button" data-v="m">Normal</button><button type="button" data-v="l">Grand</button><button type="button" data-v="xl">Très grand</button></div><span class="fh">Grand ou très grand : saisie avec des gants. Compact : laisse voir plus de formulaire.</span></div>
+  <div class="sr"><span class="fl">Affichage</span><div class="seg" data-set="simple"><button type="button" data-v="0">Complet</button><button type="button" data-v="1">Simplifié</button></div><span class="fh">Simplifié : saisie et résultats principaux seulement, sans schéma, formule ni aide.</span></div>
   <div class="sr"><span class="fl">Taille du texte</span><div class="seg" data-set="big"><button type="button" data-v="0">Normale</button><button type="button" data-v="1">Grande</button></div></div>
   <div class="sr"><span class="fl">Écran toujours allumé</span><div class="seg" data-set="wake"><button type="button" data-v="0">Non</button><button type="button" data-v="1">Oui</button></div></div>
   <div class="sr"><span class="fl">Vibration des touches</span><div class="seg" data-set="vib"><button type="button" data-v="0">Non</button><button type="button" data-v="1">Oui</button></div><span class="fh">Sur les téléphones qui la permettent.</span></div>
@@ -360,7 +387,7 @@ const diurne = (tab, h) => { h = ((h % 24) + 24) % 24; const i = Math.floor(h), 
 
 /* ---------- unités ---------- */
 const UNITS = { mil: { per: 6400, dec: 1, sym: 'mil' }, deg: { per: 360, dec: 4, sym: '°' }, gr: { per: 400, dec: 4, sym: 'gr' } };
-let state = { unit: 'mil', night: false, kbd: 'auto', big: false, wake: false, vib: true, carnet: [], tools: {} };
+let state = { unit: 'mil', night: false, kbd: 'auto', kps: 'm', simple: false, big: false, wake: false, vib: true, carnet: [], tools: {} };
 const U = () => UNITS[state.unit];
 const toU = (m, u = state.unit) => m * UNITS[u].per / TAU;
 const fromU = (x, u = state.unit) => x * TAU / UNITS[u].per;
@@ -1159,7 +1186,7 @@ function fmtRes(r) {
   const s = (r.signed && r.v > 0 ? '+' : '') + fmtN(r.v, 1);
   return { txt: `${s}<i>m</i>`, copy: r.v.toFixed(1), short: s + (r.k === 'm' ? ' m' : '') };
 }
-let lastRes = [], lastWarn = [], lastSave = [];
+let lastRes = [], lastWarn = [], lastSave = [], showAll = false;
 function calc() {
   if (!current || current === CARNET) return;
   const t = current, v = tstate(t), res = $('#res'), figEl = $('#fig'), warns = $('#warns'), tbl = $('#tbl'), note = $('#note'), saves = $('#saves');
@@ -1191,7 +1218,10 @@ function calc() {
   if (errs.length) all.unshift({ e: 1, s: 'Saisie invalide : ce résultat ne doit pas être utilisé tant que les champs en rouge ne sont pas corrigés.' });
   lastWarn = all.map(w => w.s);
   res.classList.toggle('doubt', errs.length > 0);
-  res.innerHTML = out.res.map((r, i) => { const f = fmtRes(r); return `<div class="r${r.main ? ' main' : ''}" data-ri="${i}" title="Copier"><span class="rl">${esc(r.l)}</span><span class="rv">${f.txt}</span></div>`; }).join('');
+  const extra = out.res.filter(r => !r.main).length;
+  res.classList.toggle('all', showAll);
+  res.innerHTML = out.res.map((r, i) => { const f = fmtRes(r); return `<div class="r${r.main ? ' main' : ''}" data-ri="${i}" title="Copier"><span class="rl">${esc(r.l)}</span><span class="rv">${f.txt}</span></div>`; }).join('')
+    + (extra ? `<button type="button" class="more" id="more">${showAll ? 'Résultats principaux seulement' : `Tous les résultats (${extra} de plus)`}</button>` : '');
   lastSave = (out.save || []).filter(p => isFinite(p.x) && isFinite(p.y));
   saves.innerHTML = lastSave.map((p, i) => `<button type="button" class="mini" data-save="${i}">＋ Carnet : ${esc(p.n)}</button>`).join('');
   warns.innerHTML = showW(all);
@@ -1322,6 +1352,7 @@ main.addEventListener('focusin', e => {
 /* ---------- interactions ---------- */
 function route() {
   const id = location.hash.slice(1);
+  showAll = false;
   closeKp();
   current = id === 'carnet' ? CARNET : TOOLS.find(t => t.id === id) || null;
   const explicit = !!current;
@@ -1395,6 +1426,7 @@ main.addEventListener('click', e => {
     state.tools[t.id] = keep; save(); renderTool();
     toast('Saisie vidée', 'Annuler', () => { state.tools[t.id] = prev; save(); renderTool(); }); return;
   }
+  if (b.id === 'more') { showAll = !showAll; calc(); return; }
   if (b.id === 'rep') { copyText(report(), 'Compte rendu copié'); return; }
   if (b.classList.contains('r')) { const r = lastRes[+d.ri]; if (!r) return; const txt = String(fmtRes(r).copy); copyText(txt, 'Copié : ' + txt); }
 });
@@ -1417,10 +1449,11 @@ $('#setb').addEventListener('click', () => { const p = $('#settings'); p.hidden 
 $('#settings').addEventListener('click', e => {
   const b = e.target.closest('[data-v]'); if (!b) return;
   const k = b.parentElement.dataset.set, val = b.dataset.v;
-  if (k === 'kbd') { state.kbd = val; kbdSys = false; } else state[k] = val === '1';
+  if (k === 'kbd') { state.kbd = val; kbdSys = false; } else if (k === 'kps') state.kps = val; else state[k] = val === '1';
   save(); syncChrome();
   if (k === 'kbd' && current) { closeKp(); renderTool(); }
   if (k === 'wake') syncWake();
+  if (k === 'simple' && current) { showAll = false; renderTool(); }
 });
 document.addEventListener('pointerdown', e => {
   const tg = e.target;
@@ -1443,10 +1476,13 @@ document.addEventListener('visibilitychange', syncWake);
 function syncChrome() {
   document.querySelectorAll('#units button').forEach(b => b.setAttribute('aria-pressed', b.dataset.unit === state.unit));
   $('#night').setAttribute('aria-pressed', state.night);
-  document.querySelectorAll('#settings [data-set]').forEach(g => { const k = g.dataset.set, cur = k === 'kbd' ? state.kbd : state[k] ? '1' : '0'; g.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === cur)); });
+  document.querySelectorAll('#settings [data-set]').forEach(g => { const k = g.dataset.set, cur = k === 'kbd' || k === 'kps' ? state[k] : state[k] ? '1' : '0'; g.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === cur)); });
   const r = document.documentElement;
   state.night ? r.setAttribute('data-night', '') : r.removeAttribute('data-night');
   state.big ? r.setAttribute('data-big', '') : r.removeAttribute('data-big');
+  state.simple ? r.setAttribute('data-simple', '') : r.removeAttribute('data-simple');
+  r.setAttribute('data-kps', state.kps || 'm');
+  if (!kp.hidden) { document.body.style.setProperty('--kph', kp.offsetHeight + 'px'); }
 }
 window.addEventListener('hashchange', route);
 matchMedia('(min-width: 881px)').addEventListener?.('change', route);
