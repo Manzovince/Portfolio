@@ -371,6 +371,12 @@ body{zoom:1.16}
   .top{padding:6px 8px;gap:6px}
   .brand{margin-left:4px}
 }
+
+/* Actions carnet sur un point : boutons secondaires, discrets (texte seul, sans cadre) */
+.ptb{gap:2px}
+.ptb .mini{border:0;background:none;color:var(--muted);padding:6px 6px;font-size:12px;letter-spacing:.06em;display:inline-flex;align-items:center;gap:4px;border-radius:5px}
+.ptb .mini:hover,.ptb .mini:focus-visible{color:var(--accent);background:var(--accent-soft)}
+.ptb .mini svg{flex:none}
 </style>
 </head>
 <body>
@@ -1189,7 +1195,7 @@ function fieldHTML(t, f, v) {
   const iid = k => `${t.id}-${k}`.replace(/\./g, '-');
   if (f.kind === 'pt') {
     const ax = f.z ? ['x', 'y', 'z'] : ['x', 'y'], nm = { x: 'X', y: 'Y', z: 'Z' };
-    return `<div class="pt" role="group" aria-label="${esc(f.label)}" data-fm="${f.id}"><div class="ptl"><span class="fl">${f.label}</span><span class="ptb"><button type="button" class="mini" data-pick="${f.id}">Carnet</button><button type="button" class="mini" data-keep="${f.id}" title="Enregistrer ce point dans le carnet" aria-label="Enregistrer ${esc(f.label)} dans le carnet">＋</button></span></div>
+    return `<div class="pt" role="group" aria-label="${esc(f.label)}" data-fm="${f.id}"><div class="ptl"><span class="fl">${f.label}</span><span class="ptb"><button type="button" class="mini" data-pick="${f.id}" title="Remplir depuis le carnet"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>Carnet</button><button type="button" class="mini" data-keep="${f.id}" title="Enregistrer ce point dans le carnet" aria-label="Enregistrer ${esc(f.label)} dans le carnet">＋</button></span></div>
       <div class="ptg">${ax.map(a => `<label class="fi" data-fw="${f.id}.${a}"><span class="ax">${nm[a]}</span><input id="${iid(f.id + '.' + a)}" data-k="${f.id}.${a}" data-num="${a === 'z' ? 'z' : 'coord'}" data-lab="${esc(f.label)} · ${nm[a]}" inputmode="${im('decimal')}" autocomplete="off" value="${val(f.id + '.' + a)}" aria-label="${esc(f.label)} ${nm[a]}"${a === 'z' ? ' placeholder="facultatif"' : ''}></label>`).join('')}</div>${hint}${msg}</div>`;
   }
   if (f.kind === 'sel') return `<div class="f sel"><span class="fl">${f.label}</span><div class="seg" role="group">${f.opts.map(([k, l]) => `<button type="button" data-sel="${f.id}" data-v="${k}" aria-pressed="${v[f.id] === k}">${l}</button>`).join('')}</div>${hint}</div>`;
