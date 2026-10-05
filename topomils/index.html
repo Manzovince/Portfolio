@@ -144,7 +144,7 @@ nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 74px);align-self:sta
 
 .fig{padding:6px;overflow:hidden}
 .fig svg{display:block;width:100%;height:auto;max-height:340px}
-.res{padding:6px 0}
+.res{padding:0;overflow:hidden}
 .r{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:8px 16px;border-top:1px solid var(--line);cursor:pointer}
 .r:first-child{border-top:0}
 .r:hover{background:var(--accent-soft)}
@@ -352,6 +352,19 @@ body{zoom:1.16}
 .mbar > div + div{position:relative;padding-left:14px}
 .mbar > div + div::before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:1px;background:currentColor;opacity:.3}
 @media (max-width:880px){body.tool .mbar{gap:14px}}
+
+/* Pages de calcul sur mobile : marges réduites pour laisser la place aux champs et résultats */
+@media (max-width:880px){
+  body.tool .shell{padding-inline:8px;padding-top:10px}
+  .head{margin-bottom:10px}
+  .modes{margin-bottom:10px}
+  .inputs{padding:12px 10px;gap:12px 8px}
+  .work{gap:12px}
+  .out{gap:10px}
+  .r{padding:8px 12px}
+  .saves{padding:8px 12px}
+  .acts{margin-top:10px}
+}
 </style>
 </head>
 <body>
