@@ -6,8 +6,8 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Topo Artillerie">
-<title>Topo Artillerie</title>
+<meta name="apple-mobile-web-app-title" content="Topomils">
+<title>Topomils</title>
 <meta name="description" content="Calculs de topographie d'artillerie : rayonnement, intersections, relèvement, cheminement, tir sans carte, angles.">
 <meta name="theme-color" content="#e9ece4">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -126,11 +126,18 @@ nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 74px);align-self:sta
 .sel .seg{align-self:flex-start}
 
 .rows{display:flex;flex-direction:column;gap:6px}
-.rtab{overflow-x:auto}
-.rr{display:grid;grid-template-columns:62px repeat(var(--nc),minmax(96px,1fr)) 34px;gap:6px;align-items:center;min-width:max-content}
-.rr.h span{font:600 12px/1.1 var(--display);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
-.ri{font:500 12px/1.1 var(--mono);color:var(--muted)}
-.rr .fi input{font-size:15px;padding:7px 8px}
+.rtab{display:flex;flex-direction:column;gap:8px}
+.rr{display:flex;flex-direction:column;gap:5px;padding:8px 10px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper)}
+.rrh{display:flex;align-items:center;justify-content:space-between}
+.rrf{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px}
+.rrf .fi{min-width:0;background:var(--panel)}
+.rrf .fi input{width:100%}
+.rrf .cyc{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--panel);text-align:left;padding:0 10px;min-height:42px}
+.rrf .cyc .swap{flex:none;color:var(--accent)}
+.ri{font:500 12px/1.1 var(--mono);color:var(--muted);white-space:nowrap}
+.rr .fi input{font-size:16px;padding:8px 8px}
+.rr .ri{font-size:13px;color:var(--ink);font-weight:600}
+.rr .del{padding:2px 6px}
 .cyc{border:1px solid var(--line);background:var(--paper);border-radius:7px;padding:7px 8px;cursor:pointer;font:600 14px/1.1 var(--display);letter-spacing:.04em}
 .del{border:0;background:none;cursor:pointer;color:var(--muted);font:500 20px/1 var(--body);padding:4px}
 .add{align-self:flex-start;border:1px dashed var(--line);background:none;border-radius:7px;padding:7px 12px;cursor:pointer;font:600 14px/1 var(--display);letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}
@@ -208,8 +215,16 @@ nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 74px);align-self:sta
   .mbar em{font-style:normal;opacity:.7;font-size:14px}
   .brand small{display:none}
 }
-@media (max-width:420px){.brand b{font-size:18px}.seg button{padding:5px 8px}.iconbtn span{display:none}}
+@media (max-width:420px){.brand b{font-size:18px}.seg button{padding:5px 8px}}
 @media (prefers-reduced-motion:no-preference){.r,.ni{transition:background .12s}}
+/* Accueil mobile : marges réduites, cartes plus grandes à toucher */
+@media (max-width:880px){
+  body:not(.tool) .shell{padding-inline:8px;padding-block:8px 16px}
+  body:not(.tool) .ng{margin-bottom:10px}
+  body:not(.tool) .ng h2{margin:0 0 5px 4px}
+  body:not(.tool) .nl{gap:5px}
+  body:not(.tool) .ni{padding:10px;gap:6px}
+}
 
 /* ---------- contrôles de saisie ---------- */
 .fi.odd{border-color:var(--warn);background:var(--warn-bg)}
@@ -279,50 +294,84 @@ body.kp-open .toast{bottom:calc(var(--kph,320px) + 12px)}
 .toast{display:flex;gap:14px;align-items:center;max-width:calc(100vw - 32px)}
 .toast button{border:0;background:none;color:var(--paper);font:700 14px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;text-decoration:underline;cursor:pointer;padding:0}
 .mbar .mw b{color:var(--mbar-warn)}
-:root[data-big] body{zoom:1.16}
+body{zoom:1.16}
 @media (max-width:700px){.cp{grid-template-columns:1fr 1fr}.cp .del{grid-row:1;grid-column:2;justify-self:end}}
 /* Le nom ne s'affiche que s'il tient réellement dans la barre (tient compte du grand texte) */
 .top{container-type:inline-size}
 .brand{overflow:hidden}
-#units,#setb{flex:none}
-@container (max-width:400px){.brand b{display:none}}
+#carb,#setb{flex:none}
+/* Bouton Retour : remplace le logo dans la barre du haut sur mobile, quand un calcul est ouvert */
+.hback{display:none;margin-right:auto;color:var(--accent);padding-left:6px}
+.hback span{font:600 16px/1 var(--display);letter-spacing:.04em;text-transform:uppercase}
+@media (max-width:880px){body.tool .hback{display:inline-flex}body.tool .brand{display:none}}
+.top .iconbtn{padding:8px 10px;text-decoration:none}
+.cntb{font:600 13px/1 var(--mono);color:var(--muted)}
+.cntb:empty{display:none}
+#carb[aria-current="page"]{color:var(--paper);background:var(--ink);border-color:var(--ink)}
+#carb[aria-current="page"] .cntb{color:var(--paper)}
+@container (max-width:230px){.brand b{display:none}}
+/* Méthode : toujours sur une seule ligne, libellés courts sur petit écran */
+.modes .seg{flex-wrap:nowrap;max-width:100%}
+.modes .seg button{white-space:nowrap}
+.modes .ms{display:none}
+@media (max-width:640px){
+  .modes .seg{display:flex;width:100%}
+  .modes .seg button{flex:1 1 0;min-width:0;padding:7px 6px;overflow:hidden;text-overflow:ellipsis}
+  .modes .ml{display:none}
+  .modes .ms{display:inline}
+}
 
 /* ---------- affichage simplifié ---------- */
-.more{display:none}
 :root[data-simple] .head p,:root[data-simple] .formula,:root[data-simple] .fh,:root[data-simple] .note,:root[data-simple] .fig,:root[data-simple] #ex{display:none}
 :root[data-simple] .head{margin-bottom:10px}
 :root[data-simple] .head h1{font-size:clamp(24px,3vw,30px)}
 :root[data-simple] .modes{margin-bottom:10px}
 :root[data-simple] .inputs{gap:10px;padding:12px}
 :root[data-simple] .out{gap:10px}
-:root[data-simple] #res:not(.all) .r:not(.main){display:none}
-:root[data-simple] .more{display:block;width:100%;border:0;border-top:1px solid var(--line);background:none;padding:10px 16px;text-align:left;cursor:pointer;font:600 13px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
 @media (max-width:880px){
-  :root[data-simple] .ni{flex-direction:row;align-items:center;min-height:0;padding:11px 12px;gap:10px}
-  :root[data-simple] .ni svg{width:22px;height:22px}
-  :root[data-simple] .ni span small{display:none}
+  :root[data-simple] .ni{flex-direction:row;align-items:center}
+    :root[data-simple] .ni span small{display:none}
 }
+
+/* Accueil : une colonne sur téléphone, deux colonnes à partir de 600 px */
+@media (max-width:880px){
+  .nl{grid-template-columns:minmax(0,1fr)}
+  .ni{flex-direction:row;align-items:center;min-height:0}
+  body:not(.tool) .ni{gap:14px;padding:16px 14px;min-height:66px}
+  body:not(.tool) .nl{gap:7px}
+  .ni svg{width:28px;height:28px}
+}
+@media (min-width:600px) and (max-width:880px){
+  .nl{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ni{flex-direction:column;align-items:flex-start;min-height:96px}
+  body:not(.tool) .ni{gap:10px;padding:16px 14px;min-height:110px}
+  .ni svg{width:30px;height:30px}
+}
+
+/* Barre de résultats mobile : petit séparateur vertical entre chaque donnée */
+.mbar > div + div{position:relative;padding-left:14px}
+.mbar > div + div::before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:1px;background:currentColor;opacity:.3}
+@media (max-width:880px){body.tool .mbar{gap:14px}}
 </style>
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="#" aria-label="Topo Artillerie, accueil">
+  <button type="button" class="iconbtn hback" id="hback" aria-label="Retour à la liste des calculs"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>Retour</span></button>
+  <a class="brand" href="#" aria-label="Topomils, accueil">
     <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="11.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M14 2.5v5M14 20.5v5M2.5 14h5M20.5 14h5" stroke="currentColor" stroke-width="1.6"/><path d="M14 14 L20 6" stroke="var(--hot)" stroke-width="2"/><circle cx="14" cy="14" r="2" fill="currentColor"/></svg>
-    <b>Topo Artillerie</b><small>6400 ‰</small>
+    <b>Topomils</b>
   </a>
-  <div class="seg" id="units" role="group" aria-label="Unité d'angle">
-    <button data-unit="mil" aria-pressed="true">mil</button><button data-unit="deg" aria-pressed="false">°</button><button data-unit="gr" aria-pressed="false">gr</button>
-  </div>
+  <a class="iconbtn" id="carb" href="#carnet" title="Carnet de points" aria-label="Carnet de points"><svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg><span class="cntb"></span></a>
   <button class="iconbtn" id="setb" aria-expanded="false" aria-controls="settings" title="Réglages" aria-label="Réglages">
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h7M12 4h2M2 12h2M7 12h7"/><circle cx="10.5" cy="4" r="1.6"/><circle cx="5.5" cy="12" r="1.6"/></svg>
+    <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
   </button>
 </header>
 <div class="settings card" id="settings" hidden>
   <div class="sr"><span class="fl">Thème</span><div class="seg" data-set="theme"><button type="button" data-v="auto">Auto</button><button type="button" data-v="light">Clair</button><button type="button" data-v="dark">Sombre</button><button type="button" data-v="night">Nuit</button></div><span class="fh">Auto suit le réglage du téléphone. Nuit : tout en rouge, pour préserver la vision nocturne.</span></div>
+  <div class="sr"><span class="fl">Unité d’angle</span><div class="seg" id="units" role="group" aria-label="Unité d’angle"><button type="button" data-unit="mil">Millièmes 6400</button><button type="button" data-unit="deg">Degrés</button><button type="button" data-unit="gr">Grades</button></div></div>
   <div class="sr"><span class="fl">Clavier de saisie</span><div class="seg" data-set="kbd"><button type="button" data-v="auto">Auto</button><button type="button" data-v="on">Intégré</button><button type="button" data-v="off">Système</button></div><span class="fh">Auto : clavier intégré sur écran tactile, clavier physique sur ordinateur.</span></div>
   <div class="sr"><span class="fl">Taille du clavier intégré</span><div class="seg" data-set="kps"><button type="button" data-v="s">Compact</button><button type="button" data-v="m">Normal</button><button type="button" data-v="l">Grand</button><button type="button" data-v="xl">Très grand</button></div><span class="fh">Grand ou très grand : saisie avec des gants. Compact : laisse voir plus de formulaire.</span></div>
   <div class="sr"><span class="fl">Affichage</span><div class="seg" data-set="simple"><button type="button" data-v="0">Complet</button><button type="button" data-v="1">Simplifié</button></div><span class="fh">Simplifié : saisie et résultats principaux seulement, sans schéma, formule ni aide.</span></div>
-  <div class="sr"><span class="fl">Taille du texte</span><div class="seg" data-set="big"><button type="button" data-v="0">Normale</button><button type="button" data-v="1">Grande</button></div></div>
   <div class="sr"><span class="fl">Écran toujours allumé</span><div class="seg" data-set="wake"><button type="button" data-v="0">Non</button><button type="button" data-v="1">Oui</button></div></div>
   <div class="sr"><span class="fl">Vibration des touches</span><div class="seg" data-set="vib"><button type="button" data-v="0">Non</button><button type="button" data-v="1">Oui</button></div><span class="fh">Sur les téléphones qui la permettent.</span></div>
 </div>
@@ -335,7 +384,7 @@ body.kp-open .toast{bottom:calc(var(--kph,320px) + 12px)}
 <div class="toast" id="toast" hidden></div>
 <div class="kp" id="kp" hidden role="group" aria-label="Clavier numérique">
   <div class="kp-in">
-    <div class="kph"><button type="button" tabindex="-1" data-kk="prev" aria-label="Champ précédent">‹ Préc.</button><div class="kpt" title="Voir les résultats"><span id="kpl"></span><b id="kpr"></b></div><button type="button" tabindex="-1" data-kk="sys" title="Utiliser le clavier du téléphone">Clavier tél.</button><button type="button" tabindex="-1" data-kk="close" aria-label="Fermer le clavier">▾</button></div>
+    <div class="kph"><button type="button" tabindex="-1" data-kk="prev" aria-label="Champ précédent">‹ Préc.</button><div class="kpt" title="Voir les résultats"><span id="kpl"></span><b id="kpr"></b></div><button type="button" tabindex="-1" data-kk="close" aria-label="Fermer le clavier">▾</button></div>
     <div class="kpg"><button type="button" tabindex="-1" data-kk="7">7</button><button type="button" tabindex="-1" data-kk="8">8</button><button type="button" tabindex="-1" data-kk="9">9</button><button type="button" tabindex="-1" class="fn" data-kk="bs" aria-label="Effacer le dernier caractère">⌫</button><button type="button" tabindex="-1" data-kk="4">4</button><button type="button" tabindex="-1" data-kk="5">5</button><button type="button" tabindex="-1" data-kk="6">6</button><button type="button" tabindex="-1" class="fn" data-kk="clr" aria-label="Effacer le champ">C</button><button type="button" tabindex="-1" data-kk="1">1</button><button type="button" tabindex="-1" data-kk="2">2</button><button type="button" tabindex="-1" data-kk="3">3</button><button type="button" tabindex="-1" class="fn" id="kpa1" data-kk=""></button><button type="button" tabindex="-1" data-kk=",">,</button><button type="button" tabindex="-1" data-kk="0">0</button><button type="button" tabindex="-1" class="fn" id="kpa2" data-kk=""></button><button type="button" tabindex="-1" class="ok" id="kpok" data-kk="next">Suivant</button></div>
   </div>
 </div>
@@ -396,7 +445,7 @@ const diurne = (tab, h) => { h = ((h % 24) + 24) % 24; const i = Math.floor(h), 
 
 /* ---------- unités ---------- */
 const UNITS = { mil: { per: 6400, dec: 1, sym: 'mil' }, deg: { per: 360, dec: 4, sym: '°' }, gr: { per: 400, dec: 4, sym: 'gr' } };
-let state = { unit: 'mil', theme: 'auto', kbd: 'auto', kps: 'm', simple: false, big: false, wake: false, vib: true, carnet: [], tools: {} };
+let state = { unit: 'mil', theme: 'auto', kbd: 'auto', kps: 'm', simple: false, wake: false, vib: true, carnet: [], tools: {} };
 const U = () => UNITS[state.unit];
 const toU = (m, u = state.unit) => m * UNITS[u].per / TAU;
 const fromU = (x, u = state.unit) => x * TAU / UNITS[u].per;
@@ -535,7 +584,7 @@ const TOOLS = [
 /* ---------------- RAYONNEMENT ---------------- */
 { id: 'rayonnement', name: 'Rayonnement', group: 0, icon: 'ray',
   blurb: 'Coordonnées d’un point à partir d’une station connue, d’une direction et d’une distance, ou gisement et distance entre deux points.',
-  modes: [['dec', 'Direct décliné'], ['gon', 'Goniométrique'], ['inv', 'Inverse']],
+  modes: [['dec', 'Direct décliné', 'Décliné'], ['gon', 'Goniométrique', 'Gonio.'], ['inv', 'Inverse']],
   formula: { dec: 'G = Zm + DMR   X = Xs + D·sin G   Y = Ys + D·cos G', gon: 'G = G réf + (Lp − Lr)   X = Xs + D·sin G   Y = Ys + D·cos G', inv: 'G = arctan(ΔX / ΔY)   D = √(ΔX² + ΔY²)' },
   fields: [
     P_('S', 'Station S', { z: 1, show: m('dec', 'gon') }),
@@ -588,7 +637,7 @@ const TOOLS = [
 /* ---------------- INTERSECTION ---------------- */
 { id: 'intersection', name: 'Intersection', group: 0, icon: 'inter',
   blurb: 'Point inconnu P visé depuis deux stations connues A et B.',
-  modes: [['g', 'Par gisements'], ['a', 'Par angles sur la base']],
+  modes: [['g', 'Par gisements', 'Gisements'], ['a', 'Par angles sur la base', 'Angles']],
   formula: { g: 'P = intersection des droites (A, G A→P) et (B, G B→P)', a: 'G A→P = G A→B ± α   G B→P = G B→A ∓ β' },
   fields: [
     P_('A', 'Station A'), P_('B', 'Station B'),
@@ -620,14 +669,14 @@ const TOOLS = [
 /* ---------------- CHEMINEMENT ---------------- */
 { id: 'cheminement', name: 'Cheminement polygonal', group: 0, icon: 'chem',
   blurb: 'Suite de stations à partir d’un point connu, avec fermeture et compensation sur un point d’arrivée connu.',
-  modes: [['ang', 'Angles mesurés'], ['gis', 'Gisements déclinés']],
+  modes: [['ang', 'Angles mesurés', 'Angles'], ['gis', 'Gisements déclinés', 'Gisements']],
   formula: { ang: 'G(i) = G(i−1) + 3200 + a(i)   X(i+1) = X(i) + D·sin G   compensation ∝ distance cumulée', gis: 'X(i+1) = X(i) + D·sin G(i)   Y(i+1) = Y(i) + D·cos G(i)   compensation ∝ distance cumulée' },
   fields: [
     P_('S0', 'Point de départ S0'),
     S_('ori', 'Orientation au départ', [['g', 'Gisement connu'], ['pt', 'Point de référence']], { show: m('ang') }),
     A_('G0', 'Gisement S0 → référence', { show: v => v.mode === 'ang' && v.ori === 'g' }),
     P_('Rf', 'Point de référence', { show: v => v.mode === 'ang' && v.ori === 'pt' }),
-    { id: 'legs', kind: 'rows', label: 'Visées', cols: v => [{ c: 'a', l: v.mode === 'ang' ? 'Angle horaire' : 'Gisement', kind: 'ang' }, { c: 'd', l: 'Distance', kind: 'len', max: 3000, maxMsg: 'Visée longue pour un cheminement (plus de 3 km)' }],
+    { id: 'legs', kind: 'rows', label: 'Visées', cols: v => [{ c: 'a', l: v.mode === 'ang' ? 'Angle horaire' : 'Gisement', s: v.mode === 'ang' ? 'Angle' : 'Gis.', kind: 'ang' }, { c: 'd', l: 'Distance', s: 'Dist.', kind: 'len', max: 3000, maxMsg: 'Visée longue pour un cheminement (plus de 3 km)' }],
       rowLabel: (i, v) => `S${i}→S${i + 1}`, hint: v => v.mode === 'ang' ? 'Angle lu à chaque station, de la station arrière (ou de la référence en S0) vers la station avant, en sens horaire.' : 'Gisement de chaque côté, obtenu par déclinaison.', blank: { a: '', d: '' } },
     S_('cl', 'Fermeture en coordonnées', [['0', 'Aucune'], ['1', 'Sur point connu']]),
     P_('E', 'Point d’arrivée connu', { show: v => v.cl === '1' }),
@@ -674,7 +723,7 @@ const TOOLS = [
 /* ---------------- TIR SANS CARTE ---------------- */
 { id: 'tir-sans-carte', name: 'Tir sans carte', group: 1, icon: 'tsc',
   blurb: 'Gisement et distance batterie → objectif à partir de la position de l’observateur et de ses mesures, avec corrections.',
-  modes: [['BO', 'Observateur depuis la batterie'], ['OB', 'Batterie depuis l’observateur']],
+  modes: [['BO', 'Observateur depuis la batterie', 'B → O'], ['OB', 'Batterie depuis l’observateur', 'O → B']],
   formula: { BO: 'O = B + D(B→O)   C = O + D(O→C)   G, D (B→C) par calcul inverse', OB: 'G B→O = G O→B ± 3200   C = O + D(O→C)   G, D (B→C) par calcul inverse' },
   fields: [
     P_('B', 'Batterie B (facultatif)', { opt: 1, hint: 'Vide = origine 0/0 locale. Renseignée, les coordonnées de l’objectif sont calculées.' }),
@@ -714,7 +763,7 @@ const TOOLS = [
 /* ---------------- INTERSECTION INVERSE ---------------- */
 { id: 'intersection-inverse', name: 'Intersection inverse', group: 0, icon: 'interinv',
   blurb: 'Position de sa propre station P par visées orientées sur deux points connus A et B.',
-  modes: [['g', 'Gisements'], ['zm', 'Azimuts magnétiques + DMR']],
+  modes: [['g', 'Gisements'], ['zm', 'Azimuts magnétiques + DMR', 'Zm + DMR']],
   formula: { g: 'P = intersection des droites (A, G P→A + 3200) et (B, G P→B + 3200)', zm: 'G = Zm + DMR   puis intersection depuis A et B des gisements réciproques' },
   fields: [
     P_('A', 'Point connu A'), P_('B', 'Point connu B'),
@@ -770,7 +819,7 @@ const TOOLS = [
   formula: 'γ = 3200 − α − β   AP = b · sin β / sin γ   BP = b · sin α / sin γ',
   fields: [
     P_('A', 'Extrémité A de la base'), A_('GAB', 'Gisement A → B'), L_('b', 'Longueur de la base AB', { min: 2, max: 500, maxMsg: 'Base longue pour une mesure au ruban (plus de 500 m) : vérifiez' }),
-    { id: 'tri', kind: 'rows', label: 'Triangles', cols: () => [{ c: 'al', l: 'α (1re extr.)', kind: 'ang', half: 1 }, { c: 'be', l: 'β (2e extr.)', kind: 'ang', half: 1 }, { c: 's', l: 'Côté', kind: 'cyc', opts: [['g', 'Gauche'], ['d', 'Droite']] }],
+    { id: 'tri', kind: 'rows', label: 'Triangles', cols: () => [{ c: 'al', l: 'α (1re extr.)', s: 'α', kind: 'ang', half: 1 }, { c: 'be', l: 'β (2e extr.)', s: 'β', kind: 'ang', half: 1 }, { c: 's', l: 'Côté', kind: 'cyc', opts: [['g', 'Gauche'], ['d', 'Droite']] }],
       rowLabel: (i) => `P${i + 1}`, hint: () => 'Triangle 1 sur la base A→B, triangle 2 sur B→P1, triangle 3 sur P1→P2… Côté : position du nouveau point par rapport à la base orientée.', blank: { al: '', be: '', s: 'g' } },
   ],
   ex: { 'A.x': '652000', 'A.y': '6861000', GAB: '1600', b: '250', tri: [{ al: '1549.1', be: '1523.8', s: 'g' }] },
@@ -815,7 +864,7 @@ const TOOLS = [
 /* ---------------- RELATIONS D'ANGLES ---------------- */
 { id: 'relations-angles', name: 'Relations d’angles', group: 2, icon: 'angles',
   blurb: 'Gisement réciproque, écart entre deux directions, formule du millième et site.',
-  modes: [['rec', 'Réciproque et écart'], ['mil', 'Formule du millième'], ['site', 'Site']],
+  modes: [['rec', 'Réciproque et écart', 'Réciproque'], ['mil', 'Formule du millième', 'Millième'], ['site', 'Site']],
   formula: { rec: 'G réciproque = G ± 3200   écart = G2 − G1', mil: 'angle (mil) ≈ 1000 × front / distance', site: 'site (mil) ≈ 1000 × ΔZ / distance   exact : arctan(ΔZ / D)' },
   fields: [
     A_('G1', 'Gisement G1', { show: m('rec') }), A_('G2', 'Gisement G2', { opt: 1, show: m('rec'), hint: 'Facultatif : écart angulaire G1 → G2' }),
@@ -857,7 +906,7 @@ const TOOLS = [
 /* ---------------- GISEMENT / Zm / DMR ---------------- */
 { id: 'gisement-zm-dmr', name: 'Gisement · Zm · DMR', group: 2, icon: 'north',
   blurb: 'Passage entre gisement, azimut magnétique et azimut géographique avec la DMR, la déclinaison et la convergence.',
-  modes: [['simple', 'G = Zm + DMR'], ['complet', 'Avec déclinaison et convergence']],
+  modes: [['simple', 'G = Zm + DMR'], ['complet', 'Avec déclinaison et convergence', 'Complet']],
   formula: { simple: 'G = Zm + DMR   Zm = G − DMR   DMR = G − Zm', complet: 'Zg = Zm + δ   Zg = G + γ   DMR = δ − γ   G = Zm + DMR' },
   fields: [
     S_('unk', 'Inconnue', [['G', 'Gisement'], ['Zm', 'Azimut magnétique'], ['DMR', 'DMR']], { show: m('simple') }),
@@ -980,8 +1029,8 @@ function diurneFig(tab, he, h) {
 }
 
 /* ---------- état ---------- */
-const KEY = 'topo-artillerie:v1';
-function load() { try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.tools) state = { ...state, ...s }; } catch (e) {} if (!Array.isArray(state.carnet)) state.carnet = []; if (state.night) state.theme = 'night'; delete state.night; if (!['auto', 'light', 'dark', 'night'].includes(state.theme)) state.theme = 'auto'; }
+const KEY = 'topomils:v1', OLD_KEY = 'topo-artillerie:v1';
+function load() { try { const s = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem(OLD_KEY)); if (s && s.tools) state = { ...state, ...s }; } catch (e) {} if (!Array.isArray(state.carnet)) state.carnet = []; if (state.night) state.theme = 'night'; delete state.night; if (!['auto', 'light', 'dark', 'night'].includes(state.theme)) state.theme = 'auto'; }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 const clone = o => JSON.parse(JSON.stringify(o));
 function angleKeys(t, vals) {
@@ -1102,9 +1151,15 @@ const fmtC = x => Number.isFinite(x) ? trim0(x.toFixed(2)).replace('.', ',') : '
 
 function renderNav() {
   const cur = id => current && current.id === id ? 'aria-current="page"' : '';
-  nav.innerHTML = GROUPS.map((g, gi) => `<div class="ng"><h2>${g}</h2><div class="nl">${TOOLS.filter(t => t.group === gi).map(t =>
-    `<a class="ni" href="#${t.id}" ${cur(t.id)}>${icon(t.icon)}<span>${t.name}<small>${t.blurb.split(/[,.:]/)[0]}</small></span></a>`).join('')}</div></div>`).join('')
-    + `<div class="ng"><h2>Carnet</h2><div class="nl"><a class="ni" href="#carnet" ${cur('carnet')}>${icon('book')}<span>Carnet de points <em class="cnt">${state.carnet.length}</em><small>Points enregistrés, réutilisables dans chaque calcul</small></span></a></div></div>`;
+  const item = t => `<a class="ni" href="#${t.id}" ${cur(t.id)}>${icon(t.icon)}<span>${t.name}<small>${t.blurb.split(/[,.:]/)[0]}</small></span></a>`;
+  const byGroup = gi => TOOLS.filter(t => t.group === gi);
+  // Accueil mobile : liste unique, sans catégories ; barre latérale (ordinateur) : par groupes
+  nav.innerHTML = matchMedia('(min-width: 881px)').matches
+    ? GROUPS.map((g, gi) => `<div class="ng"><h2>${g}</h2><div class="nl">${byGroup(gi).map(item).join('')}</div></div>`).join('')
+    : `<div class="ng"><div class="nl">${GROUPS.flatMap((g, gi) => byGroup(gi)).map(item).join('')}</div></div>`;
+  const carb = $('#carb');
+  carb.querySelector('.cntb').textContent = state.carnet.length || '';
+  current === CARNET ? carb.setAttribute('aria-current', 'page') : carb.removeAttribute('aria-current');
 }
 const visible = (f, v) => !f.show || f.show(v);
 function fieldHTML(t, f, v) {
@@ -1120,11 +1175,15 @@ function fieldHTML(t, f, v) {
   }
   if (f.kind === 'sel') return `<div class="f sel"><span class="fl">${f.label}</span><div class="seg" role="group">${f.opts.map(([k, l]) => `<button type="button" data-sel="${f.id}" data-v="${k}" aria-pressed="${v[f.id] === k}">${l}</button>`).join('')}</div>${hint}</div>`;
   if (f.kind === 'rows') {
+    // Une ligne = un bloc empilé (libellé + suppression, puis champs étiquetés) : jamais de défilement horizontal
     const cols = f.cols(v), rows = v[f.id] || [];
-    return `<div class="rows"><span class="fl">${f.label}</span>${hint}<div class="rtab"><div class="rr h" style="--nc:${cols.length}"><span></span>${cols.map(c => `<span>${c.l}${c.kind === 'ang' ? ' (' + U().sym + ')' : c.kind === 'len' ? ' (m)' : ''}</span>`).join('')}<span></span></div>${rows.map((r, i) =>
-      `<div class="rr" style="--nc:${cols.length}"><span class="ri">${f.rowLabel(i, v)}</span>${cols.map(c => c.kind === 'cyc'
-        ? `<button type="button" class="cyc" data-cyc="${f.id}" data-i="${i}" data-c="${c.c}">${(c.opts.find(o => o[0] === r[c.c]) || c.opts[0])[1]}</button>`
-        : `<span class="fi" data-fw="${f.id}.${i}.${c.c}"><input id="${iid(f.id + '-' + i + '-' + c.c)}" data-r="${f.id}" data-i="${i}" data-c="${c.c}" data-num="${c.kind}" data-lab="${esc(f.rowLabel(i, v) + ' · ' + c.l)}" inputmode="${im('decimal')}" autocomplete="off" value="${esc(r[c.c] ?? '')}" aria-label="${f.rowLabel(i, v)} ${c.l}"></span>`).join('')}<button type="button" class="del" data-del="${f.id}" data-i="${i}" aria-label="Supprimer ${f.rowLabel(i, v)}">×</button></div>`).join('')}</div>
+    const cell = (c, r, i) => {
+      if (c.kind === 'cyc') return `<button type="button" class="cyc" data-cyc="${f.id}" data-i="${i}" data-c="${c.c}" aria-label="${c.l} : ${(c.opts.find(o => o[0] === r[c.c]) || c.opts[0])[1]}, toucher pour changer"><span>${c.l} : ${(c.opts.find(o => o[0] === r[c.c]) || c.opts[0])[1]}</span><svg class="swap" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h15l-4-4M20 16H5l4 4"/></svg></button>`;
+      const u = c.kind === 'ang' ? U().sym : c.kind === 'len' ? 'm' : '';
+      return `<label class="fi" data-fw="${f.id}.${i}.${c.c}"><span class="ax">${c.s || c.l}</span><input id="${iid(f.id + '-' + i + '-' + c.c)}" data-r="${f.id}" data-i="${i}" data-c="${c.c}" data-num="${c.kind}" data-lab="${esc(f.rowLabel(i, v) + ' · ' + c.l)}" inputmode="${im('decimal')}" autocomplete="off" value="${esc(r[c.c] ?? '')}" aria-label="${f.rowLabel(i, v)} ${c.l}">${u ? `<em class="u">${u}</em>` : ''}</label>`;
+    };
+    return `<div class="rows"><span class="fl">${f.label}</span>${hint}<div class="rtab">${rows.map((r, i) =>
+      `<div class="rr"><div class="rrh"><span class="ri">${f.rowLabel(i, v)}</span><button type="button" class="del" data-del="${f.id}" data-i="${i}" aria-label="Supprimer ${f.rowLabel(i, v)}">×</button></div><div class="rrf">${cols.map(c => cell(c, r, i)).join('')}</div></div>`).join('')}</div>
       <div data-fm="${f.id}">${msg}</div><button type="button" class="add" data-add="${f.id}">+ Ajouter</button></div>`;
   }
   const u = f.kind === 'ang' ? U().sym : f.kind === 'len' ? 'm' : '';
@@ -1136,17 +1195,17 @@ function renderTool() {
   if (current === CARNET) return renderCarnet();
   const t = current, v = tstate(t);
   const fm = typeof t.formula === 'string' ? t.formula : t.formula[v.mode];
-  main.innerHTML = `<div class="head"><button class="back" id="back">← Calculs</button><h1>${t.name}</h1><p>${t.blurb}</p><code class="formula" id="formula">${esc(fm)}</code></div>
-    ${t.modes ? `<div class="modes"><div class="seg" role="group" aria-label="Méthode">${t.modes.map(([k, l]) => `<button type="button" data-mode="${k}" aria-pressed="${v.mode === k}">${l}</button>`).join('')}</div></div>` : ''}
+  main.innerHTML = `<div class="head"><h1>${t.name}</h1><p>${t.blurb}</p><code class="formula" id="formula">${esc(fm)}</code></div>
+    ${t.modes ? `<div class="modes"><div class="seg" role="group" aria-label="Méthode">${t.modes.map(([k, l, sh]) => `<button type="button" data-mode="${k}" aria-pressed="${v.mode === k}" aria-label="${l}"><span class="ml">${l}</span><span class="ms">${sh || l}</span></button>`).join('')}</div></div>` : ''}
     <div class="work"><div><form class="inputs card" id="inputs" onsubmit="return false"></form>
     <div class="acts"><button type="button" id="ex">Exemple</button><button type="button" id="clr">Vider</button><button type="button" id="rep">Copier le compte rendu</button></div></div>
     <div class="out"><div class="fig card" id="fig"></div><div class="res card"><div id="res"></div><div class="saves" id="saves"></div></div><div class="warns" id="warns"></div><div class="tbl card" id="tbl" hidden></div><p class="note" id="note" hidden></p></div></div>`;
   renderInputs(); calc();
 }
-function renderInputs() { const t = current, v = tstate(t); $('#inputs').innerHTML = t.fields.filter(f => visible(f, v)).map(f => fieldHTML(t, f, v)).join(''); }
+function renderInputs() { if (kpT) closeKp(); const t = current, v = tstate(t); $('#inputs').innerHTML = t.fields.filter(f => visible(f, v)).map(f => fieldHTML(t, f, v)).join(''); }
 function renderCarnet() {
   const c = state.carnet, im = kbdActive() ? 'none' : 'decimal';
-  main.innerHTML = `<div class="head"><button class="back" id="back">← Calculs</button><h1>Carnet de points</h1><p>Points enregistrés depuis les résultats (« ＋ Carnet ») ou saisis ici. Dans chaque calcul, le bouton « Carnet » d’un point le remplit en un geste.</p></div>
+  main.innerHTML = `<div class="head"><h1>Carnet de points</h1><p>Points enregistrés depuis les résultats (« ＋ Carnet ») ou saisis ici. Dans chaque calcul, le bouton « Carnet » d’un point le remplit en un geste.</p></div>
     <div class="card carnet">${c.length ? c.map((p, i) => `<div class="cp"><span class="fi cn"><input data-ck="${i}.n" value="${esc(p.n)}" aria-label="Nom du point"></span>${['x', 'y', 'z'].map(a => `<label class="fi"><span class="ax">${a.toUpperCase()}</span><input data-ck="${i}.${a}" data-num="${a === 'z' ? 'z' : 'coord'}" data-lab="${esc(p.n)} · ${a.toUpperCase()}" inputmode="${im}" autocomplete="off" value="${Number.isFinite(p[a]) ? trim0(p[a].toFixed(2)) : ''}"${a === 'z' ? ' placeholder="Z"' : ''} aria-label="${esc(p.n)} ${a.toUpperCase()}"></label>`).join('')}<span class="cs">${esc(p.src || '')}</span><button type="button" class="del" data-cdel="${i}" aria-label="Supprimer ${esc(p.n)}">×</button></div>`).join('')
       : '<div class="msg">Aucun point pour l’instant. Enregistrez un résultat avec « ＋ Carnet », ou ajoutez un point à la main.</div>'}</div>
     <div class="acts"><button type="button" id="cadd">+ Ajouter un point</button>${c.length ? '<button type="button" id="ccopy">Copier la liste</button>' : ''}</div>`;
@@ -1227,10 +1286,7 @@ function calc() {
   if (errs.length) all.unshift({ e: 1, s: 'Saisie invalide : ce résultat ne doit pas être utilisé tant que les champs en rouge ne sont pas corrigés.' });
   lastWarn = all.map(w => w.s);
   res.classList.toggle('doubt', errs.length > 0);
-  const extra = out.res.filter(r => !r.main).length;
-  res.classList.toggle('all', showAll);
-  res.innerHTML = out.res.map((r, i) => { const f = fmtRes(r); return `<div class="r${r.main ? ' main' : ''}" data-ri="${i}" title="Copier"><span class="rl">${esc(r.l)}</span><span class="rv">${f.txt}</span></div>`; }).join('')
-    + (extra ? `<button type="button" class="more" id="more">${showAll ? 'Résultats principaux seulement' : `Tous les résultats (${extra} de plus)`}</button>` : '');
+  res.innerHTML = out.res.map((r, i) => { const f = fmtRes(r); return `<div class="r${r.main ? ' main' : ''}" data-ri="${i}" title="Copier"><span class="rl">${esc(r.l)}</span><span class="rv">${f.txt}</span></div>`; }).join('');
   lastSave = (out.save || []).filter(p => isFinite(p.x) && isFinite(p.y));
   saves.innerHTML = lastSave.map((p, i) => `<button type="button" class="mini" data-save="${i}">＋ Carnet : ${esc(p.n)}</button>`).join('');
   warns.innerHTML = showW(all);
@@ -1328,10 +1384,6 @@ function kpKey(k) {
   if (k === 'next') return kpMove(1);
   if (k === 'prev') return kpMove(-1);
   if (k === 'close') return closeKp();
-  if (k === 'sys') {
-    kbdSys = true; numInputs().forEach(i => i.setAttribute('inputmode', i.dataset.num === 'txt' ? 'text' : 'decimal'));
-    const target = el; closeKp(); setTimeout(() => target.focus(), 30); toast('Clavier du téléphone pour cette session'); return;
-  }
   let val = el.value, a = el.selectionStart ?? val.length, b = el.selectionEnd ?? val.length;
   const ins = s => { val = val.slice(0, a) + s + val.slice(b); a = b = a + s.length; };
   if (k === 'bs') { if (a === b && a > 0) a--; val = val.slice(0, a) + val.slice(b); b = a; }
@@ -1368,7 +1420,7 @@ function route() {
   if (!current && matchMedia('(min-width: 881px)').matches) current = TOOLS[0];
   document.body.classList.toggle('tool', explicit);
   renderNav();
-  if (current) { renderTool(); document.title = current.name + ' · Topo Artillerie'; } else { main.innerHTML = ''; document.title = 'Topo Artillerie'; }
+  if (current) { renderTool(); document.title = current.name + ' · Topomils'; } else { main.innerHTML = ''; document.title = 'Topomils'; }
   window.scrollTo(0, 0);
 }
 let toastT;
@@ -1435,7 +1487,6 @@ main.addEventListener('click', e => {
     state.tools[t.id] = keep; save(); renderTool();
     toast('Saisie vidée', 'Annuler', () => { state.tools[t.id] = prev; save(); renderTool(); }); return;
   }
-  if (b.id === 'more') { showAll = !showAll; calc(); return; }
   if (b.id === 'rep') { copyText(report(), 'Compte rendu copié'); return; }
   if (b.classList.contains('r')) { const r = lastRes[+d.ri]; if (!r) return; const txt = String(fmtRes(r).copy); copyText(txt, 'Copié : ' + txt); }
 });
@@ -1453,6 +1504,7 @@ $('#units').addEventListener('click', e => {
   for (const t of TOOLS) if (state.tools[t.id]) convertVals(t, state.tools[t.id], from, to);
   state.unit = to; save(); syncChrome(); if (current) renderTool();
 });
+$('#hback').addEventListener('click', () => { location.hash = ''; });
 $('#setb').addEventListener('click', () => { const p = $('#settings'); p.hidden = !p.hidden; $('#setb').setAttribute('aria-expanded', String(!p.hidden)); });
 $('#settings').addEventListener('click', e => {
   const b = e.target.closest('[data-v]'); if (!b) return;
@@ -1488,7 +1540,6 @@ function syncChrome() {
   state.theme === 'night' ? r.setAttribute('data-night', '') : r.removeAttribute('data-night');
   state.theme === 'light' || state.theme === 'dark' ? r.setAttribute('data-mode', state.theme) : r.removeAttribute('data-mode');
   const tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.content = getComputedStyle(r).getPropertyValue('--paper').trim() || '#e9ece4';
-  state.big ? r.setAttribute('data-big', '') : r.removeAttribute('data-big');
   state.simple ? r.setAttribute('data-simple', '') : r.removeAttribute('data-simple');
   r.setAttribute('data-kps', state.kps || 'm');
   if (!kp.hidden) { document.body.style.setProperty('--kph', kp.offsetHeight + 'px'); }
