@@ -33,28 +33,28 @@
   --bad-bg:rgba(178,53,42,.09);
   --shadow:rgba(20,30,25,.14);
   --scrim:rgba(10,15,12,.4);
-  --mbar-warn:#f2c25c;
+  --mbar-warn:#f2c25c;--mbar-bg:var(--ink);--mbar-fg:var(--paper);
   --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
   --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --paper:#111613;--panel:#182019;--ink:#e2e8df;--muted:#8f9d93;--line:#2b352e;--grid:rgba(160,200,170,.05);
-  --accent:#7db0dd;--accent-soft:rgba(125,176,221,.12);--hot:#ee7a69;--warn:#e2b35a;--warn-bg:rgba(226,179,90,.12);--bad-bg:rgba(238,122,105,.12);--shadow:rgba(0,0,0,.45);--scrim:rgba(0,0,0,.55);--mbar-warn:#8a5a00;color-scheme:dark}}
+  --accent:#7db0dd;--accent-soft:rgba(125,176,221,.12);--hot:#ee7a69;--warn:#e2b35a;--warn-bg:rgba(226,179,90,.12);--bad-bg:rgba(238,122,105,.12);--shadow:rgba(0,0,0,.45);--scrim:rgba(0,0,0,.55);--mbar-warn:#e2b35a;--mbar-bg:var(--panel);--mbar-fg:var(--ink);color-scheme:dark}}
 :root[data-theme="dark"]{
   --paper:#111613;--panel:#182019;--ink:#e2e8df;--muted:#8f9d93;--line:#2b352e;--grid:rgba(160,200,170,.05);
-  --accent:#7db0dd;--accent-soft:rgba(125,176,221,.12);--hot:#ee7a69;--warn:#e2b35a;--warn-bg:rgba(226,179,90,.12);--bad-bg:rgba(238,122,105,.12);--shadow:rgba(0,0,0,.45);--scrim:rgba(0,0,0,.55);--mbar-warn:#8a5a00;color-scheme:dark}
+  --accent:#7db0dd;--accent-soft:rgba(125,176,221,.12);--hot:#ee7a69;--warn:#e2b35a;--warn-bg:rgba(226,179,90,.12);--bad-bg:rgba(238,122,105,.12);--shadow:rgba(0,0,0,.45);--scrim:rgba(0,0,0,.55);--mbar-warn:#e2b35a;--mbar-bg:var(--panel);--mbar-fg:var(--ink);color-scheme:dark}
 /* Thème choisi dans les réglages : l'emporte sur le thème du système */
 :root[data-mode="light"]{
   --paper:#e9ece4;--panel:#f6f7f2;--ink:#1b2420;--muted:#5b685f;--line:#c6cdc1;--grid:rgba(60,90,70,.07);
-  --accent:#24557f;--accent-soft:rgba(36,85,127,.1);--hot:#b2352a;--warn:#8a5a00;--warn-bg:rgba(200,140,0,.12);--bad-bg:rgba(178,53,42,.09);--shadow:rgba(20,30,25,.14);--scrim:rgba(10,15,12,.4);--mbar-warn:#f2c25c;color-scheme:light}
+  --accent:#24557f;--accent-soft:rgba(36,85,127,.1);--hot:#b2352a;--warn:#8a5a00;--warn-bg:rgba(200,140,0,.12);--bad-bg:rgba(178,53,42,.09);--shadow:rgba(20,30,25,.14);--scrim:rgba(10,15,12,.4);--mbar-warn:#f2c25c;--mbar-bg:var(--ink);--mbar-fg:var(--paper);color-scheme:light}
 :root[data-mode="dark"]{
   --paper:#111613;--panel:#182019;--ink:#e2e8df;--muted:#8f9d93;--line:#2b352e;--grid:rgba(160,200,170,.05);
-  --accent:#7db0dd;--accent-soft:rgba(125,176,221,.12);--hot:#ee7a69;--warn:#e2b35a;--warn-bg:rgba(226,179,90,.12);--bad-bg:rgba(238,122,105,.12);--shadow:rgba(0,0,0,.45);--scrim:rgba(0,0,0,.55);--mbar-warn:#8a5a00;color-scheme:dark}
+  --accent:#7db0dd;--accent-soft:rgba(125,176,221,.12);--hot:#ee7a69;--warn:#e2b35a;--warn-bg:rgba(226,179,90,.12);--bad-bg:rgba(238,122,105,.12);--shadow:rgba(0,0,0,.45);--scrim:rgba(0,0,0,.55);--mbar-warn:#e2b35a;--mbar-bg:var(--panel);--mbar-fg:var(--ink);color-scheme:dark}
 /* Mode nuit : tout en rouge pour préserver la vision nocturne */
 :root[data-night]{
   --paper:#0b0202;--panel:#140404;--ink:#d8402c;--muted:#8c2b1f;--line:#3a0e09;--grid:rgba(200,40,20,.05);
-  --accent:#ff5b3a;--accent-soft:rgba(255,91,58,.1);--hot:#ff8a5c;--warn:#ff8a5c;--warn-bg:rgba(255,90,40,.1);--bad-bg:rgba(255,60,30,.14);--shadow:rgba(0,0,0,.6);--scrim:rgba(0,0,0,.6);--mbar-warn:#3a0000;color-scheme:dark}
+  --accent:#ff5b3a;--accent-soft:rgba(255,91,58,.1);--hot:#ff8a5c;--warn:#ff8a5c;--warn-bg:rgba(255,90,40,.1);--bad-bg:rgba(255,60,30,.14);--shadow:rgba(0,0,0,.6);--scrim:rgba(0,0,0,.6);--mbar-warn:var(--warn);--mbar-bg:var(--panel);--mbar-fg:var(--ink);color-scheme:dark}
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -294,7 +294,7 @@ body.kp-open .toast{bottom:calc(var(--kph,320px) + 12px)}
 .toast{display:flex;gap:14px;align-items:center;max-width:calc(100vw - 32px)}
 .toast button{border:0;background:none;color:var(--paper);font:700 14px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;text-decoration:underline;cursor:pointer;padding:0}
 .mbar .mw b{color:var(--mbar-warn)}
-body{zoom:1.16}
+body{zoom:1.22}
 @media (max-width:700px){.cp{grid-template-columns:1fr 1fr}.cp .del{grid-row:1;grid-column:2;justify-self:end}}
 /* Le nom ne s'affiche que s'il tient réellement dans la barre (tient compte du grand texte) */
 .top{container-type:inline-size}
@@ -377,13 +377,41 @@ body{zoom:1.16}
 .ptb .mini{border:0;background:none;color:var(--muted);padding:6px 6px;font-size:12px;letter-spacing:.06em;display:inline-flex;align-items:center;gap:4px;border-radius:5px}
 .ptb .mini:hover,.ptb .mini:focus-visible{color:var(--accent);background:var(--accent-soft)}
 .ptb .mini svg{flex:none}
+/* ---------- barre de résultats : masquable, sans débordement ---------- */
+:root[data-nombar] .mbar{display:none!important}
+@media (max-width:880px){
+  :root[data-nombar] body.tool .shell{padding-bottom:calc(30px + env(safe-area-inset-bottom,0px))}
+  body.tool .mbar{overflow:hidden}
+  body.tool .mbar{gap:10px;padding-inline:12px}
+  .mbar > div + div{padding-left:10px}
+  body.tool .mbar{background:var(--mbar-bg);color:var(--mbar-fg);border-top:1px solid var(--line)}
+  .mbar > div{flex:1 1 auto;min-width:0}
+  .mbar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;contain:inline-size}
+  .mbar b small{font-size:.7em;opacity:.75;margin-left:.15em}
+  .mbar b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:clamp(13px,3.9vw,19px);letter-spacing:-.02em}
+}
+.settings{left:16px;width:auto;max-width:330px;margin-left:auto;max-height:calc(100dvh - 90px);overflow:auto}
+/* ---------- résultats secondaires repliables ---------- */
+.rmore{border-top:1px solid var(--line)}
+.rmore summary{list-style:none;display:flex;align-items:center;gap:6px;padding:9px 16px;cursor:pointer;font:600 13px/1 var(--display);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);-webkit-tap-highlight-color:transparent}
+.rmore summary::-webkit-details-marker{display:none}
+.rmore summary:hover{color:var(--accent);background:var(--accent-soft)}
+.rmore summary em{font:500 12px/1 var(--mono);font-style:normal;opacity:.8}
+.rmore summary svg{margin-left:auto;transition:transform .15s}
+.rmore[open] summary svg{transform:rotate(180deg)}
+.rmore .r:first-of-type{border-top:1px solid var(--line)}
+/* ---------- saisies pleine largeur (mobile) ---------- */
+@media (max-width:600px){
+  .inputs,.ptg,.rrf{grid-template-columns:minmax(0,1fr)}
+  .inputs > *{grid-column:1/-1}
+}
 </style>
 </head>
 <body>
 <header class="top">
   <button type="button" class="iconbtn hback" id="hback" aria-label="Retour à la liste des calculs"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>Retour</span></button>
   <a class="brand" href="#" aria-label="Topomils, accueil">
-    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="11.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M14 2.5v5M14 20.5v5M2.5 14h5M20.5 14h5" stroke="currentColor" stroke-width="1.6"/><path d="M14 14 L20 6" stroke="var(--hot)" stroke-width="2"/><circle cx="14" cy="14" r="2" fill="currentColor"/></svg>
+    <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="25" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M32 14V7M50 32h7M32 50v7M14 32H7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M32 4l5 9H27z" fill="var(--hot)" transform="rotate(45 32 32)"/><path d="M32 21l11 19H21z" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/><circle cx="32" cy="33.6" r="3.2" fill="var(--hot)"/></svg>
     <b>Topomils</b>
   </a>
   <a class="iconbtn" id="carb" href="#carnet" title="Carnet de points" aria-label="Carnet de points"><svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg><span class="cntb"></span></a>
@@ -397,8 +425,8 @@ body{zoom:1.16}
   <div class="sr"><span class="fl">Clavier de saisie</span><div class="seg" data-set="kbd"><button type="button" data-v="auto">Auto</button><button type="button" data-v="on">Intégré</button><button type="button" data-v="off">Système</button></div><span class="fh">Auto : clavier intégré sur écran tactile, clavier physique sur ordinateur.</span></div>
   <div class="sr"><span class="fl">Taille du clavier intégré</span><div class="seg" data-set="kps"><button type="button" data-v="s">Compact</button><button type="button" data-v="m">Normal</button><button type="button" data-v="l">Grand</button><button type="button" data-v="xl">Très grand</button></div><span class="fh">Grand ou très grand : saisie avec des gants. Compact : laisse voir plus de formulaire.</span></div>
   <div class="sr"><span class="fl">Affichage</span><div class="seg" data-set="simple"><button type="button" data-v="0">Complet</button><button type="button" data-v="1">Simplifié</button></div><span class="fh">Simplifié : saisie et résultats principaux seulement, sans schéma, formule ni aide.</span></div>
+  <div class="sr"><span class="fl">Barre de résultats</span><div class="seg" data-set="mbar"><button type="button" data-v="1">Afficher</button><button type="button" data-v="0">Masquer</button></div><span class="fh">Bandeau fixe en bas de l’écran sur mobile, avec les résultats principaux.</span></div>
   <div class="sr"><span class="fl">Écran toujours allumé</span><div class="seg" data-set="wake"><button type="button" data-v="0">Non</button><button type="button" data-v="1">Oui</button></div></div>
-  <div class="sr"><span class="fl">Vibration des touches</span><div class="seg" data-set="vib"><button type="button" data-v="0">Non</button><button type="button" data-v="1">Oui</button></div><span class="fh">Sur les téléphones qui la permettent.</span></div>
 </div>
 
 <div class="shell">
@@ -470,7 +498,7 @@ const diurne = (tab, h) => { h = ((h % 24) + 24) % 24; const i = Math.floor(h), 
 
 /* ---------- unités ---------- */
 const UNITS = { mil: { per: 6400, dec: 1, sym: 'mil' }, deg: { per: 360, dec: 4, sym: '°' }, gr: { per: 400, dec: 4, sym: 'gr' } };
-let state = { unit: 'mil', theme: 'auto', kbd: 'auto', kps: 'm', simple: false, wake: false, vib: true, carnet: [], tools: {} };
+let state = { unit: 'mil', theme: 'auto', kbd: 'auto', kps: 'm', simple: false, mbar: true, more: false, wake: false, carnet: [], tools: {} };
 const U = () => UNITS[state.unit];
 const toU = (m, u = state.unit) => m * UNITS[u].per / TAU;
 const fromU = (x, u = state.unit) => x * TAU / UNITS[u].per;
@@ -589,6 +617,7 @@ const R = (l, k, v, o = {}) => ({ l, k, v, ...o });
 const sideLbl = x => x > 0.05 ? 'à droite' : x < -0.05 ? 'à gauche' : '';
 
 const ICONS = {
+  gds: '<circle cx="5" cy="19" r="2.2" fill="currentColor"/><path d="M5 19L19 7"/><path d="M5 19h15" stroke-dasharray="1.5 2"/><path d="M12 19a7 7 0 0 0-1.3-4.2"/><circle cx="19" cy="7" r="2"/>',
   ray: '<circle cx="5" cy="19" r="2.2" fill="currentColor"/><path d="M5 19L18 6"/><circle cx="18.5" cy="5.5" r="2.4"/><path d="M5 9v10" stroke-dasharray="1.5 2"/>',
   inter: '<path d="M4 20h16" stroke-dasharray="2 2"/><path d="M4 20L12 5l8 15"/><circle cx="12" cy="5" r="2.2" fill="currentColor"/>',
   interinv: '<path d="M12 19L4 6M12 19l8-13"/><circle cx="12" cy="19" r="2.4"/><path d="M4 4.5l2 3.4h-4zM20 4.5l2 3.4h-4z" fill="currentColor" stroke="none"/>',
@@ -606,6 +635,23 @@ const ICONS = {
 const icon = (k, s = 20) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k]}</svg>`;
 
 const TOOLS = [
+/* ---------------- GDS ---------------- */
+{ id: 'gds', name: 'GDS', group: 0, icon: 'gds',
+  blurb: 'Gisement, distance et site d’un point P depuis une station S, toutes deux connues en X, Y, Z.',
+  formula: 'G = arctan(ΔX / ΔY)   D = √(ΔX² + ΔY²)   S = arctan(ΔZ / D)',
+  fields: [P_('S', 'Station S', { z: 1, zreq: 1 }), P_('P', 'Point visé P', { z: 1, zreq: 1 })],
+  ex: { 'S.x': '652340', 'S.y': '6862150', 'S.z': '212', 'P.x': '654025.6', 'P.y': '6863012.3', 'P.z': '236' },
+  compute(v) {
+    const S = v.pt('S'), P = v.pt('P');
+    for (const [p, id, l] of [[S, 'S', 'Station S'], [P, 'P', 'Point visé P']]) if (!isFinite(p.z)) throw new Need(String(v.raw(id + '.z') ?? '').trim() ? `« ${l} · Z » : format invalide.` : `${l} · Z`, false, id + '.z');
+    const r = inv(S, P), dz = P.z - S.z, site = mil(Math.atan2(dz, r.d)), warn = [];
+    if (r.d < 1) throw new Need('S et P sont confondus en planimétrie.', true);
+    if (r.d > 30000) warn.push(`Distance de ${fmtKm(r.d)} : vérifiez les coordonnées (même zone, même carroyage).`);
+    return { warn, res: [R('Gisement S → P', 'g', r.g, { main: 1 }), R('Distance horizontale', 'm', r.d, { main: 1 }), R('Site S → P', 'a', site, { main: 1, signed: 1 }),
+        R('Dénivelée ΔZ', 'm', dz, { signed: 1 }), R('Distance inclinée', 'm', Math.hypot(r.d, dz)), R('Gisement P → S', 'g', norm(r.g + 3200))],
+      fig: fig({ pts: [{ ...S, l: 'S', r: 'k' }, { ...P, l: 'P', r: 'k' }], segs: [{ a: S, b: P, l: fmtN(r.d, 0) + ' m' }, { a: S, b: pol(S, 0, r.d * 0.45), s: 'aux' }], arcs: [{ at: S, g1: 0, g2: r.g, l: 'G' }] }) };
+  } },
+
 /* ---------------- RAYONNEMENT ---------------- */
 { id: 'rayonnement', name: 'Rayonnement', group: 0, icon: 'ray',
   blurb: 'Coordonnées d’un point à partir d’une station connue, d’une direction et d’une distance, ou gisement et distance entre deux points.',
@@ -1055,7 +1101,7 @@ function diurneFig(tab, he, h) {
 
 /* ---------- état ---------- */
 const KEY = 'topomils:v1', OLD_KEY = 'topo-artillerie:v1';
-function load() { try { const s = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem(OLD_KEY)); if (s && s.tools) state = { ...state, ...s }; } catch (e) {} if (!Array.isArray(state.carnet)) state.carnet = []; if (state.night) state.theme = 'night'; delete state.night; if (!['auto', 'light', 'dark', 'night'].includes(state.theme)) state.theme = 'auto'; }
+function load() { try { const s = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem(OLD_KEY)); if (s && s.tools) state = { ...state, ...s }; } catch (e) {} if (!Array.isArray(state.carnet)) state.carnet = []; if (state.night) state.theme = 'night'; delete state.night; delete state.vib; if (!['auto', 'light', 'dark', 'night'].includes(state.theme)) state.theme = 'auto'; }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 const clone = o => JSON.parse(JSON.stringify(o));
 function angleKeys(t, vals) {
@@ -1196,7 +1242,7 @@ function fieldHTML(t, f, v) {
   if (f.kind === 'pt') {
     const ax = f.z ? ['x', 'y', 'z'] : ['x', 'y'], nm = { x: 'X', y: 'Y', z: 'Z' };
     return `<div class="pt" role="group" aria-label="${esc(f.label)}" data-fm="${f.id}"><div class="ptl"><span class="fl">${f.label}</span><span class="ptb"><button type="button" class="mini" data-pick="${f.id}" title="Remplir depuis le carnet"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>Carnet</button><button type="button" class="mini" data-keep="${f.id}" title="Enregistrer ce point dans le carnet" aria-label="Enregistrer ${esc(f.label)} dans le carnet">＋</button></span></div>
-      <div class="ptg">${ax.map(a => `<label class="fi" data-fw="${f.id}.${a}"><span class="ax">${nm[a]}</span><input id="${iid(f.id + '.' + a)}" data-k="${f.id}.${a}" data-num="${a === 'z' ? 'z' : 'coord'}" data-lab="${esc(f.label)} · ${nm[a]}" inputmode="${im('decimal')}" autocomplete="off" value="${val(f.id + '.' + a)}" aria-label="${esc(f.label)} ${nm[a]}"${a === 'z' ? ' placeholder="facultatif"' : ''}></label>`).join('')}</div>${hint}${msg}</div>`;
+      <div class="ptg">${ax.map(a => `<label class="fi" data-fw="${f.id}.${a}"><span class="ax">${nm[a]}</span><input id="${iid(f.id + '.' + a)}" data-k="${f.id}.${a}" data-num="${a === 'z' ? 'z' : 'coord'}" data-lab="${esc(f.label)} · ${nm[a]}" inputmode="${im('decimal')}" autocomplete="off" value="${val(f.id + '.' + a)}" aria-label="${esc(f.label)} ${nm[a]}"${a === 'z' && !f.zreq ? ' placeholder="facultatif"' : ''}></label>`).join('')}</div>${hint}${msg}</div>`;
   }
   if (f.kind === 'sel') return `<div class="f sel"><span class="fl">${f.label}</span><div class="seg" role="group">${f.opts.map(([k, l]) => `<button type="button" data-sel="${f.id}" data-v="${k}" aria-pressed="${v[f.id] === k}">${l}</button>`).join('')}</div>${hint}</div>`;
   if (f.kind === 'rows') {
@@ -1311,7 +1357,10 @@ function calc() {
   if (errs.length) all.unshift({ e: 1, s: 'Saisie invalide : ce résultat ne doit pas être utilisé tant que les champs en rouge ne sont pas corrigés.' });
   lastWarn = all.map(w => w.s);
   res.classList.toggle('doubt', errs.length > 0);
-  res.innerHTML = out.res.map((r, i) => { const f = fmtRes(r); return `<div class="r${r.main ? ' main' : ''}" data-ri="${i}" title="Copier"><span class="rl">${esc(r.l)}</span><span class="rv">${f.txt}</span></div>`; }).join('');
+  const row = (r, i) => { const f = fmtRes(r); return `<div class="r${r.main ? ' main' : ''}" data-ri="${i}" title="Copier"><span class="rl">${esc(r.l)}</span><span class="rv">${f.txt}</span></div>`; };
+  const idx = out.res.map((r, i) => [r, i]), mainR = idx.filter(([r]) => r.main), more = idx.filter(([r]) => !r.main);
+  res.innerHTML = !mainR.length || !more.length ? idx.map(([r, i]) => row(r, i)).join('')
+    : mainR.map(([r, i]) => row(r, i)).join('') + `<details class="rmore"${state.more ? ' open' : ''}><summary><span>Détails</span><em>${more.length}</em><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></summary>${more.map(([r, i]) => row(r, i)).join('')}</details>`;
   lastSave = (out.save || []).filter(p => isFinite(p.x) && isFinite(p.y));
   saves.innerHTML = lastSave.map((p, i) => `<button type="button" class="mini" data-save="${i}">＋ Carnet : ${esc(p.n)}</button>`).join('');
   warns.innerHTML = showW(all);
@@ -1322,7 +1371,7 @@ function calc() {
 function setBar(mains, err, nw) {
   const w = nw ? `<div class="mw"><span>Alertes</span><b>${nw}</b></div>` : '';
   mbar.innerHTML = err ? `<div><span>${esc(current.name)}</span><b><em>${esc(err)}</em></b></div>${w}`
-    : mains.map(r => { const f = fmtRes(r); return `<div><span>${esc(r.l)}</span><b>${esc(f.short || String(f.copy))}</b></div>`; }).join('') + w;
+    : mains.map(r => { const f = fmtRes(r); const t = String(f.short || f.copy), u = t.match(/^(.*\d) ([^\d\s]+)$/); return `<div><span>${esc(r.l)}</span><b>${u ? `${esc(u[1])}<small>${esc(u[2])}</small>` : esc(t)}</b></div>`; }).join('') + w;
   const kr = $('#kpr');
   kr.textContent = err || mains.slice(0, 2).map(r => { const f = fmtRes(r); return f.short || f.copy; }).join('   ');
   kr.classList.toggle('kw', !!nw); kr.dataset.nw = nw ? `${nw} alerte${nw > 1 ? 's' : ''}` : '';
@@ -1368,7 +1417,7 @@ $('#pick').addEventListener('click', e => {
 /* ---------- clavier numérique ---------- */
 let kpT = null;
 const numInputs = () => [...main.querySelectorAll('input[data-num]')];
-const vib = () => { if (state.vib) try { navigator.vibrate?.(8); } catch (e) {} };
+const vib = () => { try { navigator.vibrate?.(8); } catch (e) {} };
 function kpConf(el) {
   const kind = el.dataset.num, signed = el.dataset.signed === '1';
   const half = state.unit === 'mil' ? '+3200' : state.unit === 'deg' ? '+180°' : '+200';
@@ -1529,6 +1578,7 @@ $('#units').addEventListener('click', e => {
   for (const t of TOOLS) if (state.tools[t.id]) convertVals(t, state.tools[t.id], from, to);
   state.unit = to; save(); syncChrome(); if (current) renderTool();
 });
+document.addEventListener('toggle', e => { if (e.target.classList?.contains('rmore')) { state.more = e.target.open; save(); } }, true);
 $('#hback').addEventListener('click', () => { location.hash = ''; });
 $('#setb').addEventListener('click', () => { const p = $('#settings'); p.hidden = !p.hidden; $('#setb').setAttribute('aria-expanded', String(!p.hidden)); });
 $('#settings').addEventListener('click', e => {
@@ -1566,6 +1616,7 @@ function syncChrome() {
   state.theme === 'light' || state.theme === 'dark' ? r.setAttribute('data-mode', state.theme) : r.removeAttribute('data-mode');
   const tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.content = getComputedStyle(r).getPropertyValue('--paper').trim() || '#e9ece4';
   state.simple ? r.setAttribute('data-simple', '') : r.removeAttribute('data-simple');
+  state.mbar ? r.removeAttribute('data-nombar') : r.setAttribute('data-nombar', '');
   r.setAttribute('data-kps', state.kps || 'm');
   if (!kp.hidden) { document.body.style.setProperty('--kph', kp.offsetHeight + 'px'); }
 }
