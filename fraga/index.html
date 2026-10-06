@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FRÅGA">
+<meta name="theme-color" content="#f5f1e8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#10151f" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Le quiz des meubles suédois : noms de produits, faux noms, petit dico et code secret.">
+<title>FRÅGA</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f1e8; --card:#fffdf8; --ink:#16181d; --muted:#6c6a64; --line:rgba(22,24,29,.12);
+  --blue:#0a5bb5; --blue-ink:#fff; --yellow:#ffd60a; --yellow-ink:#16181d;
+  --ok:#17894a; --ok-bg:#dff3e6; --bad:#c9372c; --bad-bg:#fbe3e0;
+  --glass:rgba(10,91,181,.16); --shadow:0 1px 0 rgba(0,0,0,.04),0 6px 18px -8px rgba(30,25,10,.25);
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10151f; --card:#1a2130; --ink:#f1eee6; --muted:#9aa0ab; --line:rgba(255,255,255,.1);
+    --blue:#4c9be8; --blue-ink:#0b1220; --ok:#4fcf86; --ok-bg:#163526; --bad:#ff6b5e; --bad-bg:#3a1c1a;
+    --glass:rgba(76,155,232,.2); --shadow:0 1px 0 rgba(255,255,255,.03),0 8px 22px -10px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10151f; --card:#1a2130; --ink:#f1eee6; --muted:#9aa0ab; --line:rgba(255,255,255,.1);
+  --blue:#4c9be8; --blue-ink:#0b1220; --ok:#4fcf86; --ok-bg:#163526; --bad:#ff6b5e; --bad-bg:#3a1c1a;
+  --glass:rgba(76,155,232,.2); --shadow:0 1px 0 rgba(255,255,255,.03),0 8px 22px -10px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:"Archivo",system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.4;
+  -webkit-font-smoothing:antialiased;overscroll-behavior:none;touch-action:manipulation;
+}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+.app{max-width:520px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;
+  padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 16px)}
+.screen{display:none;flex:1;flex-direction:column}
+.screen.on{display:flex;animation:in .28s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* icons */
+.ico{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.ico .f{fill:var(--yellow);stroke-width:2}
+.ico .b{fill:var(--blue);stroke-width:2}
+.ico .g{fill:var(--glass);stroke-width:2}
+
+/* home */
+.brand{padding:18px 4px 6px}
+.logo{font-weight:900;font-stretch:125%;font-size:clamp(52px,17vw,76px);letter-spacing:-.02em;line-height:.9;margin:0;display:flex;align-items:baseline;gap:10px}
+.logo .dot{display:inline-block;width:.28em;height:.28em;border-radius:50%;background:var(--yellow);box-shadow:inset 0 0 0 3px var(--blue)}
+.tagline{margin:10px 0 0;color:var(--muted);font-size:15px;font-stretch:90%}
+.modes{display:grid;gap:10px;margin:22px 0 0}
+.mode{display:grid;grid-template-columns:56px 1fr auto;align-items:center;gap:14px;text-align:left;
+  background:var(--card);border-radius:var(--r);padding:12px 14px 12px 12px;box-shadow:var(--shadow);border:1px solid var(--line);
+  transition:transform .12s}
+.mode:active{transform:scale(.98)}
+.mode .mi{width:56px;height:56px;border-radius:14px;background:var(--mc,var(--yellow));padding:9px;color:#16181d}
+.mode .mi .f{fill:#fff}
+.mode h3{margin:0;font-size:17px;font-weight:800;font-stretch:105%}
+.mode p{margin:2px 0 0;font-size:13.5px;color:var(--muted);line-height:1.3}
+.mode .best{font-size:12px;font-weight:700;color:var(--muted);text-align:right;white-space:nowrap}
+.mode .best b{display:block;font-size:18px;color:var(--ink);font-stretch:110%}
+.didyou{margin:22px 4px 0;font-size:13.5px;color:var(--muted);line-height:1.45}
+.didyou b{color:var(--ink)}
+.foot{margin-top:auto;padding:22px 4px 0;font-size:11.5px;color:var(--muted);opacity:.8}
+
+/* game top bar */
+.bar{display:flex;align-items:center;gap:12px;height:44px}
+.iconbtn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--card);border:1px solid var(--line)}
+.iconbtn svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.6;fill:none;stroke-linecap:round}
+.prog{flex:1;height:8px;border-radius:8px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--blue);border-radius:8px;transition:width .3s}
+.prog.chrono i{background:var(--yellow);transition:none}
+.prog.low i{background:var(--bad)}
+.pts{min-width:52px;text-align:right;font-weight:900;font-stretch:115%;font-size:20px;font-variant-numeric:tabular-nums}
+.meta{display:flex;justify-content:space-between;align-items:center;margin:14px 2px 0;font-size:13px;color:var(--muted);font-weight:600;min-height:20px}
+.streak{color:var(--blue);font-weight:800;opacity:0;transition:opacity .2s}
+.streak.on{opacity:1}
+
+/* question */
+.q{margin-top:14px;flex:1;display:flex;flex-direction:column}
+.ask{font-size:15px;color:var(--muted);margin:0 2px 12px;font-weight:600;text-align:center}
+.ask b{color:var(--ink)}
+.tag{position:relative;align-self:center;background:var(--yellow);color:var(--yellow-ink);border-radius:6px;
+  padding:16px 26px 14px 34px;min-width:68%;max-width:100%;text-align:left;box-shadow:var(--shadow);transform:rotate(-1.2deg)}
+.tag::before{content:"";position:absolute;left:12px;top:50%;width:9px;height:9px;margin-top:-5px;border-radius:50%;background:var(--bg);box-shadow:inset 0 1px 2px rgba(0,0,0,.25)}
+.tag .nm{font-weight:900;font-stretch:118%;font-size:clamp(30px,10vw,46px);line-height:1;letter-spacing:.01em;word-break:break-word}
+.tag .sub{font-size:13px;font-weight:600;margin-top:8px;opacity:.75;display:flex;justify-content:space-between;gap:10px}
+.tag .sub span:last-child{font-weight:900;font-stretch:115%}
+.hero{align-self:center;width:46%;max-width:190px;aspect-ratio:1;background:var(--card);border-radius:28px;padding:22px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.herolbl{text-align:center;margin:12px 0 0;font-weight:800;font-size:19px;font-stretch:108%}
+.prompt{background:var(--card);border-radius:var(--r);padding:20px 18px;box-shadow:var(--shadow);border:1px solid var(--line);font-size:19px;font-weight:700;text-align:center;line-height:1.3;font-stretch:102%}
+.prompt em{font-style:normal;color:var(--blue)}
+
+.choices{display:grid;gap:10px;margin-top:20px}
+.choices.grid{grid-template-columns:1fr 1fr}
+.choices.vf{grid-template-columns:1fr 1fr;margin-top:28px}
+.ch{position:relative;background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:14px;font-weight:700;text-align:center;
+  box-shadow:var(--shadow);transition:transform .1s,border-color .15s,background .15s;min-height:56px}
+.ch:active{transform:scale(.97)}
+.grid .ch{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 8px 12px;font-size:14.5px;line-height:1.2}
+.grid .ch .ci{width:64px;height:64px}
+.list .ch{font-size:16.5px;text-align:left;padding:15px 16px}
+.list .ch.name{font-weight:900;font-stretch:118%;font-size:21px;letter-spacing:.02em;text-align:center}
+.vf .ch{padding:22px 10px;font-size:17px;font-weight:800}
+.vf .ch small{display:block;font-weight:600;font-size:12.5px;color:var(--muted);margin-top:3px}
+.ch.ok{border-color:var(--ok);background:var(--ok-bg)}
+.ch.ko{border-color:var(--bad);background:var(--bad-bg);animation:shake .35s}
+.ch.dim{opacity:.45}
+.ch.ok::after,.ch.ko::after{position:absolute;top:6px;right:8px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:900;color:#fff}
+.ch.ok::after{content:"✓";background:var(--ok)}
+.ch.ko::after{content:"✕";background:var(--bad)}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+
+/* feedback sheet */
+.fb{margin-top:auto;padding-top:16px;display:none}
+.fb.on{display:block;animation:in .22s ease-out}
+.fbcard{background:var(--card);border-radius:var(--r);padding:14px 16px;border:1px solid var(--line);box-shadow:var(--shadow);display:flex;gap:12px;align-items:flex-start}
+.fbcard .fi{flex:0 0 44px;height:44px}
+.fbcard .ft{font-size:14.5px;line-height:1.4}
+.fbcard .ft strong{display:block;font-size:15px;margin-bottom:2px}
+.fbcard .ft strong.good{color:var(--ok)} .fbcard .ft strong.bad{color:var(--bad)}
+.cta{display:block;width:100%;margin-top:12px;background:var(--blue);color:var(--blue-ink);font-weight:800;font-size:17px;border-radius:16px;padding:16px;font-stretch:108%;transition:transform .1s}
+.cta:active{transform:scale(.98)}
+.cta.alt{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+
+/* result */
+.res{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:6vh}
+.res .big{font-weight:900;font-stretch:125%;font-size:88px;line-height:1;margin:18px 0 0}
+.res .big small{font-size:34px;color:var(--muted)}
+.res .rank{font-size:22px;font-weight:800;margin:10px 0 4px;font-stretch:108%}
+.res .line{color:var(--muted);font-size:14.5px;margin:0}
+.res .badge{width:120px;height:120px;border-radius:50%;background:var(--yellow);display:grid;place-items:center;padding:24px;color:#16181d;box-shadow:var(--shadow)}
+.res .badge .f{fill:#fff}
+.newbest{display:inline-block;margin-top:12px;background:var(--blue);color:var(--blue-ink);font-weight:800;font-size:12.5px;padding:5px 10px;border-radius:99px;letter-spacing:.04em;text-transform:uppercase}
+.recap{width:100%;margin-top:24px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.recap span{font-size:12.5px;font-weight:800;padding:5px 9px;border-radius:8px;font-stretch:112%}
+.recap .y{background:var(--ok-bg);color:var(--ok)} .recap .n{background:var(--bad-bg);color:var(--bad)}
+.btns{width:100%;margin-top:auto;padding-top:24px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HOME -->
+  <section class="screen on" id="home">
+    <div class="brand">
+      <h1 class="logo">FRÅGA<span class="dot"></span></h1>
+      <p class="tagline">Le quiz des meubles suédois. Clé Allen non fournie.</p>
+    </div>
+    <div class="modes" id="modes"></div>
+    <p class="didyou"><b>Le saviez-vous ?</b> Le fondateur d'IKEA était dyslexique : il retenait mieux des noms que des numéros de référence. D'où des milliers de noms suédois, rangés selon une logique précise (perce-la dans « Le code secret »).</p>
+    <p class="foot">Quiz de fan, non officiel, sans lien avec IKEA. Les noms de produits appartiennent à leurs propriétaires.</p>
+  </section>
+
+  <!-- GAME -->
+  <section class="screen" id="game">
+    <div class="bar">
+      <button class="iconbtn" id="quit" aria-label="Quitter"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="prog" id="prog"><i></i></div>
+      <div class="pts" id="pts">0</div>
+    </div>
+    <div class="meta"><span id="qnum"></span><span class="streak" id="streak"></span></div>
+    <div class="q" id="q"></div>
+    <div class="fb" id="fb">
+      <div class="fbcard"><div class="fi" id="fbi"></div><div class="ft" id="fbt"></div></div>
+      <button class="cta" id="next">Suivant</button>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="screen" id="result">
+    <div class="res" id="res"></div>
+  </section>
+</div>
+
+<script>
+/* ---------- Pictograms (64×64, drawn in-house) ---------- */
+const dots = (() => { let d = ''; for (let y = 13; y <= 45; y += 8) for (let x = 13; x <= 51; x += 8) d += `M${x} ${y}h0`; return d; })();
+const fringe = (() => { let d = ''; for (let y = 15; y <= 51; y += 6) d += `M5 ${y}h5M54 ${y}h5`; return d; })();
+
+const CATS = {
+  bookcase:   {l:'Bibliothèque', g:'store', s:'<rect x="15" y="5" width="34" height="54" rx="1.5"/><path d="M15 19h34M15 32h34M15 45h34"/><path class="f" d="M19 9h4v10h-4zM24 11h4v8h-4zM29 9h3v10h-3zM19 36h10v9H19z"/><path class="b" d="M38 23h4v9h-4zM43 25h3v7h-3zM38 49h8v10h-8z"/>'},
+  cube:       {l:'Étagère à cases', g:'store', s:'<rect x="9" y="9" width="46" height="46" rx="1.5"/><path d="M32 9v46M9 32h46"/><rect class="f" x="13" y="36" width="15" height="15" rx="1"/><rect class="b" x="36" y="13" width="15" height="15" rx="1"/><path d="M18 41h5"/>'},
+  shelf:      {l:'Étagère', g:'store', s:'<path d="M13 5v55M51 5v55M13 16h38M13 32h38M13 48h38"/><rect class="b" x="18" y="22" width="10" height="10"/><path class="f" d="M36 32v-8a5 5 0 0 1 10 0v8zM30 40h14v8H30z"/><path class="f" d="M17 8h4v8h-4z"/>'},
+  vitrine:    {l:'Vitrine', g:'store', s:'<rect x="14" y="4" width="36" height="54" rx="1"/><rect class="g" x="18" y="8" width="28" height="46"/><path d="M18 22h28M18 36h28M17 58v3M47 58v3"/><path class="f" d="M22 22v-7h5v7zM36 36v-7a3 3 0 0 1 6 0v7z"/><circle class="b" cx="32" cy="47" r="4"/>'},
+  tvbench:    {l:'Meuble TV', g:'store', s:'<rect class="b" x="16" y="6" width="32" height="20" rx="1.5"/><path d="M32 26v8M26 34h12"/><path class="f" d="M4 34h56v18H4z"/><path d="M23 34v18M41 34v18M8 52v4M56 52v4"/>'},
+  cart:       {l:'Desserte', g:'store', s:'<path d="M14 5v50M50 5v50"/><path class="f" d="M14 11h36v8H14zM14 27h36v8H14zM14 43h36v8H14z"/><circle cx="16" cy="58" r="3"/><circle cx="48" cy="58" r="3"/>'},
+  dresser:    {l:'Commode', g:'store2', s:'<path class="f" d="M9 10h46v44H9z"/><path d="M9 24h46M9 39h46M27 17h10M27 31h10M27 46h10M12 54v5M52 54v5"/><path class="b" d="M40 10V5h8v5z"/>'},
+  wardrobe:   {l:'Armoire', g:'store2', s:'<rect x="12" y="4" width="40" height="52" rx="1.5"/><path class="f" d="M15 7h14v46H15z"/><rect class="g" x="35" y="7" width="14" height="46"/><path d="M32 4v52M27 26v8M37 26v8M15 56v4M49 56v4"/>'},
+  clothesrack:{l:'Portant', g:'store2', s:'<path d="M10 59V8h44v51M5 59h10M49 59h10M20 8v4M40 8v4"/><path class="f" d="M14 16l6-4 6 4 2 24H12z"/><path class="b" d="M34 16l6-4 6 4 1 18H33z"/>'},
+  armchair:   {l:'Fauteuil', g:'soft', s:'<path d="M17 30V13a5 5 0 0 1 5-5h20a5 5 0 0 1 5 5v17"/><path class="f" d="M9 31a4 4 0 0 1 8 0v7h30v-7a4 4 0 0 1 8 0v15H9z"/><path d="M17 38h30M13 46v9M51 46v9"/>'},
+  sofa:       {l:'Canapé', g:'soft', s:'<path d="M9 28V17a5 5 0 0 1 5-5h36a5 5 0 0 1 5 5v11"/><path class="b" d="M3 31a4 4 0 0 1 8 0v7h42v-7a4 4 0 0 1 8 0v15H3z"/><path d="M11 38h42M32 12v26M7 46v7M57 46v7"/><path class="f" d="M15 24h8v8h-8z"/>'},
+  coffeetable:{l:'Table basse', g:'table', s:'<path class="f" d="M5 26h54v7H5z"/><path d="M8 33h7v21H8zM49 33h7v21h-7zM15 46h34"/><path class="b" d="M24 26v-6h10v6z"/>'},
+  table:      {l:'Table', g:'table', s:'<path class="b" d="M3 24h58v5H3z"/><path d="M9 29l-2 28M55 29l2 28"/><path class="f" d="M28 24v-7h8v7z"/><path d="M32 17c0-5 3-8 6-9M32 17c-1-4-4-6-7-6"/>'},
+  desk:       {l:'Bureau', g:'table', s:'<rect x="12" y="3" width="22" height="14" rx="1.5"/><path d="M23 17v4"/><path class="f" d="M3 21h58v5H3z"/><path d="M7 26v31M37 26h20v31H37zM37 36h20M37 46h20M45 31h4M45 41h4M45 51h4"/>'},
+  chair:      {l:'Chaise', g:'seat', s:'<rect x="18" y="4" width="28" height="23" rx="4"/><path d="M21 27v4M43 27v4"/><path class="f" d="M14 31h36v6H14z"/><path d="M17 37v21M47 37v21M24 37v14M40 37v14"/>'},
+  stool:      {l:'Tabouret', g:'seat', s:'<ellipse class="f" cx="32" cy="14" rx="17" ry="5"/><path d="M20 19l-6 40M44 19l6 40M32 20v39M17 43h30"/>'},
+  officechair:{l:'Chaise de bureau', g:'seat', s:'<rect class="b" x="19" y="3" width="26" height="25" rx="7"/><path d="M32 28v3M11 25v8h4M53 25v8h-4M32 37v11M14 53l18-5 18 5M32 48v7"/><path class="f" d="M15 31h34v6H15z"/><circle cx="14" cy="56" r="2.5"/><circle cx="50" cy="56" r="2.5"/><circle cx="32" cy="58" r="2.5"/>'},
+  highchair:  {l:'Chaise haute', g:'seat', s:'<path class="f" d="M19 6h26l-2 26H21z"/><path class="b" d="M11 22h42v5H11z"/><path d="M22 32l-10 27M42 32l10 27M17 47h30"/>'},
+  stepstool:  {l:'Escabeau', g:'seat', s:'<path d="M16 59l7-47M48 59l-7-47M19 37h26"/><path class="f" d="M19 7h26v6H19zM16 33h32v6H16z"/>'},
+  bed:        {l:'Lit', g:'bed', s:'<path d="M6 12v46M58 28v30M6 48h52"/><path class="b" d="M6 30h52v11H6z"/><path class="f" d="M10 30c0-5 3-8 8-8h7c3 0 4 3 4 8z"/>'},
+  crib:       {l:'Lit bébé', g:'bed', s:'<path class="f" d="M8 40h48v6H8z"/><path d="M8 10v48M56 10v48M8 15h48M8 46h48"/><path d="M15 15v25M22 15v25M29 15v25M36 15v25M43 15v25M50 15v25" stroke-width="2"/>'},
+  desklamp:   {l:'Lampe à poser', g:'light', s:'<path class="f" d="M21 7h22l7 21H14z"/><path d="M32 28v22"/><path class="b" d="M22 50h20l2 6H20z"/>'},
+  pendant:    {l:'Suspension', g:'light', s:'<path d="M32 2v16"/><path class="f" d="M12 38a20 20 0 0 1 40 0z"/><path d="M27 38a5 5 0 0 0 10 0M21 48l-3 6M32 51v7M43 48l3 6"/>'},
+  floorlamp:  {l:'Lampadaire', g:'light', s:'<path class="f" d="M22 4h20l6 15H16z"/><path d="M32 19v35"/><ellipse class="b" cx="32" cy="57" rx="11" ry="3.5"/>'},
+  bulb:       {l:'Ampoule', g:'light', s:'<path class="f" d="M32 5a16 16 0 0 0-9 29c2 2 3 4 3 7h12c0-3 1-5 3-7A16 16 0 0 0 32 5z"/><path d="M26 46h12M27 51h10M29 57h6M28 30l4-8 4 8"/>'},
+  mirror:     {l:'Miroir', g:'wall', s:'<ellipse class="g" cx="32" cy="30" rx="17" ry="25"/><path d="M24 22l10-9M24 32l16-15M27 55l-5 6M37 55l5 6" /><path class="f" d="M29 55h6v3h-6z"/>'},
+  frame:      {l:'Cadre photo', g:'wall', s:'<rect x="7" y="11" width="50" height="42" rx="1"/><rect x="13" y="17" width="38" height="30"/><path class="b" d="M13 47l11-13 8 8 6-6 13 11z"/><circle class="f" cx="42" cy="25" r="4"/>'},
+  pegboard:   {l:'Panneau perforé', g:'wall', s:`<rect x="6" y="5" width="52" height="46" rx="2"/><path d="${dots}" stroke-width="3"/><path d="M19 21v10a4 4 0 0 0 8 0"/><path class="f" d="M35 29h14v12H35z"/><path class="b" d="M14 41h10v10H14z"/>`},
+  rug:        {l:'Tapis', g:'textile', s:`<rect class="b" x="10" y="12" width="44" height="40" rx="1"/><path class="f" d="M32 19l11 13-11 13-11-13z"/><path d="${fringe}"/>`},
+  curtain:    {l:'Rideaux', g:'textile', s:'<path d="M3 7h58"/><path class="b" d="M8 7v50c8 0 12-2 15-6-2-14-2-30 1-44z"/><path class="f" d="M56 7v50c-8 0-12-2-15-6 2-14 2-30-1-44z"/>'},
+  blind:      {l:'Store', g:'textile', s:'<rect x="9" y="5" width="46" height="52" rx="1"/><path class="f" d="M9 5h46v26H9z"/><path d="M9 12h46M9 19h46M9 26h46M32 31v26M48 31v11"/><circle cx="48" cy="45" r="2.5"/>'},
+  cushion:    {l:'Coussin', g:'textile', s:'<path class="f" d="M10 12c14 5 30 5 44 0-4 13-4 27 0 40-14-5-30-5-44 0 4-13 4-27 0-40z"/><path class="b" d="M32 22l10 10-10 10-10-10z"/>'},
+  bedding:    {l:'Linge de lit', g:'textile', s:'<path class="b" d="M8 41h48v14H8z"/><path class="f" d="M11 28h42v13H11z"/><path d="M14 17h36v11H14zM8 48h48"/>'},
+  plush:      {l:'Peluche', g:'kids', s:'<ellipse class="f" cx="32" cy="47" rx="14" ry="13"/><circle class="f" cx="20" cy="14" r="6"/><circle class="f" cx="44" cy="14" r="6"/><circle class="f" cx="32" cy="24" r="13"/><path d="M27 22h0M37 22h0" stroke-width="4.5"/><path d="M29 28q3 3 6 0"/><circle class="b" cx="32" cy="47" r="5"/>'},
+  toy:        {l:'Jouet', g:'kids', s:'<path class="b" d="M5 24h22v22H5z"/><path class="f" d="M30 31h26v15H30z"/><path d="M9 24v-8h10v8M27 41h3"/><circle cx="12" cy="50" r="4"/><circle cx="22" cy="50" r="4"/><circle cx="37" cy="50" r="4"/><circle cx="49" cy="50" r="4"/>'},
+  bag:        {l:'Sac', g:'box', s:'<path class="b" d="M10 24h44l-4 33H14z"/><path d="M20 24c0-16 24-16 24 0M26 24c0-9 12-9 12 0"/>'},
+  box:        {l:'Boîte de rangement', g:'box', s:'<path class="f" d="M10 24h44v32H10z"/><path class="b" d="M7 16h50v8H7z"/><path d="M26 35h12" stroke-width="4"/>'},
+  basket:     {l:'Panier', g:'box', s:'<path d="M20 24c0-12 24-12 24 0"/><path class="f" d="M8 24h48l-5 32H13z"/><path d="M10 34h44M11 45h42M20 24l2 32M32 24v32M44 24l-2 32"/>'},
+  bin:        {l:'Poubelle', g:'box', s:'<path class="b" d="M15 17h34l-3 41H18z"/><path d="M11 13h42v4H11zM27 13V8h10v5M25 25v25M32 25v25M39 25v25"/>'},
+  plant:      {l:'Plante artificielle', g:'deco', s:'<path class="f" d="M32 40C30 30 22 26 14 26c2 8 8 14 18 14zM32 40c2-12 10-18 20-18-2 10-8 18-20 18zM32 40c-2-12 0-24 6-32 3 10 2 22-6 32z"/><path class="b" d="M22 40h20l-3 18H25z"/>'},
+  tableware:  {l:'Vaisselle', g:'kitchen', s:'<ellipse class="b" cx="32" cy="53" rx="26" ry="6"/><path class="f" d="M18 18h24v26a4 4 0 0 1-4 4H22a4 4 0 0 1-4-4z"/><path d="M42 24h4a7 7 0 0 1 0 14h-4M26 6c-2 3 2 4 0 7M34 6c-2 3 2 4 0 7"/>'},
+  pan:        {l:'Casserole & poêle', g:'kitchen', s:'<path class="b" d="M10 27h38v19a8 8 0 0 1-8 8H18a8 8 0 0 1-8-8z"/><path d="M6 23h46M29 23v-5M24 18h10M48 31h11M10 31H4"/>'},
+  jar:        {l:'Bocal', g:'kitchen', s:'<path class="g" d="M16 20h32v32a6 6 0 0 1-6 6H22a6 6 0 0 1-6-6z"/><path class="f" d="M18 11h28v9H18z"/><path class="b" d="M18 40h28v12a4 4 0 0 1-4 4H22a4 4 0 0 1-4-4z"/><path d="M16 27h4M44 27h4"/>'},
+  speaker:    {l:'Enceinte', g:'tech', s:'<rect class="b" x="15" y="5" width="34" height="54" rx="5"/><circle class="f" cx="32" cy="40" r="11"/><circle cx="32" cy="40" r="4"/><circle class="f" cx="32" cy="18" r="5"/>'},
+  purifier:   {l:'Purificateur d\'air', g:'tech', s:'<rect x="14" y="10" width="36" height="48" rx="6"/><path class="f" d="M14 42h36v10a6 6 0 0 1-6 6H20a6 6 0 0 1-6-6z"/><path d="M20 18h24M20 24h24M20 30h24M22 2c2 2-2 4 0 6M32 2c2 2-2 4 0 6M42 2c2 2-2 4 0 6"/>'},
+  drying:     {l:'Séchoir à linge', g:'misc', s:'<path d="M6 8v51M58 8v51M6 14h52M19 11v6M44 11v6"/><path class="f" d="M13 14h13l6 6-4 4-2-2v18H13V22l-2 2-4-4z"/><path class="b" d="M40 14h8v15l5 4-3 5-10-6z"/>'},
+};
+
+/* ---------- Products (name → category) ---------- */
+const BY_CAT = {
+  bookcase:'BILLY', cube:'KALLAX', shelf:'IVAR HYLLIS OMAR ALGOT BROR', vitrine:'DETOLF FABRIKÖR MILSBO', tvbench:'BESTÅ',
+  cart:'RÅSKOG', dresser:'MALM KULLEN RAST KOPPANG NORDLI', wardrobe:'PAX RAKKESTAD KLEPPSTAD NORDKISA', clothesrack:'MULIG RIGGA',
+  armchair:'POÄNG STRANDMON EKENÄSET PELLO AGEN VEDBO', sofa:'KLIPPAN EKTORP FRIHETEN SÖDERHAMN KIVIK LANDSKRONA VIMLE GRÖNLID UPPLAND LIDHULT',
+  coffeetable:'LACK', table:'EKEDALEN LISABO MÖRBYLÅNGA NORDEN DOCKSTA VANGSTA LERHAMN NORDVIKEN', desk:'MICKE BEKANT IDÅSEN TROTTEN',
+  chair:'INGOLF TOBIAS STEFAN ADDE TEODORES JANINGE BERGMUND ODGER', stool:'KYRRE FROSTA MARIUS DALFRED FRANKLIN',
+  officechair:'MARKUS FLINTAN MILLBERGET ALEFJÄLL HATTEFJÄLL SNILLE', highchair:'ANTILOP', stepstool:'BEKVÄM',
+  bed:'TARVA SLATTUM NEIDEN KURA', crib:'SNIGLAR GONATT SMÅGÖRA GULLIVER',
+  desklamp:'TERTIAL FORSÅ FADO ÅRSTID LAMPAN', pendant:'SINNERLIG KNIXHULT REGOLIT KRUSNING VINDKAST', floorlamp:'HOLMÖ TÅGARP LAUTERS', bulb:'TRÅDFRI SOLHETTA MOLNART',
+  mirror:'HOVET STAVE LINDBYN NISSEDAL', frame:'RIBBA FISKBO KNOPPÄNG LOMVIKEN', pegboard:'SKÅDIS',
+  rug:'TÅNUM LOHALS STOENSE VINDUM ÅDUM', curtain:'RITVA MERETE HILJA VIVAN LILL', blind:'FYRTUR KADRILJ TRETUR HOPPVALS RINGBLOMMA',
+  cushion:'GURLI FJÄDRAR', bedding:'DVALA NATTJASMIN', plush:'BLÅHAJ DJUNGELSKOG GOSIG', toy:'LILLABO DUKTIG',
+  bag:'FRAKTA DIMPA', box:'SAMLA DRÖNA KUGGIS SKUBB TJENA', basket:'KNIPSA BRANÄS TORKIS', bin:'FILUR KNODD SORTERA',
+  plant:'FEJKA SMYCKA', tableware:'FÄRGRIK DINERA OFTAST POKAL', pan:'KAVALKAD OUMBÄRLIG HEMLAGAD', jar:'KORKEN',
+  speaker:'ENEBY SYMFONISK VAPPEBY', purifier:'STARKVIND FÖRNUFTIG', drying:'ANTONIUS PRESSA',
+};
+const PRODUCTS = Object.entries(BY_CAT).flatMap(([c, s]) => s.split(' ').map(n => ({n, c})));
+const REAL = new Set(PRODUCTS.map(p => p.n));
+
+const FACTS = {
+  BILLY:'Baptisée d\'après Billy Liljedahl, un employé d\'IKEA. Au catalogue depuis 1979.',
+  KALLAX:'A remplacé l\'étagère EXPEDIT en 2014, à la grande panique des fans de vinyles.',
+  POÄNG:'Dessiné par le Japonais Noboru Nakamura. Il s\'appelait POEM à son lancement, en 1976.',
+  IVAR:'Le système en pin massif est au catalogue depuis 1967.',
+  STRANDMON:'Réédition d\'un fauteuil à oreilles des années 1950.',
+  BLÅHAJ:'Le requin bleu est devenu une star d\'internet.',
+  FRAKTA:'Le grand sac bleu en polypropylène, increvable.',
+  KLIPPAN:'Klippan est aussi une petite ville du sud de la Suède.',
+  LANDSKRONA:'Landskrona est un port de Scanie, en Suède.',
+  TRÅDFRI:'Son nom veut dire « sans fil » : c\'est une ampoule connectée.',
+  STARKVIND:'« Vent fort » : bien trouvé pour un purificateur d\'air.',
+  SKÅDIS:'On y accroche crochets, bacs et étagères à volonté.',
+  LACK:'« Lack » veut dire laque, ou vernis.',
+};
+
+/* Invented, Swedish-sounding names (not real products, as far as we know). */
+const FAKES = ['BRÖDKNAS','SKALDRUP','MJÖLKVIK','HÖNSTA','GRYNBACK','SVÄLLNÄS','KORPSTIG','DÄNGSTRA','LÖKFJÄRD','FLASKUM',
+  'BJÄLKRUD','SNÖRVALL','KNÄCKEBO','GÄDDSTRUP','PRÄSTKULL','SÅGHULT','VRÅLSTA','HÄLLRUND','TJÄRBERG','KNÖLKVIST',
+  'SPJÄLLA','BÖRJSTEN','FYLLBOD','ÄNGSKRUM','GRÖTSKÅL','SLÅNBRIK','MYSGRUND','KRÅKSTOL','HUMLESTRÖ','PLÅTTRUP',
+  'SKRÄVLA','DUNKHEM','FJÄLLKNORR','BLÖTSKOG','RÖRSJÖN','STÖKVIK'].filter(n => !REAL.has(n));
+
+/* Swedish words: name → meaning, then what the product is. */
+const DICO = [
+  ['BLÅHAJ','requin bleu','une peluche requin'],
+  ['DJUNGELSKOG','forêt de la jungle','une peluche (singe, tigre…)'],
+  ['FRAKTA','transporter','le grand sac bleu'],
+  ['LACK','laque, vernis','une table d\'appoint'],
+  ['SAMLA','rassembler','une boîte en plastique'],
+  ['DUKTIG','doué, sage','une dînette pour enfants'],
+  ['FÄRGRIK','coloré','une gamme de mugs'],
+  ['SMYCKA','décorer','des fleurs artificielles'],
+  ['FEJKA','faire semblant','des plantes artificielles'],
+  ['TRÅDFRI','sans fil','une ampoule connectée'],
+  ['STARKVIND','vent fort','un purificateur d\'air'],
+  ['KORKEN','le bouchon','un bocal à fermeture mécanique'],
+  ['SORTERA','trier','un bac de tri des déchets'],
+  ['BEKVÄM','confortable','un escabeau'],
+  ['GOSIG','câlin, doux','une peluche'],
+  ['TROFAST','fidèle','un rangement pour jouets'],
+  ['MÅLA','peindre','du matériel de dessin pour enfants'],
+  ['KLIPPAN','le rocher','un canapé (et une ville)'],
+  ['STRÅLA','rayonner','des étoiles et guirlandes lumineuses'],
+  ['HEMLAGAD','fait maison','des casseroles'],
+  ['OUMBÄRLIG','indispensable','des ustensiles de cuisine'],
+  ['VARDAGEN','le quotidien','de la vaisselle et des ustensiles'],
+  ['MAMMUT','mammouth','des meubles pour enfants'],
+  ['KRITTER','bestioles','des meubles pour enfants'],
+  ['PRESSA','presser','un séchoir à suspendre'],
+  ['FÖRNUFTIG','raisonnable','un purificateur d\'air'],
+  ['VINDSTYRKA','force du vent','un capteur de qualité de l\'air'],
+  ['FRIHETEN','la liberté','un canapé convertible'],
+  ['SNILLE','génie','une chaise pivotante'],
+  ['POÄNG','point','un fauteuil'],
+  ['FJÄDRAR','plumes','un garnissage de coussin'],
+  ['NATTJASMIN','jasmin de nuit','du linge de lit'],
+  ['BÄSTIS','meilleur ami','des accessoires pour animaux'],
+  ['LURVIG','poilu','des accessoires pour animaux'],
+  ['SNUDDA','effleurer','un plateau tournant'],
+  ['ÖVERALLT','partout','une collection d\'objets'],
+  ['DVALA','torpeur, sommeil','des draps'],
+  ['MOLNART','nuageux','une ampoule décorative'],
+];
+
+/* IKEA's naming system: department → origin of names. u = safe to ask in reverse. */
+const CODE = [
+  {r:'canapés et fauteuils', c:'Des lieux de Suède', ex:'KLIPPAN et LANDSKRONA sont des villes suédoises.'},
+  {r:'lits et armoires', c:'Des lieux de Norvège', u:1, ex:'Lits, armoires et meubles d\'entrée portent des noms de lieux norvégiens.'},
+  {r:'tapis', c:'Des lieux du Danemark', u:1, ex:'Les tapis portent des noms de lieux danois.'},
+  {r:'tables et chaises de salle à manger', c:'Des lieux de Finlande', u:1, ex:'Pour la salle à manger, cap sur la Finlande.'},
+  {r:'chaises et bureaux', c:'Des prénoms masculins', ex:'Comme MARKUS, STEFAN ou TOBIAS.'},
+  {r:'tissus et rideaux', c:'Des prénoms féminins', u:1, ex:'Comme RITVA, MERETE ou HILJA.'},
+  {r:'bibliothèques', c:'Des métiers', u:1, ex:'Les bibliothèques ont des noms de métiers… à part BILLY, du prénom d\'un employé.'},
+  {r:'articles de salle de bain', c:'Des lacs, rivières et baies', u:1, ex:'La salle de bain puise dans les lacs et les baies de Scandinavie.'},
+  {r:'cuisines', c:'Des termes de grammaire', u:1, ex:'Les cuisines empruntent au vocabulaire grammatical.'},
+  {r:'articles pour enfants', c:'Des mammifères, oiseaux et adjectifs', u:1, ex:'D\'où MAMMUT, ANTILOP ou DUKTIG.'},
+  {r:'linge de lit', c:'Des fleurs, plantes et pierres précieuses', u:1, ex:'D\'où NATTJASMIN, le jasmin de nuit.'},
+  {r:'luminaires', c:'Des unités de mesure, saisons et termes marins', ex:'Mois, saisons, météo, vocabulaire nautique : c\'est le rayon le plus éclectique.'},
+  {r:'boîtes et décoration murale', c:'Des expressions familières', u:1, ex:'Comme TJENA, qui veut dire « salut ! ».'},
+  {r:'accessoires de cuisine', c:'Des épices, herbes, poissons et fruits', u:1, ex:'Et aussi des adjectifs fonctionnels, comme OUMBÄRLIG (« indispensable »).'},
+  {r:'meubles de jardin', c:'Des îles suédoises', u:1, ex:'Comme ÄPPLARÖ, une île de l\'archipel suédois.'},
+];
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const rnd = n => Math.random() * n | 0;
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const lc = t => t[0].toLowerCase() + t.slice(1);
+const deNoms = c => { const t = lc(c.replace(/^Des /, '')); return (/^[aeiouyéèîh]/i.test(t) ? "d'" : 'de ') + t; };
+const icon = k => `<svg viewBox="0 0 64 64" class="ico" aria-hidden="true">${CATS[k].s}</svg>`;
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem('fraga:' + k)); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem('fraga:' + k, JSON.stringify(v)); } catch {} },
+};
+const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch {} };
+const price = n => { let h = 0; for (const ch of n) h = (h * 31 + ch.charCodeAt(0)) % 997; return '??,' + String(h % 100).padStart(2, '0') + ' €'; };
+const tag = (name, sub) => `<div class="tag"><div class="nm">${name}</div><div class="sub"><span>${sub}</span><span>${price(name)}</span></div></div>`;
+
+/* 3 distractor categories, each from a different family than the answer and each other */
+function otherCats(cat, n = 3) {
+  const used = new Set([CATS[cat].g]), out = [];
+  for (const k of shuffle(Object.keys(CATS))) {
+    if (used.has(CATS[k].g)) continue;
+    used.add(CATS[k].g); out.push(k);
+    if (out.length === n) break;
+  }
+  return out;
+}
+
+/* ---------- Question generators ---------- */
+const GEN = {
+  nom() {
+    const p = pick(PRODUCTS);
+    const opts = shuffle([p.c, ...otherCats(p.c)]);
+    return {
+      id: 'n' + p.n, layout: 'grid',
+      html: `<p class="ask">Qu'est-ce que c'est ?</p>${tag(p.n, 'Article n° ???')}`,
+      choices: opts.map(c => ({html: `<span class="ci">${icon(c)}</span>${CATS[c].l}`, ok: c === p.c})),
+      fb: {icon: p.c, text: `<b>${p.n}</b> : ${CATS[p.c].l.toLowerCase()}.${FACTS[p.n] ? ' ' + FACTS[p.n] : ''}`},
+      recap: p.n,
+    };
+  },
+  inv() {
+    const p = pick(PRODUCTS);
+    const others = otherCats(p.c).map(c => pick(PRODUCTS.filter(q => q.c === c)).n);
+    const opts = shuffle([p.n, ...others]);
+    return {
+      id: 'i' + p.n, layout: 'list',
+      html: `<p class="ask">Retrouve son nom</p><div class="hero">${icon(p.c)}</div><p class="herolbl">${CATS[p.c].l}</p>`,
+      choices: opts.map(n => ({html: n, ok: n === p.n, cls: 'name'})),
+      fb: {icon: p.c, text: `<b>${p.n}</b> : ${CATS[p.c].l.toLowerCase()}.${FACTS[p.n] ? ' ' + FACTS[p.n] : ''}`},
+      recap: p.n,
+    };
+  },
+  vf() {
+    const real = Math.random() < .5;
+    const p = real ? pick(PRODUCTS) : {n: pick(FAKES)};
+    return {
+      id: 'v' + p.n, layout: 'vf',
+      html: `<p class="ask">Vrai produit ou nom inventé ?</p>${tag(p.n, 'Rayon ???')}`,
+      choices: [
+        {html: 'Vrai<small>ça existe</small>', ok: real},
+        {html: 'Inventé<small>c\'est du faux</small>', ok: !real},
+      ],
+      fb: real
+        ? {icon: p.c, text: `<b>${p.n}</b> existe bien : ${CATS[p.c].l.toLowerCase()}.`}
+        : {icon: 'box', text: `<b>${p.n}</b> est inventé. Aucun meuble ne porte ce nom (à notre connaissance).`},
+      recap: p.n,
+    };
+  },
+  dico() {
+    const d = pick(DICO);
+    const meanings = shuffle(DICO.filter(x => x !== d).map(x => x[1])).slice(0, 3);
+    const opts = shuffle([d[1], ...meanings]);
+    return {
+      id: 'd' + d[0], layout: 'list',
+      html: `<p class="ask">Que veut dire ce nom en suédois ?</p>${tag(d[0], 'Traduction ???')}`,
+      choices: opts.map(m => ({html: '« ' + m + ' »', ok: m === d[1]})),
+      fb: {icon: null, text: `<b>${d[0]}</b> = « ${d[1]} ». Chez IKEA, c'est ${d[2]}.`},
+      recap: d[0],
+    };
+  },
+  code() {
+    const e = pick(CODE);
+    const reverse = e.u && Math.random() < .45;
+    const others = shuffle(CODE.filter(x => x !== e)).slice(0, 3);
+    const opts = shuffle([e, ...others]);
+    return reverse ? {
+      id: 'cr' + e.r, layout: 'list',
+      html: `<p class="ask">Le code secret</p><div class="prompt">Quel rayon est baptisé d'après <em>${lc(e.c)}</em> ?</div>`,
+      choices: opts.map(x => ({html: x.r[0].toUpperCase() + x.r.slice(1), ok: x === e})),
+      fb: {icon: null, text: `<b>${e.c}</b> : les ${e.r}. ${e.ex}`},
+      recap: e.r,
+    } : {
+      id: 'c' + e.r, layout: 'list',
+      html: `<p class="ask">Le code secret</p><div class="prompt">Chez IKEA, les <em>${e.r}</em> portent les noms…</div>`,
+      choices: opts.map(x => ({html: deNoms(x.c), ok: x === e})),
+      fb: {icon: null, text: `<b>Les ${e.r}</b> : ${lc(e.c)}. ${e.ex}`},
+      recap: e.r,
+    };
+  },
+};
+GEN.chrono = () => GEN[pick(['nom', 'nom', 'inv', 'vf', 'dico'])]();
+
+const MODES = [
+  {k:'nom',    t:'Qu\'est-ce que c\'est ?', d:'Un nom suédois, quatre objets. Lequel est le bon ?', i:'bookcase', c:'#ffd60a'},
+  {k:'inv',    t:'Trouve le nom',          d:'L\'objet est là. À toi de retrouver son vrai nom.', i:'armchair', c:'#8ec5ff'},
+  {k:'vf',     t:'Vrai ou inventé ?',      d:'Vrai produit ou nom imaginaire ? Méfie-toi des faux.', i:'bag', c:'#ffb38a'},
+  {k:'dico',   t:'Petit dico suédois',     d:'Que veut dire BLÅHAJ ? Traduis les noms.', i:'plush', c:'#b7e4a8'},
+  {k:'code',   t:'Le code secret',         d:'Lits norvégiens, tapis danois : perce la logique des noms.', i:'rug', c:'#d9c2ff'},
+  {k:'chrono', t:'Contre la montre',       d:'60 secondes, tous les modes. Une erreur coûte 3 s.', i:'bulb', c:'#ff9d9d'},
+];
+
+const RANKS = [
+  [0, 'Perdu dans le showroom', 'Suis les flèches au sol, ça finit toujours par sortir.'],
+  [4, 'Habitué du restaurant', 'Tu connais surtout les boulettes. C\'est un début.'],
+  [7, 'Monteur confirmé', 'Il ne te reste jamais de vis en trop.'],
+  [9, 'Clé Allen d\'or', 'Tu parles couramment le catalogue.'],
+  [10, 'Maître du flatpack', 'Sans faute. On t\'appelle pour monter le PAX ?'],
+];
+const CHRONO_RANKS = [
+  [0, 'Perdu dans le showroom', 'Le chrono, ça s\'apprivoise.'],
+  [6, 'Habitué du restaurant', 'Pas mal pour une minute.'],
+  [12, 'Monteur confirmé', 'Rapide et précis.'],
+  [18, 'Clé Allen d\'or', 'Tu montes un BILLY les yeux fermés.'],
+  [25, 'Maître du flatpack', 'Inarrêtable.'],
+];
+
+/* ---------- Home ---------- */
+function renderHome() {
+  $('#modes').innerHTML = MODES.map(m => {
+    const b = store.get('best:' + m.k);
+    const best = b == null ? '' : `<div class="best">Record<b>${b}${m.k === 'chrono' ? '' : '/10'}</b></div>`;
+    return `<button class="mode" data-k="${m.k}"><div class="mi" style="--mc:${m.c}">${icon(m.i)}</div><div><h3>${m.t}</h3><p>${m.d}</p></div>${best}</button>`;
+  }).join('');
+}
+$('#modes').addEventListener('click', e => { const b = e.target.closest('.mode'); if (b) start(b.dataset.k); });
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  window.scrollTo(0, 0);
+}
+
+/* ---------- Game ---------- */
+const TOTAL = 10, CHRONO_S = 60;
+let S = null;
+
+function start(mode) {
+  S = {mode, i: 0, score: 0, streak: 0, bestStreak: 0, used: new Set(), log: [], q: null, locked: false,
+       chrono: mode === 'chrono', end: 0, raf: 0};
+  $('#prog').className = 'prog' + (S.chrono ? ' chrono' : '');
+  $('#pts').textContent = '0';
+  show('game');
+  if (S.chrono) { S.end = performance.now() + CHRONO_S * 1000; tick(); }
+  next();
+}
+
+function tick() {
+  if (!S || !S.chrono) return;
+  const left = Math.max(0, S.end - performance.now());
+  const bar = $('#prog');
+  bar.firstElementChild.style.width = (left / (CHRONO_S * 1000) * 100) + '%';
+  bar.classList.toggle('low', left < 10000);
+  $('#qnum').textContent = Math.ceil(left / 1000) + ' s';
+  if (left <= 0) return finish();
+  S.raf = requestAnimationFrame(tick);
+}
+
+function next() {
+  if (!S.chrono && S.i >= TOTAL) return finish();
+  let q, tries = 0;
+  do { q = GEN[S.mode](); } while (S.used.has(q.id) && ++tries < 40);
+  S.used.add(q.id);
+  S.q = q; S.locked = false;
+  if (!S.chrono) {
+    $('#qnum').textContent = `Question ${S.i + 1} / ${TOTAL}`;
+    $('#prog').firstElementChild.style.width = (S.i / TOTAL * 100) + '%';
+  }
+  $('#q').innerHTML = q.html + `<div class="choices ${q.layout}">` +
+    q.choices.map((c, i) => `<button class="ch ${c.cls || ''}" data-i="${i}">${c.html}</button>`).join('') + '</div>';
+  $('#fb').classList.remove('on');
+  updateStreak();
+}
+
+$('#q').addEventListener('click', e => {
+  const b = e.target.closest('.ch');
+  if (!b || !S || S.locked) return;
+  answer(+b.dataset.i);
+});
+
+function answer(i) {
+  S.locked = true;
+  const q = S.q, ok = q.choices[i].ok;
+  const btns = [...document.querySelectorAll('#q .ch')];
+  btns.forEach((b, j) => {
+    if (q.choices[j].ok) b.classList.add('ok');
+    else if (j === i) b.classList.add('ko');
+    else b.classList.add('dim');
+  });
+  S.i++;
+  S.log.push({t: q.recap, ok});
+  if (ok) { S.score++; S.streak++; S.bestStreak = Math.max(S.bestStreak, S.streak); buzz(12); }
+  else { S.streak = 0; buzz([30, 40, 30]); if (S.chrono) S.end -= 3000; }
+  $('#pts').textContent = S.score;
+  updateStreak();
+
+  if (S.chrono) { setTimeout(() => S && S.chrono && next(), ok ? 380 : 750); return; }
+
+  $('#fbi').innerHTML = q.fb.icon ? icon(q.fb.icon) : '';
+  $('#fbi').style.display = q.fb.icon ? '' : 'none';
+  $('#fbt').innerHTML = `<strong class="${ok ? 'good' : 'bad'}">${ok ? pick(['Bravo !', 'Exact !', 'Bien vu !', 'Ja !']) : pick(['Raté…', 'Eh non.', 'Perdu !'])}</strong>${q.fb.text}`;
+  $('#next').textContent = S.i >= TOTAL ? 'Voir le résultat' : 'Suivant';
+  $('#fb').classList.add('on');
+  $('#fb').scrollIntoView({behavior: 'smooth', block: 'end'});
+}
+$('#next').addEventListener('click', () => S && next());
+
+function updateStreak() {
+  const el = $('#streak');
+  el.classList.toggle('on', S.streak >= 3);
+  if (S.streak >= 3) el.textContent = `Série de ${S.streak}`;
+}
+
+function finish() {
+  cancelAnimationFrame(S.raf);
+  const s = S, key = 'best:' + s.mode, prev = store.get(key);
+  const isBest = prev == null || s.score > prev;
+  if (isBest) store.set(key, s.score);
+  const ranks = s.chrono ? CHRONO_RANKS : RANKS;
+  const r = ranks.filter(x => s.score >= x[0]).pop();
+  const mode = MODES.find(m => m.k === s.mode);
+  const recap = s.log.slice(-24).map(x => `<span class="${x.ok ? 'y' : 'n'}">${x.t.length > 16 ? x.t.slice(0, 15) + '…' : x.t}</span>`).join('');
+  $('#res').innerHTML = `
+    <div class="badge">${icon(mode.i)}</div>
+    <div class="big">${s.score}${s.chrono ? '' : '<small>/' + TOTAL + '</small>'}</div>
+    <div class="rank">${r[1]}</div>
+    <p class="line">${r[2]}</p>
+    <p class="line" style="margin-top:6px">${s.chrono ? s.log.length + (s.log.length > 1 ? ' questions' : ' question') + ' en 60 s' : mode.t}${s.bestStreak >= 3 ? ' · meilleure série : ' + s.bestStreak : ''}</p>
+    ${isBest && s.score > 0 ? '<span class="newbest">Nouveau record</span>' : ''}
+    <div class="recap">${recap}</div>
+    <div class="btns">
+      <button class="cta" id="again">Rejouer</button>
+      ${navigator.share ? '<button class="cta alt" id="share">Défier un ami</button>' : ''}
+      <button class="cta alt" id="menu">Autres modes</button>
+    </div>`;
+  $('#again').onclick = () => start(s.mode);
+  $('#menu').onclick = home;
+  const sh = $('#share');
+  if (sh) sh.onclick = () => navigator.share({
+    title: 'FRÅGA',
+    text: `${s.score}${s.chrono ? ' bonnes réponses en 60 s' : '/' + TOTAL} au quiz FRÅGA (${mode.t}). « ${r[1]} ». Tu fais mieux ?`,
+    url: location.href,
+  }).catch(() => {});
+  S = null;
+  show('result');
+  if (isBest && s.score > 0) buzz([20, 60, 20, 60, 40]);
+}
+
+function home() {
+  if (S) { cancelAnimationFrame(S.raf); S = null; }
+  renderHome();
+  show('home');
+}
+$('#quit').addEventListener('click', home);
+
+renderHome();
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
