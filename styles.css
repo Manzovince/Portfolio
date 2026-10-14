@@ -175,6 +175,11 @@ td {
     border-color: var(--text-color);
 }
 
+/* "Portfolio" label next to the logo: room before the hover frame */
+#path span {
+    padding-right: 6px;
+}
+
 #path svg path {
     transition: all 0.25s ease-in-out;
 }
