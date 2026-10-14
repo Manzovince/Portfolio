@@ -35,7 +35,7 @@ const translations = {
     popin3: "When we had all we need : personas, user flows, Q/A content, and a new face for Pop-in, we needed to structure a discussion to make users understand who Pop-in is, what she does and how to talk to her. I tested multiple platforms before finding the write one. It was a way for me to learn how chatbots works, and to quickly get parents interested. Our final solution was to use DialogFlow for a good Natural Language Understanding, and ManyChat, a chatbot development plateform for Facebook Messenger. <br><br> We also needed a website to showcase our goals and values. After making the sitemap, I designed a few prototypes of the website in Adobe XD, to show to parents and coachs how a platform enables them to start a coaching, and launched it using Wix.",
     popin4: "Our chatbot can answer more than 100 questions about sleep and baby health, but is this enough ? Parents can have access to information quickly, and some of our elaborate answers provide an great source of help. But are we missing something ? <br><br> Science facts and tips are great, but to really help parents, they need more than a chatbot. And because every child is different, it was impossible for us to give super personalized answers with Pop-in. And who is the best placed to understand and resolve child's sleep problems ? Specialists ! Around the world, their are a lot a sleep coachs, but in France, it's not well known. And we had to change this. That's why we decided to bring professionals of babies sleep to help parents in their journey.",
     aboutTitle: "About me",
-    aboutText: "I am a lifelong learner who values design that positively impacts society. <br><br> That's why in my free time, I enjoy experimenting with ideas that blend my skills in photography, music, science or education, continually pushing my creative boundaries. <br><br> Beside, I keep active by running, freediving, and climbing!",
+    aboutText: "I am a lifelong learner who values design that positively impacts society. <br><br> That's why in my free time, I enjoy experimenting with ideas that blend my skills in photography, music, science or education, continually pushing my creative boundaries. <br><br> The rest of the time, I love pretending to be a bird with my drone, or a fish with my mask and snorkel!",
     experienceTitle: "Experience",
     yearNow: "Now",
     expScalianText: "UX designer consultant at Scalian, on assignment for the French Ministry of the Armed Forces, working specifically on operational IT systems.",
@@ -105,7 +105,7 @@ const translations = {
     popin3: "Lorsque nous avions tout ce dont nous avions besoin : personas, user flows, contenu Q/A, et un nouveau visage pour Pop-in, nous devions structurer une discussion pour faire comprendre aux utilisateurs qui est Pop-in, ce qu'elle fait et comment lui parler. J'ai testé plusieurs plateformes avant de trouver la bonne. C'était un moyen pour moi d'apprendre comment fonctionnent les chatbots, et de rapidement intéresser les parents. Notre solution finale a été d'utiliser DialogFlow pour une bonne compréhension du langage naturel, et ManyChat, une plateforme de développement de chatbot pour Facebook Messenger. <br><br> Nous avions également besoin d'un site web pour présenter nos objectifs et nos valeurs. Après la construction d'une sitemap, j'ai conçu quelques prototypes du site web dans Adobe XD, pour montrer aux parents et aux coachs comment une plateforme leur permet de commencer un coaching, et l'ai lancé en utilisant Wix.",
     popin4: "Notre chatbot peut répondre à plus de 100 questions sur le sommeil et la santé des bébés, mais est-ce suffisant ? Les parents peuvent accéder rapidement à des informations, et certaines de nos réponses élaborées fournissent une grande source d'aide. Mais manquons-nous quelque chose ? Les faits scientifiques et les conseils sont excellents, mais pour vraiment aider les parents, ils ont besoin de plus qu'un chatbot. Et parce que chaque enfant est différent, il nous était impossible de donner des réponses super personnalisées avec Pop-in. Et qui est le mieux placé pour comprendre et résoudre les problèmes de sommeil des enfants ? Les spécialistes ! Dans le monde entier, il y a beaucoup de coachs du sommeil, mais en France, ce n'est pas bien connu. Et nous devions changer cela. C'est pourquoi nous avons décidé de faire venir des professionnels du sommeil des bébés pour aider les parents dans leur parcours.",
     aboutTitle: "A propos de moi",
-    aboutText: "Je suis un éternel curieux qui accorde une grande importance au design ayant un impact positif sur la société. <br><br> C'est pourquoi pendant mon temps libre, j'aime expérimenter avec des idées qui mélangent mes compétences en photographie, sciences et éducation, repoussant continuellement mes limites créatives. <br><br> Le reste du temps, j'aime courir, grimper et plonger en apnée !",
+    aboutText: "Je suis un éternel curieux qui accorde une grande importance au design ayant un impact positif sur la société. <br><br> C'est pourquoi pendant mon temps libre, j'aime expérimenter avec des idées qui mélangent mes compétences en photographie, sciences et éducation, repoussant continuellement mes limites créatives. <br><br> Le reste du temps, j'aime me prendre pour un oiseau avec mon drone, ou pour un poisson avec mon masque et mon tuba !",
     experienceTitle: "Expérience",
     yearNow: "Auj.",
     expScalianText: "Consultant UX designer chez Scalian, en mission pour le ministère des Armées, spécifiquement sur les systèmes informatiques opérationnels.",
@@ -199,7 +199,7 @@ class NavComponent extends HTMLElement {
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('./styles.css?v=20261014h');
+        @import url('./styles.css?v=20261014i');
       </style>
       <nav id="nav">
         <div class="page-path">
@@ -354,7 +354,7 @@ class FooterComponent extends HTMLElement {
     // HTML content for the footer
     this.shadowRoot.innerHTML = `     
       <style>
-        @import url('./styles.css?v=20261014h');
+        @import url('./styles.css?v=20261014i');
       </style>
       <footer>
         <div class="footer-item">
