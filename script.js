@@ -199,7 +199,7 @@ class NavComponent extends HTMLElement {
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('./styles.css?v=20261014k');
+        @import url('./styles.css?v=20261014l');
       </style>
       <nav id="nav">
         <div class="page-path">
@@ -207,7 +207,7 @@ class NavComponent extends HTMLElement {
             <svg width="32" height="16" viewBox="0 0 32 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M0 0 L16 0 L24 8 L32 0 L32 16 L16 16 L16 0 L0 16" fill="currentColor"/>
             </svg>
-            <span>Portfolio</span>
+            <span id="path-home" hidden>Portfolio</span>
           </a>
           <div id="page-name-container" style="display: none;">
             <div class="path-separator">/</div>
@@ -330,6 +330,8 @@ class NavComponent extends HTMLElement {
   updatePageNameDisplay() {
     const pageNameContainer = this.shadowRoot.getElementById('page-name-container');
     const currentPage = this.shadowRoot.getElementById('current-page');
+    // "Portfolio" next to the logo only on sub-pages, as the way back home
+    this.shadowRoot.getElementById('path-home').hidden = !this.currentPageName;
     if (pageNameContainer && currentPage && this.currentPageName) {
       currentPage.textContent = this.currentPageName;
       pageNameContainer.style.display = 'flex';
@@ -355,7 +357,7 @@ class FooterComponent extends HTMLElement {
     // HTML content for the footer
     this.shadowRoot.innerHTML = `     
       <style>
-        @import url('./styles.css?v=20261014k');
+        @import url('./styles.css?v=20261014l');
       </style>
       <footer>
         <div class="footer-item">

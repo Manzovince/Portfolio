@@ -180,6 +180,10 @@ td {
     padding-right: 6px;
 }
 
+#path span[hidden] {
+    display: none;
+}
+
 #path svg path {
     transition: all 0.25s ease-in-out;
 }
