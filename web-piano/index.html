@@ -3,157 +3,191 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Styles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Web piano · Vincent Manzoni</title>
+    <meta name="description" content="Play from a MIDI keyboard, your computer or a touch screen: see the chords named, the notes written on a staff, and light up an LED strip on a real piano.">
+    <meta name="author" content="Vincent Manzoni">
+    <meta name="theme-color" content="#041e2a">
+    <link rel="canonical" href="https://manzovince.com/web-piano/">
+    <meta property="og:title" content="Web piano · Vincent Manzoni">
+    <meta property="og:description" content="A piano in the browser that names your chords, writes your notes on a staff and lights up an LED strip.">
+    <meta property="og:image" content="https://manzovince.com/assets/og-web-piano-app.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://manzovince.com/web-piano/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" href="../assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css">
-    <!-- Page title -->
-    <title>Web PianoLED</title>
 </head>
 
 <body>
-    <nav>
-        <a href="">
-            <svg data-v-14c8c335="" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
-                class="lucide lucide-piano-icon lucide-piano lucide-icon customizable">
-                <path
-                    d="M18.5 8c-1.4 0-2.6-.8-3.2-2A6.87 6.87 0 0 0 2 9v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-8.5C22 9.6 20.4 8 18.5 8">
-                </path>
-                <path d="M2 14h20"></path>
-                <path d="M6 14v4"></path>
-                <path d="M10 14v4"></path>
-                <path d="M14 14v4"></path>
-                <path d="M18 14v4"></path>
-            </svg>
-            <div>Web piano</div>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+        <symbol id="i-back" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></symbol>
+        <symbol id="i-speaker" viewBox="0 0 24 24"><path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6a1.4 1.4 0 0 1-1 .4H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z" /></symbol>
+        <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4" /></symbol>
+        <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12" /></symbol>
+        <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></symbol>
+        <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></symbol>
+        <symbol id="i-clear" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></symbol>
+    </svg>
+
+    <header class="topbar">
+        <a class="brand" href="../web-piano.html" data-t-title="back" data-t-label="back">
+            <svg class="icon"><use href="#i-back" /></svg>
+            <span data-t="title"></span>
         </a>
-    </nav>
+        <div class="status">
+            <button id="midiStatus" class="pill" type="button" hidden><i class="led"></i><span></span></button>
+            <span id="ledPill" class="pill" hidden><i class="led"></i><span></span></span>
+            <span id="pedal" class="pill pedal" data-t="pedal" hidden></span>
+        </div>
+        <div class="actions">
+            <button id="soundBtn" class="icon-button" type="button" aria-pressed="true">
+                <svg class="icon"><use href="#i-speaker" /><path class="on" d="M16 9a5 5 0 0 1 0 6M19.4 18.4a9 9 0 0 0 0-12.8" /><path class="off" d="m22 9-6 6M16 9l6 6" /></svg>
+            </button>
+            <button id="settingsBtn" class="icon-button" type="button" aria-controls="settings" aria-expanded="false" data-t-label="settings" data-t-title="settings">
+                <svg class="icon"><use href="#i-sliders" /></svg>
+            </button>
+        </div>
+    </header>
 
-    <input type="checkbox" id="soundToggle" hidden>
-    <label id="soundIcons" for="soundToggle">
-        <svg id="soundIconOff" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
-            class="lucide lucide-volume-x-icon lucide-volume-x lucide-icon customizable">
-            <path
-                d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z">
-            </path>
-            <line x1="22" x2="16" y1="9" y2="15"></line>
-            <line x1="16" x2="22" y1="9" y2="15"></line>
-        </svg>
-        <svg id="soundIconOn" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
-            class="lucide lucide-volume2-icon lucide-volume-2 lucide-icon customizable">
-            <path
-                d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z">
-            </path>
-            <path d="M16 9a5 5 0 0 1 0 6"></path>
-            <path d="M19.364 18.364a9 9 0 0 0 0-12.728"></path>
-        </svg>
-    </label>
+    <section class="staff">
+        <div id="score"></div>
+        <button id="clearStaff" class="icon-button small" type="button" data-t-label="clearStaff" data-t-title="clearStaff">
+            <svg class="icon"><use href="#i-clear" /></svg>
+        </button>
+    </section>
 
-    <input type="checkbox" id="settingsToggle" hidden>
-    <label id="settingsIcon" for="settingsToggle">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
-            class="lucide lucide-settings-icon lucide-settings lucide-icon customizable">
-            <path
-                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z">
-            </path>
-            <circle cx="12" cy="12" r="3"></circle>
-        </svg>
-    </label>
-    <aside id="settingsPanel">
-        <h4>Settings</h4>
-        <hr>
-        <div class="settingsCategory">
-            <div class="settingsItem">
-                <label for="notation">Notation</label>
-                <select name="notation" id="notation">
-                    <option value="solfege" selected>Solfège</option>
-                    <option value="english">English</option>
-                </select>
-            </div>
-            <div class="settingsItem">
-                <label for="noteStatistics">Statistics</label>
-                <input type="checkbox" id="noteStatistics">
+    <main class="stage">
+        <canvas id="roll" aria-hidden="true"></canvas>
+        <div id="readout" class="readout idle" aria-live="polite">
+            <div id="chordSymbol" class="chord-symbol"></div>
+            <div id="chordName" class="chord-name"></div>
+            <div id="noteNames" class="note-names"></div>
+            <div id="hint" class="hint">
+                <p id="hintMain"></p>
+                <p id="hintKeys" class="hint-keys"></p>
             </div>
         </div>
-        <hr>
-        <div class="settingsCategory">
-            <div class="settingsItem">
-                <label for="instrument">Sound</label>
-                <select id="instrument">
-                    <option value="piano" selected>Piano</option>
-                    <!-- <option value="guitar">Guitar</option> -->
-                    <option value="sine">Sine Wave</option>
-                    <option value="triangle">Triangle Wave</option>
-                    <option value="square">Square Wave</option>
-                    <option value="sawtooth">Sawtooth Wave</option>
-                </select>
-            </div>
-            <div class="settingsItem" style="display: none;">
-                <label for="attack">Attack</label>
-                <input type="number" id="attack" value="0.01">
-            </div>
-            <div class="settingsItem" style="display: none;">
-                <label for="decay">Decay</label>
-                <input type="number" id="decay" value="0.1">
-            </div>
-            <div class="settingsItem" style="display: none;">
-                <label for="sustain">Sustain</label>
-                <input type="number" id="sustain" value="0.2">
-            </div>
-            <div class="settingsItem" style="display: none;">
-                <label for="release">Release</label>
-                <input type="number" id="release" value="0.8">
+        <canvas id="usage" aria-hidden="true" hidden></canvas>
+        <div id="unlock" class="toast" data-t="unlock" hidden></div>
+    </main>
+
+    <div class="keys">
+        <button id="octDown" class="shift" type="button" data-t-label="octaveDown"><svg class="icon"><use href="#i-left" /></svg></button>
+        <div id="keyboard" class="keyboard" role="group" data-t-label="keyboardLabel"></div>
+        <button id="octUp" class="shift" type="button" data-t-label="octaveUp"><svg class="icon"><use href="#i-right" /></svg></button>
+    </div>
+
+    <div id="scrim" class="scrim"></div>
+    <aside id="settings" class="drawer" aria-hidden="true" aria-labelledby="settingsTitle">
+        <div class="drawer-head">
+            <h2 id="settingsTitle" data-t="settings"></h2>
+            <button id="closeSettings" class="icon-button" type="button" data-t-label="close">
+                <svg class="icon"><use href="#i-close" /></svg>
+            </button>
+        </div>
+
+        <div class="row">
+            <span data-t="language"></span>
+            <div class="segmented">
+                <button type="button" data-lang="en">EN</button>
+                <button type="button" data-lang="fr">FR</button>
             </div>
         </div>
-        <hr>
-        <div class="settingsCategory">
-            <div class="settingsItem">
-                <label for="scaleSelector">Scale</label>
-                <select id="scaleSelector">
-                    <option value="">None</option>
-                    <option value="C_major">C Major</option>
-                    <option value="A_minor">A Minor</option>
-                    <option value="G_major">G Major</option>
-                    <option value="D_minor">D Minor</option>
-                    <!-- Add more as needed -->
+
+        <section>
+            <h3 data-t="sectionSound"></h3>
+            <label class="row"><span data-t="sound"></span><input type="checkbox" class="switch" data-setting="sound"></label>
+            <label class="row"><span data-t="instrument"></span>
+                <select id="instrument" data-setting="instrument">
+                    <option value="piano" data-t="instPiano"></option>
+                    <option value="sine" data-t="instSine"></option>
+                    <option value="triangle" data-t="instTriangle"></option>
+                    <option value="square" data-t="instSquare"></option>
+                    <option value="sawtooth" data-t="instSawtooth"></option>
                 </select>
-            </div>
-            <div class="settingsItem">
-                <label for="ledMode">LEDs</label>
-                <select name="ledMode" id="ledMode">
-                    <option value="rainbow" selected>Rainbow</option>
-                    <option value="octave-rainbow">Octave rainbow</option>
-                </select>
-            </div>
-            <div class="settingsItem">
-                <div class="ledIntensityLabel">
-                    <label for="ledIntensity">Intensity</label>
-                    <div id="intensityValue">0.2</div>
+            </label>
+            <label class="row slider"><span data-t="volume"></span><output id="volumeValue"></output>
+                <input type="range" min="0" max="1" step="0.01" data-setting="volume">
+            </label>
+        </section>
+
+        <section>
+            <h3 data-t="sectionDisplay"></h3>
+            <div class="row">
+                <span data-t="notation"></span>
+                <div class="segmented" data-setting="notation">
+                    <button type="button" data-value="english">C D E</button>
+                    <button type="button" data-value="solfege">Do Ré Mi</button>
                 </div>
-                <input type="range" min="0" max="1" step="0.01" value="0.2" id="ledIntensity">
             </div>
-        </div>
+            <label class="row"><span data-t="colors"></span>
+                <select data-setting="colorMode">
+                    <option value="rainbow" data-t="colorRainbow"></option>
+                    <option value="octave" data-t="colorOctave"></option>
+                    <option value="mono" data-t="colorMono"></option>
+                </select>
+            </label>
+            <label class="row"><span data-t="staff"></span><input type="checkbox" class="switch" data-setting="showStaff"></label>
+            <label class="row"><span data-t="roll"></span><input type="checkbox" class="switch" data-setting="showRoll"></label>
+            <div class="row">
+                <label for="showUsage" data-t="usage"></label>
+                <div class="inline">
+                    <button id="resetUsage" class="text-button" type="button" data-t="reset"></button>
+                    <input id="showUsage" type="checkbox" class="switch" data-setting="showUsage">
+                </div>
+            </div>
+            <label class="row"><span data-t="labels"></span><input type="checkbox" class="switch" data-setting="showLabels"></label>
+        </section>
+
+        <section>
+            <h3 data-t="sectionLearn"></h3>
+            <label class="row"><span data-t="scaleType"></span><select id="scaleType" data-setting="scaleType"></select></label>
+            <label class="row"><span data-t="scaleKey"></span><select id="scaleRoot" data-setting="scaleRoot" data-type="number"></select></label>
+            <p id="scaleNotes" class="scale-notes" hidden></p>
+            <p class="help" data-t="scaleHelp"></p>
+        </section>
+
+        <section>
+            <h3 data-t="sectionLed"></h3>
+            <label class="row"><span data-t="ledEnabled"></span><input type="checkbox" class="switch" data-setting="ledEnabled"></label>
+            <div id="ledOptions">
+                <div class="row">
+                    <span id="ledStatus" class="led-status"></span>
+                    <button id="ledRetry" class="text-button" type="button" data-t="retry" hidden></button>
+                </div>
+                <p id="ledHint" class="help" data-t="ledHttpsHint" hidden></p>
+                <label class="row"><span data-t="ledHost"></span><input type="text" class="text-input" data-setting="ledHost" spellcheck="false" autocomplete="off"></label>
+                <label class="row slider"><span data-t="ledIntensity"></span><output id="intensityValue"></output>
+                    <input type="range" min="0" max="1" step="0.01" data-setting="ledIntensity">
+                </label>
+                <label class="row"><span data-t="ledEffect"></span>
+                    <select data-setting="ledEffect">
+                        <option value="key" data-t="effectKey"></option>
+                        <option value="ripple" data-t="effectRipple"></option>
+                    </select>
+                </label>
+            </div>
+        </section>
+
+        <section class="shortcuts">
+            <h3 data-t="sectionShortcuts"></h3>
+            <dl>
+                <dt id="shortKeys"></dt><dd data-t="shortPlay"></dd>
+                <dt>← →</dt><dd data-t="shortOctave"></dd>
+                <dt data-t="spaceKey"></dt><dd data-t="shortSustain"></dd>
+            </dl>
+        </section>
+
+        <a class="about" href="../web-piano.html" data-t="about"></a>
     </aside>
 
-    <main>
-        <canvas id="pianoRoll"></canvas>
-        <canvas id="noteStats"></canvas>
-
-        <div id="scoreView"></div>
-
-        <div class="notesAnalysis">
-            <div id="chordName">No chord</div>
-            <div id="activeNotes">No notes</div>
-        </div>
-
-        <div id="virtualKeyboard"></div>
-    </main>
+    <script type="module" src="./js/main.js"></script>
 </body>
-
-<script type="module" src="./js/main.js"></script>
 
 </html>

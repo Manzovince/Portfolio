@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Vincent Manzoni">
     <meta name="description"
-        content="Vincent Manzoni - UX Designer & Product Developer specializing in user-centered design solutions. View my portfolio of innovative digital products, user research, and photography projects.">
-    <meta name="keywords" content="UX designer, product design, user experience, UI/UX, interaction design, digital product, user research, wireframing, prototyping, design system, photography, portfolio">
-    <meta property="og:title" content="Vincent Manzoni / Portfolio">
+        content="Web Piano by Vincent Manzoni: a browser piano that names your chords, writes them on a staff and lights up an LED strip above the keys through an ESP32.">
+    <meta name="keywords" content="web piano, Web MIDI, ESP32, Arduino, LED strip, chord recognition, music learning, piano, Vincent Manzoni">
+    <meta property="og:title" content="Vincent Manzoni / Web Piano">
     <meta property="og:description"
-        content="Showcasing creative work in UX design, product development, and photography">
+        content="A browser piano that names your chords, writes them on a staff and lights up an LED strip above the keys.">
     <meta property="og:image" content="https://manzovince.com/assets/og-web-piano.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -19,8 +19,8 @@
     <meta property="og:site_name" content="Vincent Manzoni Portfolio">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Vincent Manzoni / Portfolio">
-    <meta name="twitter:description" content="Showcasing creative work in UX design, product development, and photography">
+    <meta name="twitter:title" content="Vincent Manzoni / Web Piano">
+    <meta name="twitter:description" content="A browser piano that names your chords, writes them on a staff and lights up an LED strip above the keys.">
     <meta name="twitter:image" content="https://manzovince.com/assets/og-web-piano.png">
     <link rel="canonical" href="https://manzovince.com/web-piano.html">
     <!-- Styles -->
@@ -43,25 +43,39 @@
         <div class="project-header">
             <div class="project-infos">
                 <h4>Web Piano</h4>
-                <p data-i18n=""></p>
+                <p data-i18n="webPianoIntro"></p>
                 <ul class="tag-list">
                     <div class="tag">Arduino</div>
                     <div class="tag" data-i18n="tagDesign"></div>
                     <div class="tag" data-i18n="tagDev"></div>
                 </ul>
             </div>
-            <img src="" alt="">
+            <img src="./assets/web-piano-app.webp" data-i18n-alt="webPianoAppAlt"
+                alt="The web piano naming a chord above the keyboard, with the notes written on a grand staff">
+            <a href="./web-piano/" class="project-button" data-i18n="webPianoOpen"></a>
         </div>
-        <p>It started with a simple idea: What if the piano keys I play could light up a strip of LEDs in real time?
-        <br><br>
-        At the time, I had never touched an Arduino, never flashed an ESP32, and barely knew what MIDI looked like under the
-        hood. I just wanted to visualize what I was playing to make music feel a bit more alive, more tangible.
-        <br><br>
-        So I gave it a shot.</p>
 
-        <a href="./web-piano/index.html" target="_blank">Go to project</a>
+        <p data-i18n="webPianoStory"></p>
+        <img src="./assets/keyboard-project.png" data-i18n-alt="webPianoPrototypeAlt" loading="lazy"
+            alt="First prototype: a sine wave drawn above a one-octave keyboard">
 
-        <p style="font-style: italic;">Full story is coming soon.</p>
+        <div>
+            <h6 data-i18n="webPianoLightsTitle"></h6>
+            <p data-i18n="webPianoLights"></p>
+        </div>
+
+        <div>
+            <h6 data-i18n="webPianoLearnTitle"></h6>
+            <p data-i18n="webPianoLearn"></p>
+        </div>
+        <img src="./assets/web-piano-scale.webp" data-i18n-alt="webPianoScaleAlt" loading="lazy"
+            alt="Settings panel of the web piano, with the scale guide marking the notes of a scale on the keys">
+
+        <div>
+            <h6 data-i18n="webPianoLearnedTitle"></h6>
+            <p data-i18n="webPianoLearned"></p>
+        </div>
+        <a href="./web-piano/" class="project-button" data-i18n="webPianoOpen"></a>
     </main>
 
     <!-- Footer -->
@@ -71,9 +85,7 @@
         </svg>
     </div>
     <site-footer></site-footer>
-
 </body>
-
 <script src="./script.js"></script>
 <script src="./line-animation.js"></script>
 

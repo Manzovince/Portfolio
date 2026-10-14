@@ -47,6 +47,19 @@ const translations = {
     edu42Title: "Developer",
     edu42Title: "Developer",
     edu42Text: "At 42 Paris, I embraced a unique education model, immersing myself in computer science through hands-on projects, from shell scripts to programs in C and Machine learning.",
+    webPianoDesc: "A piano that names your chords and lights up the keys",
+    webPianoIntro: "A piano in the browser that names the chords you play, writes them on a staff and lights up an LED strip above the keys. It works with a MIDI keyboard, a computer keyboard or a touch screen.",
+    webPianoOpen: "Play the piano",
+    webPianoStory: "It started with a simple idea: what if the piano keys I play could light up a strip of LEDs in real time? <br><br> At the time, I had never touched an Arduino, never flashed an ESP32, and barely knew what MIDI looked like under the hood. I just wanted to visualise what I was playing, to make music feel a bit more alive, more tangible. <br><br> So I gave it a shot. The first version was a single octave and a sine wave drawn on the screen.",
+    webPianoPrototypeAlt: "First prototype: a sine wave drawn above a one-octave keyboard",
+    webPianoLightsTitle: "From the keys to the lights",
+    webPianoLights: "The digital piano sends every note over MIDI. The browser reads it with the Web MIDI API, plays it back, and sends a colour for each key over a WebSocket to an ESP32 microcontroller, which drives an LED strip running along the keyboard, two LEDs per key. <br><br> Each note has its own colour and shines brighter when it is played harder. A ripple mode lets a note spill its light onto its neighbours, and the sustain pedal keeps the lights on as long as the sound rings.",
+    webPianoLearnTitle: "A tool to learn",
+    webPianoLearn: "Once the notes were in the browser, the screen became just as interesting as the lights. The piano recognises chords and their inversions, spells every note the way a musician would (E♭ in C minor, D♯ in B major), and writes what you play on a grand staff. <br><br> A scale guide marks the notes of a scale on the keys and lights them softly on the strip, so you can see where your fingers should go before you play. Names can be read in English (C D E) or in solfège (Do Ré Mi).",
+    webPianoAppAlt: "The web piano naming a chord above the keyboard, with the notes written on a grand staff",
+    webPianoScaleAlt: "Settings panel of the web piano, with the scale guide marking the notes of a scale on the keys",
+    webPianoLearnedTitle: "What I learned",
+    webPianoLearned: "This project was my first step into microcontrollers and into MIDI. It taught me to design for real time: a note has to sound, light up and be named within a few milliseconds, whichever device it comes from, and must never get stuck when a key, a pedal or a finger lets go. <br><br> The piano works best in Chrome or Edge, which support Web MIDI. Without a MIDI keyboard, you can play it with your computer keys, or by touch on a phone.",
     eduMasterTitle: "Psychology & neurosciences of movement",
     eduMasterText: "My academic foundation in Psychology, paired with extensive research into intelligent systems, has deepened my understanding of how cognitive processes and embodied experiences shape human consciousness. <br><br> Discovering the exciting world of scientific research, this interdisciplinary approach ended with a dissertation exploring the intersection of sensory integration and body awareness, using the famous <i>Rubber hand illusion</i>."
   },
@@ -96,6 +109,19 @@ const translations = {
     eduEMText: "J'ai suivi une formation en aprentissage sur un an, pour monter en compétence sur la recherche utilisateur, le design UI et les principes qui sous-tendent des expériences numériques efficaces.",
     edu42Title: "Développeur",
     edu42Text: "À 42 Paris, j'ai adopté un modèle éducatif unique, m'immergeant dans l'informatique à travers des projets pratiques, des scripts shell aux programmes en C, ainsi qu'au Machine learning et plus généralement l'intelligence artificielle.",
+    webPianoDesc: "Un piano qui nomme vos accords et illumine les touches",
+    webPianoIntro: "Un piano dans le navigateur qui nomme les accords que vous jouez, les écrit sur une portée et allume un ruban LED au-dessus des touches. Il fonctionne avec un clavier MIDI, le clavier de l'ordinateur ou un écran tactile.",
+    webPianoOpen: "Jouer du piano",
+    webPianoStory: "Tout est parti d'une idée simple : et si les touches du piano que je joue pouvaient allumer un ruban de LED en temps réel ? <br><br> À l'époque, je n'avais jamais touché à un Arduino, jamais programmé d'ESP32, et je savais à peine à quoi ressemblait le MIDI sous le capot. Je voulais simplement visualiser ce que je jouais, pour rendre la musique un peu plus vivante, plus tangible. <br><br> Alors je me suis lancé. La première version tenait sur une seule octave, avec une onde sinusoïdale dessinée à l'écran.",
+    webPianoPrototypeAlt: "Premier prototype : une onde sinusoïdale dessinée au-dessus d'un clavier d'une octave",
+    webPianoLightsTitle: "Des touches à la lumière",
+    webPianoLights: "Le piano numérique envoie chaque note en MIDI. Le navigateur la lit grâce à l'API Web MIDI, la joue, puis envoie une couleur pour chaque touche via un WebSocket à un microcontrôleur ESP32, qui pilote un ruban LED posé le long du clavier, à raison de deux LED par touche. <br><br> Chaque note a sa propre couleur et brille d'autant plus qu'elle est jouée fort. Un mode « onde » laisse la lumière d'une note déborder sur ses voisines, et la pédale de sustain garde les lumières allumées tant que le son résonne.",
+    webPianoLearnTitle: "Un outil pour apprendre",
+    webPianoLearn: "Une fois les notes dans le navigateur, l'écran est devenu aussi intéressant que les lumières. Le piano reconnaît les accords et leurs renversements, écrit chaque note comme le ferait un musicien (Mi♭ en Do mineur, Ré♯ en Si majeur) et transcrit ce que vous jouez sur une double portée. <br><br> Un guide de gamme marque les notes d'une gamme sur les touches et les allume doucement sur le ruban, pour voir où poser les doigts avant de jouer. Les notes peuvent s'afficher en solfège (Do Ré Mi) ou en notation anglaise (C D E).",
+    webPianoAppAlt: "Le web piano nommant un accord au-dessus du clavier, avec les notes écrites sur une double portée",
+    webPianoScaleAlt: "Panneau de réglages du web piano, avec le guide de gamme qui marque les notes d'une gamme sur les touches",
+    webPianoLearnedTitle: "Ce que j'ai appris",
+    webPianoLearned: "Ce projet a été mon premier pas dans les microcontrôleurs et dans le MIDI. Il m'a appris à concevoir pour le temps réel : une note doit sonner, s'allumer et être nommée en quelques millisecondes, quel que soit l'appareil d'où elle vient, et ne jamais rester bloquée quand une touche, une pédale ou un doigt se relève. <br><br> Le piano fonctionne au mieux dans Chrome ou Edge, qui prennent en charge le Web MIDI. Sans clavier MIDI, on peut aussi jouer avec les touches de l'ordinateur, ou du bout des doigts sur un téléphone.",
     eduMasterTitle: "Psychologie & neurosciences du mouvement",
     eduMasterText: "Ma formation académique en psychologie, associée à des recherches approfondies sur les systèmes intelligents, a approfondi ma compréhension de la manière dont les processus cognitifs et les expériences incarnées façonnent la conscience humaine. <br><br> Découvrant le monde passionnant de la recherche scientifique, cette approche interdisciplinaire s'est terminée par un mémoire explorant l'intersection de l'intégration sensorielle et de la conscience corporelle, utilisant le célèbre <i>Rubber hand illusion</i>."
   }
@@ -106,6 +132,10 @@ function translate(lang, root = document) {
   elements.forEach(el => {
     const key = el.getAttribute('data-i18n');
     el.innerHTML = translations[lang][key] || el.innerHTML;
+  });
+  // Image descriptions follow the language too
+  root.querySelectorAll('[data-i18n-alt]').forEach(el => {
+    el.alt = translations[lang][el.getAttribute('data-i18n-alt')] || el.alt;
   });
 }
 

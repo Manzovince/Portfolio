@@ -1,94 +1,66 @@
-// === MIDI SETUP AND NOTE TRACKING ===
+// === MIDI input (Web MIDI API) ===
 
-import { updateUI } from './ui.js';
-import { playNote, stopNote } from './sound.js';
-import { applyLedMode } from './leds.js'
+import { press, lift, setPedal, allOff } from "./piano.js";
 
-export { initMIDI, noteOn, noteOff };
-export let activeNotes = new Map(); // {note: {startTime, velocity}}
-export let timelineNotes = []; // Array of {note, startTime, endTime, velocity}
+let status = { state: "idle", names: [] };
+const listeners = new Set();
 
-const MAX_TIMELINE_NOTES = 500;
+export const midiStatus = () => status;
+export const onMidiStatus = fn => listeners.add(fn);
 
-let sustainPedal = false;
+function setStatus(next) {
+    status = next;
+    listeners.forEach(fn => fn(status));
+}
 
-function initMIDI() {
+export function handleMidiMessage(data) {
+    const [statusByte, data1, data2 = 0] = data;
+    switch (statusByte & 0xf0) {
+        case 0x90: // note on (velocity 0 means note off)
+            if (data2 > 0) press(data1, data2, "midi");
+            else lift(data1);
+            break;
+        case 0x80: // note off
+            lift(data1);
+            break;
+        case 0xb0: // control change
+            if (data1 === 64) setPedal(data2 >= 64); // sustain pedal
+            if (data1 === 120 || data1 === 123) allOff(); // all sound / all notes off
+            break;
+    }
+}
+
+function bind(access) {
+    const update = () => {
+        const inputs = [...access.inputs.values()];
+        inputs.forEach(input => (input.onmidimessage = e => handleMidiMessage(e.data)));
+        setStatus({ state: inputs.length ? "connected" : "none", names: inputs.map(i => i.name) });
+    };
+    access.onstatechange = update;
+    update();
+}
+
+// Ask for MIDI access (may show a permission prompt)
+export function connectMidi() {
     if (!navigator.requestMIDIAccess) {
-        console.warn("Web MIDI API not supported.");
-        // return;
+        setStatus({ state: "unsupported", names: [] });
+        return;
     }
-    navigator.requestMIDIAccess().then(midiAccess => {
-        for (const input of midiAccess.inputs.values()) {
-            input.onmidimessage = handleMIDIMessage;
-        }
-    }).catch(console.error);
+    navigator.requestMIDIAccess().then(bind).catch(() => setStatus({ state: "denied", names: [] }));
 }
 
-function noteOn(note, velocity, time) {
-    activeNotes.set(note, { startTime: time, velocity });
-
-    timelineNotes.push({
-        note,
-        startTime: time,
-        endTime: null, // will be updated later
-        velocity
-    });
-
-    if (timelineNotes.length > MAX_TIMELINE_NOTES) {
-        timelineNotes.splice(0, timelineNotes.length - MAX_TIMELINE_NOTES);
+// Connect straight away only if the visitor already granted access before,
+// so that opening the page never starts with a permission prompt.
+export async function initMidi() {
+    if (!navigator.requestMIDIAccess) {
+        setStatus({ state: "unsupported", names: [] });
+        return;
     }
-
-    playNote(note);
-    updateUI();
-    applyLedMode(note, velocity, true);
-}
-
-function noteOff(note, time) {
-    if (sustainPedal) return; // defer release until pedal up
-    endNote(note, time);
-    stopNote(note);
-}
-
-function handleMIDIMessage(event) {
-    const [status, data1, data2] = event.data;
-    const command = status & 0xf0;
-    const channel = status & 0x0f;
-    const now = performance.now();
-
-    switch (command) {
-        case 0x90: // Note on
-            if (data2 > 0) {
-                noteOn(data1, data2, now);
-            } else {
-                noteOff(data1, now);
-            }
-            break;
-        case 0x80: // Note off
-            noteOff(data1, now);
-            break;
-        case 0xB0: // Control change (e.g. sustain pedal)
-            if (data1 === 64) { // sustain pedal
-                handleSustain(data2 >= 64, now);
-            }
-            break;
-    }
-}
-
-function endNote(note, time) {
-    const entries = timelineNotes.filter(n => n.note === note && n.endTime === null);
-    entries.forEach(entry => entry.endTime = time);
-
-    activeNotes.delete(note);
-    updateUI();
-    applyLedMode(note, 0, false);
-}
-
-function handleSustain(isOn, time) {
-    sustainPedal = isOn;
-    if (!sustainPedal) {
-        // release all sustained notes
-        for (let note of [...activeNotes.keys()]) {
-            endNote(note, time);
-        }
+    try {
+        const permission = await navigator.permissions.query({ name: "midi" });
+        if (permission.state === "granted") return connectMidi();
+        setStatus({ state: permission.state === "denied" ? "denied" : "prompt", names: [] });
+    } catch {
+        setStatus({ state: "prompt", names: [] });
     }
 }
