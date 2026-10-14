@@ -3,9 +3,9 @@
 // Rhythm is not quantised, so notes are drawn as stemless whole notes: the
 // staff shows which notes were played together, in order, correctly spelled.
 
-import { subscribe } from "./piano.js";
-import { settings, onSettingChange } from "./settings.js";
-import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js";
+import { subscribe } from "./piano.js?v=20261014";
+import { settings, onSettingChange } from "./settings.js?v=20261014";
+import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=20261014";
 
 const VEXFLOW_URL = "https://cdn.jsdelivr.net/npm/vexflow@5.0.0/build/esm/entry/vexflow.js";
 const CHORD_WINDOW_MS = 60; // notes struck closer together than this form one chord
