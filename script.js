@@ -44,6 +44,11 @@ const translations = {
     expTeacherText: "Lectures and workshops with students from the Multimedia and Internet professions program. These courses concluded in end-of-year projects ranging from user research to website development.",
     expPopinTitle: "UX designer and developer",
     expPopinText: "Alongside an entrepreneur and a psychologist, I contributed to the development of Pop-in, one of the first chatbots designed to help young children (and their parents) have more restful nights, offering advice and a sleep support program.",
+    talksTitle: "Talks & articles",
+    talkDslTitle: "Speaker",
+    talkDslText: "Talk at Design System London #13, held in Paris for the first time: the story of how a money input, which looked like a quick task, became a three-month journey for the Societe Generale CIB design system. <a href='https://www.youtube.com/watch?v=SCVH-78vFsU' target='_blank' rel='noopener' class='link'>Watch the talk</a> on YouTube.",
+    articleMoneyInputTitle: "The unexpected odyssey of building a money input",
+    articleMoneyInputText: "What does it really take to create a design system component that serves new projects and replaces legacy ones? Formatting, keyboard shortcuts, currencies and alignment, and everything that turned out more complex than planned. <a href='https://medium.com/societe-generale-design/the-unexpected-odyssey-of-building-a-money-input-a1930b4baf21' target='_blank' rel='noopener' class='link'>Read the article</a> on Societe Generale Design's Medium.",
     educationTitle: "Education",
     eduEMText: "One-year apprenticeship, learning user research, UI design, and the principles that underpin effective digital experiences.",
     edu42Title: "Developer",
@@ -109,6 +114,11 @@ const translations = {
     expTeacherText: "J'ai donné des cours magistraux et animer des ateliers avec des étudiants du programme Métiers du Multimédia et de l'Internet. Ces cours se sont terminés par des projets de fin d'année allant de la recherche utilisateur à la création de sites web.",
     expPopinTitle: "UX designer et développeur",
     expPopinText: "Aux côtés d'une entrepreneuse et d'une psychologue, j'ai contribué au développement de Pop-in, l'un des premiers chatbots conçu pour aider les jeunes enfants (et leurs parents) à passer de meilleures nuits, en offrant des conseils et un programme de soutien au sommeil.",
+    talksTitle: "Conférences & articles",
+    talkDslTitle: "Speaker",
+    talkDslText: "Talk au Design System London #13, organisé pour la première fois à Paris : comment un champ de saisie de montant, qui semblait être une tâche rapide, est devenu un projet de trois mois pour le design system de Société Générale CIB. <a href='https://www.youtube.com/watch?v=SCVH-78vFsU' target='_blank' rel='noopener' class='link'>Voir le talk</a> (en anglais) sur YouTube.",
+    articleMoneyInputTitle: "The unexpected odyssey of building a money input",
+    articleMoneyInputText: "Que faut-il vraiment pour créer un composant de design system qui serve les nouveaux projets et remplace les anciens ? Formatage, raccourcis clavier, devises et alignement, et tout ce qui s'est révélé plus complexe que prévu. <a href='https://medium.com/societe-generale-design/the-unexpected-odyssey-of-building-a-money-input-a1930b4baf21' target='_blank' rel='noopener' class='link'>Lire l'article</a> (en anglais) sur le Medium de Société Générale Design.",
     educationTitle: "Formation",
     eduEMText: "J'ai suivi une formation en aprentissage sur un an, pour monter en compétence sur la recherche utilisateur, le design UI et les principes qui sous-tendent des expériences numériques efficaces.",
     edu42Title: "Développeur",
@@ -189,7 +199,7 @@ class NavComponent extends HTMLElement {
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('./styles.css?v=20261014e');
+        @import url('./styles.css?v=20261014h');
       </style>
       <nav id="nav">
         <div class="page-path">
@@ -344,7 +354,7 @@ class FooterComponent extends HTMLElement {
     // HTML content for the footer
     this.shadowRoot.innerHTML = `     
       <style>
-        @import url('./styles.css?v=20261014e');
+        @import url('./styles.css?v=20261014h');
       </style>
       <footer>
         <div class="footer-item">
