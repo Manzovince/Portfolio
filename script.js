@@ -189,7 +189,7 @@ class NavComponent extends HTMLElement {
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('./styles.css');
+        @import url('./styles.css?v=20261014e');
       </style>
       <nav id="nav">
         <div class="page-path">
@@ -211,8 +211,9 @@ class NavComponent extends HTMLElement {
         </label>
         <div id="nav-dropdown">
           <ul id="nav-settings">
-            <li>
-              <p id="language-toggle" onclick="this.getRootNode().host.closeMenu()">English</p>
+            <li class="language-switch">
+              <button type="button" data-lang="fr" lang="fr">Français</button>
+              <button type="button" data-lang="en" lang="en">English</button>
             </li>
             <li style="display:none">
               <p id="theme-toggle">Dark theme</p>
@@ -245,16 +246,18 @@ class NavComponent extends HTMLElement {
       </nav>
     `;
 
-    // Add event listeners for toggling language and theme
-    const languageToggle = this.shadowRoot.getElementById('language-toggle');
+    // Add event listeners for switching language and theme
     const themeToggle = this.shadowRoot.getElementById('theme-toggle');
-
-    languageToggle.addEventListener('click', () => this.toggleLanguage());
+    this.shadowRoot.querySelectorAll('.language-switch button').forEach(button => {
+      button.addEventListener('click', () => {
+        this.setLanguage(button.dataset.lang);
+        this.closeMenu();
+      });
+    });
     themeToggle.addEventListener('click', () => this.toggleTheme());
 
-    // Show the language currently applied (saved choice, or browser default)
-    const languageName = currentLanguage === 'en' ? 'English' : 'Français';
-    languageToggle.textContent = languageName;
+    // Highlight the language currently applied (saved choice, or browser default)
+    this.updateLanguageSwitch();
 
     // Apply that language
     translate(currentLanguage); // Update main document
@@ -268,19 +271,28 @@ class NavComponent extends HTMLElement {
     }
   }
 
-  toggleLanguage() {
-    const languageToggle = this.shadowRoot.getElementById('language-toggle');
-    const currentLabel = languageToggle.textContent.trim();
-    const nextLanguage = this.availableLanguages.find(lang => lang !== currentLabel);
-    languageToggle.textContent = nextLanguage;
+  // Underline the active language, dim the other one
+  updateLanguageSwitch() {
+    this.shadowRoot.querySelectorAll('.language-switch button').forEach(button => {
+      button.setAttribute('aria-pressed', button.dataset.lang === currentLanguage);
+    });
+  }
+
+  setLanguage(lang) {
+    if (lang === currentLanguage) return;
 
     // Save the selected language so it holds on the next page and next visit
-    currentLanguage = nextLanguage === 'English' ? 'en' : 'fr';
+    currentLanguage = lang;
     saveLanguage(currentLanguage);
+    this.updateLanguageSwitch();
 
     // Update translations for the entire page
     translate(currentLanguage); // Update main document
     translate(currentLanguage, this.shadowRoot); // Update shadowRoot for NavComponent
+  }
+
+  toggleLanguage() {
+    this.setLanguage(currentLanguage === 'en' ? 'fr' : 'en');
   }
 
   toggleTheme() {
@@ -332,13 +344,9 @@ class FooterComponent extends HTMLElement {
     // HTML content for the footer
     this.shadowRoot.innerHTML = `     
       <style>
-        @import url('./styles.css');
+        @import url('./styles.css?v=20261014e');
       </style>
       <footer>
-        <div class="footer-item">
-          <div class="footer-label">Contact</div>
-          <a href="mailto:hello@manzovince.com" class="footer-content">hello@manzovince.com</a>
-        </div>
         <div class="footer-item">
           <div class="footer-label">Copyright</div>
           <div class="footer-content">&copy; ${new Date().getFullYear()} Vincent Manzoni.</div>
