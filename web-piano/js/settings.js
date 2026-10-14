@@ -9,6 +9,7 @@ const DEFAULTS = {
     notation: null, // null = follow the language (solfège in French)
     colorMode: "rainbow",
     showStaff: true,
+    tempo: 80, // beats per minute, used to write note lengths on the staff
     showRoll: true,
     showUsage: false,
     showLabels: true,

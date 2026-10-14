@@ -1,21 +1,21 @@
 // === Interface: chord readout, top bar, settings drawer ===
 
-import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261014";
-import { settings, setSetting, onSettingChange } from "./settings.js?v=20261014";
+import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261014b";
+import { settings, setSetting, onSettingChange } from "./settings.js?v=20261014b";
 import {
     t, chordQuality, inversionName, intervalName, scaleName, currentNotation,
     getLanguage, setLanguage, onLanguageChange, applyStaticText,
-} from "./i18n.js?v=20261014";
+} from "./i18n.js?v=20261014b";
 import {
     detectChord, chordSymbol, noteName, spellPc, spelledOctave, pitchClass,
     intervalBetween, scaleContext, scaleNotes, SCALES,
-} from "./theory.js?v=20261014";
-import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261014";
-import { ledState, onLedState, connectLeds } from "./leds.js?v=20261014";
-import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261014";
-import { keysHint, shiftView } from "./keyboard.js?v=20261014";
-import { clearScore } from "./score.js?v=20261014";
-import { resetUsage } from "./roll.js?v=20261014";
+} from "./theory.js?v=20261014b";
+import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261014b";
+import { ledState, onLedState, connectLeds } from "./leds.js?v=20261014b";
+import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261014b";
+import { keysHint, shiftView } from "./keyboard.js?v=20261014b";
+import { clearScore } from "./score.js?v=20261014b";
+import { resetUsage } from "./roll.js?v=20261014b";
 
 const $ = selector => document.querySelector(selector);
 const finePointer = matchMedia("(hover: hover) and (pointer: fine)");
@@ -199,6 +199,8 @@ function syncControls() {
     document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === getLanguage()));
     $("#volumeValue").textContent = `${Math.round(settings.volume * 100)}%`;
     $("#intensityValue").textContent = `${Math.round(settings.ledIntensity * 100)}%`;
+    $("#tempoValue").textContent = `${settings.tempo} BPM`;
+    $("#tempoRow").hidden = !settings.showStaff;
     $("#ledOptions").hidden = !settings.ledEnabled;
     $("#instrument").disabled = !settings.sound;
 }

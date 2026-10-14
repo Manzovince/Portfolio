@@ -1,6 +1,6 @@
 // === Interface language (shared with the rest of manzovince.com) ===
 
-import { settings } from "./settings.js?v=20261014";
+import { settings } from "./settings.js?v=20261014b";
 
 const STORAGE_KEY = "selectedLanguage"; // same key as the portfolio's toggle
 
@@ -47,6 +47,8 @@ const STRINGS = {
         colorOctave: "By note",
         colorMono: "Single colour",
         staff: "Staff",
+        tempo: "Tempo",
+        tempoHelp: "Sets how long a beat lasts, so that the staff can write the length of each note.",
         roll: "Piano roll",
         usage: "Note usage",
         reset: "Reset",
@@ -117,6 +119,8 @@ const STRINGS = {
         colorOctave: "Par note",
         colorMono: "Une seule couleur",
         staff: "Portée",
+        tempo: "Tempo",
+        tempoHelp: "Fixe la durée d'un temps, pour que la portée écrive la durée de chaque note.",
         roll: "Défilement des notes",
         usage: "Notes jouées",
         reset: "Remettre à zéro",

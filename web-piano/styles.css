@@ -765,7 +765,8 @@ input[type="range"] {
     word-spacing: 0.3em;
 }
 
-#ledOptions {
+#ledOptions,
+#tempoRow {
     display: grid;
     gap: 12px;
 }
