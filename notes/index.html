@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Notes</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Notes">
+<meta name="format-detection" content="telephone=no">
+<meta id="tc" name="theme-color" content="#f2f2f7">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<style>
+:root{
+  color-scheme: light dark;
+  --accent:#e0a400;
+  --bg:#f2f2f7; --cell:#fff; --edbg:#fff;
+  --label:#000; --sec:rgba(60,60,67,.6); --ter:rgba(60,60,67,.3);
+  --sep:rgba(60,60,67,.2); --hl:rgba(60,60,67,.12);
+  --glass:rgba(255,255,255,.72); --glassB:rgba(0,0,0,.06);
+  --shadow:0 3px 14px rgba(0,0,0,.08);
+  --fill:rgba(118,118,128,.12);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --accent:#ffd60a;
+    --bg:#000; --cell:#1c1c1e; --edbg:#000;
+    --label:#fff; --sec:rgba(235,235,245,.6); --ter:rgba(235,235,245,.3);
+    --sep:rgba(84,84,88,.6); --hl:rgba(255,255,255,.1);
+    --glass:rgba(40,40,42,.7); --glassB:rgba(255,255,255,.09);
+    --shadow:0 3px 14px rgba(0,0,0,.45);
+    --fill:rgba(118,118,128,.24);
+  }
+}
+*{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+html,body{height:100%; background:var(--bg); overscroll-behavior:none;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  color:var(--label); touch-action:manipulation; -webkit-text-size-adjust:100%;
+}
+button{font:inherit; color:inherit; background:none; border:0; cursor:pointer;}
+.nosel, .topbar, .bottombar, h1, h2, .row, .edDate{-webkit-user-select:none; user-select:none; -webkit-touch-callout:none;}
+
+#app{position:fixed; inset:0; overflow:hidden; background:var(--bg);}
+.screen{position:absolute; inset:0; background:var(--bg); overflow:hidden;
+  transition:transform .48s cubic-bezier(.32,.72,0,1); will-change:transform;}
+.screen.left{transform:translateX(-30%);}
+.screen.right{transform:translateX(100%);}
+.screen.noanim{transition:none;}
+.scroll{position:absolute; inset:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  padding:calc(env(safe-area-inset-top) + 62px) 16px calc(env(safe-area-inset-bottom) + 96px);}
+
+/* ---------- glass chrome ---------- */
+.glass{background:var(--glass); border:.5px solid var(--glassB); box-shadow:var(--shadow);
+  -webkit-backdrop-filter:blur(20px) saturate(1.8); backdrop-filter:blur(20px) saturate(1.8);}
+.gbtn{width:44px; height:44px; border-radius:50%; display:grid; place-items:center; color:var(--accent);
+  transition:transform .15s ease;}
+.gbtn:active, .gcap button:active{transform:scale(.9);}
+.gbtn svg, .gcap svg{width:22px; height:22px; display:block;}
+.gcap{height:44px; border-radius:22px; display:flex; align-items:center; padding:0 4px; color:var(--accent);}
+.gcap button{width:44px; height:44px; display:grid; place-items:center; transition:transform .15s ease;}
+.pill{height:36px; border-radius:18px; padding:0 16px; font-size:17px; color:var(--accent); display:flex; align-items:center;}
+.topbar{position:absolute; top:0; left:0; right:0; z-index:5; display:flex; align-items:center; gap:10px;
+  padding:calc(env(safe-area-inset-top) + 6px) 16px 14px; pointer-events:none;
+  background:linear-gradient(var(--bg) 62%, transparent);}
+.topbar > *{pointer-events:auto;}
+.topbar .sp{flex:1; pointer-events:none;}
+.bottombar{position:absolute; bottom:0; left:0; right:0; z-index:5; display:flex; align-items:center; gap:10px;
+  padding:16px 16px calc(env(safe-area-inset-bottom) + 6px); pointer-events:none;
+  background:linear-gradient(transparent, var(--bg) 45%);}
+.bottombar > *{pointer-events:auto;}
+.bottombar .sp{flex:1; pointer-events:none;}
+
+/* ---------- lists ---------- */
+h1{font-size:34px; font-weight:700; letter-spacing:.012em; margin:2px 4px 10px; line-height:1.15;}
+h2{font-size:20px; font-weight:700; margin:20px 4px 8px; letter-spacing:.01em;}
+.group{background:var(--cell); border-radius:24px; overflow:hidden;}
+.row{position:relative; overflow:hidden;}
+.row .del{position:absolute; top:0; right:0; bottom:0; width:84px; background:#ff3b30; color:#fff;
+  display:grid; place-items:center;}
+.row .del svg{width:24px; height:24px;}
+.row .c{position:relative; background:var(--cell); padding:11px 16px 11px 20px; transition:transform .28s cubic-bezier(.32,.72,0,1);}
+.row .c.hl{background-image:linear-gradient(var(--hl),var(--hl));}
+.row + .row .c::before{content:""; position:absolute; top:0; left:20px; right:0; height:.5px; background:var(--sep);}
+.t{font-size:17px; font-weight:600; line-height:22px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.m{font-size:15px; line-height:20px; color:var(--sec); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.m b{font-weight:400; color:var(--label); opacity:.88; margin-right:7px;}
+.empty{color:var(--sec); text-align:center; padding:60px 0; font-size:17px;}
+.frow{display:flex; align-items:center; gap:12px; padding:12px 16px 12px 18px; font-size:17px;}
+.frow svg.fi{width:26px; height:24px; color:var(--accent); flex:none;}
+.frow .n{margin-left:auto; color:var(--sec);}
+.frow .chev{width:9px; height:15px; color:var(--ter);}
+
+.search{flex:1; height:44px; border-radius:22px; display:flex; align-items:center; gap:7px; padding:0 14px; color:var(--sec);}
+.search svg{width:18px; height:18px; flex:none;}
+.search input{flex:1; min-width:0; border:0; outline:0; background:none; font:inherit; font-size:17px; color:var(--label);}
+.search input::placeholder{color:var(--sec);}
+
+/* ---------- editor ---------- */
+#sEditor{background:var(--edbg);}
+#sEditor .topbar{background:linear-gradient(var(--edbg) 62%, transparent);}
+#sEditor .bottombar{background:linear-gradient(transparent, var(--edbg) 45%);}
+#edScroll{padding-left:0; padding-right:0;}
+.edDate{text-align:center; font-size:13px; color:var(--sec); margin:2px 0 12px; line-height:18px;}
+#cue{display:inline-block; width:3px; height:3px; border-radius:50%; background:currentColor; margin-left:4px;
+  vertical-align:middle; opacity:0;}
+#cue.on{opacity:.75;}
+#ed{outline:none; padding:0 20px; font-size:17px; line-height:1.36; min-height:55vh; caret-color:var(--accent);
+  word-wrap:break-word; overflow-wrap:anywhere; -webkit-user-select:text; user-select:text; white-space:pre-wrap;}
+#ed > div:first-child{font-size:28px; font-weight:700; line-height:1.2; letter-spacing:.005em; margin-bottom:6px;}
+#doneBtn{display:none; background:var(--accent); color:#fff; border-color:transparent;}
+@media (prefers-color-scheme: dark){ #doneBtn{color:#000;} }
+#sEditor.editing #doneBtn{display:grid;}
+#sEditor.editing .bottombar{opacity:0; pointer-events:none;}
+#sEditor.editing .bottombar > *{pointer-events:none;}
+
+/* ---------- menu ---------- */
+#menu{position:fixed; z-index:30; top:calc(env(safe-area-inset-top) + 58px); right:16px; width:250px; border-radius:22px;
+  padding:6px 0; transform-origin:top right; transform:scale(.6); opacity:0; pointer-events:none;
+  transition:transform .3s cubic-bezier(.32,.72,0,1), opacity .2s;}
+#menu.open{transform:none; opacity:1; pointer-events:auto;}
+#menu button{display:flex; width:100%; align-items:center; justify-content:space-between; padding:11px 18px; font-size:17px; text-align:left;}
+#menu button svg{width:20px; height:20px;}
+#menu .red{color:#ff3b30;}
+#menu hr{border:0; height:.5px; background:var(--sep); margin:4px 0;}
+#shade{position:fixed; inset:0; z-index:29; display:none;}
+#shade.open{display:block;}
+
+/* ---------- secret panel (magician only) ---------- */
+#panel{position:fixed; inset:0; z-index:100; background:#111; color:#eee; overflow-y:auto;
+  padding:calc(env(safe-area-inset-top) + 10px) 16px calc(env(safe-area-inset-bottom) + 30px);
+  font-size:15px; -webkit-user-select:none; user-select:none;}
+#panel[hidden]{display:none;}
+#panel header{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+#panel header b{font-size:20px;}
+#panel .btn{background:#2c2c2e; color:#fff; border-radius:10px; padding:9px 14px; font-size:15px;}
+#panel .btn.y{background:#ffd60a; color:#000; font-weight:600;}
+#panel .btn.r{background:#3a1512; color:#ff6b60;}
+#panel .box{background:#1c1c1e; border-radius:12px; padding:12px; margin:10px 0;}
+#panel .box > *+*{margin-top:10px;}
+#panel .lab{color:#8e8e93; font-size:12px; text-transform:uppercase; letter-spacing:.05em; margin:18px 4px 4px;}
+#panel .f{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+#panel .f span{flex:1;}
+#panel .f small, #panel small{display:block; color:#8e8e93; font-size:12px; margin-top:2px;}
+#panel select, #panel input[type=number], #panel input[type=text], #panel textarea{
+  background:#2c2c2e; color:#fff; border:0; border-radius:8px; padding:7px 9px; font:inherit; font-size:16px;}
+#panel textarea{width:100%; min-height:64px; resize:vertical;}
+#panel input[type=number]{width:72px;}
+#panel input[type=checkbox]{width:22px; height:22px; accent-color:#ffd60a;}
+#pStatus{line-height:1.5;}
+#pStatus .k{color:#8e8e93;}
+#pStatus .ok{color:#30d158;} #pStatus .warn{color:#ffd60a;} #pStatus .bad{color:#ff453a;}
+#pHeard{font-family:ui-monospace,Menlo,monospace; font-size:13px; color:#aaa; min-height:2.6em; word-break:break-word;}
+.cards{display:grid; grid-template-columns:repeat(13,1fr); gap:3px;}
+.cards button{background:#2c2c2e; border-radius:5px; padding:7px 0; font-size:13px; font-weight:600; color:#fff;}
+.cards button.H, .cards button.D{color:#ff6b60;}
+.cards button:active{background:#ffd60a; color:#000;}
+.chips{display:flex; flex-wrap:wrap; gap:6px;}
+.row2{display:flex; gap:8px; flex-wrap:wrap;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== Dossiers ===== -->
+  <section class="screen left" id="sFolders">
+    <div class="topbar">
+      <span class="sp"></span>
+      <button class="pill glass">Modifier</button>
+    </div>
+    <div class="scroll">
+      <h1 id="fTitle">Dossiers</h1>
+      <h2>iCloud</h2>
+      <div class="group">
+        <div class="row" id="folderRow"><div class="c frow" style="padding-left:18px">
+          <svg class="fi" viewBox="0 0 26 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M2 4.5A1.5 1.5 0 0 1 3.5 3h6l2.2 2.5h10.8A1.5 1.5 0 0 1 24 7v11.5a1.5 1.5 0 0 1-1.5 1.5h-19A1.5 1.5 0 0 1 2 18.5z"/><path d="M2 9h22"/></svg>
+          <span>Notes</span><span class="n" id="fCount">0</span>
+          <svg class="chev" viewBox="0 0 9 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5 7.5 7.5l-6 6"/></svg>
+        </div></div>
+      </div>
+    </div>
+    <div class="bottombar">
+      <button class="gbtn glass" aria-label="Nouveau dossier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M2.5 6A1.5 1.5 0 0 1 4 4.5h5l2 2.2h9A1.5 1.5 0 0 1 21.5 8.2v10.3A1.5 1.5 0 0 1 20 20H4a1.5 1.5 0 0 1-1.5-1.5z"/><path d="M12 10.5v6M9 13.5h6"/></svg></button>
+      <span class="sp"></span>
+      <button class="gbtn glass compose" aria-label="Nouvelle note"></button>
+    </div>
+  </section>
+
+  <!-- ===== Liste ===== -->
+  <section class="screen" id="sList">
+    <div class="topbar">
+      <button class="gbtn glass" id="toFolders" aria-label="Dossiers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4.5 7.5 12l7.5 7.5"/></svg></button>
+      <span class="sp"></span>
+      <button class="gbtn glass dots" aria-label="Plus"></button>
+    </div>
+    <div class="scroll" id="listScroll">
+      <h1 id="lTitle">Notes</h1>
+      <div id="list"></div>
+    </div>
+    <div class="bottombar">
+      <label class="search glass">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="6"/><path d="m13 13 5 5"/></svg>
+        <input id="q" type="search" placeholder="Rechercher" autocomplete="off" autocorrect="off" spellcheck="false">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="7" y="1.5" width="6" height="11" rx="3" fill="currentColor" stroke="none"/><path d="M4 9.5a6 6 0 0 0 12 0M10 15.5v3"/></svg>
+      </label>
+      <button class="gbtn glass compose" aria-label="Nouvelle note"></button>
+    </div>
+  </section>
+
+  <!-- ===== Note ===== -->
+  <section class="screen right" id="sEditor">
+    <div class="topbar">
+      <button class="gbtn glass" id="back" aria-label="Notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4.5 7.5 12l7.5 7.5"/></svg></button>
+      <span class="sp"></span>
+      <div class="gcap glass">
+        <button aria-label="Partager"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 9H6.5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V10a1 1 0 0 0-1-1h-2"/><path d="M12 14.5V2.5M8 6.3l4-3.8 4 3.8"/></svg></button>
+        <button class="dots" id="edMore" aria-label="Plus"></button>
+      </div>
+      <button class="gbtn glass" id="doneBtn" aria-label="OK"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></button>
+    </div>
+    <div class="scroll" id="edScroll">
+      <div class="edDate" id="edDate"><span id="edDateTxt"></span><i id="cue"></i></div>
+      <div id="ed" contenteditable="true" autocapitalize="sentences" spellcheck="true"></div>
+    </div>
+    <div class="bottombar">
+      <div class="gcap glass">
+        <button aria-label="Liste de pointage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="7" r="2.6"/><path d="m4.4 7 .8.8 1.6-1.7"/><circle cx="5.5" cy="17" r="2.6"/><path d="M11 7h10M11 17h10"/></svg></button>
+        <button aria-label="Tableau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M3 15h18M9 4v16M15 4v16"/></svg></button>
+        <button aria-label="Joindre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m20 11.5-7.8 7.8a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8"/></svg></button>
+        <button aria-label="Annoter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="m9 15.5 1.2-4.2 4.6-4.6 3 3-4.6 4.6zM10.2 11.3l3 3"/></svg></button>
+      </div>
+      <span class="sp"></span>
+      <button class="gbtn glass compose" aria-label="Nouvelle note"></button>
+    </div>
+  </section>
+</div>
+
+<div id="shade"></div>
+<div id="menu" class="glass">
+  <button data-m="find">Rechercher dans la note <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="6"/><path d="m13 13 5 5"/></svg></button>
+  <button data-m="pin">Épingler <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M9 3h6l-1 6 3 3H7l3-3zM12 12v9"/></svg></button>
+  <button data-m="lock">Verrouiller <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></button>
+  <hr>
+  <button data-m="del" class="red">Supprimer <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M4 6.5h16M9.5 6.5V4.5h5v2M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6"/></svg></button>
+</div>
+
+<!-- ===== Secret panel ===== -->
+<div id="panel" hidden>
+  <header><b>Réglages secrets</b><button class="btn y" id="pClose">Fermer</button></header>
+
+  <div class="box">
+    <div id="pStatus"></div>
+    <div id="pHeard"></div>
+    <div class="row2">
+      <button class="btn" id="pTest">Tester le micro</button>
+      <button class="btn" id="pTarget">Cibler la note ouverte</button>
+      <button class="btn r" id="pReset">Réinitialiser</button>
+    </div>
+  </div>
+
+  <div class="lab">Saisie manuelle (secours)</div>
+  <div class="box" id="pManual"></div>
+
+  <div class="lab">Tour</div>
+  <div class="box">
+    <label class="f"><span>Armé<small>Chaque nouvelle note devient la prédiction.</small></span><input type="checkbox" data-k="armed"></label>
+    <label class="f"><span>Ce qu'on écoute</span>
+      <select data-k="mode"><option value="card">Une carte</option><option value="number">Un nombre</option><option value="list">Un mot de ma liste</option></select></label>
+    <label class="f"><span>Langue</span>
+      <select data-k="lang"><option value="fr-FR">Français</option><option value="en-US">English</option></select></label>
+    <label class="f" data-show="card"><span>Écriture de la carte</span>
+      <select data-k="cardFmt"><option value="short">7 de cœur</option><option value="long">Sept de cœur</option><option value="emoji">7 de cœur ♥️</option><option value="sym">7♥</option></select></label>
+    <div data-show="number" class="f"><span>Nombre entre</span><input type="number" data-k="nMin" inputmode="numeric"> et <input type="number" data-k="nMax" inputmode="numeric"></div>
+    <div data-show="list"><span>Mots possibles, un par ligne</span><textarea data-k="list" rows="5"></textarea></div>
+    <div><span>Texte révélé <small>{x} est remplacé par ce qui a été entendu. La 1<sup>re</sup> ligne est le titre en gras.</small></span><textarea data-k="tpl" rows="3"></textarea></div>
+  </div>
+
+  <div class="lab">Déroulé</div>
+  <div class="box">
+    <label class="f"><span>L'écoute démarre</span>
+      <select data-k="startOn"><option value="done">quand je quitte la note / ✓</option><option value="create">dès la création de la note</option></select></label>
+    <label class="f"><span>Verrouiller la valeur</span>
+      <select data-k="lockOn"><option value="touch">au 1er toucher de l'écran</option><option value="timer">après un silence</option><option value="never">jamais</option></select></label>
+    <label class="f" data-show-lock="timer"><span>Silence (secondes)</span><input type="number" data-k="lockSec" min="1" max="30"></label>
+    <label class="f"><span>Point discret quand c'est capté<small>Petit point après la date de la note.</small></span><input type="checkbox" data-k="cue"></label>
+  </div>
+
+  <div class="lab">Données</div>
+  <div class="box row2">
+    <button class="btn r" id="pSeed">Remettre les notes d'exemple</button>
+  </div>
+  <small style="margin:14px 4px 0">Ouvrir ce panneau : 3 tapes rapides sur la date d'une note, ou sur le titre « Notes » / « Dossiers ».</small>
+</div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const LS = {
+  get(k, d){ try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+};
+
+/* ================= state ================= */
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+const DEF = {
+  armed:true, mode:"card", lang:"fr-FR", cardFmt:"short",
+  nMin:1, nMax:100,
+  list:"Pomme\nBanane\nFraise\nCerise\nKiwi\nOrange\nAnanas\nMangue",
+  tpl:"{x}", startOn:"done", lockOn:"touch", lockSec:4, cue:true
+};
+let S = Object.assign({}, DEF, LS.get("notes.cfg", {}));
+let notes = LS.get("notes.data", null) || seed();
+// T = the trick in progress: which note is the prediction, what was heard, whether it is final.
+let T = Object.assign({target:null, value:null, locked:false, orig:null}, LS.get("notes.trick", {}));
+let cur = null;                // id of the note open in the editor
+let saveT = 0;
+function save(){ LS.set("notes.data", notes); LS.set("notes.cfg", S); LS.set("notes.trick", T); }
+function saveSoon(){ clearTimeout(saveT); saveT = setTimeout(save, 300); }
+const get = id => notes.find(n => n.id === id);
+
+function seed(){
+  const now = Date.now(), H = 3600e3, D = 24*H;
+  const mk = (ago, text) => ({id:uid(), text, created:now-ago-H, modified:now-ago});
+  return [
+    mk(2.6*H, "Courses\nLait\nŒufs\nPain complet\nTomates cerises\nCafé en grains\nPapier cuisson"),
+    mk(3*D+4*H, "Idées cadeaux\nMaman : le livre de cuisine japonaise\nThomas : gourde isotherme\nLéa : place de concert ?"),
+    mk(9*D, "Films à voir\nPerfect Days\nAnatomie d'une chute\nLes Banshees d'Inisherin\nAftersun"),
+    mk(16*D+2*H, "Digicode Julie\nBât. B — 4471A\n3e étage, porte gauche"),
+    mk(47*D, "Vacances\nRéserver le train avant le 15\nCrème solaire\nAdaptateur prise\nRendre les clés à Marc"),
+    mk(130*D, "Garage\nMardi 9h — vidange + pneus avant\nDemander devis pare-brise")
+  ];
+}
+
+/* ================= dates ================= */
+const MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+const JOURS = ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
+const hm = d => String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+const day0 = t => { const d = new Date(t); d.setHours(0,0,0,0); return d.getTime(); };
+const daysAgo = t => Math.round((day0(Date.now()) - day0(t)) / 864e5);
+function shortDate(t){
+  const d = new Date(t), a = daysAgo(t);
+  if (a <= 0) return hm(d);
+  if (a === 1) return "Hier";
+  if (a < 7) return JOURS[d.getDay()];
+  return String(d.getDate()).padStart(2,"0") + "/" + String(d.getMonth()+1).padStart(2,"0") + "/" + d.getFullYear();
+}
+function section(t){
+  const a = daysAgo(t), d = new Date(t);
+  if (a <= 0) return "Aujourd’hui";
+  if (a === 1) return "Hier";
+  if (a <= 7) return "7 jours précédents";
+  if (a <= 30) return "30 jours précédents";
+  if (d.getFullYear() === new Date().getFullYear()) { const m = MOIS[d.getMonth()]; return m[0].toUpperCase() + m.slice(1); }
+  return String(d.getFullYear());
+}
+const longDate = t => { const d = new Date(t); return `${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()} à ${hm(d)}`; };
+
+/* ================= icons ================= */
+const IC = {
+  compose:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.5H5.5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V13"/><path d="M18 2.8a1.9 1.9 0 0 1 2.7 2.7l-8.4 8.4-3.6.9.9-3.6z"/></svg>',
+  dots:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"><path d="M4 6.5h16M9.5 6.5V4.5h5v2M6.5 6.5l1 13.5h9l1-13.5"/></svg>'
+};
+document.querySelectorAll(".compose").forEach(b => b.innerHTML = IC.compose);
+document.querySelectorAll(".dots").forEach(b => b.innerHTML = IC.dots);
+
+/* ================= navigation ================= */
+const SCREENS = ["sFolders","sList","sEditor"];
+let stack = ["sFolders","sList"];
+const TC = {sFolders:"bg", sList:"bg", sEditor:"edbg"};
+function layout(){
+  SCREENS.forEach(id => {
+    const el = document.getElementById(id), i = stack.indexOf(id);
+    el.classList.toggle("left", i >= 0 && i < stack.length - 1);
+    el.classList.toggle("right", i < 0);
+  });
+  const top = stack[stack.length-1];
+  const v = getComputedStyle(document.documentElement).getPropertyValue("--" + TC[top]).trim();
+  $("#tc").setAttribute("content", v);
+}
+function push(id){ stack.push(id); layout(); }
+function back(){
+  if (stack.length <= 1) return;
+  const top = stack[stack.length-1];
+  if (top === "sEditor") leaveEditor();
+  stack.pop(); layout();
+}
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", layout);
+
+// iOS-style swipe from the left edge to go back
+(() => {
+  let x0 = null, y0 = 0;
+  $("#app").addEventListener("touchstart", e => {
+    const t = e.touches[0];
+    x0 = (t.clientX < 24 && stack.length > 1) ? t.clientX : null; y0 = t.clientY;
+  }, {passive:true});
+  $("#app").addEventListener("touchend", e => {
+    if (x0 == null) return;
+    const t = e.changedTouches[0];
+    if (t.clientX - x0 > 70 && Math.abs(t.clientY - y0) < 80) { ed.blur(); back(); }
+    x0 = null;
+  });
+})();
+
+/* ================= list ================= */
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm = s => s.toLowerCase().replace(/œ/g,"oe").replace(/æ/g,"ae").normalize("NFD")
+  .replace(/[̀-ͯ]/g,"").replace(/[’'`\-.,!?;:«»"()\/]/g," ").replace(/\s+/g," ").trim();
+function lines(n){ return n.text.split("\n").map(s => s.trim()).filter(Boolean); }
+
+function renderList(){
+  const q = norm($("#q").value || "");
+  const shown = notes.filter(n => n.id === cur || n.text.trim() || n.id === T.target)
+    .filter(n => !q || norm(n.text).includes(q))
+    .sort((a,b) => b.modified - a.modified);
+  $("#fCount").textContent = notes.filter(n => n.text.trim() || n.id === T.target).length;
+  if (!shown.length){ $("#list").innerHTML = `<div class="empty">${q ? "Aucun résultat" : "Aucune note"}</div>`; return; }
+  let html = "", sec = null;
+  for (const n of shown){
+    const s = section(n.modified);
+    if (s !== sec){ if (sec) html += "</div>"; html += `<h2>${s}</h2><div class="group">`; sec = s; }
+    const L = lines(n);
+    html += `<div class="row" data-id="${n.id}"><button class="del" aria-label="Supprimer">${IC.trash}</button>
+      <div class="c"><div class="t">${esc(L[0] || "Nouvelle note")}</div>
+      <div class="m"><b>${shortDate(n.modified)}</b>${esc(L[1] || "Aucun texte supplémentaire")}</div></div></div>`;
+  }
+  $("#list").innerHTML = html + "</div>";
+}
+$("#q").addEventListener("input", renderList);
+
+// tap to open, swipe left to reveal delete
+(() => {
+  let row = null, x0 = 0, y0 = 0, dx = 0, mode = null, openRow = null;
+  const L = $("#list");
+  const close = r => { if (r) r.querySelector(".c").style.transform = ""; if (r === openRow) openRow = null; };
+  L.addEventListener("touchstart", e => {
+    row = e.target.closest(".row"); if (!row || e.target.closest(".del")) { row = null; return; }
+    const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; dx = 0; mode = null;
+    row.querySelector(".c").style.transition = "none";
+  }, {passive:true});
+  L.addEventListener("touchmove", e => {
+    if (!row) return;
+    const t = e.touches[0], mx = t.clientX - x0, my = t.clientY - y0;
+    if (!mode) mode = Math.abs(mx) > 8 && Math.abs(mx) > Math.abs(my) ? "h" : (Math.abs(my) > 8 ? "v" : null);
+    if (mode !== "h") return;
+    const base = row === openRow ? -84 : 0;
+    dx = Math.min(0, Math.max(-120, base + mx));
+    row.querySelector(".c").style.transform = `translateX(${dx}px)`;
+  }, {passive:true});
+  L.addEventListener("touchend", () => {
+    if (!row) return;
+    const c = row.querySelector(".c"); c.style.transition = "";
+    if (mode === "h"){
+      if (dx < -50){ if (openRow && openRow !== row) close(openRow); c.style.transform = "translateX(-84px)"; openRow = row; }
+      else close(row);
+    }
+    row = null;
+  });
+  L.addEventListener("click", e => {
+    const del = e.target.closest(".del");
+    if (del){ removeNote(del.closest(".row").dataset.id); openRow = null; return; }
+    const r = e.target.closest(".row"); if (!r) return;
+    if (openRow){ close(openRow); return; }
+    const c = r.querySelector(".c"); c.classList.add("hl");
+    setTimeout(() => c.classList.remove("hl"), 350);
+    openNote(r.dataset.id, false);
+  });
+})();
+
+function removeNote(id){
+  notes = notes.filter(n => n.id !== id);
+  if (T.target === id) T = {target:null, value:null, locked:false, orig:null};
+  save(); renderList();
+}
+
+$("#toFolders").onclick = back;
+$("#folderRow").onclick = () => push("sList");
+
+/* ================= editor ================= */
+const ed = $("#ed");
+function setEditor(n){
+  const L = n.text.split("\n");
+  ed.innerHTML = n.text ? L.map(l => `<div>${l ? esc(l) : "<br>"}</div>`).join("") : "<div><br></div>";
+  $("#edDateTxt").textContent = longDate(n.modified);
+  updateCue();
+}
+function getText(){
+  const out = []; let txt = null;
+  ed.childNodes.forEach(n => {
+    if (n.nodeType === 3){ txt = (txt || "") + n.textContent; }
+    else if (n.nodeName === "BR"){ out.push(txt || ""); txt = null; }
+    else { if (txt != null){ out.push(txt); txt = null; } out.push(n.textContent.replace(/\n$/,"")); }
+  });
+  if (txt != null) out.push(txt);
+  return out.join("\n").replace(/ /g," ").replace(/\n+$/,"");
+}
+function caretEnd(el){
+  const r = document.createRange(), s = getSelection();
+  r.selectNodeContents(el); r.collapse(false); s.removeAllRanges(); s.addRange(r);
+}
+function openNote(id, focus){
+  cur = id; const n = get(id);
+  setEditor(n);
+  $("#edScroll").scrollTop = 0;
+  if (stack[stack.length-1] !== "sEditor") push("sEditor");
+  if (focus){ ed.focus({preventScroll:true}); caretEnd(ed.lastChild || ed); }
+}
+function leaveEditor(){
+  if (!cur) return;
+  const n = get(cur);
+  if (n){
+    n.text = getText();
+    if (!n.text.trim() && cur !== T.target) notes = notes.filter(x => x !== n);
+  }
+  const wasTarget = cur === T.target;
+  cur = null; save(); renderList();
+  if (wasTarget && S.armed && !T.locked) listen();
+}
+ed.addEventListener("input", () => {
+  // keep every line in its own <div> so the first one can be styled as the title
+  if (!ed.firstChild || (ed.childNodes.length === 1 && ed.firstChild.nodeName === "BR")){
+    ed.innerHTML = "<div><br></div>"; caretEnd(ed.firstChild);
+  } else if (ed.firstChild.nodeType === 3){
+    const s = getSelection(), tn = ed.firstChild, off = s.anchorNode === tn ? s.anchorOffset : null;
+    const d = document.createElement("div"); ed.insertBefore(d, tn); d.appendChild(tn);
+    if (off != null){ const r = document.createRange(); r.setStart(tn, off); r.collapse(true); s.removeAllRanges(); s.addRange(r); }
+  }
+  const n = get(cur); if (!n) return;
+  n.text = getText(); n.modified = Date.now();
+  if (n.id === T.target && T.value == null) T.orig = null;
+  $("#edDateTxt").textContent = longDate(n.modified);
+  saveSoon();
+});
+ed.addEventListener("paste", e => {
+  e.preventDefault();
+  document.execCommand("insertText", false, (e.clipboardData || window.clipboardData).getData("text/plain"));
+});
+ed.addEventListener("focus", () => $("#sEditor").classList.add("editing"));
+ed.addEventListener("blur", () => { $("#sEditor").classList.remove("editing"); const n = get(cur); if (n){ n.text = getText(); save(); } });
+$("#doneBtn").addEventListener("click", () => {
+  ed.blur();
+  if (cur === T.target && S.armed && !T.locked) listen();
+});
+$("#back").onclick = () => { ed.blur(); back(); };
+
+function compose(){
+  if (stack[stack.length-1] === "sEditor") leaveEditor();
+  stack = ["sFolders","sList"];
+  const n = {id:uid(), text:"", created:Date.now(), modified:Date.now()};
+  notes.unshift(n);
+  if (S.armed){ arm(n.id); if (S.startOn === "create") listen(); }
+  save();
+  openNote(n.id, true);
+  renderList();
+}
+document.querySelectorAll(".compose").forEach(b => b.addEventListener("click", compose));
+
+/* ---------- … menu ---------- */
+const menu = $("#menu"), shade = $("#shade");
+const menuOpen = o => { menu.classList.toggle("open", o); shade.classList.toggle("open", o); };
+$("#edMore").onclick = () => { ed.blur(); menuOpen(true); };
+shade.onclick = () => menuOpen(false);
+menu.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  menuOpen(false);
+  if (b.dataset.m === "del" && cur){
+    const id = cur; cur = null;
+    notes = notes.filter(n => n.id !== id);
+    if (T.target === id) T = {target:null, value:null, locked:false, orig:null};
+    save(); stack.pop(); layout(); renderList();
+  }
+});
+
+/* ================= the trick ================= */
+function arm(id){ T = {target:id, value:null, locked:false, orig:null}; save(); }
+
+const VAL = {as:"A",ass:"A",asse:"A","1":"A",ace:"A",aces:"A",
+  deux:"2","2":"2",two:"2",to:"2",too:"2", trois:"3","3":"3",three:"3",tree:"3",
+  quatre:"4","4":"4",cat:"4",four:"4",for:"4", cinq:"5","5":"5",saint:"5",sein:"5",sain:"5",five:"5",
+  six:"6","6":"6",cis:"6", sept:"7","7":"7",set:"7",cette:"7",sete:"7",seven:"7",
+  huit:"8","8":"8",eight:"8",ate:"8", neuf:"9","9":"9",nine:"9", dix:"10","10":"10",dis:"10",dit:"10",ten:"10",
+  valet:"J",valets:"J",valais:"J",valait:"J",jack:"J",jacks:"J",
+  dame:"Q",dames:"Q",reine:"Q",queen:"Q",queens:"Q", roi:"K",rois:"K",roy:"K",king:"K",kings:"K"};
+const SUIT = {pique:"S",piques:"S",pic:"S",pics:"S",pick:"S",pik:"S",spade:"S",spades:"S",
+  coeur:"H",coeurs:"H",choeur:"H",choeurs:"H",cour:"H",cours:"H",heart:"H",hearts:"H",harts:"H",
+  carreau:"D",carreaux:"D",caro:"D",carro:"D",carot:"D",carrot:"D",diamond:"D",diamonds:"D",
+  trefle:"C",trefles:"C",treffle:"C",treffles:"C",club:"C",clubs:"C"};
+const FILL = new Set(["de","du","des","d","of","the","a","off"]);
+const TWOISH = new Set(["2","deux","to","too","two"]);
+
+function findCard(text){
+  const tk = norm(text).split(" "); let best = null, bestAt = -1;
+  for (let j = 0; j < tk.length; j++){
+    const s = SUIT[tk[j]]; if (!s) continue;
+    for (let k = j-1; k >= Math.max(0, j-3); k--){
+      const t = tk[k];
+      // "roi 2 cœur" / "roi deux cœur": a mis-heard "de" sitting after a real value
+      if ((FILL.has(t) || TWOISH.has(t)) && k > 0 && VAL[tk[k-1]]) continue;
+      if (VAL[t]){ best = {v:VAL[t], s}; bestAt = j; break; }
+      if (FILL.has(t)) continue;
+      break;
+    }
+  }
+  const jk = Math.max(tk.lastIndexOf("joker"), tk.lastIndexOf("jokers"));
+  if (jk > bestAt) return {v:"JK"};
+  return best;
+}
+const FR = () => S.lang.startsWith("fr");
+function cardText(c){
+  if (c.v === "JK") return "Joker";
+  const fr = FR();
+  const face = fr ? {A:"As",J:"Valet",Q:"Dame",K:"Roi"} : {A:"Ace",J:"Jack",Q:"Queen",K:"King"};
+  const word = fr ? {2:"Deux",3:"Trois",4:"Quatre",5:"Cinq",6:"Six",7:"Sept",8:"Huit",9:"Neuf",10:"Dix"}
+                  : {2:"Two",3:"Three",4:"Four",5:"Five",6:"Six",7:"Seven",8:"Eight",9:"Nine",10:"Ten"};
+  const suit = fr ? {S:"pique",H:"cœur",D:"carreau",C:"trèfle"} : {S:"Spades",H:"Hearts",D:"Diamonds",C:"Clubs"};
+  const sym = {S:"♠",H:"♥",D:"♦",C:"♣"}, emo = {S:"♠️",H:"♥️",D:"♦️",C:"♣️"};
+  const of = fr ? " de " : " of ";
+  switch (S.cardFmt){
+    case "long": return (face[c.v] || word[c.v]) + of + suit[c.s];
+    case "sym": return ((fr ? {A:"A",J:"V",Q:"D",K:"R"} : {A:"A",J:"J",Q:"Q",K:"K"})[c.v] || c.v) + sym[c.s];
+    case "emoji": return (face[c.v] || c.v) + of + suit[c.s] + " " + emo[c.s];
+    default: return (face[c.v] || c.v) + of + suit[c.s];
+  }
+}
+const NUMW = {zero:0,un:1,une:1,deux:2,trois:3,quatre:4,cinq:5,six:6,sept:7,huit:8,neuf:9,dix:10,onze:11,douze:12,treize:13,
+  quatorze:14,quinze:15,seize:16,vingt:20,trente:30,quarante:40,cinquante:50,soixante:60,cent:100,
+  one:1,two:2,three:3,four:4,five:5,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,
+  fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50,sixty:60,
+  seventy:70,eighty:80,ninety:90,hundred:100};
+function findNumber(text){
+  let last = null;
+  for (const t of norm(text).replace(/(\d)\s+(?=\d{3}\b)/g,"$1").split(" ")){
+    const n = /^\d+$/.test(t) ? +t : NUMW[t];
+    if (n != null && n >= +S.nMin && n <= +S.nMax) last = String(n);
+  }
+  return last;
+}
+const listItems = () => S.list.split("\n").map(s => s.trim()).filter(Boolean);
+function findWord(text){
+  const h = " " + norm(text) + " "; let best = null, at = -1;
+  for (const it of listItems()){
+    const w = norm(it); if (!w) continue;
+    for (const v of [w, w + "s", w + "x"]){
+      const i = h.lastIndexOf(" " + v + " ");
+      if (i > at){ at = i; best = it; }
+    }
+  }
+  return best;
+}
+function extract(text){
+  if (S.mode === "number") return findNumber(text);
+  if (S.mode === "list") return findWord(text);
+  const c = findCard(text); return c ? cardText(c) : null;
+}
+function revealText(v){ return /\{x\}/i.test(S.tpl) ? S.tpl.replace(/\{x\}/gi, v) : (S.tpl ? S.tpl + "\n" : "") + v; }
+
+let lockT = 0;
+function capture(v, manual){
+  if (!v || (T.locked && !manual)) return;
+  const n = get(T.target); if (!n) return;
+  if (T.orig == null) T.orig = n.text;
+  T.value = v;
+  n.text = revealText(v);           // modified date untouched: the note keeps the time you "wrote" it
+  save();
+  if (cur === n.id && document.activeElement !== ed) setEditor(n);
+  renderList(); updateCue(); paintPanel();
+  if (manual) lock();
+  else if (S.lockOn === "timer"){ clearTimeout(lockT); lockT = setTimeout(lock, Math.max(1, +S.lockSec) * 1000); }
+}
+function lock(){
+  clearTimeout(lockT);
+  if (T.value == null) return;
+  T.locked = true; save(); stopListen(); paintPanel();
+}
+function resetTrick(){
+  const n = get(T.target);
+  if (n && T.orig != null) n.text = T.orig;
+  T.value = null; T.locked = false; T.orig = null; save();
+  if (n && cur === n.id) setEditor(n);
+  renderList(); updateCue(); paintPanel();
+}
+function updateCue(){ $("#cue").classList.toggle("on", !!(S.cue && cur && cur === T.target && T.value != null)); }
+
+// the touch that picks the phone up locks the value and switches the mic off
+document.addEventListener("pointerdown", () => {
+  if (S.lockOn === "touch" && T.value != null && !T.locked && $("#panel").hidden) lock();
+  if (want && !running) startRec();
+}, true);
+
+/* ---------- speech ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, want = false, running = false, testing = false, heard = "", err = "", wl = null;
+function listen(){ if (!SR){ err = "reconnaissance vocale indisponible"; paintPanel(); return; } want = true; wake(true); startRec(); }
+function startRec(){
+  if (!SR || running) return;
+  try { rec && rec.abort(); } catch(e){}
+  rec = new SR();
+  rec.lang = S.lang; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 3;
+  rec.onstart = () => { running = true; err = ""; paintPanel(); };
+  rec.onend = () => {
+    running = false; paintPanel();
+    if (want) setTimeout(() => { if (want && !running && !document.hidden) startRec(); }, 250);
+  };
+  rec.onerror = e => {
+    err = e.error;
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") want = false;
+    paintPanel();
+  };
+  rec.onresult = e => {
+    for (let i = e.resultIndex; i < e.results.length; i++){
+      const r = e.results[i]; heard = r[0].transcript;
+      let v = null;
+      for (let a = 0; a < r.length && !v; a++) v = extract(r[a].transcript);
+      if (testing){ $("#pHeard").textContent = `« ${heard} »` + (v ? `  →  ${v}` : ""); continue; }
+      if (v) capture(v);
+    }
+    paintPanel();
+  };
+  try { rec.start(); running = true; } catch(e){ err = String(e.message || e); }
+}
+function stopListen(){
+  want = false; testing = false; wake(false);
+  try { rec && rec.stop(); } catch(e){}
+}
+async function wake(on){
+  try {
+    if (on && !wl && navigator.wakeLock){ wl = await navigator.wakeLock.request("screen"); wl.addEventListener("release", () => wl = null); }
+    else if (!on && wl){ await wl.release(); wl = null; }
+  } catch(e){}
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) return;
+  if (want){ wake(true); if (!running) startRec(); }
+  renderList();
+});
+
+/* ================= secret panel ================= */
+const panel = $("#panel");
+function secretTaps(el){
+  let n = 0, t = 0;
+  el.addEventListener("click", () => {
+    const now = Date.now(); n = now - t < 450 ? n + 1 : 1; t = now;
+    if (n >= 3){ n = 0; openPanel(); }
+  });
+}
+[$("#edDate"), $("#lTitle"), $("#fTitle")].forEach(secretTaps);
+
+function openPanel(){
+  ed.blur();
+  panel.querySelectorAll("[data-k]").forEach(el => {
+    const v = S[el.dataset.k];
+    if (el.type === "checkbox") el.checked = !!v; else el.value = v;
+  });
+  panel.hidden = false; panel.scrollTop = 0; buildManual(); paintPanel();
+}
+$("#pClose").onclick = () => {
+  if (testing) endTest();
+  panel.hidden = true;
+};
+let wantBefore = false;
+panel.addEventListener("input", e => {
+  const el = e.target, k = el.dataset && el.dataset.k; if (!k) return;
+  S[k] = el.type === "checkbox" ? el.checked : (el.type === "number" ? (el.value === "" ? DEF[k] : +el.value) : el.value);
+  if (k === "lang" && rec){ try { rec.abort(); } catch(_){} }
+  save(); buildManual(); paintPanel();
+});
+function showFor(){
+  panel.querySelectorAll("[data-show]").forEach(el => el.style.display = el.dataset.show === S.mode ? "" : "none");
+  panel.querySelectorAll("[data-show-lock]").forEach(el => el.style.display = el.dataset.showLock === S.lockOn ? "" : "none");
+}
+function buildManual(){
+  const box = $("#pManual");
+  if (S.mode === "card"){
+    let h = '<div class="cards">';
+    for (const s of ["S","H","C","D"])
+      for (const v of ["A","2","3","4","5","6","7","8","9","10","J","Q","K"])
+        h += `<button class="${s}" data-v="${v}" data-s="${s}">${(FR() ? {J:"V",Q:"D",K:"R"} : {})[v] || v}${{S:"♠",H:"♥",D:"♦",C:"♣"}[s]}</button>`;
+    box.innerHTML = h + '</div><small>Un tap = la carte est écrite, le panneau se ferme.</small>';
+  } else if (S.mode === "number"){
+    box.innerHTML = '<div class="f"><input type="text" inputmode="numeric" id="pNum" placeholder="42" style="flex:1"><button class="btn y" id="pNumGo">Écrire</button></div>';
+  } else {
+    box.innerHTML = '<div class="chips">' + listItems().map(w => `<button class="btn" data-w="${esc(w)}">${esc(w)}</button>`).join("") + "</div>";
+  }
+  showFor();
+}
+$("#pManual").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  let v = null;
+  if (b.dataset.s) v = cardText({v:b.dataset.v, s:b.dataset.s});
+  else if (b.dataset.w) v = b.dataset.w;
+  else if (b.id === "pNumGo") v = $("#pNum").value.trim();
+  if (!v) return;
+  if (!get(T.target)){ if (!cur) return alert("Ouvre d'abord la note à remplir."); arm(cur); }
+  capture(v, true);
+  testing = false; panel.hidden = true;
+});
+$("#pTest").onclick = () => {
+  if (testing){ endTest(); paintPanel(); return; }
+  wantBefore = want; testing = true; $("#pHeard").textContent = "Parle…"; $("#pTest").textContent = "Arrêter le test";
+  listen();
+};
+function endTest(){ testing = false; if (!wantBefore) stopListen(); }
+$("#pTarget").onclick = () => { if (!cur) return alert("Aucune note ouverte."); arm(cur); updateCue(); paintPanel(); };
+$("#pReset").onclick = resetTrick;
+$("#pSeed").onclick = () => {
+  if (!confirm("Remplacer toutes les notes par les notes d'exemple ?")) return;
+  notes = seed(); T = {target:null, value:null, locked:false, orig:null}; save(); renderList();
+  panel.hidden = true; stack = ["sFolders","sList"]; cur = null; layout();
+};
+function paintPanel(){
+  if (panel.hidden) return;
+  const n = get(T.target), L = n ? lines(n) : [];
+  const mic = !SR ? '<span class="bad">indisponible sur ce navigateur</span>'
+    : running ? '<span class="ok">écoute en cours</span>' : (want ? '<span class="warn">redémarrage…</span>' : "arrêtée");
+  $("#pStatus").innerHTML =
+    `<div><span class="k">Armé :</span> ${S.armed ? '<span class="ok">oui</span>' : '<span class="warn">non</span>'}</div>` +
+    `<div><span class="k">Note cible :</span> ${n ? "« " + esc((T.orig != null ? T.orig.split("\n")[0] : L[0]) || "Nouvelle note") + " »" : "aucune — crée une note"}</div>` +
+    `<div><span class="k">Micro :</span> ${mic}${err ? ` <span class="bad">(${esc(err)})</span>` : ""}</div>` +
+    `<div><span class="k">Capté :</span> ${T.value != null ? "<b>" + esc(T.value) + "</b>" + (T.locked ? " 🔒" : " (peut encore changer)") : "—"}</div>`;
+  if (!testing) $("#pHeard").textContent = heard ? `Dernière écoute : « ${heard.slice(-160)} »` : "";
+  $("#pTest").textContent = testing ? "Arrêter le test" : "Tester le micro";
+}
+
+/* ================= boot ================= */
+SCREENS.forEach(id => document.getElementById(id).classList.add("noanim"));
+layout(); renderList();
+requestAnimationFrame(() => requestAnimationFrame(() => SCREENS.forEach(id => document.getElementById(id).classList.remove("noanim"))));
+save();
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
