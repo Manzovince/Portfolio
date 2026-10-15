@@ -765,71 +765,147 @@ header {
 
 /* Personal */
 
+/* Rows of equal height; featured and pattern cards take two columns, the rest one.
+   `dense` packing fills the holes, so the order in index.html sets the rhythm. */
 #personal {
     scroll-margin-top: 256px;
     display: grid;
-    /* grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); */
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 200px;
+    grid-auto-flow: dense;
     gap: 8px;
+}
+
+@media (min-width: 600px) {
+    #personal {
+        grid-auto-rows: 260px;
+        gap: 12px;
+    }
 }
 
 @media (min-width: 800px) {
     #personal {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(4, 1fr);
+        grid-auto-rows: 260px;
     }
 }
 
 @media (min-width: 1200px) {
     #personal {
-        grid-template-columns: repeat(3, 1fr);
+        grid-auto-rows: 320px;
     }
 }
 
 .cell {
     position: relative;
+    display: block;
     cursor: pointer;
     color: rgb(var(--rgb-light));
-    /* border: solid 1px rgba(231, 215, 192, 0.1); */
-    height: 40vh;
+    background-color: rgba(var(--rgb-text), 0.04);
+    border-radius: 4px;
     overflow: hidden;
+    isolation: isolate;
+}
+
+.cell--feature {
+    grid-column: span 2;
+}
+
+.cell--wide {
+    grid-column: span 2;
 }
 
 .cell img {
+    position: absolute;
+    inset: 0;
     object-fit: cover;
     width: 100%;
     height: 100%;
-    transition: all ease-out 1s;
-    z-index: -99;
+    transition: transform ease-out 1s;
+    z-index: -1;
 }
 
-.cell:hover>img {
-    transform: scale(1.1);
+.cell:hover>img,
+.cell:focus-visible>img {
+    transform: scale(1.05);
 }
 
+.cell:focus-visible {
+    outline: 1px solid rgba(var(--rgb-text), 0.8);
+    outline-offset: 3px;
+}
+
+/* The title is always there; the one-line description joins it on hover */
 .cell-content {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    padding: 32px;
-    opacity: 0;
-    background: linear-gradient(180deg, hsla(0, 0%, 10%, 0), hsla(0, 0%, 10%, 0.8));
-    /* text-shadow: 0 0 24px rgba(0, 0, 0, 0.5); */
-    transition: all ease-out 1s;
+    padding: 64px 24px 20px;
+    background: linear-gradient(180deg, hsla(0, 0%, 10%, 0), hsla(0, 0%, 10%, 0.75));
 }
 
-.cell:hover .cell-content {
-    opacity: 1;
+.cell-content h6 {
+    font-size: 1.125rem;
 }
 
-@media (max-width: 600px) {
-    .cell-content {
+.cell--feature .cell-content h6 {
+    font-size: 1.5rem;
+}
+
+.cell-content p {
+    font-size: 0.95rem;
+    margin-top: 4px;
+}
+
+@media (hover: hover) {
+    .cell-content p {
+        opacity: 0;
+        transform: translateY(6px);
+        transition: opacity ease-out .4s, transform ease-out .4s;
+    }
+
+    .cell:hover .cell-content p,
+    .cell:focus-visible .cell-content p {
         opacity: 1;
+        transform: none;
+    }
+}
+
+/* Phones: small cards keep just their title, there is no room for a sentence */
+@media (max-width: 599px) {
+    .cell-content {
+        padding: 48px 14px 12px;
+    }
+
+    .cell-content h6 {
+        font-size: 0.875rem;
+    }
+
+    .cell:not(.cell--feature) .cell-content p {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cell img,
+    .cell-content p {
+        transition: none;
     }
 }
 
 #life-calendar {
     background-color: #082f42
+}
+
+/* The clock sits on the left of the start page; keep it in frame when the card is narrow */
+#trmnl img {
+    object-position: left center;
+}
+
+/* The timer ring sits low in the Apnea card; keep it in frame on wide cards */
+#apnea img {
+    object-position: 50% 62%;
 }
 
 /* About */
