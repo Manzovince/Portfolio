@@ -1,6 +1,6 @@
 // === Interface language (shared with the rest of manzovince.com) ===
 
-import { settings } from "./settings.js?v=20261015a";
+import { settings } from "./settings.js?v=20261015b";
 
 const STORAGE_KEY = "selectedLanguage"; // same key as the portfolio's toggle
 
@@ -27,6 +27,13 @@ const STRINGS = {
         midiDevices: "{n} MIDI devices",
         pedal: "Sustain",
         clearStaff: "Clear the staff",
+        openScore: "Show the whole score",
+        scoreTitle: "Your score",
+        scoreEmpty: "Nothing played yet: the notes you play will be written here.",
+        download: "Download",
+        exportPngHelp: "Download the score as an image",
+        exportSvgHelp: "Download the score as a vector image",
+        exportMidiHelp: "Download what you played as a MIDI file",
         octaveDown: "Lower octave",
         octaveUp: "Higher octave",
         keyboardLabel: "Piano keyboard",
@@ -100,6 +107,13 @@ const STRINGS = {
         midiDevices: "{n} appareils MIDI",
         pedal: "Pédale",
         clearStaff: "Effacer la portée",
+        openScore: "Voir toute la partition",
+        scoreTitle: "Votre partition",
+        scoreEmpty: "Rien de joué pour l'instant : les notes jouées s'écriront ici.",
+        download: "Télécharger",
+        exportPngHelp: "Télécharger la partition en image",
+        exportSvgHelp: "Télécharger la partition en image vectorielle",
+        exportMidiHelp: "Télécharger ce que vous avez joué en fichier MIDI",
         octaveDown: "Octave inférieure",
         octaveUp: "Octave supérieure",
         keyboardLabel: "Clavier de piano",

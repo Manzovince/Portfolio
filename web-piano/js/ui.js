@@ -1,21 +1,23 @@
 // === Interface: chord readout, top bar, settings drawer ===
 
-import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261015a";
-import { settings, setSetting, onSettingChange } from "./settings.js?v=20261015a";
+import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261015b";
+import { settings, setSetting, onSettingChange } from "./settings.js?v=20261015b";
 import {
     t, chordQuality, inversionName, intervalName, scaleName, currentNotation,
     getLanguage, setLanguage, onLanguageChange, applyStaticText,
-} from "./i18n.js?v=20261015a";
+} from "./i18n.js?v=20261015b";
 import {
     detectChord, chordSymbol, noteName, spellPc, spelledOctave, pitchClass,
     intervalBetween, scaleContext, scaleNotes, SCALES,
-} from "./theory.js?v=20261015a";
-import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261015a";
-import { ledState, onLedState, connectLeds } from "./leds.js?v=20261015a";
-import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261015a";
-import { keysHint, shiftView } from "./keyboard.js?v=20261015a";
-import { clearScore } from "./score.js?v=20261015a";
-import { resetUsage } from "./roll.js?v=20261015a";
+} from "./theory.js?v=20261015b";
+import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261015b";
+import { ledState, onLedState, connectLeds } from "./leds.js?v=20261015b";
+import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261015b";
+import { keysHint, shiftView } from "./keyboard.js?v=20261015b";
+import {
+    clearScore, hasScore, onScoreChange, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi,
+} from "./score.js?v=20261015b";
+import { resetUsage } from "./roll.js?v=20261015b";
 
 const $ = selector => document.querySelector(selector);
 const finePointer = matchMedia("(hover: hover) and (pointer: fine)");
@@ -239,6 +241,43 @@ function renderAllText() {
     hasPlayed && renderReadout();
 }
 
+// === Whole score dialog ===
+
+function renderScoreState(played = hasScore()) {
+    $("#scoreEmpty").hidden = played;
+    $("#fullScore").hidden = !played;
+    ["#exportPng", "#exportSvg", "#exportMidi"].forEach(id => ($(id).disabled = !played));
+}
+
+function bindScoreDialog() {
+    const dialog = $("#scoreDialog");
+    $("#openScore").addEventListener("click", () => {
+        renderScoreState();
+        dialog.showModal();
+        showFullScore($("#fullScore"));
+    });
+    $("#closeScore").addEventListener("click", () => dialog.close());
+    // A click on the backdrop closes it too
+    dialog.addEventListener("click", e => e.target === dialog && dialog.close());
+    // "close" fires a little later: ignore it if the dialog was opened again since
+    dialog.addEventListener("close", () => !dialog.open && hideFullScore());
+    // Building an image takes a moment: keep the button busy meanwhile
+    [["#exportPng", exportPng], ["#exportSvg", exportSvg], ["#exportMidi", exportMidi]].forEach(([id, run]) => {
+        const button = $(id);
+        button.addEventListener("click", async () => {
+            button.disabled = true;
+            try {
+                await run();
+            } catch (err) {
+                console.warn("Export failed:", err);
+            } finally {
+                button.disabled = !hasScore();
+            }
+        });
+    });
+    onScoreChange(renderScoreState);
+}
+
 export function initUI() {
     bindControls();
     renderAllText();
@@ -254,6 +293,7 @@ export function initUI() {
     $("#midiStatus").addEventListener("click", connectMidi);
     $("#ledRetry").addEventListener("click", connectLeds);
     $("#clearStaff").addEventListener("click", clearScore);
+    bindScoreDialog();
     $("#resetUsage").addEventListener("click", resetUsage);
     $("#octDown").addEventListener("click", () => shiftView(-1));
     $("#octUp").addEventListener("click", () => shiftView(1));
