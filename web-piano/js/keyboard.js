@@ -1,10 +1,10 @@
 // === On-screen keyboard, computer-keyboard and pointer input ===
 
-import { press, lift, setPedal, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261015b";
-import { settings, onSettingChange } from "./settings.js?v=20261015b";
-import { noteColor, rgbString } from "./colors.js?v=20261015b";
-import { noteName, defaultSpelling, scaleNotes, pitchClass } from "./theory.js?v=20261015b";
-import { getLanguage, onLanguageChange, currentNotation } from "./i18n.js?v=20261015b";
+import { press, lift, setPedal, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261015c";
+import { settings, onSettingChange } from "./settings.js?v=20261015c";
+import { noteColor, rgbString } from "./colors.js?v=20261015c";
+import { noteName, defaultSpelling, scaleNotes, pitchClass } from "./theory.js?v=20261015c";
+import { getLanguage, onLanguageChange, currentNotation } from "./i18n.js?v=20261015c";
 
 const isBlack = midi => [1, 3, 6, 8, 10].includes(midi % 12);
 // Black keys sit slightly off-centre on a real piano

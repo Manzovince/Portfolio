@@ -1,10 +1,10 @@
-import { initKeyboard } from "./keyboard.js?v=20261015b";
-import { initRoll } from "./roll.js?v=20261015b";
-import { initScore } from "./score.js?v=20261015b";
-import { initMidi } from "./midi.js?v=20261015b";
-import { initLeds } from "./leds.js?v=20261015b";
-import { unlockAudio } from "./audio.js?v=20261015b";
-import { initUI } from "./ui.js?v=20261015b";
+import { initKeyboard } from "./keyboard.js?v=20261015c";
+import { initRoll } from "./roll.js?v=20261015c";
+import { initScore } from "./score.js?v=20261015c";
+import { initMidi } from "./midi.js?v=20261015c";
+import { initLeds } from "./leds.js?v=20261015c";
+import { unlockAudio } from "./audio.js?v=20261015c";
+import { initUI } from "./ui.js?v=20261015c";
 
 initKeyboard(document.getElementById("keyboard"));
 initRoll(document.getElementById("roll"), document.getElementById("usage"));

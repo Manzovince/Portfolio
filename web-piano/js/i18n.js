@@ -1,6 +1,6 @@
 // === Interface language (shared with the rest of manzovince.com) ===
 
-import { settings } from "./settings.js?v=20261015b";
+import { settings } from "./settings.js?v=20261015c";
 
 const STORAGE_KEY = "selectedLanguage"; // same key as the portfolio's toggle
 
