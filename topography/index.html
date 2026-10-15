@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Topography</title>
+<meta name="description" content="Générateur de cartes topographiques procédurales : courbes de niveau animées, palettes, remplissage étagé, export PNG / SVG / WebM.">
+<meta name="theme-color" content="#16181d">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <aside class="panel">
+    <header class="panel-head">
+      <h1>Topography</h1>
+      <p>Procedural contour maps</p>
+    </header>
+
+    <div class="controls" id="controls"></div>
+
+    <footer class="panel-foot">
+      <div class="btn-row">
+        <button class="btn primary" id="btn-seed">Nouveau terrain</button>
+        <button class="btn" id="btn-random" title="Randomize every parameter">Aléatoire</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="btn-png">PNG</button>
+        <button class="btn" id="btn-svg">SVG</button>
+        <button class="btn" id="btn-txt" title="Export texte">TXT</button>
+        <button class="btn" id="btn-webm" title="Enregistrer l'animation">WebM</button>
+        <button class="btn" id="btn-reset">Reset</button>
+      </div>
+      <p class="hint"><kbd>R</kbd> terrain · <kbd>Espace</kbd> lecture · <kbd>S</kbd> PNG</p>
+    </footer>
+  </aside>
+
+  <main class="stage" id="stage">
+    <canvas id="map"></canvas>
+    <div class="stat" id="stat"></div>
+  </main>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
