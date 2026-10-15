@@ -537,20 +537,40 @@ customElements.define('site-footer', FooterComponent);
 
 // ------ Page animations ------
 
-/* Mobile project tile effect
-   Only for small screens (width < 400px) – toggles image opacity on intersection */
+/* Project tiles on touch screens
+   There is no hover, so the cover swaps from wireframe to screenshot as the tile
+   nears the middle of the screen: --reveal goes 0 -> 1 -> 0 while scrolling past,
+   and the CSS blends the two images and the zoom from it. */
 document.addEventListener('DOMContentLoaded', () => {
-  if (window.innerWidth < 400) {
-    document.querySelectorAll('.project-tile').forEach(tile => {
-      const images = tile.querySelectorAll('.project-cover img');
-      const observer = new IntersectionObserver(entries => {
-        entries.forEach(({ isIntersecting }) => {
-          images[0].style.opacity = isIntersecting ? '1' : '0';
-          images[1].style.opacity = isIntersecting ? '0' : '1';
-        });
-      }, { threshold: 0.8 });
-      observer.observe(tile);
-    });
+  const tiles = document.querySelectorAll('.project-tile');
+  if (tiles.length && window.matchMedia('(hover: none)').matches) {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let queued = false;
+
+    const update = () => {
+      queued = false;
+      const half = window.innerHeight / 2;
+      tiles.forEach(tile => {
+        const cover = tile.querySelector('.project-cover').getBoundingClientRect();
+        // 0 when the cover is centred, 1 when its centre reaches the top or bottom edge
+        const distance = Math.abs(cover.top + cover.height / 2 - half) / half;
+        // Fully revealed near the middle of the screen, back to the wireframe near the edges
+        let reveal = 1 - Math.min(1, Math.max(0, (distance - 0.2) / 0.65));
+        reveal = reveal * reveal * (3 - 2 * reveal);
+        if (reduceMotion) reveal = reveal > 0.5 ? 1 : 0;
+        tile.style.setProperty('--reveal', reveal.toFixed(3));
+      });
+    };
+    const queue = () => {
+      if (!queued) {
+        queued = true;
+        requestAnimationFrame(update);
+      }
+    };
+
+    window.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', queue);
+    update();
   }
 
   // Methodology reveals on scroll and keeps its end state once played

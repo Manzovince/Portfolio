@@ -730,6 +730,22 @@ header {
     opacity: 0;
 }
 
+/* Touch screens: script.js drives --reveal from the scroll position instead of hover */
+@media (hover: none) {
+    .project-tile .project-cover img {
+        transition: none;
+        transform: scale(calc(1 + 0.1 * var(--reveal, 0))) translate(calc(-50% + 5% * var(--reveal, 0)), calc(-50% + 5% * var(--reveal, 0)));
+    }
+
+    .project-tile .project-cover img:first-child {
+        opacity: var(--reveal, 0);
+    }
+
+    .project-tile .project-cover img:last-child {
+        opacity: calc(1 - var(--reveal, 0));
+    }
+}
+
 .project-2col {
     display: flex;
     gap: 64px;
