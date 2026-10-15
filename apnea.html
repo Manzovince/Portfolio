@@ -25,7 +25,7 @@
     <link rel="canonical" href="https://manzovince.com/apnea.html">
     <!-- Styles -->
     <link rel="icon" href="./assets/favicon.png">
-    <link rel="stylesheet" href="./styles.css?v=20261015b">
+    <link rel="stylesheet" href="./styles.css?v=20261015c">
     <meta name="theme-color" content="#041e2a">
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,8 +50,11 @@
                     <div class="tag" data-i18n="tagDev"></div>
                 </ul>
             </div>
-            <img src="./assets/apnea-app.webp" data-i18n-alt="apneaAppAlt"
-                alt="Three screens of Apnea: the training menu with the personal best, a max hold in progress with contraction marks on the ring, and the progress chart">
+            <picture>
+                <source media="(max-width: 600px)" srcset="./assets/apnea-app-mobile.webp">
+                <img src="./assets/apnea-app.webp" data-i18n-alt="apneaAppAlt"
+                    alt="Three screens of Apnea: the training menu with the personal best, a max hold in progress with contraction marks on the ring, and the progress chart">
+            </picture>
             <a href="./apnea/" class="project-button" data-i18n="apneaOpen"></a>
         </div>
 
@@ -66,8 +69,11 @@
             <h6 data-i18n="apneaTablesTitle"></h6>
             <p data-i18n="apneaTables"></p>
         </div>
-        <img src="./assets/apnea-logbook.webp" data-i18n-alt="apneaLogbookAlt" loading="lazy"
-            alt="The CO2 table setup screen next to the logbook, with holds, tables, breathing sessions and an imported freedive">
+        <picture>
+            <source media="(max-width: 600px)" srcset="./assets/apnea-logbook-mobile.webp">
+            <img src="./assets/apnea-logbook.webp" data-i18n-alt="apneaLogbookAlt" loading="lazy"
+                alt="The CO2 table setup screen next to the logbook, with holds, tables, breathing sessions and an imported freedive">
+        </picture>
 
         <div>
             <h6 data-i18n="apneaLearnedTitle"></h6>
@@ -84,7 +90,7 @@
     </div>
     <site-footer></site-footer>
 </body>
-<script src="./script.js?v=20261015b"></script>
+<script src="./script.js?v=20261015c"></script>
 <script src="./line-animation.js"></script>
 
 </html>

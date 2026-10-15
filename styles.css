@@ -1093,3 +1093,7 @@ footer {
     width: 100%;
     max-width: 900px;
 }
+/* <picture> only swaps sources (e.g. a zoomed mobile showcase); lay out the img as if it stood alone */
+#project-page picture {
+    display: contents;
+}
