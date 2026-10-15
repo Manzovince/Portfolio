@@ -8,9 +8,9 @@
 // The whole performance can be opened in a dialog, line after line, and
 // downloaded as an image (PNG or SVG) or a MIDI file.
 
-import { subscribe } from "./piano.js?v=20261015c";
-import { settings, onSettingChange } from "./settings.js?v=20261015c";
-import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=20261015c";
+import { subscribe } from "./piano.js?v=20261015d";
+import { settings, onSettingChange } from "./settings.js?v=20261015d";
+import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=20261015d";
 
 const VEXFLOW_URL = "https://cdn.jsdelivr.net/npm/vexflow@5.0.0/build/esm/entry/vexflow.js";
 // The music font as a data URL, embedded in exported images so they draw anywhere

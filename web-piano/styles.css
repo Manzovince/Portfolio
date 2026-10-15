@@ -954,6 +954,158 @@ input[type="range"] {
     }
 }
 
+/* === Practice === */
+
+.practice-toggle .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.practice-toggle[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: rgb(68 172 163 / 0.15);
+    color: var(--ink);
+}
+
+body.practicing .readout {
+    display: none;
+}
+
+.practice {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
+}
+
+.practice[hidden] {
+    display: none;
+}
+
+.practice-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    padding: 10px var(--gutter);
+    pointer-events: auto;
+}
+
+.practice-bar select {
+    width: auto;
+    min-width: 0;
+    height: 32px;
+    padding-block: 0;
+    font-size: 13px;
+}
+
+.inline-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink-2);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.practice-stats {
+    margin-left: auto;
+    color: var(--ink-3);
+    font-size: 13px;
+}
+
+.practice-target {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 16px var(--gutter);
+    text-shadow: 0 0 24px var(--bg), 0 0 8px var(--bg);
+}
+
+.practice-prompt {
+    color: var(--ink-3);
+    font-size: 13px;
+}
+
+.practice .chord-symbol {
+    transition: color 0.2s;
+}
+
+.practice[data-feedback="success"] .chord-symbol {
+    color: var(--accent);
+}
+
+.practice-notes span.next {
+    border-color: var(--ink-2);
+    color: var(--ink);
+}
+
+.practice-notes span.good {
+    border-color: var(--accent);
+    background: rgb(68 172 163 / 0.2);
+    color: var(--ink);
+}
+
+.practice-notes span.bad {
+    border-color: var(--coral);
+    background: rgb(244 165 148 / 0.15);
+    color: var(--coral);
+}
+
+.practice-notes span.shake {
+    border-color: var(--coral);
+    animation: shake 0.35s;
+}
+
+@keyframes shake {
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+.practice-feedback {
+    min-height: 1.4em;
+    font-size: 14px;
+    color: var(--ink-2);
+}
+
+.practice[data-feedback="success"] .practice-feedback {
+    color: var(--accent);
+}
+
+.practice[data-feedback="miss"] .practice-feedback {
+    color: var(--coral);
+}
+
+/* Hints on the keys: the notes to play now */
+.key.guide .dot {
+    display: block;
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgb(68 172 163 / 0.3);
+}
+
+.key.white.guide:not(.active) {
+    background: linear-gradient(to bottom, var(--white-key-shade), #c9e4dc 60%);
+}
+
+.key.black.guide:not(.active) {
+    background: linear-gradient(to bottom, #050f14, #1d4a4a 85%, #2a6460);
+}
+
+@media (max-width: 599px) {
+    .practice-toggle span {
+        display: none;
+    }
+
+    .practice-stats {
+        display: none;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     * {
         transition: none !important;

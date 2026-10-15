@@ -5,10 +5,11 @@
 // neighbour still lit by a ripple), every frame computes the colour each LED
 // should have and only sends the LEDs that changed.
 
-import { subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261015c";
-import { settings, onSettingChange } from "./settings.js?v=20261015c";
-import { noteColor, hsvToRgb, scaleColor } from "./colors.js?v=20261015c";
-import { scaleNotes, pitchClass } from "./theory.js?v=20261015c";
+import { subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261015d";
+import { settings, onSettingChange } from "./settings.js?v=20261015d";
+import { noteColor, hsvToRgb, scaleColor } from "./colors.js?v=20261015d";
+import { scaleNotes, pitchClass } from "./theory.js?v=20261015d";
+import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261015d";
 
 // LED index under each key, A0 to C8, measured on the strip (two LEDs per key)
 const NOTE_TO_LED = [
@@ -24,6 +25,7 @@ const NOTE_TO_LED = [
 
 const RIPPLE = { reach: 10, msPerKey: 30, decay: 0.6, life: 700 };
 const SCALE_GLOW = 0.12; // share of the brightness used for the scale guide
+const GUIDE_GLOW = 0.4;  // notes to play now, during an exercise
 
 let socket = null;
 let state = "off"; // off | connecting | connected | failed
@@ -56,12 +58,14 @@ function computeFrame(now) {
         return frame;
     }
 
-    // Scale guide: every note of the scale glows softly
-    const scale = new Set(scaleNotes(settings.scaleRoot, settings.scaleType).map(n => n.pc));
-    if (scale.size) {
-        for (let m = LOWEST; m <= HIGHEST; m++) {
-            if (scale.has(pitchClass(m))) add(m, scaleColor(noteColor(m, settings.colorMode), intensity * SCALE_GLOW));
-        }
+    // Scale guide: every note of the scale glows softly. During an exercise,
+    // its hints take over: the notes to play now glow brighter.
+    const guide = isPracticing() ? practiceGuide() : null;
+    const scale = guide ? guide.soft : new Set(scaleNotes(settings.scaleRoot, settings.scaleType).map(n => n.pc));
+    for (let m = LOWEST; m <= HIGHEST; m++) {
+        const pc = pitchClass(m);
+        const glow = guide?.strong.has(pc) ? GUIDE_GLOW : scale.has(pc) ? SCALE_GLOW : 0;
+        if (glow) add(m, scaleColor(noteColor(m, settings.colorMode), intensity * glow));
     }
 
     for (const midi of soundingNotes()) {
@@ -169,3 +173,5 @@ onSettingChange((key, value) => {
     if (key === "ledHost" && settings.ledEnabled) connectLeds();
     if (["ledIntensity", "colorMode", "scaleRoot", "scaleType"].includes(key)) requestFrame();
 });
+
+onPracticeChange(requestFrame);

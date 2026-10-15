@@ -173,6 +173,24 @@ export function detectChord(midiNotes, context = null) {
     };
 }
 
+// Diminished chords on a black key read better from a sharp (C♯°, not D♭°)
+const SHARP_ROOT_IDS = new Set(["dim", "dim7", "hdim7"]);
+
+// A chord built from its root, in the same shape as detectChord's result
+export function buildChord(rootPc, id) {
+    const [, suffix, formula] = CHORD_DEFS.find(def => def[0] === id);
+    const rootSp = SHARP_ROOT_IDS.has(id) && DEFAULT_SPELLING[rootPc].acc === -1
+        ? { letter: DEFAULT_SPELLING[(rootPc + 11) % 12].letter, acc: 1 }
+        : spellRoot(rootPc, MINOR_IDS.has(id), null);
+    const notes = formula.split(" ").map(token => {
+        const [semis, steps] = DEGREES[token];
+        return { pc: (rootPc + semis) % 12, spelling: spellFrom(rootSp, semis, steps) };
+    });
+    const spelling = {};
+    notes.forEach(n => (spelling[n.pc] = n.spelling));
+    return { id, suffix, root: rootSp, bass: null, inversion: "root", spelling, notes };
+}
+
 // Chord symbol such as "Cmaj7/E", or "Do maj7/Mi" (a thin space keeps
 // solfège roots readable: "Do m" rather than "Dom")
 export function chordSymbol(chord, notation) {

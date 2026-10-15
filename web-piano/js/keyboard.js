@@ -1,10 +1,11 @@
 // === On-screen keyboard, computer-keyboard and pointer input ===
 
-import { press, lift, setPedal, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261015c";
-import { settings, onSettingChange } from "./settings.js?v=20261015c";
-import { noteColor, rgbString } from "./colors.js?v=20261015c";
-import { noteName, defaultSpelling, scaleNotes, pitchClass } from "./theory.js?v=20261015c";
-import { getLanguage, onLanguageChange, currentNotation } from "./i18n.js?v=20261015c";
+import { press, lift, setPedal, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261015d";
+import { settings, onSettingChange } from "./settings.js?v=20261015d";
+import { noteColor, rgbString } from "./colors.js?v=20261015d";
+import { noteName, defaultSpelling, scaleNotes, pitchClass } from "./theory.js?v=20261015d";
+import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261015d";
+import { getLanguage, onLanguageChange, currentNotation } from "./i18n.js?v=20261015d";
 
 const isBlack = midi => [1, 3, 6, 8, 10].includes(midi % 12);
 // Black keys sit slightly off-centre on a real piano
@@ -118,12 +119,15 @@ function refreshLabels() {
 }
 
 function refreshScale() {
-    const notes = scaleNotes(settings.scaleRoot, settings.scaleType);
+    // During an exercise its hints replace the scale guide
+    const guide = isPracticing() ? practiceGuide() : null;
+    const notes = isPracticing() ? [] : scaleNotes(settings.scaleRoot, settings.scaleType);
     const inScale = new Set(notes.map(n => n.pc));
     keys.forEach((key, midi) => {
         const pc = pitchClass(midi);
-        key.classList.toggle("in-scale", inScale.has(pc));
+        key.classList.toggle("in-scale", inScale.has(pc) || !!guide?.soft.has(pc));
         key.classList.toggle("scale-root", notes.length > 0 && pc === settings.scaleRoot);
+        key.classList.toggle("guide", !!guide?.strong.has(pc));
     });
 }
 
@@ -306,3 +310,5 @@ onSettingChange(key => {
     if (key === "colorMode") refreshActive();
 });
 onLanguageChange(refreshLabels);
+
+onPracticeChange(refreshScale);

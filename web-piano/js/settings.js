@@ -19,6 +19,11 @@ const DEFAULTS = {
     ledHost: "192.168.1.17:81",
     ledIntensity: 0.2,
     ledEffect: "key",
+    practiceKind: "chords",
+    practiceChords: "triads",
+    practiceScales: "majorScales",
+    practiceRoots: "naturals",
+    practiceHints: true,
 };
 
 function load() {
