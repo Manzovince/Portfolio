@@ -1,14 +1,9 @@
-// Get CSS Variables
-function getRootCSSVariable(variableName) {
-  return getComputedStyle(document.documentElement).getPropertyValue(variableName)?.trim() || "";
-}
-
 // ----- Configuration -----
 const config = {
   cellSize: 16,
   damping: 0.99,
   densityScale: "···--++0011",
-  rippleSpeed: 600, 
+  rippleSpeed: 600,
   rippleWidth: 4,
   rippleIntensity: 6,
   cellDecayFactor: 0.99
@@ -16,67 +11,120 @@ const config = {
 
 const maxIntensity = config.densityScale.length;
 const MOBILE_WIDTH_THRESHOLD = 768;
+const STEP = 1 / 60;          // the wave equation is tuned for 60 steps per second
+const MAX_STEPS = 4;          // after a long frame, catch up this much at most
+const renderInterval = 30;    // render throttling (ms)
+const OPACITY_LEVELS = 32;    // fill colours are cached per quantised opacity
 
 // ----- Globals -----
 let canvas, ctx;
 let cols, rows;
 let grid, prevGrid, nextGrid; // our three simulation buffers
 let borderAccumulator = 0;    // timer for border reset
+let stepAccumulator = 0;      // time not yet simulated
 let lastMouse = { x: 0, y: 0, time: 0 };
-const ripples = [];         // array of active ripple objects
+const ripples = [];           // array of active ripple objects
 let lastTimestamp = null;
 let lastRenderTime = null;
-const renderInterval = 30;  // render throttling (ms)
+let lastWidth = 0;
+let visible = true;           // header on screen
+let frameId = null;
+let fillStyles = [];          // fillStyles[k] = text colour at opacity k / OPACITY_LEVELS
 
-// These will be set after the DOM is loaded.
-let textColor, bgColor, textRGB, bgRGB;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const coarsePointer = window.matchMedia("(pointer: coarse)");
 
 // ----- Initialization -----
 function init() {
-  // Get CSS variable values now – after the DOM and styles are loaded.
-  textColor = getRootCSSVariable('--text-color');
-  bgColor = getRootCSSVariable('--bg-color');
-  textRGB = getRootCSSVariable('--rgb-text');
-  bgRGB = getRootCSSVariable('--rgb-bg');
-  // document.body.style.backgroundColor = bgColor;
-
   canvas = document.getElementById("header-canvas");
+  if (!canvas) return;
   ctx = canvas.getContext("2d");
-
-  // Set up text rendering properties
-  ctx.font = `${config.cellSize}px monospace`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
 
   // Position the canvas
   canvas.style.position = "absolute";
   canvas.style.top = 0;
   canvas.style.left = 0;
 
-  // Set the canvas size and create our simulation grids
+  readColors();
   resizeCanvas();
   createGrid();
 
   // Register event listeners
   window.addEventListener("resize", onWindowResize);
-  canvas.addEventListener("mousemove", onPointerMove);
+  canvas.addEventListener("pointermove", onPointerMove);
   canvas.addEventListener("click", onPointerClick);
 
-  // Start the animation loop
-  requestAnimationFrame(loop);
+  // The theme toggle rewrites --rgb-text on <html>: follow it
+  new MutationObserver(() => { readColors(); render(); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ["style", "class", "data-theme"] });
+
+  // Only animate while the header is on screen and the tab is in front
+  new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    syncLoop();
+  }).observe(canvas);
+  document.addEventListener("visibilitychange", syncLoop);
+  reduceMotion.addEventListener?.("change", syncLoop);
+
+  // Show that the water is alive: one ripple on the right as the page opens
+  if (!reduceMotion.matches) {
+    addRipple(cols * config.cellSize * 0.72, rows * config.cellSize * 0.55, 1, 0.8);
+  }
+
+  render();
+  syncLoop();
+}
+
+// Start or stop the animation loop to match visibility and motion preferences
+function syncLoop() {
+  const run = visible && !document.hidden && !reduceMotion.matches;
+  if (run && frameId === null) {
+    lastTimestamp = null;
+    frameId = requestAnimationFrame(loop);
+  } else if (!run && frameId !== null) {
+    cancelAnimationFrame(frameId);
+    frameId = null;
+  }
+}
+
+function readColors() {
+  const rgb = getComputedStyle(document.documentElement).getPropertyValue("--rgb-text").trim() || "231, 215, 192";
+  fillStyles = [];
+  for (let k = 0; k <= OPACITY_LEVELS; k++) {
+    fillStyles.push(`rgba(${rgb}, ${(k / OPACITY_LEVELS).toFixed(3)})`);
+  }
 }
 
 // ----- Canvas Resize and Grid Setup -----
 function onWindowResize() {
+  // On phones the address bar changes the height while scrolling: keep the
+  // current water instead of wiping it, unless the width really changed.
+  if (coarsePointer.matches && window.innerWidth === lastWidth) return;
   resizeCanvas();
   createGrid();
+  render();
 }
 
 function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  cols = Math.floor(canvas.width / config.cellSize);
-  rows = Math.floor(canvas.height / config.cellSize);
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  lastWidth = width;
+
+  // Draw at the screen's pixel density so the glyphs stay sharp on Retina
+  canvas.width = Math.round(width * dpr);
+  canvas.height = Math.round(height * dpr);
+  canvas.style.width = width + "px";
+  canvas.style.height = height + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  // Resizing the canvas resets its text settings
+  ctx.font = `${config.cellSize / 2}px monospace`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  cols = Math.floor(width / config.cellSize);
+  rows = Math.floor(height / config.cellSize);
 }
 
 function createGrid() {
@@ -84,9 +132,9 @@ function createGrid() {
   prevGrid = new Array(rows);
   nextGrid = new Array(rows);
   for (let j = 0; j < rows; j++) {
-    grid[j] = new Array(cols).fill(0);
-    prevGrid[j] = new Array(cols).fill(0);
-    nextGrid[j] = new Array(cols).fill(0);
+    grid[j] = new Float32Array(cols);
+    prevGrid[j] = new Float32Array(cols);
+    nextGrid[j] = new Float32Array(cols);
   }
 }
 
@@ -96,17 +144,22 @@ function loop(timestamp) {
     lastTimestamp = timestamp;
     lastRenderTime = timestamp;
   }
-  const dt = (timestamp - lastTimestamp) / 1000; // delta time in seconds
+  const dt = Math.min((timestamp - lastTimestamp) / 1000, MAX_STEPS * STEP);
+  lastTimestamp = timestamp;
 
-  update(dt);
+  // Fixed steps: the waves travel at the same speed on 60 Hz and 120 Hz screens
+  stepAccumulator += dt;
+  while (stepAccumulator >= STEP) {
+    update(STEP);
+    stepAccumulator -= STEP;
+  }
 
   if (timestamp - lastRenderTime >= renderInterval) {
     render();
     lastRenderTime = timestamp;
   }
 
-  lastTimestamp = timestamp;
-  requestAnimationFrame(loop);
+  frameId = requestAnimationFrame(loop);
 }
 
 // ----- Simulation Update Functions -----
@@ -114,10 +167,7 @@ function update(dt) {
   updateWaterWaves();
   updateRipples(dt);
   applyCellDecay();
-
-  if (canvas.width < MOBILE_WIDTH_THRESHOLD) {
-    spawnRandomRipple(dt);
-  }
+  spawnRandomRipple(dt);
 
   borderAccumulator += dt;
   if (borderAccumulator >= 0.1) {
@@ -129,16 +179,9 @@ function update(dt) {
 function updateWaterWaves() {
   // Classic wave simulation (skip the boundary cells)
   for (let j = 1; j < rows - 1; j++) {
+    const row = grid[j], up = grid[j - 1], down = grid[j + 1], prev = prevGrid[j], next = nextGrid[j];
     for (let i = 1; i < cols - 1; i++) {
-      // Coerce all neighboring cell values to numbers, defaulting to 0.
-      const left = Number(grid[j][i - 1]) || 0;
-      const right = Number(grid[j][i + 1]) || 0;
-      const top = Number(grid[j - 1][i]) || 0;
-      const bottom = Number(grid[j + 1][i]) || 0;
-      const centerPrev = Number(prevGrid[j][i]) || 0;
-
-      nextGrid[j][i] = ((left + right + top + bottom) / 2) - centerPrev;
-      nextGrid[j][i] *= config.damping;
+      next[i] = ((row[i - 1] + row[i + 1] + up[i] + down[i]) / 2 - prev[i]) * config.damping;
     }
   }
   // Swap buffers.
@@ -149,6 +192,7 @@ function updateWaterWaves() {
 }
 
 function updateRipples(dt) {
+  const extent = Math.max(cols, rows) * config.cellSize;
   for (let k = ripples.length - 1; k >= 0; k--) {
     const ripple = ripples[k];
     ripple.radius += config.rippleSpeed * dt; // expand the ripple
@@ -167,14 +211,13 @@ function updateRipples(dt) {
         const distance = Math.hypot(cx - ripple.x, cy - ripple.y);
         if (distance > ripple.radius - ripple.width && distance < ripple.radius + ripple.width) {
           const factor = 1 - Math.abs(distance - ripple.radius) / ripple.width;
-          // Ensure grid[j][i] is a number.
-          grid[j][i] = (Number(grid[j][i]) || 0) + ripple.intensity * factor;
+          grid[j][i] += ripple.intensity * factor;
         }
       }
     }
 
     // Remove the ripple if it has expanded beyond the canvas.
-    if (ripple.radius - ripple.width > Math.max(canvas.width, canvas.height)) {
+    if (ripple.radius - ripple.width > extent) {
       ripples.splice(k, 1);
     }
   }
@@ -183,18 +226,15 @@ function updateRipples(dt) {
 function applyCellDecay() {
   // Gradually decay all cell intensities.
   for (let j = 0; j < rows; j++) {
-    for (let i = 0; i < cols; i++) {
-      grid[j][i] = (Number(grid[j][i]) || 0) * config.cellDecayFactor;
-    }
+    const row = grid[j];
+    for (let i = 0; i < cols; i++) row[i] *= config.cellDecayFactor;
   }
 }
 
 function resetBorderCells() {
   // Reset top and bottom rows.
-  for (let i = 0; i < cols; i++) {
-    grid[0][i] = 0;
-    grid[rows - 1][i] = 0;
-  }
+  grid[0].fill(0);
+  grid[rows - 1].fill(0);
   // Reset left and right columns.
   for (let j = 0; j < rows; j++) {
     grid[j][0] = 0;
@@ -202,51 +242,54 @@ function resetBorderCells() {
   }
 }
 
+function addRipple(x, y, widthScale = 1, intensityScale = 1) {
+  ripples.push({
+    x,
+    y,
+    radius: 0,
+    width: config.rippleWidth * widthScale,
+    intensity: config.rippleIntensity * intensityScale,
+  });
+}
+
 function spawnRandomRipple(dt) {
   // Randomness parameters — tweak these to adjust behavior.
-  const SPAWN_RATE = 0.2;            // Higher means more ripples per second.
-  const WIDTH_MIN = 0.5, WIDTH_MAX = 1.5;         // Ripple width multiplier range.
+  // Phones have no pointer stirring the water, so they get more ripples;
+  // desktops get an occasional one so the header never looks frozen.
+  const SPAWN_RATE = lastWidth < MOBILE_WIDTH_THRESHOLD ? 0.2 : 0.08; // ripples per second
+  const WIDTH_MIN = 0.5, WIDTH_MAX = 1.5;           // Ripple width multiplier range.
   const INTENSITY_MIN = 0.3, INTENSITY_MAX = 1.3;   // Ripple intensity multiplier range.
 
   if (Math.random() < dt * SPAWN_RATE) {
-    ripples.push({
-      x: Math.random() * canvas.width,         // Spawn anywhere on the canvas.
-      y: Math.random() * canvas.height,
-      radius: 0,
-      width: config.rippleWidth * (WIDTH_MIN + (WIDTH_MAX - WIDTH_MIN) * Math.random()),
-      intensity: config.rippleIntensity * (INTENSITY_MIN + (INTENSITY_MAX - INTENSITY_MIN) * Math.random()),
-    });
+    addRipple(
+      Math.random() * cols * config.cellSize,         // Spawn anywhere on the canvas.
+      Math.random() * rows * config.cellSize,
+      WIDTH_MIN + (WIDTH_MAX - WIDTH_MIN) * Math.random(),
+      INTENSITY_MIN + (INTENSITY_MAX - INTENSITY_MIN) * Math.random()
+    );
   }
 }
 
 // ----- Rendering -----
 const halfCell = config.cellSize / 2;
+const lastScaleIndex = config.densityScale.length - 1;
 
 function render() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!grid) return;
+  ctx.clearRect(0, 0, cols * config.cellSize + config.cellSize, rows * config.cellSize + config.cellSize);
 
   // Draw each cell as an ASCII character based on its intensity.
   for (let j = 0; j < rows; j++) {
+    const row = grid[j];
+    const y = j * config.cellSize + halfCell;
     for (let i = 0; i < cols; i++) {
-      // Safely convert the cell’s value.
-      const cellValue = Number(grid[j][i]);
-      const safeValue = isFinite(cellValue) ? cellValue : 0;
-      // Compute intensity and clamp it.
-      const intensity = Math.min(Math.abs(safeValue), maxIntensity);
-      let scaleIndex = Math.floor((intensity / maxIntensity) * (config.densityScale.length - 1));
-      scaleIndex = Math.max(0, Math.min(config.densityScale.length - 1, scaleIndex));
-      const char = config.densityScale[scaleIndex] || "0";
-
-      const x = i * config.cellSize + halfCell;
-      const y = j * config.cellSize + halfCell;
+      const value = row[i];
+      const intensity = isFinite(value) ? Math.min(Math.abs(value), maxIntensity) : 0;
       const ratio = intensity / maxIntensity;
-      const opacity = 0.2 + 0.8 * ratio;
+      const char = config.densityScale[Math.floor(ratio * lastScaleIndex)];
 
-      // Ensure our fillStyle is built from a well-formed rgba string.
-      const rgbaColor = textColor.replace("rgb(", "rgba(").replace(")", `, ${opacity})`);
-      ctx.fillStyle = rgbaColor;
-      ctx.font = `${config.cellSize / 2}px monospace`;
-      ctx.fillText(char, x, y);
+      ctx.fillStyle = fillStyles[Math.round((0.2 + 0.8 * ratio) * OPACITY_LEVELS)];
+      ctx.fillText(char, i * config.cellSize + halfCell, y);
     }
   }
 }
@@ -268,23 +311,24 @@ function applyImpulse(x, y, speed) {
       const dist = Math.hypot(cx - x, cy - y);
       if (dist < influenceRadius) {
         const factor = 1 - dist / influenceRadius;
-        grid[j][i] = (Number(grid[j][i]) || 0) + impulseStrength * factor;
+        grid[j][i] += impulseStrength * factor;
       }
     }
   }
 }
 
+// Pointer events cover both the mouse and a finger dragging across the header
 function onPointerMove(e) {
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
   const now = performance.now();
   let speed = 0;
-  if (lastMouse.time) {
+  // A new stroke (a fresh touch, or the mouse coming back) starts with no speed
+  if (lastMouse.time && now - lastMouse.time < 100) {
     const dx = x - lastMouse.x;
     const dy = y - lastMouse.y;
-    const dtMove = now - lastMouse.time;
-    speed = Math.hypot(dx, dy) / dtMove;
+    speed = Math.hypot(dx, dy) / (now - lastMouse.time);
   }
   lastMouse = { x, y, time: now };
   applyImpulse(x, y, speed);
@@ -292,15 +336,7 @@ function onPointerMove(e) {
 
 function onPointerClick(e) {
   const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  ripples.push({
-    x: x,
-    y: y,
-    radius: 0,
-    width: config.rippleWidth,
-    intensity: config.rippleIntensity,
-  });
+  addRipple(e.clientX - rect.left, e.clientY - rect.top);
 }
 
 // ----- Start the Simulation -----
