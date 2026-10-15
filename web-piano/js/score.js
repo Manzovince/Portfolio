@@ -5,9 +5,9 @@
 // values included). A key let go well before the next chord leaves a rest.
 // The chord being held grows on the staff while it is held.
 
-import { subscribe } from "./piano.js?v=20261014b";
-import { settings, onSettingChange } from "./settings.js?v=20261014b";
-import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=20261014b";
+import { subscribe } from "./piano.js?v=20261015a";
+import { settings, onSettingChange } from "./settings.js?v=20261015a";
+import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=20261015a";
 
 const VEXFLOW_URL = "https://cdn.jsdelivr.net/npm/vexflow@5.0.0/build/esm/entry/vexflow.js";
 const CHORD_WINDOW_MS = 60; // notes struck closer together than this form one chord

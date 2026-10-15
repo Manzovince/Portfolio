@@ -1,21 +1,21 @@
 // === Interface: chord readout, top bar, settings drawer ===
 
-import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261014b";
-import { settings, setSetting, onSettingChange } from "./settings.js?v=20261014b";
+import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261015a";
+import { settings, setSetting, onSettingChange } from "./settings.js?v=20261015a";
 import {
     t, chordQuality, inversionName, intervalName, scaleName, currentNotation,
     getLanguage, setLanguage, onLanguageChange, applyStaticText,
-} from "./i18n.js?v=20261014b";
+} from "./i18n.js?v=20261015a";
 import {
     detectChord, chordSymbol, noteName, spellPc, spelledOctave, pitchClass,
     intervalBetween, scaleContext, scaleNotes, SCALES,
-} from "./theory.js?v=20261014b";
-import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261014b";
-import { ledState, onLedState, connectLeds } from "./leds.js?v=20261014b";
-import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261014b";
-import { keysHint, shiftView } from "./keyboard.js?v=20261014b";
-import { clearScore } from "./score.js?v=20261014b";
-import { resetUsage } from "./roll.js?v=20261014b";
+} from "./theory.js?v=20261015a";
+import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261015a";
+import { ledState, onLedState, connectLeds } from "./leds.js?v=20261015a";
+import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261015a";
+import { keysHint, shiftView } from "./keyboard.js?v=20261015a";
+import { clearScore } from "./score.js?v=20261015a";
+import { resetUsage } from "./roll.js?v=20261015a";
 
 const $ = selector => document.querySelector(selector);
 const finePointer = matchMedia("(hover: hover) and (pointer: fine)");

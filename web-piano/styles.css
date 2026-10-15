@@ -317,14 +317,19 @@ body.staff-unavailable .staff {
     inset: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-end;
     gap: 10px;
     padding: 16px var(--gutter);
-    text-align: center;
+    text-align: left;
     pointer-events: none;
     text-shadow: 0 0 24px var(--bg), 0 0 8px var(--bg);
     transition: opacity 0.4s;
+}
+
+.stage:has(#usage:not([hidden])) .readout {
+    /* keep the readout above the usage histogram */
+    padding-bottom: 72px;
 }
 
 .readout.idle .chord-symbol,
@@ -355,7 +360,7 @@ body.staff-unavailable .staff {
 .note-names {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 6px;
     min-height: 26px;
     transition: opacity 0.4s;
@@ -454,7 +459,6 @@ body.keyboard-partial .shift {
     padding-bottom: 8px;
     background: linear-gradient(to bottom, var(--white-key-shade), var(--white-key) 12%);
     border-right: 1px solid var(--bg);
-    border-radius: 0 0 5px 5px;
     color: rgb(4 30 42 / 0.5);
 }
 
@@ -467,7 +471,6 @@ body.keyboard-partial .shift {
     height: 62%;
     padding-bottom: 6px;
     background: linear-gradient(to bottom, #050f14, var(--black-key) 85%, #1d313a);
-    border-radius: 0 0 4px 4px;
     box-shadow: 0 2px 3px rgb(0 0 0 / 0.4);
     color: rgb(233 219 199 / 0.45);
 }
