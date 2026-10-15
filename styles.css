@@ -858,17 +858,22 @@ header {
     margin-top: 4px;
 }
 
+/* Collapsed until hover, so the title sits in the bottom-left corner and the
+   description pushes it up as it opens */
 @media (hover: hover) {
     .cell-content p {
+        max-height: 0;
+        margin-top: 0;
+        overflow: hidden;
         opacity: 0;
-        transform: translateY(6px);
-        transition: opacity ease-out .4s, transform ease-out .4s;
+        transition: max-height ease-out .4s, margin-top ease-out .4s, opacity ease-out .4s;
     }
 
     .cell:hover .cell-content p,
     .cell:focus-visible .cell-content p {
+        max-height: 4lh;
+        margin-top: 4px;
         opacity: 1;
-        transform: none;
     }
 }
 
