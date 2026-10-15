@@ -767,23 +767,25 @@ header {
 
 /* Rows of equal height; featured and pattern cards take two columns, the rest one.
    `dense` packing fills the holes, so the order in index.html sets the rhythm. */
+/* Phones: one column, every card stacked at the same height */
 #personal {
     scroll-margin-top: 256px;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: 200px;
+    grid-template-columns: 1fr;
+    grid-auto-rows: 240px;
     grid-auto-flow: dense;
     gap: 8px;
 }
 
 @media (min-width: 600px) {
     #personal {
+        grid-template-columns: repeat(2, 1fr);
         grid-auto-rows: 260px;
         gap: 12px;
     }
 }
 
-@media (min-width: 800px) {
+@media (min-width: 1000px) {
     #personal {
         grid-template-columns: repeat(4, 1fr);
         grid-auto-rows: 260px;
@@ -807,12 +809,11 @@ header {
     isolation: isolate;
 }
 
-.cell--feature {
-    grid-column: span 2;
-}
-
-.cell--wide {
-    grid-column: span 2;
+@media (min-width: 600px) {
+    .cell--feature,
+    .cell--wide {
+        grid-column: span 2;
+    }
 }
 
 .cell img {
@@ -877,18 +878,14 @@ header {
     }
 }
 
-/* Phones: small cards keep just their title, there is no room for a sentence */
 @media (max-width: 599px) {
     .cell-content {
-        padding: 48px 14px 12px;
+        padding: 48px 20px 16px;
     }
 
-    .cell-content h6 {
-        font-size: 0.875rem;
-    }
-
-    .cell:not(.cell--feature) .cell-content p {
-        display: none;
+    .cell-content h6,
+    .cell--feature .cell-content h6 {
+        font-size: 1.125rem;
     }
 }
 
