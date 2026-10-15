@@ -955,6 +955,107 @@ input[type="range"] {
     }
 }
 
+/* === Song player === */
+
+.song-bar {
+    position: absolute;
+    top: 10px;
+    left: var(--gutter);
+    right: var(--gutter);
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px 8px 8px;
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    background: rgb(10 40 54 / 0.92);
+    backdrop-filter: blur(8px);
+}
+
+.song-bar[hidden] {
+    display: none;
+}
+
+.play-button {
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+}
+
+.play-button:hover {
+    background: var(--ink);
+    color: var(--bg);
+    opacity: 0.88;
+}
+
+.play-button .icon {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    stroke: none;
+}
+
+.song-main {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.song-info {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 13px;
+}
+
+.song-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.song-time {
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+}
+
+#songSeek {
+    width: 100%;
+}
+
+.toast.error {
+    background: var(--coral);
+}
+
+/* The staff shows the song: nothing to clear */
+body.song-open #clearStaff {
+    display: none;
+}
+
+/* The bar covers the top of the stage: keep the practice bar out of the way */
+body.song-open .practice {
+    display: none;
+}
+
+@media (max-width: 599px) {
+    .song-bar {
+        flex-wrap: wrap;
+    }
+
+    .song-main {
+        flex-basis: calc(100% - 100px);
+    }
+
+    #songSpeed {
+        order: 3;
+    }
+}
+
 /* === Practice === */
 
 .practice-toggle .icon {

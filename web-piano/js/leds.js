@@ -5,11 +5,11 @@
 // neighbour still lit by a ripple), every frame computes the colour each LED
 // should have and only sends the LEDs that changed.
 
-import { subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261015d";
-import { settings, onSettingChange } from "./settings.js?v=20261015d";
-import { noteColor, hsvToRgb, scaleColor } from "./colors.js?v=20261015d";
-import { scaleNotes, pitchClass } from "./theory.js?v=20261015d";
-import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261015d";
+import { subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261015f";
+import { settings, onSettingChange } from "./settings.js?v=20261015f";
+import { noteColor, hsvToRgb, scaleColor } from "./colors.js?v=20261015f";
+import { scaleNotes, pitchClass } from "./theory.js?v=20261015f";
+import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261015f";
 
 // LED index under each key, A0 to C8, measured on the strip (two LEDs per key)
 const NOTE_TO_LED = [

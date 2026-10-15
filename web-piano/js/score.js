@@ -7,10 +7,13 @@
 // The chord being held grows on the staff while it is held.
 // The whole performance can be opened in a dialog, line after line, and
 // downloaded as an image (PNG or SVG) or a MIDI file.
+// When a MIDI file is open, the staff shows that song instead, with its own
+// rhythm and time signature, and turns its lines as the song plays.
 
-import { subscribe } from "./piano.js?v=20261015d";
-import { settings, onSettingChange } from "./settings.js?v=20261015d";
-import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=20261015d";
+import { subscribe } from "./piano.js?v=20261015f";
+import { settings, onSettingChange } from "./settings.js?v=20261015f";
+import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=20261015f";
+import { currentSong, onSongChange, onSongPosition } from "./song.js?v=20261015f";
 
 const VEXFLOW_URL = "https://cdn.jsdelivr.net/npm/vexflow@5.0.0/build/esm/entry/vexflow.js";
 // The music font as a data URL, embedded in exported images so they draw anywhere
@@ -21,8 +24,6 @@ const LIVE_REFRESH_MS = 120; // redraw rate while the last chord is held
 const REST_THRESHOLD = 0.5;  // beats of silence before a rest is written
 const MAX_GROUPS = 3000;     // history kept for the whole score
 const SYSTEM_HEIGHT = 190;   // logical height of one grand staff line
-const TIME_SIGNATURE = "4/4";
-const BEATS_PER_MEASURE = 4;
 const MIN_MEASURE = 90;      // logical pixels for the notes of a short measure
 
 // Note values in beats (quarter note = 1): [beats, VexFlow duration, dots]
@@ -40,6 +41,9 @@ let played = []; // every note and pedal move with its real timing, for the MIDI
 let drawQueued = false;
 let liveTimer = null;
 let fullView = null; // element showing the whole score while its dialog is open
+let fullStale = true; // the whole score needs drawing again (not just the song cursor)
+let songCursor = null; // chord of the song being played
+let songLayout = null; // the song cut into lines, for one staff width
 const changeListeners = new Set();
 
 // Nearest note value, compared on a log scale (a 3-beat note is closer to a
@@ -58,8 +62,36 @@ function releaseOf(group) {
     return ends.includes(null) ? null : Math.max(...ends);
 }
 
+// Time signature: the song's, or 4/4 for what is played
+function meter() {
+    const [count, unit] = currentSong()?.timeSignature ?? [4, 4];
+    return { text: `${count}/${unit}`, beats: count * 4 / unit };
+}
+
+// A song's rhythm comes from the file: chord starts are on a sixteenth grid,
+// lengths are kept exactly (the bar lines split them into tied values)
+function songRhythm(songGroups) {
+    const grid = beats => Math.round(beats * 4) / 4;
+    const items = [];
+    if (songGroups[0].start > 0) items.push({ rest: true, value: [songGroups[0].start] });
+    songGroups.forEach((group, i) => {
+        const next = songGroups[i + 1];
+        const sounding = Math.max(0.25, grid(Math.max(...group.ends.values()) - group.start));
+        if (!next) return items.push({ group, value: [sounding] });
+        const gap = next.start - group.start;
+        if (gap - sounding >= 0.25) {
+            items.push({ group, value: [sounding] });
+            items.push({ rest: true, value: [gap - sounding] });
+        } else {
+            items.push({ group, value: [gap] });
+        }
+    });
+    return items;
+}
+
 // Turn the chords into a sequence of notes and rests with their values
 function rhythm(now) {
+    if (currentSong()) return songRhythm(currentSong().groups);
     const beatMs = 60000 / settings.tempo;
     const items = [];
     groups.forEach((group, i) => {
@@ -104,6 +136,7 @@ function splitValue(beats) {
 // Cut the sequence into 4/4 measures. A note that crosses a bar line is split
 // and tied over it; a rest is simply split.
 function measures(items) {
+    const BEATS_PER_MEASURE = meter().beats;
     const bars = [[]];
     let position = 0;
     let previous = null;
@@ -134,11 +167,11 @@ function measures(items) {
 // Room taken by the clef and time signature at the start of a measure
 const headerCache = new Map();
 function headerWidth(clef, time) {
-    const key = `${clef}${time}`;
+    const key = `${clef}${time}${meter().text}`;
     if (!headerCache.has(key)) {
         const probe = new VF.Stave(0, 0, 500);
         if (clef) probe.addClef("treble");
-        if (time) probe.addTimeSignature(TIME_SIGNATURE);
+        if (time) probe.addTimeSignature(meter().text);
         headerCache.set(key, probe.getNoteStartX());
     }
     return headerCache.get(key);
@@ -241,7 +274,7 @@ function drawLine(ctx, x, y, width, line, { colors, highlight, ending }) {
         const bass = new VF.Stave(left, y + 85, w);
         for (const [stave, clef] of [[treble, "treble"], [bass, "bass"]]) {
             if (isFirst) stave.addClef(clef);
-            if (entry.index === 0) stave.addTimeSignature(TIME_SIGNATURE);
+            if (entry.index === 0) stave.addTimeSignature(meter().text);
             if (!isFirst) stave.setBegBarType(VF.BarlineType.NONE);
             if (isLast && ending === "open") stave.setEndBarType(VF.BarlineType.NONE);
             if (isLast && ending === "end") stave.setEndBarType(VF.BarlineType.END);
@@ -274,7 +307,7 @@ function drawLine(ctx, x, y, width, line, { colors, highlight, ending }) {
             placed.push({ piece, treble: trebleNotes.at(-1), bass: bassNotes.at(-1) });
         }
 
-        const voice = notes => new VF.Voice({ numBeats: BEATS_PER_MEASURE, beatValue: 4 })
+        const voice = notes => new VF.Voice({ numBeats: meter().beats, beatValue: 4 })
             .setMode(VF.Voice.Mode.SOFT).addTickables(notes);
         const trebleVoice = voice(trebleNotes);
         const bassVoice = voice(bassNotes);
@@ -306,9 +339,10 @@ function drawLine(ctx, x, y, width, line, { colors, highlight, ending }) {
 function draw() {
     drawQueued = false;
     if (!VF) return;
-    const bars = measures(rhythm(performance.now()));
+    const song = currentSong();
+    const bars = song ? null : measures(rhythm(performance.now()));
     scheduleLiveRefresh();
-    if (fullView) drawFull(bars);
+    if (fullView && fullStale) drawFull(bars ?? measures(rhythm()));
     if (!settings.showStaff) return;
     const width = container.clientWidth;
     if (!width) return;
@@ -320,15 +354,39 @@ function draw() {
     renderer.resize(width, Math.round(SYSTEM_HEIGHT * scale));
     const ctx = renderer.getContext();
     ctx.scale(scale, scale);
+    if (song) {
+        // The line of the song being played, turned like a page
+        const { lines, lineOf } = layoutSong(logicalWidth - 32);
+        const index = lineOf.get(songCursor) ?? 0;
+        drawLine(ctx, 16, 0, logicalWidth - 32, lines[index], {
+            colors: SCREEN, highlight: songCursor, ending: index === lines.length - 1 ? "end" : "bar",
+        });
+        return;
+    }
     // Only the latest measures fit: older ones scroll off to the left
     const line = lastMeasures(bars, logicalWidth - 32);
     drawLine(ctx, 16, 0, logicalWidth - 32, line, { colors: SCREEN, highlight: groups.at(-1), ending: "open" });
+}
+
+// The song cut into justified lines for a staff width, kept until it changes
+function layoutSong(width) {
+    if (songLayout?.width === width && songLayout.song === currentSong()) return songLayout;
+    const lines = layoutLines(measures(rhythm()), width);
+    lines.slice(0, -1).forEach(line => justify(line, width));
+    const lineOf = new Map();
+    lines.forEach((line, i) => line.forEach(entry => entry.bar.forEach(piece => {
+        if (piece.group && !lineOf.has(piece.group)) lineOf.set(piece.group, i);
+    })));
+    songLayout = { width, song: currentSong(), lines, lineOf };
+    return songLayout;
 }
 
 // The whole score, line after line, in the dialog
 function drawFull(bars) {
     const width = fullView.clientWidth;
     if (!width) return;
+    fullStale = false;
+    const song = currentSong();
     const scale = width < 600 ? 0.72 : 0.85;
     const logicalWidth = width / scale;
     const lines = layoutLines(bars, logicalWidth - 32);
@@ -341,11 +399,13 @@ function drawFull(bars) {
     const ctx = renderer.getContext();
     ctx.scale(scale, scale);
     lines.forEach((line, i) => drawLine(ctx, 16, i * SYSTEM_HEIGHT, logicalWidth - 32, line, {
-        colors: SCREEN, highlight: groups.at(-1), ending: i === lines.length - 1 ? "open" : "bar",
+        colors: SCREEN,
+        highlight: song ? null : groups.at(-1),
+        ending: i < lines.length - 1 ? "bar" : song ? "end" : "open",
     }));
     fullView.replaceChildren(page);
     // Follow the playing when the reader is already at the end
-    if (atBottom) fullView.scrollTop = fullView.scrollHeight;
+    if (atBottom && !song) fullView.scrollTop = fullView.scrollHeight;
 }
 
 // Keep redrawing while the last chord is held, so it grows on the staff
@@ -355,7 +415,10 @@ function scheduleLiveRefresh() {
     if (last && releaseOf(last) === null) liveTimer = setTimeout(queueDraw, LIVE_REFRESH_MS);
 }
 
-function queueDraw() {
+// `content` is false when only the song cursor moved: the whole score in the
+// dialog (slow to draw for a long song) is then left as it is
+function queueDraw(content = true) {
+    if (content !== false) fullStale = true;
     if (drawQueued) return;
     drawQueued = true;
     requestAnimationFrame(draw);
@@ -381,7 +444,7 @@ export function clearScore() {
 // === Whole score and downloads ===
 
 export function hasScore() {
-    return groups.length > 0;
+    return Boolean(currentSong()) || groups.length > 0;
 }
 
 // Called when the score goes from empty to played (and back)
@@ -511,7 +574,7 @@ function midiFile() {
 }
 
 export function exportMidi() {
-    if (!hasScore()) return;
+    if (!groups.length || currentSong()) return;
     download(new Blob([midiFile()], { type: "audio/midi" }), fileName("mid"));
 }
 
@@ -523,7 +586,7 @@ function applyVisibility() {
 export async function initScore(element) {
     container = element;
     applyVisibility();
-    new ResizeObserver(queueDraw).observe(container);
+    new ResizeObserver(() => queueDraw(false)).observe(container);
     try {
         VF = await import(VEXFLOW_URL);
         await document.fonts.load("30px Bravura").catch(() => {});
@@ -536,6 +599,8 @@ export async function initScore(element) {
 }
 
 subscribe(event => {
+    // While a song is open, the staff shows the song, not what is played
+    if (currentSong()) return;
     if (event.type === "on") {
         const wasEmpty = !hasScore();
         played.push({ type: "note", midi: event.midi, velocity: event.velocity, time: event.time, end: null });
@@ -570,6 +635,26 @@ subscribe(event => {
     } else if (event.type === "pedal" && hasScore()) {
         played.push({ type: "pedal", down: event.down, time: performance.now() });
     }
+});
+
+onSongChange(() => {
+    songCursor = null;
+    queueDraw();
+    notifyChange();
+});
+
+// Move the cursor to the chord being played; redraw when it changes
+onSongPosition(ms => {
+    const song = currentSong();
+    if (!song) return;
+    let cursor = null;
+    for (const group of song.groups) {
+        if (group.time > ms + 1) break;
+        cursor = group;
+    }
+    if (cursor === songCursor) return;
+    songCursor = cursor;
+    queueDraw(false);
 });
 
 onSettingChange(key => {

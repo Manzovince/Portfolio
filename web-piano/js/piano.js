@@ -31,7 +31,7 @@ export function press(midi, velocity = 90, source = "keys") {
     pressed.set(midi, source);
     const start = performance.now();
     sounding.set(midi, { velocity, start });
-    emit({ type: "on", midi, velocity, time: start });
+    emit({ type: "on", midi, velocity, time: start, source });
 }
 
 export function lift(midi) {
