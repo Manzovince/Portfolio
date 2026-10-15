@@ -1,7 +1,7 @@
 // === Sound: piano samples and simple synth voices, through Web Audio ===
 
-import { subscribe, soundingNotes } from "./piano.js?v=20261015f";
-import { settings, onSettingChange } from "./settings.js?v=20261015f";
+import { subscribe, soundingNotes } from "./piano.js?v=20261015g";
+import { settings, onSettingChange } from "./settings.js?v=20261015g";
 
 const SAMPLE_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 const WAVE_LEVEL = { sine: 0.5, triangle: 0.5, square: 0.16, sawtooth: 0.2 };

@@ -5,11 +5,12 @@
 // neighbour still lit by a ripple), every frame computes the colour each LED
 // should have and only sends the LEDs that changed.
 
-import { subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261015f";
-import { settings, onSettingChange } from "./settings.js?v=20261015f";
-import { noteColor, hsvToRgb, scaleColor } from "./colors.js?v=20261015f";
-import { scaleNotes, pitchClass } from "./theory.js?v=20261015f";
-import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261015f";
+import { subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261015g";
+import { settings, onSettingChange } from "./settings.js?v=20261015g";
+import { noteColor, hsvToRgb, scaleColor } from "./colors.js?v=20261015g";
+import { scaleNotes, pitchClass } from "./theory.js?v=20261015g";
+import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261015g";
+import { songGuide, onSongGuide } from "./song.js?v=20261015g";
 
 // LED index under each key, A0 to C8, measured on the strip (two LEDs per key)
 const NOTE_TO_LED = [
@@ -60,11 +61,11 @@ function computeFrame(now) {
 
     // Scale guide: every note of the scale glows softly. During an exercise,
     // its hints take over: the notes to play now glow brighter.
-    const guide = isPracticing() ? practiceGuide() : null;
-    const scale = guide ? guide.soft : new Set(scaleNotes(settings.scaleRoot, settings.scaleType).map(n => n.pc));
+    const guide = isPracticing() ? practiceGuide() : songGuide();
+    const scale = guide ? guide.soft ?? new Set() : new Set(scaleNotes(settings.scaleRoot, settings.scaleType).map(n => n.pc));
     for (let m = LOWEST; m <= HIGHEST; m++) {
         const pc = pitchClass(m);
-        const glow = guide?.strong.has(pc) ? GUIDE_GLOW : scale.has(pc) ? SCALE_GLOW : 0;
+        const glow = guide?.strong?.has(pc) || guide?.midis?.has(m) ? GUIDE_GLOW : scale.has(pc) ? SCALE_GLOW : 0;
         if (glow) add(m, scaleColor(noteColor(m, settings.colorMode), intensity * glow));
     }
 
@@ -175,3 +176,4 @@ onSettingChange((key, value) => {
 });
 
 onPracticeChange(requestFrame);
+onSongGuide(requestFrame);

@@ -22,7 +22,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css?v=20261015f">
+    <link rel="stylesheet" href="./styles.css?v=20261015g">
 </head>
 
 <body>
@@ -117,10 +117,17 @@
             <div class="song-main">
                 <div class="song-info">
                     <span id="songTitle" class="song-title"></span>
+                    <span id="songWait" class="song-wait" data-t="songYourTurn" hidden></span>
                     <span id="songTime" class="song-time"></span>
                 </div>
                 <input id="songSeek" type="range" min="0" max="1000" step="1" value="0" data-t-label="songPosition">
             </div>
+            <select id="songPart" data-t-label="songPart">
+                <option value="listen" data-t="partListen"></option>
+                <option value="both" data-t="partBoth"></option>
+                <option value="right" data-t="partRight"></option>
+                <option value="left" data-t="partLeft"></option>
+            </select>
             <div id="songSpeed" class="segmented" role="group" data-t-label="songSpeed">
                 <button type="button" data-speed="0.5">50%</button>
                 <button type="button" data-speed="0.75">75%</button>
@@ -277,7 +284,7 @@
         <a class="about" href="../web-piano.html" data-t="about"></a>
     </aside>
 
-    <script type="module" src="./js/main.js?v=20261015f"></script>
+    <script type="module" src="./js/main.js?v=20261015g"></script>
 </body>
 
 </html>

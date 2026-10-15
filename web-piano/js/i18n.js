@@ -1,6 +1,6 @@
 // === Interface language (shared with the rest of manzovince.com) ===
 
-import { settings } from "./settings.js?v=20261015f";
+import { settings } from "./settings.js?v=20261015g";
 
 const STORAGE_KEY = "selectedLanguage"; // same key as the portfolio's toggle
 
@@ -60,6 +60,12 @@ const STRINGS = {
         songSpeed: "Speed",
         songClose: "Close the song",
         songError: "This file could not be read as a MIDI song",
+        songPart: "Who plays",
+        partListen: "Listen",
+        partBoth: "I play both hands",
+        partRight: "I play the right hand",
+        partLeft: "I play the left hand",
+        songYourTurn: "Your turn",
         openScore: "Show the whole score",
         scoreTitle: "Your score",
         scoreEmpty: "Nothing played yet: the notes you play will be written here.",
@@ -173,6 +179,12 @@ const STRINGS = {
         songSpeed: "Vitesse",
         songClose: "Fermer le morceau",
         songError: "Ce fichier n'a pas pu être lu comme un morceau MIDI",
+        songPart: "Qui joue",
+        partListen: "Écouter",
+        partBoth: "Je joue les deux mains",
+        partRight: "Je joue la main droite",
+        partLeft: "Je joue la main gauche",
+        songYourTurn: "À vous",
         openScore: "Voir toute la partition",
         scoreTitle: "Votre partition",
         scoreEmpty: "Rien de joué pour l'instant : les notes jouées s'écriront ici.",

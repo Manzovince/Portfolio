@@ -1,28 +1,29 @@
 // === Interface: chord readout, top bar, settings drawer ===
 
-import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261015f";
-import { settings, setSetting, onSettingChange } from "./settings.js?v=20261015f";
+import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261015g";
+import { settings, setSetting, onSettingChange } from "./settings.js?v=20261015g";
 import {
     t, chordQuality, inversionName, intervalName, scaleName, currentNotation,
     getLanguage, setLanguage, onLanguageChange, applyStaticText,
-} from "./i18n.js?v=20261015f";
+} from "./i18n.js?v=20261015g";
 import {
     detectChord, chordSymbol, noteName, spellPc, spelledOctave, pitchClass,
     intervalBetween, scaleContext, scaleNotes, SCALES,
-} from "./theory.js?v=20261015f";
-import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261015f";
-import { ledState, onLedState, connectLeds } from "./leds.js?v=20261015f";
-import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261015f";
-import { keysHint, shiftView } from "./keyboard.js?v=20261015f";
+} from "./theory.js?v=20261015g";
+import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261015g";
+import { ledState, onLedState, connectLeds } from "./leds.js?v=20261015g";
+import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261015g";
+import { keysHint, shiftView } from "./keyboard.js?v=20261015g";
 import {
     clearScore, hasScore, onScoreChange, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi,
-} from "./score.js?v=20261015f";
-import { resetUsage } from "./roll.js?v=20261015f";
+} from "./score.js?v=20261015g";
+import { resetUsage } from "./roll.js?v=20261015g";
 import {
     currentSong, openSongFile, closeSong, playSong, pauseSong, seekSong, setSongSpeed,
     isSongPlaying, songPosition, songSpeed, onSongChange, onSongPosition,
-} from "./song.js?v=20261015f";
-import { setPracticing, isPracticing, onPracticeChange } from "./practice.js?v=20261015f";
+    songPart, setSongPart, isWaitingForPlayer,
+} from "./song.js?v=20261015g";
+import { setPracticing, isPracticing, onPracticeChange } from "./practice.js?v=20261015g";
 
 const $ = selector => document.querySelector(selector);
 const finePointer = matchMedia("(hover: hover) and (pointer: fine)");
@@ -270,6 +271,8 @@ function renderSong() {
     play.setAttribute("aria-label", t(playing ? "songPause" : "songPlay"));
     play.title = play.getAttribute("aria-label");
     $("#songTitle").textContent = song.title;
+    $("#songPart").value = songPart();
+    $("#songWait").hidden = !isWaitingForPlayer();
     $("#songSpeed").querySelectorAll("button").forEach(b =>
         b.setAttribute("aria-pressed", Number(b.dataset.speed) === songSpeed()));
     renderSongPosition();
@@ -319,6 +322,7 @@ function bindSong() {
 
     $("#songPlay").addEventListener("click", () => (isSongPlaying() ? pauseSong() : playSong()));
     $("#songClose").addEventListener("click", closeSong);
+    $("#songPart").addEventListener("change", e => setSongPart(e.target.value));
     $("#songSpeed").addEventListener("click", e => {
         const button = e.target.closest("button");
         if (button) setSongSpeed(Number(button.dataset.speed));

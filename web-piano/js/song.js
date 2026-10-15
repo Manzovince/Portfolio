@@ -3,8 +3,12 @@
 // The file is read here (format 0 or 1, every track merged, drums left out),
 // with its tempo changes and time signature. Playback presses the keys like any
 // other input, so the sound, the keys, the LED strip and the chord names follow.
+//
+// Play-along: the visitor plays both hands, or one while the song plays the
+// other. The song then waits on each chord of their part until its notes are
+// played, and marks them on the keys (and the LED strip) in the meantime.
 
-import { press, liftSource, setPedal } from "./piano.js?v=20261015f";
+import { subscribe, press, liftSource, setPedal } from "./piano.js?v=20261015g";
 
 const SOURCE = "song";
 const TICK_MS = 10;          // playback clock
@@ -22,6 +26,13 @@ let timer = null;
 const holding = new Map();   // midi -> end time (ms) of the note being played
 const changeListeners = new Set();
 const positionListeners = new Set();
+const guideListeners = new Set();
+
+// Play-along: "listen" (the song plays everything), "both", "right" or "left"
+let part = "listen";
+let expected = 0;            // index of the chord awaited in the visitor's part
+let waiting = false;         // the clock is stopped on that chord
+const struck = new Set();    // notes played towards it
 
 export const currentSong = () => song;
 export const isSongPlaying = () => playing;
@@ -29,6 +40,17 @@ export const songPosition = () => positionMs;
 export const songSpeed = () => speed;
 export const onSongChange = fn => changeListeners.add(fn);
 export const onSongPosition = fn => positionListeners.add(fn);
+export const songPart = () => part;
+export const isWaitingForPlayer = () => waiting;
+export const onSongGuide = fn => guideListeners.add(fn);
+
+const notifyGuide = () => guideListeners.forEach(fn => fn());
+
+// Keys to mark: the chord the song waits for, while playing along
+export function songGuide() {
+    const chord = song && part !== "listen" ? song.parts[part][expected] : null;
+    return chord ? { midis: chord.midis } : null;
+}
 
 const notifyChange = () => changeListeners.forEach(fn => fn());
 const notifyPosition = () => positionListeners.forEach(fn => fn(positionMs));
@@ -109,7 +131,7 @@ function readFile(buffer) {
             if (channel === DRUM_CHANNEL) continue;
             const key = `${channel}:${a}`;
             if (kind === 0x90 && b > 0) {
-                const note = { midi: a, velocity: b, startTick: tick, endTick: null };
+                const note = { midi: a, velocity: b, startTick: tick, endTick: null, track };
                 notes.push(note);
                 if (!open.has(key)) open.set(key, []);
                 open.get(key).push(note);
@@ -167,6 +189,7 @@ function buildSong(file, fileName) {
     const notes = file.notes
         .filter(n => n.midi >= 21 && n.midi <= 108)
         .map(n => ({
+            track: n.track,
             midi: n.midi,
             velocity: n.velocity,
             startMs: toMs(n.startTick),
@@ -176,6 +199,7 @@ function buildSong(file, fileName) {
         }))
         .sort((a, b) => a.startMs - b.startMs || a.midi - b.midi);
     if (!notes.length) throw new Error("No notes");
+    assignHands(notes);
     const firstTempo = tempos.find(t => t.tick === 0) ?? tempos[0];
     return {
         title: file.title || fileName.replace(/\.midi?$/i, ""),
@@ -185,13 +209,34 @@ function buildSong(file, fileName) {
         timeSignature: file.timeSignature ?? [4, 4],
         bpm: Math.round(60000000 / (firstTempo?.usPerBeat ?? 500000)),
         groups: staffGroups(notes),
+        // Chords of each part, for playing along
+        parts: {
+            both: staffGroups(notes),
+            right: staffGroups(notes.filter(n => n.hand === "right")),
+            left: staffGroups(notes.filter(n => n.hand === "left")),
+        },
     };
+}
+
+// Piano files usually keep one hand per track: with two tracks, the higher
+// one is the right hand. Otherwise the notes are split at middle C.
+function assignHands(notes) {
+    const tracks = new Map();
+    notes.forEach(n => tracks.set(n.track, [...(tracks.get(n.track) ?? []), n.midi]));
+    const average = list => list.reduce((sum, m) => sum + m, 0) / list.length;
+    if (tracks.size === 2) {
+        const [a, b] = [...tracks.entries()].sort((x, y) => average(y[1]) - average(x[1]));
+        notes.forEach(n => (n.hand = n.track === a[0] ? "right" : "left"));
+    } else {
+        notes.forEach(n => (n.hand = n.midi >= 60 ? "right" : "left"));
+    }
 }
 
 export async function openSongFile(file) {
     const next = buildSong(readFile(await file.arrayBuffer()), file.name);
     closeSong();
     song = next;
+    resetExpected();
     notifyChange();
     notifyPosition();
     return song;
@@ -202,14 +247,32 @@ export function closeSong() {
     pauseSong();
     song = null;
     positionMs = 0;
+    waiting = false;
     notifyChange();
+    notifyGuide();
 }
 
 // === Playback ===
 
+// Mine to play, while playing along?
+const isPlayersNote = note => part === "both" || note.hand === part;
+
 function step() {
-    positionMs = Math.min(song.durationMs, anchorPosition + (performance.now() - anchorTime) * speed);
+    const now = performance.now();
+    positionMs = Math.min(song.durationMs, anchorPosition + (now - anchorTime) * speed);
     const { notes, pedals } = song;
+
+    // Stop the clock on the chord the visitor has to play
+    const awaited = part === "listen" ? null : song.parts[part][expected];
+    if (awaited && positionMs >= awaited.time) {
+        positionMs = awaited.time;
+        anchorPosition = positionMs;
+        anchorTime = now;
+        if (!waiting) {
+            waiting = true;
+            notifyChange();
+        }
+    }
 
     for (const [midi, end] of holding) {
         if (end <= positionMs) {
@@ -218,11 +281,14 @@ function step() {
         }
     }
     while (pedalIndex < pedals.length && pedals[pedalIndex].ms <= positionMs) {
-        setPedal(pedals[pedalIndex++].down);
+        const { down } = pedals[pedalIndex++];
+        // While playing along, the pedal is the visitor's
+        if (part === "listen") setPedal(down);
     }
     while (noteIndex < notes.length && notes[noteIndex].startMs <= positionMs) {
         const note = notes[noteIndex++];
         if (note.endMs <= positionMs) continue; // too short to catch at this clock
+        if (part !== "listen" && isPlayersNote(note)) continue;
         // One source per key, so that releasing one note leaves the others alone
         press(note.midi, note.velocity, SOURCE + note.midi);
         holding.set(note.midi, note.endMs);
@@ -234,9 +300,47 @@ function step() {
         positionMs = 0;
         noteIndex = 0;
         pedalIndex = 0;
+        resetExpected();
         notifyPosition();
     }
 }
+
+// The first chord of the visitor's part from the current position
+function resetExpected() {
+    struck.clear();
+    waiting = false;
+    const chords = song?.parts[part === "listen" ? "both" : part] ?? [];
+    expected = chords.findIndex(chord => chord.time >= positionMs - 1);
+    if (expected < 0) expected = chords.length;
+    notifyGuide();
+}
+
+export function setSongPart(value) {
+    part = value;
+    if (part !== "listen") setPedal(false);
+    resetExpected();
+    notifyChange();
+}
+
+// The visitor's notes: once the awaited chord is complete, the song moves on.
+// Notes played a little early count, so a chord can be played on the beat.
+subscribe(event => {
+    if (event.type !== "on" || event.source?.startsWith(SOURCE)) return;
+    if (!song || !playing || part === "listen") return;
+    const awaited = song.parts[part][expected];
+    if (!awaited || !awaited.midis.has(event.midi)) return;
+    struck.add(event.midi);
+    if (![...awaited.midis].every(midi => struck.has(midi))) return notifyGuide();
+    struck.clear();
+    expected++;
+    if (waiting) {
+        waiting = false;
+        anchorPosition = positionMs;
+        anchorTime = performance.now();
+        notifyChange();
+    }
+    notifyGuide();
+});
 
 export function playSong() {
     if (!song || playing) return;
@@ -250,6 +354,7 @@ export function playSong() {
 export function pauseSong() {
     if (!playing) return;
     playing = false;
+    waiting = false;
     clearInterval(timer);
     releaseAllSongKeys();
     notifyChange();
@@ -272,6 +377,7 @@ export function seekSong(ms) {
     if (pedalIndex > 0 && song.pedals[pedalIndex - 1].down) setPedal(true);
     anchorPosition = positionMs;
     anchorTime = performance.now();
+    resetExpected();
     notifyPosition();
 }
 

@@ -1,11 +1,12 @@
 // === On-screen keyboard, computer-keyboard and pointer input ===
 
-import { press, lift, setPedal, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261015f";
-import { settings, onSettingChange } from "./settings.js?v=20261015f";
-import { noteColor, rgbString } from "./colors.js?v=20261015f";
-import { noteName, defaultSpelling, scaleNotes, pitchClass } from "./theory.js?v=20261015f";
-import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261015f";
-import { getLanguage, onLanguageChange, currentNotation } from "./i18n.js?v=20261015f";
+import { press, lift, setPedal, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261015g";
+import { settings, onSettingChange } from "./settings.js?v=20261015g";
+import { noteColor, rgbString } from "./colors.js?v=20261015g";
+import { noteName, defaultSpelling, scaleNotes, pitchClass } from "./theory.js?v=20261015g";
+import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261015g";
+import { songGuide, onSongGuide } from "./song.js?v=20261015g";
+import { getLanguage, onLanguageChange, currentNotation } from "./i18n.js?v=20261015g";
 
 const isBlack = midi => [1, 3, 6, 8, 10].includes(midi % 12);
 // Black keys sit slightly off-centre on a real piano
@@ -119,15 +120,15 @@ function refreshLabels() {
 }
 
 function refreshScale() {
-    // During an exercise its hints replace the scale guide
-    const guide = isPracticing() ? practiceGuide() : null;
-    const notes = isPracticing() ? [] : scaleNotes(settings.scaleRoot, settings.scaleType);
+    // During an exercise or while playing along, the notes to play replace the scale guide
+    const guide = isPracticing() ? practiceGuide() : songGuide();
+    const notes = guide || isPracticing() ? [] : scaleNotes(settings.scaleRoot, settings.scaleType);
     const inScale = new Set(notes.map(n => n.pc));
     keys.forEach((key, midi) => {
         const pc = pitchClass(midi);
-        key.classList.toggle("in-scale", inScale.has(pc) || !!guide?.soft.has(pc));
+        key.classList.toggle("in-scale", inScale.has(pc) || !!guide?.soft?.has(pc));
         key.classList.toggle("scale-root", notes.length > 0 && pc === settings.scaleRoot);
-        key.classList.toggle("guide", !!guide?.strong.has(pc));
+        key.classList.toggle("guide", !!guide?.strong?.has(pc) || !!guide?.midis?.has(midi));
     });
 }
 
@@ -312,3 +313,4 @@ onSettingChange(key => {
 onLanguageChange(refreshLabels);
 
 onPracticeChange(refreshScale);
+onSongGuide(refreshScale);
