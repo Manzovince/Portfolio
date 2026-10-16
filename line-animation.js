@@ -33,7 +33,8 @@ class WaterLineAnimation {
             isScrolling: false,
             hoverIntensity: 0,
             scrollIntensity: 0,
-            isAnimating: false
+            isAnimating: false,
+            isVisible: false
         };
 
         this.initPoints();
@@ -103,7 +104,7 @@ class WaterLineAnimation {
 
         // Calculate mouse movement speed with a small cap
         this.state.mouseSpeed = Math.min(
-            Math.abs(this.state.mouseX - this.state.lastMouseX) * 0.01,
+            Math.abs(this.state.mouseX - this.state.lastMouseX) * 0.3,  // x is in viewBox units (0-100), so a fast sweep is a few units per frame
             10
         );
         this.state.lastMouseX = this.state.mouseX;
@@ -142,7 +143,7 @@ class WaterLineAnimation {
             const currentMouseY = e.clientY - rect.top;
             // Only update if there is an actual change
             if (
-                currentMouseX !== this.state.lastMouseX ||
+                currentMouseX !== this.state.mouseX ||
                 currentMouseY !== this.state.lastMouseY
             ) {
                 this.state.mouseX = currentMouseX;
@@ -153,13 +154,18 @@ class WaterLineAnimation {
                     this.state.isAnimating = true;
                     requestAnimationFrame(this.animate);
                 }
-                this.state.lastMouseX = currentMouseX;
+                // lastMouseX is left to animate(), which reads the mouse speed from it
                 this.state.lastMouseY = currentMouseY;
             }
         };
 
         const handleScroll = () => {
             const currentScroll = window.scrollY;
+            // Off screen, only keep track of the position so the next delta stays small
+            if (!this.state.isVisible) {
+                this.state.scrollY = currentScroll;
+                return;
+            }
             this.state.scrollSpeed = Math.min(
                 Math.abs(currentScroll - this.state.scrollY) * 0.01,
                 10
@@ -180,14 +186,20 @@ class WaterLineAnimation {
         this.svg.addEventListener('mouseleave', () => {
             this.state.isMoving = false;
         });
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        new IntersectionObserver(entries => {
+            this.state.isVisible = entries[0].isIntersecting;
+        }).observe(this.svg);
     }
 }
 
 // Initialize the water line with custom configuration if needed.
-const waterLine = new WaterLineAnimation('.water-line', {
-    width: 100,
-    baseHeight: 50,
-    numPoints: 100,
-    scrollSensitivity: 1
-});
+// scrollSensitivity is radians of phase per scrolled pixel: 0.02 is one ripple every ~300px.
+if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    new WaterLineAnimation('.water-line', {
+        width: 100,
+        baseHeight: 50,
+        numPoints: 100,
+        scrollSensitivity: 0.02
+    });
+}
