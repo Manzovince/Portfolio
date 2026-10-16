@@ -782,11 +782,39 @@ header {
 /* Personal: same tiles as the professional projects, with a single image
    framed on a tinted cover instead of the wireframe/screenshot pair */
 
+/* One column on phones, two on tablets, three on desktop */
 #personal {
     scroll-margin-top: 256px;
-    display: flex;
-    flex-direction: column;
-    gap: 96px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 96px 48px;
+}
+
+@media (min-width: 600px) {
+    #personal {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 72px 40px;
+    }
+}
+
+/* Tiles in a row share its height: the extra space goes below the text, so the
+   titles stay aligned whatever the description length */
+#personal .project-tile {
+    grid-template-rows: auto 1fr;
+}
+
+#personal .project-details {
+    justify-content: start;
+}
+
+@media (min-width: 1000px) {
+    #personal {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    #personal .project-cover {
+        height: 36vh;
+    }
 }
 
 .project-tile .project-cover.project-cover--single img {
