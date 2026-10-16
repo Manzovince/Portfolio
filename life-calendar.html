@@ -7,12 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Vincent Manzoni">
     <meta name="description"
-        content="Vincent Manzoni - UX Designer & Product Developer specializing in user-centered design solutions. View my portfolio of innovative digital products, user research, and photography projects.">
+        content="Life calendar by Vincent Manzoni: a whole life drawn as a grid of tiny squares, one per week, with your own chapters and moments.">
     <meta name="keywords"
         content="UX designer, product design, user experience, UI/UX, interaction design, digital product, user research, wireframing, prototyping, design system, photography, portfolio">
-    <meta property="og:title" content="Vincent Manzoni / Portfolio">
+    <meta property="og:title" content="Vincent Manzoni / Life calendar">
     <meta property="og:description"
-        content="Showcasing creative work in UX design, product development, and photography">
+        content="A whole life drawn as a grid of tiny squares, one per week.">
     <meta property="og:image" content="https://manzovince.com/assets/og-life-calendar.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -20,8 +20,8 @@
     <meta property="og:site_name" content="Vincent Manzoni Portfolio">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Vincent Manzoni / Portfolio">
-    <meta name="twitter:description" content="Showcasing creative work in UX design, product development, and photography">
+    <meta name="twitter:title" content="Vincent Manzoni / Life calendar">
+    <meta name="twitter:description" content="A whole life drawn as a grid of tiny squares, one per week.">
     <meta name="twitter:image" content="https://manzovince.com/assets/og-life-calendar.png">
     <link rel="canonical" href="https://manzovince.com/life-calendar.html">
     <!-- Styles -->
@@ -46,13 +46,23 @@
         <div class="project-header">
             <div class="project-infos">
                 <h4>Life calendar</h4>
-                <p>Inspired from the </p>
+                <p data-i18n="lifeCalendarIntro"></p>
                 <ul class="tag-list">
-                    <li class="tag">HTML / CSS</li>
-                    <li class="tag">JS</li>
+                    <div class="tag" data-i18n="tagDesign"></div>
+                    <div class="tag" data-i18n="tagDev"></div>
                 </ul>
             </div>
+            <a href="./life-calendar/" class="project-button" data-i18n="lifeCalendarOpen"></a>
         </div>
+
+        <p data-i18n="lifeCalendarStory"></p>
+
+        <div>
+            <h6 data-i18n="lifeCalendarHowTitle"></h6>
+            <p data-i18n="lifeCalendarHow"></p>
+        </div>
+
+        <a href="./life-calendar/" class="project-button" data-i18n="lifeCalendarOpen"></a>
     </main>
 
     <!-- Footer -->
@@ -65,7 +75,7 @@
 
 </body>
 
-<script src="./script.js?v=20261016a"></script>
+<script src="./script.js?v=20261016b"></script>
 <script src="./line-animation.js?v=20261016b"></script>
 
 </html>

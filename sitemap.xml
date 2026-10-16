@@ -97,6 +97,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://manzovince.com/life-calendar.html</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://manzovince.com/lagon.html</loc>
     <lastmod>2026-10-15</lastmod>
     <changefreq>monthly</changefreq>

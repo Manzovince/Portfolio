@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Life calendar</title>
+<meta name="description" content="Your whole life drawn as a grid of tiny squares: one per week, month or year, with your own chapters and moments.">
+<meta name="theme-color" content="#f6f5f0">
+<link rel="icon" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300..600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=20261016a">
+<script>
+  // Applies a saved theme before the first paint, so a dark choice never flashes white
+  try {
+    const theme = JSON.parse(localStorage.getItem('lifeCalendar') || '{}').theme;
+    if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+  } catch (e) {}
+</script>
+</head>
+<body>
+<div class="app">
+
+  <aside class="panel" id="panel">
+    <header class="panel-head">
+      <a class="back" href="../life-calendar.html" data-t="back"></a>
+      <h1 data-t="title"></h1>
+      <p class="tagline" data-t="tagline"></p>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="fr">FR</button>
+        <button type="button" class="icon-btn" id="theme-toggle"><svg class="moon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M13 9.6A5.5 5.5 0 0 1 6.4 3a5.5 5.5 0 1 0 6.6 6.6Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><svg class="sun" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.4M8 13.1v1.4M1.5 8h1.4M13.1 8h1.4M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"/></g></svg></button>
+        <button type="button" class="icon-btn" id="panel-toggle" aria-controls="panel-body"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </header>
+
+    <div class="panel-body" id="panel-body">
+    <section class="block">
+      <div class="field-row">
+        <label class="field">
+          <span data-t="birth"></span>
+          <input type="date" id="birth" min="1900-01-01">
+        </label>
+        <label class="field field--short">
+          <span data-t="lifespan"></span>
+          <span class="with-suffix">
+            <input type="number" id="lifespan" min="1" max="120" step="1" inputmode="numeric">
+            <em data-t="yearsSuffix"></em>
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 data-t="chapters"></h2>
+      <p class="hint" data-t="chaptersHint"></p>
+      <ul class="entries" id="chapters"></ul>
+      <button type="button" class="add" id="add-chapter" data-t="addChapter"></button>
+    </section>
+
+    <section class="block">
+      <h2 data-t="moments"></h2>
+      <p class="hint" data-t="momentsHint"></p>
+      <ul class="entries" id="moments"></ul>
+      <button type="button" class="add" id="add-moment" data-t="addMoment"></button>
+    </section>
+
+    <footer class="panel-foot">
+      <button type="button" class="btn" id="print" data-t="print"></button>
+      <p class="hint" data-t="privacy"></p>
+    </footer>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <button type="button" class="icon-btn panel-open" id="panel-open" aria-controls="panel-body"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="poster" id="poster">
+      <div class="poster-head">
+        <div class="poster-top">
+          <h2 class="poster-title" data-t="posterTitle"></h2>
+          <div class="view-controls">
+            <div class="segmented" role="radiogroup" id="unit">
+              <button type="button" role="radio" data-unit="weeks" data-t="weeks"></button>
+              <button type="button" role="radio" data-unit="months" data-t="months"></button>
+              <button type="button" role="radio" data-unit="years" data-t="years"></button>
+            </div>
+            <label class="size-control">
+              <span data-t="size"></span>
+              <input type="range" id="size">
+            </label>
+          </div>
+        </div>
+        <p class="stats" id="stats"></p>
+        <div class="progress" aria-hidden="true"><span id="progress"></span></div>
+      </div>
+      <p class="empty" id="empty" data-t="empty"></p>
+      <div class="grid-wrap">
+        <p class="axis" id="axis"></p>
+        <div class="grid" id="grid"></div>
+      </div>
+      <ul class="legend" id="legend"></ul>
+    </div>
+  </main>
+
+</div>
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<script src="app.js?v=20261016a"></script>
+</body>
+</html>
