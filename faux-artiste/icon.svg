@@ -1,1 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#f4efe6"/><rect x="96" y="96" width="320" height="320" rx="10" fill="#fffdf8" stroke="#1f1d1a" stroke-opacity=".15" stroke-width="4"/><g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="22"><path d="M150 330c40-90 80-150 120-160" stroke="#1d6fe0"/><path d="M270 170c40 20 70 70 90 150" stroke="#22994a"/><path d="M180 260c50 10 110 10 160 0" stroke="#f08c00"/><path d="M220 360c30-60 60-40 70 10s40 20 60-30" stroke="#ff5a36"/></g><text x="256" y="152" font-family="Georgia,serif" font-size="74" font-weight="700" text-anchor="middle" fill="#ff5a36">?</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#f4efe6"/>
+  <g transform="translate(256 256) scale(.88) translate(-268 -282)">
+  <g fill="none" stroke-width="30" stroke-linecap="round">
+    <path d="M70 430 C 80 370 130 360 140 410" stroke="#e63946"/>
+    <path d="M140 410 C 150 460 215 455 210 395" stroke="#1d6fe0"/>
+    <path d="M210 395 C 205 345 250 345 262 362" stroke="#22994a"/>
+  </g>
+  <g transform="translate(262 362) rotate(-50)" stroke="#1f1d1a" stroke-width="12" stroke-linejoin="round">
+    <path d="M0 0 L66 -36 L66 36 Z" fill="#f2d3a2"/>
+    <path d="M0 0 L22 -12 L22 12 Z" fill="#1f1d1a"/>
+    <rect x="66" y="-36" width="170" height="72" fill="#ff5a36"/>
+    <path d="M66 -12 H236 M66 12 H236" stroke-width="6" opacity=".35"/>
+    <rect x="236" y="-36" width="30" height="72" fill="#b9b2a6"/>
+    <path d="M266 -36 H284 a20 20 0 0 1 20 20 V16 a20 20 0 0 1 -20 20 H266 Z" fill="#f49ac1"/>
+  </g>
+  </g>
+</svg>
