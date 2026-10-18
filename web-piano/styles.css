@@ -409,6 +409,7 @@ body.staff-unavailable .staff {
     overflow: hidden;
 }
 
+#wave,
 #roll,
 #usage {
     position: absolute;
@@ -417,6 +418,7 @@ body.staff-unavailable .staff {
     pointer-events: none;
 }
 
+#wave,
 #roll {
     top: 0;
     height: 100%;
@@ -885,7 +887,8 @@ input[type="range"] {
 }
 
 #ledOptions,
-#tempoRow {
+#tempoRow,
+.synth-options {
     display: grid;
     gap: 12px;
 }
@@ -1235,4 +1238,22 @@ body.practicing .readout {
         transition: none !important;
         animation: none !important;
     }
+}
+
+/* === Synth envelope and echo (hidden for the piano) === */
+
+.synth-options {
+    padding: 4px 0 2px 12px;
+    border-left: 1px solid var(--line);
+}
+
+.synth-options[hidden] {
+    display: none;
+}
+
+.subhead {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3) !important;
 }

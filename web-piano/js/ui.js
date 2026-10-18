@@ -1,29 +1,29 @@
 // === Interface: chord readout, top bar, settings drawer ===
 
-import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261015g";
-import { settings, setSetting, onSettingChange } from "./settings.js?v=20261015g";
+import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261018a";
+import { settings, setSetting, onSettingChange, resetSynth } from "./settings.js?v=20261018a";
 import {
     t, chordQuality, inversionName, intervalName, scaleName, currentNotation,
     getLanguage, setLanguage, onLanguageChange, applyStaticText,
-} from "./i18n.js?v=20261015g";
+} from "./i18n.js?v=20261018a";
 import {
     detectChord, chordSymbol, noteName, spellPc, spelledOctave, pitchClass,
     intervalBetween, scaleContext, scaleNotes, SCALES,
-} from "./theory.js?v=20261015g";
-import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261015g";
-import { ledState, onLedState, connectLeds } from "./leds.js?v=20261015g";
-import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261015g";
-import { keysHint, shiftView } from "./keyboard.js?v=20261015g";
+} from "./theory.js?v=20261018a";
+import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261018a";
+import { ledState, onLedState, connectLeds } from "./leds.js?v=20261018a";
+import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261018a";
+import { keysHint, shiftView } from "./keyboard.js?v=20261018a";
 import {
     clearScore, hasScore, onScoreChange, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi,
-} from "./score.js?v=20261015g";
-import { resetUsage } from "./roll.js?v=20261015g";
+} from "./score.js?v=20261018a";
+import { resetUsage } from "./roll.js?v=20261018a";
 import {
     currentSong, openSongFile, closeSong, playSong, pauseSong, seekSong, setSongSpeed,
     isSongPlaying, songPosition, songSpeed, onSongChange, onSongPosition,
     songPart, setSongPart, isWaitingForPlayer,
-} from "./song.js?v=20261015g";
-import { setPracticing, isPracticing, onPracticeChange } from "./practice.js?v=20261015g";
+} from "./song.js?v=20261018a";
+import { setPracticing, isPracticing, onPracticeChange } from "./practice.js?v=20261018a";
 
 const $ = selector => document.querySelector(selector);
 const finePointer = matchMedia("(hover: hover) and (pointer: fine)");
@@ -217,6 +217,15 @@ function syncControls() {
     $("#tempoRow").hidden = !settings.showStaff;
     $("#ledOptions").hidden = !settings.ledEnabled;
     $("#instrument").disabled = !settings.sound;
+    $("#synthOptions").hidden = settings.instrument === "piano";
+    document.querySelectorAll("[data-out]").forEach(out => {
+        out.textContent = formatSynth(out.dataset.out, settings[out.dataset.out]);
+    });
+}
+
+function formatSynth(key, value) {
+    if (key === "synthSustain" || key === "delayMix" || key === "delayFeedback") return `${Math.round(value * 100)}%`;
+    return value < 1 ? `${Math.round(value * 1000)} ms` : `${value.toFixed(2)} s`;
 }
 
 function bindControls() {
@@ -398,6 +407,7 @@ export function initUI() {
     bindScoreDialog();
     bindSong();
     $("#resetUsage").addEventListener("click", resetUsage);
+    $("#resetSynth").addEventListener("click", resetSynth);
     $("#octDown").addEventListener("click", () => shiftView(-1));
     $("#octUp").addEventListener("click", () => shiftView(1));
 

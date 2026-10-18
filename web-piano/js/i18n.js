@@ -1,6 +1,6 @@
 // === Interface language (shared with the rest of manzovince.com) ===
 
-import { settings } from "./settings.js?v=20261015g";
+import { settings } from "./settings.js?v=20261018a";
 
 const STORAGE_KEY = "selectedLanguage"; // same key as the portfolio's toggle
 
@@ -86,6 +86,16 @@ const STRINGS = {
         instSquare: "Square wave",
         instSawtooth: "Sawtooth wave",
         volume: "Volume",
+        envelope: "Envelope",
+        attack: "Attack",
+        decay: "Decay",
+        sustain: "Sustain",
+        release: "Release",
+        delay: "Delay",
+        delayMix: "Echo level",
+        delayTime: "Echo time",
+        delayFeedback: "Repeats",
+        wave: "Waveform",
         sectionDisplay: "Display",
         notation: "Notation",
         colors: "Colours",
@@ -204,6 +214,16 @@ const STRINGS = {
         instSquare: "Onde carrée",
         instSawtooth: "Onde en dents de scie",
         volume: "Volume",
+        envelope: "Enveloppe",
+        attack: "Attaque",
+        decay: "Déclin",
+        sustain: "Maintien",
+        release: "Relâchement",
+        delay: "Écho",
+        delayMix: "Niveau d'écho",
+        delayTime: "Temps d'écho",
+        delayFeedback: "Répétitions",
+        wave: "Forme d'onde",
         sectionDisplay: "Affichage",
         notation: "Notation",
         colors: "Couleurs",

@@ -6,6 +6,15 @@ const DEFAULTS = {
     sound: true,
     instrument: "piano",
     volume: 0.8,
+    // Envelope and echo of the synth voices (the piano keeps its own sound)
+    synthAttack: 0.01,
+    synthDecay: 0.25,
+    synthSustain: 0.55,
+    synthRelease: 0.35,
+    delayMix: 0,
+    delayTime: 0.3,
+    delayFeedback: 0.35,
+    showWave: true,
     notation: null, // null = follow the language (solfège in French)
     colorMode: "rainbow",
     showStaff: true,
@@ -55,6 +64,12 @@ export function setSetting(key, value) {
     settings[key] = value;
     save();
     listeners.forEach(fn => fn(key, value));
+}
+
+export const SYNTH_KEYS = ["synthAttack", "synthDecay", "synthSustain", "synthRelease", "delayMix", "delayTime", "delayFeedback"];
+
+export function resetSynth() {
+    SYNTH_KEYS.forEach(key => setSetting(key, DEFAULTS[key]));
 }
 
 export function onSettingChange(fn) {

@@ -5,10 +5,10 @@
 // starting anywhere on the keyboard.
 // With hints on, the notes to play are marked on the keys (and the LED strip).
 
-import { subscribe, soundingNotes } from "./piano.js?v=20261015g";
-import { settings, setSetting, onSettingChange } from "./settings.js?v=20261015g";
-import { buildChord, chordSymbol, noteName, defaultSpelling, scaleNotes, pitchClass, SCALES } from "./theory.js?v=20261015g";
-import { t, chordQuality, scaleName, currentNotation, onLanguageChange } from "./i18n.js?v=20261015g";
+import { subscribe, soundingNotes } from "./piano.js?v=20261018a";
+import { settings, setSetting, onSettingChange } from "./settings.js?v=20261018a";
+import { buildChord, chordSymbol, noteName, defaultSpelling, scaleNotes, pitchClass, SCALES } from "./theory.js?v=20261018a";
+import { t, chordQuality, scaleName, currentNotation, onLanguageChange } from "./i18n.js?v=20261018a";
 
 const LEVELS = {
     chords: {

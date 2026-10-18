@@ -1,15 +1,18 @@
 // === Sound: piano samples and simple synth voices, through Web Audio ===
 
-import { subscribe, soundingNotes } from "./piano.js?v=20261015g";
-import { settings, onSettingChange } from "./settings.js?v=20261015g";
+import { subscribe, soundingNotes } from "./piano.js?v=20261018a";
+import { settings, onSettingChange } from "./settings.js?v=20261018a";
 
 const SAMPLE_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 const WAVE_LEVEL = { sine: 0.5, triangle: 0.5, square: 0.16, sawtooth: 0.2 };
-const SYNTH = { attack: 0.008, decay: 0.25, sustain: 0.55, release: 0.35 };
 const PIANO_RELEASE = 0.25; // seconds for the damper to stop a sample
 
 let ctx = null;
 let master = null;
+let mix = null;      // everything audible, before the volume: what the waveform shows
+let synthBus = null; // synth voices only, so the delay never touches the piano
+let delay = null;
+let analyser = null;
 const samples = new Map(); // midi -> Promise<AudioBuffer>
 const voices = new Map();  // midi -> voice
 const stateListeners = new Set();
@@ -21,6 +24,23 @@ function ensureContext() {
     ctx = new AudioCtx({ latencyHint: "interactive" });
     master = ctx.createGain();
     master.gain.value = settings.volume;
+    mix = ctx.createGain();
+    mix.connect(master);
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 2048;
+    mix.connect(analyser);
+
+    // Echo: synth -> delay line with feedback -> wet level -> mix
+    synthBus = ctx.createGain();
+    synthBus.connect(mix);
+    const line = ctx.createDelay(2);
+    const feedback = ctx.createGain();
+    const wet = ctx.createGain();
+    synthBus.connect(line);
+    line.connect(feedback).connect(line);
+    line.connect(wet).connect(mix);
+    delay = { line, feedback, wet };
+    applyDelay();
     const limiter = ctx.createDynamicsCompressor();
     limiter.threshold.value = -10;
     limiter.ratio.value = 8;
@@ -33,6 +53,14 @@ function ensureContext() {
 export function unlockAudio() {
     if (!ensureContext()) return;
     if (ctx.state !== "running") ctx.resume().then(preloadSamples).catch(() => {});
+}
+
+function applyDelay() {
+    if (!delay) return;
+    const now = ctx.currentTime;
+    delay.line.delayTime.setTargetAtTime(settings.delayTime, now, 0.05);
+    delay.feedback.gain.setTargetAtTime(settings.delayFeedback, now, 0.02);
+    delay.wet.gain.setTargetAtTime(settings.delayMix, now, 0.02);
 }
 
 export const audioIsRunning = () => ctx?.state === "running";
@@ -83,7 +111,7 @@ function startPiano(midi, velocity) {
         src.buffer = buffer;
         const gain = ctx.createGain();
         gain.gain.value = velocityGain(velocity);
-        src.connect(gain).connect(master);
+        src.connect(gain).connect(mix);
         src.start();
         src.onended = () => {
             gain.disconnect();
@@ -100,14 +128,16 @@ function startSynth(midi, velocity, type) {
     const osc = ctx.createOscillator();
     osc.type = type;
     osc.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
+    const { synthAttack: attack, synthDecay: decay, synthSustain: sustain, synthRelease: release } = settings;
+    const peakAt = now + Math.max(0.003, attack); // a few ms at least, or it clicks
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(peak, now + SYNTH.attack);
-    gain.gain.setTargetAtTime(peak * SYNTH.sustain, now + SYNTH.attack, SYNTH.decay / 3);
-    osc.connect(gain).connect(master);
+    gain.gain.linearRampToValueAtTime(peak, peakAt);
+    gain.gain.setTargetAtTime(peak * sustain, peakAt, decay / 3);
+    osc.connect(gain).connect(synthBus);
     osc.start(now);
     osc.onended = () => gain.disconnect();
-    return { released: false, nodes: { src: osc, gain, release: SYNTH.release } };
+    return { released: false, nodes: { src: osc, gain, release: Math.max(0.02, release) } };
 }
 
 function release(voice) {
@@ -153,7 +183,12 @@ onSettingChange((key, value) => {
         stopAll();
         if (value && audioIsRunning()) preloadSamples();
     }
+    if (key.startsWith("delay")) applyDelay();
 });
+
+// Signal before the volume knob, for the background waveform
+export const getAnalyser = () => (audioIsRunning() ? analyser : null);
+export const hasVoices = () => voices.size > 0;
 
 // Exposed for the UI: are notes being played that we cannot hear yet?
 export const needsUnlock = () => settings.sound && !audioIsRunning() && soundingNotes().length > 0;
