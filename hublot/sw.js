@@ -1,5 +1,5 @@
 // Cache de l'app pour qu'elle s'ouvre sans réseau (sur le bateau, à la plage…).
-const VERSION = 'hublot-v1';
+const VERSION = 'hublot-v2';
 const FILES = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
   'js/app.js', 'js/gl.js', 'js/color.js', 'js/motion.js', 'js/store.js', 'js/demo.js',

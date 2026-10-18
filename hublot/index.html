@@ -13,170 +13,101 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
-  <link rel="stylesheet" href="style.css?v=1">
+  <link rel="stylesheet" href="style.css?v=2">
 </head>
-<body>
-  <!-- Viseur -->
-  <main id="viewfinder">
+<body data-mode="photo">
+  <main id="stage">
     <canvas id="preview" aria-label="Viseur"></canvas>
-    <div id="grid" class="grid" hidden></div>
-    <div id="level" class="level" hidden><div class="level-line"></div></div>
+    <div id="frame" class="frame">
+      <div id="grid" class="grid" hidden></div>
+      <div id="level" class="level" hidden></div>
+    </div>
     <div id="flash" class="flash"></div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <div id="demoTag" class="demo-tag" hidden>DÉMO — pas de caméra</div>
   </main>
 
-  <!-- Barre du haut -->
-  <header class="topbar">
-    <button id="colorChip" class="chip" aria-label="Correction des couleurs">
-      <svg viewBox="0 0 24 24"><path d="M12 2.5c-3.6 4.6-6.5 8.3-6.5 11.6a6.5 6.5 0 0 0 13 0c0-3.3-2.9-7-6.5-11.6z"/></svg>
-      <span id="colorLabel">Auto</span>
-    </button>
-    <div class="status">
-      <span id="clock" class="clock">--:--</span>
-      <span id="counter" class="counter">0</span>
-    </div>
-    <button id="torchBtn" class="icon-btn" aria-label="Lampe" hidden>
-      <svg viewBox="0 0 24 24"><path d="M7 2h10l-2 6v13a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V8z"/></svg>
-    </button>
-    <button id="settingsBtn" class="icon-btn" aria-label="Réglages">
-      <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>
+  <header class="top">
+    <button id="colorBtn" class="txt rot" aria-label="Correction des couleurs"><span id="colorLabel">Auto</span></button>
+    <div id="rec" class="rec" hidden><span class="dot"></span><span id="recTime">00:00</span></div>
+    <button id="settingsBtn" class="ico rot" aria-label="Réglages">
+      <svg viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/><circle cx="9" cy="8" r="2" fill="#000"/><circle cx="15" cy="16" r="2" fill="#000"/></svg>
     </button>
   </header>
 
-  <!-- Bandeau d'état des déclencheurs mains libres -->
-  <div id="handsfree" class="handsfree" hidden>
-    <span class="pulse"></span><span id="handsfreeLabel"></span>
-  </div>
-
-  <!-- Commandes du bas -->
-  <footer class="controls">
+  <footer class="bottom">
     <div class="modes" role="radiogroup" aria-label="Mode">
-      <button class="mode" data-mode="single" role="radio">Photo</button>
-      <button class="mode" data-mode="burst" role="radio">Rafale</button>
-      <button class="mode" data-mode="interval" role="radio">Intervalle</button>
+      <button class="mode" data-mode="photo" role="radio">Photo</button>
+      <button class="mode" data-mode="video" role="radio">Vidéo</button>
     </div>
     <div class="row">
-      <button id="galleryBtn" class="thumb" aria-label="Galerie"><img id="lastThumb" alt=""></button>
-      <button id="shutter" class="shutter" aria-label="Déclencher">
-        <span class="ring"></span><span class="core"></span>
-        <span id="shutterText" class="shutter-text"></span>
-      </button>
-      <button id="lockBtn" class="icon-btn big" aria-label="Verrouiller l'écran">
-        <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-      </button>
+      <button id="galleryBtn" class="thumb rot" aria-label="Galerie"><img id="lastThumb" alt=""></button>
+      <button id="shutter" class="shutter" aria-label="Déclencher"><span></span></button>
+      <button id="lensBtn" class="txt lens rot" aria-label="Objectif"></button>
     </div>
   </footer>
 
-  <!-- Verrou anti-gouttes -->
-  <div id="lock" class="lock" hidden>
-    <div class="lock-hint">Écran verrouillé<br><small>maintenir le cadenas 2 s pour déverrouiller</small></div>
-    <button id="unlockBtn" class="unlock" aria-label="Maintenir pour déverrouiller">
-      <svg class="progress" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46"/></svg>
-      <svg class="pad" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-    </button>
-  </div>
-
-  <!-- Démarrage -->
-  <section id="start" class="sheet-full">
-    <div class="start-inner">
-      <img src="icons/icon.svg" alt="" class="start-logo">
+  <section id="start" class="start">
+    <div>
       <h1>Hublot</h1>
-      <p>Appareil photo pour l'eau. Corrige le bleu, déclenche sans toucher l'écran.</p>
+      <p>Photo et vidéo sous l'eau, couleurs corrigées.</p>
       <button id="startBtn" class="primary">Ouvrir la caméra</button>
       <p id="startError" class="error" hidden></p>
-      <button id="demoBtn" class="secondary" hidden>Essayer en démo</button>
-      <p id="installHint" class="hint" hidden>Pour une app plein écran : <b>Partager → Sur l'écran d'accueil</b>.</p>
+      <button id="demoBtn" class="link" hidden>Essayer en démo</button>
+      <p id="installHint" class="hint" hidden>Pour le plein écran : Partager → Sur l'écran d'accueil.</p>
     </div>
   </section>
 
-  <!-- Réglages -->
   <section id="settings" class="sheet" hidden aria-label="Réglages">
-    <div class="sheet-head">
-      <h2>Réglages</h2>
-      <button class="close" data-close="settings" aria-label="Fermer">✕</button>
-    </div>
-    <div class="sheet-body">
-      <div id="lensBlock" hidden>
-        <h3>Objectif</h3>
-        <div class="seg" id="setLens"></div>
-      </div>
-
+    <div class="head"><h2>Réglages</h2><button class="close" data-close="settings">OK</button></div>
+    <div class="body">
       <h3>Couleurs</h3>
       <div class="seg" id="setColor">
-        <button data-v="off">Aucune</button>
-        <button data-v="auto">Auto</button>
-        <button data-v="shallow">0–5 m</button>
-        <button data-v="mid">5–15 m</button>
-        <button data-v="deep">15 m +</button>
+        <button data-v="off">Aucune</button><button data-v="auto">Auto</button>
+        <button data-v="shallow">0–5 m</button><button data-v="mid">5–15 m</button><button data-v="deep">15 m+</button>
       </div>
-      <label class="slider">Intensité <output id="strengthOut"></output>
-        <input id="setStrength" type="range" min="0" max="100" step="5">
-      </label>
+      <label class="slider"><span>Intensité</span><output id="strengthOut"></output>
+        <input id="setStrength" type="range" min="0" max="100" step="5"></label>
 
-      <h3>Déclencher sans toucher</h3>
-      <p class="note">Sous l'eau l'écran tactile ne répond plus. Choisis un geste, il déclenche le mode en cours.</p>
-      <div class="seg" id="setGesture">
-        <button data-v="off">Aucun</button>
-        <button data-v="knock">Double toc</button>
-        <button data-v="twist">Tour de poignet</button>
+      <h3>Vidéo</h3>
+      <div class="seg" id="setVideoQ">
+        <button data-v="1080">1080p · 60</button><button data-v="2160">4K · 30</button>
       </div>
-      <p class="note" id="gestureNote"></p>
-      <label class="slider">Sensibilité <output id="sensOut"></output>
-        <input id="setSens" type="range" min="1" max="10" step="1">
-      </label>
-      <div id="gestureMeter" class="meter"><div class="meter-fill"></div><div class="meter-thr"></div></div>
-      <button id="gestureTest" class="secondary">Tester le geste</button>
-      <p class="note small">Une télécommande Bluetooth (touche Entrée) déclenche aussi, comme la barre d'espace sur un clavier.</p>
+      <label class="toggle"><input type="checkbox" id="setAudio"> Enregistrer le son</label>
 
-      <h3>Intervalle</h3>
-      <div class="seg" id="setInterval">
-        <button data-v="2">2 s</button><button data-v="3">3 s</button><button data-v="5">5 s</button>
-        <button data-v="10">10 s</button><button data-v="30">30 s</button>
-      </div>
+      <h3>Affichage</h3>
+      <label class="toggle"><input type="checkbox" id="setGrid"> Grille</label>
+      <label class="toggle"><input type="checkbox" id="setLevel"> Niveau</label>
+      <label class="toggle"><input type="checkbox" id="setOriginal"> Garder aussi la photo non corrigée</label>
 
-      <h3>Rafale</h3>
-      <div class="seg" id="setBurst">
-        <button data-v="3">3</button><button data-v="5">5</button><button data-v="10">10</button>
-      </div>
-
-      <h3>Affichage et retour</h3>
-      <label class="toggle"><input type="checkbox" id="setGrid"> Grille des tiers</label>
-      <label class="toggle"><input type="checkbox" id="setLevel"> Niveau d'horizon</label>
-      <label class="toggle"><input type="checkbox" id="setVibrate"> Vibrer à chaque photo</label>
-      <label class="toggle"><input type="checkbox" id="setOriginal"> Garder aussi l'original non corrigé</label>
-      <label class="toggle"><input type="checkbox" id="setTapShoot"> Toucher le viseur pour déclencher</label>
-
-      <p class="note small" id="camInfo"></p>
+      <p class="note" id="camInfo"></p>
     </div>
   </section>
 
-  <!-- Galerie -->
-  <section id="gallery" class="sheet tall" hidden aria-label="Galerie">
-    <div class="sheet-head">
+  <section id="gallery" class="sheet full" hidden aria-label="Galerie">
+    <div class="head">
       <h2>Galerie <span id="galleryCount" class="muted"></span></h2>
-      <button id="shareAll" class="secondary small">Tout exporter</button>
-      <button class="close" data-close="gallery" aria-label="Fermer">✕</button>
+      <button id="shareAll" class="link">Tout exporter</button>
+      <button class="close" data-close="gallery">OK</button>
     </div>
-    <div class="sheet-body">
+    <div class="body">
       <div id="galleryGrid" class="ggrid"></div>
-      <p id="galleryEmpty" class="note center">Aucune photo pour l'instant.</p>
-      <p class="note small">Les photos restent dans l'app tant que tu ne les exportes pas. Sur iPhone, « Tout exporter » puis « Enregistrer les images » les envoie dans Photos.</p>
+      <p id="galleryEmpty" class="note center">Rien pour l'instant.</p>
+      <p class="note">Les fichiers restent dans l'app tant qu'ils ne sont pas exportés. Sur iPhone : Tout exporter → Enregistrer dans Photos.</p>
     </div>
   </section>
 
-  <!-- Visionneuse -->
   <section id="viewer" class="viewer" hidden>
-    <img id="viewerImg" alt="">
-    <div class="viewer-bar">
-      <button id="viewerClose" class="secondary">Retour</button>
+    <img id="viewerImg" alt="" hidden>
+    <video id="viewerVideo" controls playsinline hidden></video>
+    <div class="vbar">
+      <button id="viewerClose" class="link">Retour</button>
       <span id="viewerInfo" class="muted"></span>
-      <button id="viewerShare" class="secondary">Exporter</button>
-      <button id="viewerDelete" class="danger">Supprimer</button>
+      <button id="viewerShare" class="link">Exporter</button>
+      <button id="viewerDelete" class="link danger">Supprimer</button>
     </div>
   </section>
 
   <video id="video" playsinline muted autoplay hidden></video>
-  <script type="module" src="js/app.js?v=1"></script>
+  <script type="module" src="js/app.js?v=2"></script>
 </body>
 </html>
