@@ -175,7 +175,7 @@ const T = {
     rCaught: f => `${f} a été démasqué et n'a pas trouvé le mot.`,
     wordWas: 'Le mot était', scores: 'Scores', replay: 'Rejouer', save: 'Image',
     next: 'Manche suivante', settings: 'Joueurs et réglages', champion: n => `🏆 ${n} remporte la partie !`,
-    newGame: 'Nouvelle partie (scores à zéro)', quit: 'Quitter', quitConfirm: 'Abandonner cette manche ?',
+    newGame: 'Nouvelle partie (scores à zéro)', quit: 'Quitter', quitConfirm: 'Abandonner cette manche\u00a0?', quitHint: 'Le dessin et les rôles seront perdus. Les scores sont conservés.', keepPlaying: 'Continuer', quitRound: 'Quitter',
     gm: 'MJ',
     rulesTitle: 'Règles du jeu',
     rules: [
@@ -220,7 +220,7 @@ const T = {
     rCaught: f => `${f} was caught and didn't find the word.`,
     wordWas: 'The word was', scores: 'Scores', replay: 'Replay', save: 'Image',
     next: 'Next round', settings: 'Players & settings', champion: n => `🏆 ${n} wins the game!`,
-    newGame: 'New game (reset scores)', quit: 'Quit', quitConfirm: 'Abandon this round?',
+    newGame: 'New game (reset scores)', quit: 'Quit', quitConfirm: 'Abandon this round?', quitHint: 'The drawing and roles will be lost. Scores are kept.', keepPlaying: 'Keep playing', quitRound: 'Quit',
     gm: 'QM',
     rulesTitle: 'How to play',
     rules: [
@@ -608,7 +608,14 @@ function renderResult() {
 
 // ---------- chrome ----------
 document.getElementById('langBtn').onclick = () => { S.lang = S.lang === 'fr' ? 'en' : 'fr'; save(); render(); };
-document.getElementById('quitBtn').onclick = () => { if (confirm(t('quitConfirm'))) { S.game = null; save(); render(); } };
+document.getElementById('quitBtn').onclick = () => {
+  const d = document.getElementById('rules');
+  document.getElementById('rulesBody').innerHTML = `<h2>${t('quitConfirm')}</h2><p class="muted">${t('quitHint')}</p>
+    <div class="row"><button class="btn" id="qNo">${t('keepPlaying')}</button><button class="btn accent" id="qYes">${t('quitRound')}</button></div>`;
+  document.getElementById('qNo').onclick = () => d.close();
+  document.getElementById('qYes').onclick = () => { d.close(); S.game = null; save(); render(); scrollTo(0, 0); };
+  d.showModal();
+};
 document.getElementById('rulesBtn').onclick = () => {
   document.getElementById('rulesBody').innerHTML = `<h2>${t('rulesTitle')}</h2><ol>${t('rules').map(r => `<li>${r}</li>`).join('')}</ol>
     <button class="btn primary" onclick="this.closest('dialog').close()">${t('close')}</button>`;
