@@ -235,3 +235,4 @@ html, body, button { font-family: VT323, "Courier New", monospace; }
   .mem { min-width: 98px; padding: 3px 6px; }
   #mini { top: calc(env(safe-area-inset-top) + 34px); }
 }
+@media (pointer: coarse), (max-width: 520px) { #controls { flex-direction: row-reverse; } #right { align-items: flex-start; } #actions { justify-content: flex-start; } }
