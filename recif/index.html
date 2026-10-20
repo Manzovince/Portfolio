@@ -198,7 +198,9 @@ details p{margin:10px 0 0;font-size:12px;}
   html{overflow:hidden;}
   .wrap{
     display:flex;flex-direction:column;gap:10px;
-    height:100dvh;max-height:100dvh;overflow:hidden;
+    height:100dvh;max-height:100dvh;      /* fallback */
+    height:100svh;max-height:100svh;      /* stable: ignores the browser bars coming and going */
+    overflow:hidden;
     padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));
   }
   header{align-items:center;gap:8px 12px;}
@@ -221,7 +223,7 @@ details p{margin:10px 0 0;font-size:12px;}
   .tabs{display:flex;}
   aside{flex:0 0 auto;min-height:0;gap:0;}
   aside .card{display:none;}
-  aside .card.on{display:block;max-height:30dvh;overflow:auto;-webkit-overflow-scrolling:touch;}
+  aside .card.on{display:block;max-height:30dvh;max-height:30svh;overflow:auto;-webkit-overflow-scrolling:touch;}
   .card h2{display:none;}
   .log{max-height:none;font-size:13px;}
   .pl{padding:7px 8px;}
@@ -234,7 +236,9 @@ details p{margin:10px 0 0;font-size:12px;}
   .wrap{
     display:grid;grid-template-columns:minmax(0,1fr) 42%;
     grid-template-rows:auto auto auto minmax(0,1fr) auto;
-    gap:8px 12px;height:100dvh;max-height:100dvh;min-height:0;overflow:hidden;
+    gap:8px 12px;min-height:0;overflow:hidden;
+    height:100dvh;max-height:100dvh;
+    height:100svh;max-height:100svh;
     align-content:start;align-items:stretch;  /* the base grid aligns to start, which let the board keep its natural height */
   }
   header{grid-column:1/-1;grid-row:1;}
