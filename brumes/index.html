@@ -7,6 +7,9 @@
 <meta name="theme-color" content="#0d1310">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Brumes — donjon mystère</title>
+<link rel="manifest" href="manifest.webmanifest?v=1">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=1">
+<link rel="apple-touch-icon" href="icon-180.png?v=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=VT323&display=swap" rel="stylesheet">
@@ -36,5 +39,6 @@
 <div id="fade"><div id="fadeText"></div></div>
 <div id="overlay" class="hidden"></div>
 <script src="game.js?v=1"></script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script>
 </body>
 </html>
