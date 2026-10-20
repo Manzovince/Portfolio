@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0d1310">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Brumes — donjon mystère</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <div id="floor"></div>
+  <div id="team"></div>
+</div>
+<canvas id="mini"></canvas>
+<div id="log"></div>
+<div id="controls">
+  <div id="pad"><div id="padKnob"></div></div>
+  <div id="right">
+    <div id="moves"></div>
+    <div id="actions">
+      <button id="bAtk" title="Attaque (Espace)">Attaque</button>
+      <button id="bWait" title="Attendre (X / 5)">⏳</button>
+      <button id="bTurn" title="Tourner sur place (Maj)">⟲</button>
+      <button id="bStairs" title="Escalier (Entrée)" class="hidden">⇣</button>
+      <button id="bBag" title="Sac (I)">Sac</button>
+    </div>
+  </div>
+</div>
+<div id="fade"><div id="fadeText"></div></div>
+<div id="overlay" class="hidden"></div>
+<script src="game.js?v=1"></script>
+</body>
+</html>
