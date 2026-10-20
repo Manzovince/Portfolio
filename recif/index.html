@@ -58,6 +58,9 @@ h1 small{margin-left:10px;font-size:13px;font-weight:500;letter-spacing:.04em;co
 .btn.pri{background:var(--accent);border-color:var(--accent);color:#1d1405;font-weight:650;}
 .btn:focus-visible,.seat button:focus-visible,.toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
+.hgroup{display:flex;align-items:center;gap:8px;}
+.btn.icon{display:none;padding:7px 10px;line-height:0;}
+.btn.icon svg{display:block;}
 .setup{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;font-size:12px;color:var(--muted);}
 .seat{display:inline-flex;align-items:center;gap:6px;}
 .seat i{width:12px;height:12px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px rgba(0,0,0,.25);}
@@ -175,13 +178,17 @@ details p{margin:10px 0 0;font-size:12px;}
   .toggle{padding:7px 12px;}
   .main{flex:0 0 auto;gap:8px;}
   .status{padding:7px 11px;min-height:0;}
-  /* the board goes edge to edge: on a 375px phone that is a 40px hex instead of 36 */
+  /* edge to edge, and as tall as the rest of the column allows */
   .boardwrap{display:flex;justify-content:center;margin:0 -10px;width:calc(100% + 20px);}
-  svg#board{width:100%;height:auto;max-height:50dvh;}
+  /* 300px is what the header, status, ticker, tabs and panel need below it */
+  svg#board{width:100%;height:auto;max-height:calc(100dvh - 300px);}
+  .btn.icon{display:block;}
+  .setup{display:none;}
+  body.opts .setup{display:flex;}
   .hint{display:none;}
   .ticker{display:block;}
   .tabs{display:flex;}
-  aside{flex:1 1 auto;min-height:130px;gap:0;}
+  aside{flex:1 1 auto;min-height:110px;gap:0;}
   aside .card{display:none;}
   aside .card.on{display:block;flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;}
   .card h2{display:none;}
@@ -191,8 +198,23 @@ details p{margin:10px 0 0;font-size:12px;}
   details summary{display:none;}
   details ol{padding-left:16px;}
 }
+/* ---- phone held sideways: board on the left, the open panel on the right ---- */
 @media (max-width:900px) and (orientation:landscape){
-  svg#board{max-height:62dvh;}
+  .wrap{
+    display:grid;grid-template-columns:minmax(0,1fr) 42%;
+    grid-template-rows:auto auto auto minmax(0,1fr);
+    gap:8px 12px;height:100dvh;min-height:0;align-content:start;
+  }
+  header{grid-column:1/-1;grid-row:1;}
+  .setup{grid-column:1/-1;grid-row:2;}
+  .main{grid-column:1;grid-row:3/5;min-height:0;}
+  .tabs{grid-column:2;grid-row:3;}
+  aside{grid-column:2;grid-row:4;min-height:0;}
+  aside .card.on{max-height:100%;}
+  .boardwrap{margin:0;width:100%;}
+  svg#board{max-height:calc(100dvh - 140px);}
+  h1{font-size:19px;}
+  .ticker{min-height:0;}
 }
 /* ---- desktop: keep the whole board on screen, whatever the window height ---- */
 @media (min-width:901px){
@@ -206,7 +228,10 @@ details p{margin:10px 0 0;font-size:12px;}
 <div class="wrap">
   <header>
     <h1>Récif<small>un Croa! en nid d'abeille</small></h1>
-    <button class="btn pri" id="reset" type="button">Nouvelle partie</button>
+    <span class="hgroup">
+      <button class="btn icon" id="gear" type="button" aria-label="Options de partie" aria-expanded="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.3 5.3l1.9 1.9M16.8 16.8l1.9 1.9M18.7 5.3l-1.9 1.9M7.2 16.8l-1.9 1.9"/></svg></button>
+      <button class="btn pri" id="reset" type="button">Nouvelle partie</button>
+    </span>
   </header>
 
   <div class="setup" id="setup">
@@ -652,9 +677,17 @@ function botPick(S){
 /* =================== view =================== */
 var HS=38, SQ=Math.sqrt(3), NS="http://www.w3.org/2000/svg";
 var KEY_OPTS="recif.opts.v1";
-function px(q,r){return [HS*SQ*(q+r/2), HS*1.5*r];}
+/* a portrait phone is taller than wide, so the grid turns flat-top there:
+   the same board then stands 0.90 wide for 1 tall instead of 1.11 */
+var FLAT=false;
+function wantsFlat(){
+  return window.matchMedia("(max-width:900px) and (orientation:portrait)").matches;
+}
+function px(q,r){
+  return FLAT ? [HS*1.5*q, HS*SQ*(r+q/2)] : [HS*SQ*(q+r/2), HS*1.5*r];
+}
 function $(id){return document.getElementById(id);}
-function hexPts(s){var a=[];for(var i=0;i<6;i++){var t=Math.PI/180*(60*i-30);a.push((s*Math.cos(t)).toFixed(2)+","+(s*Math.sin(t)).toFixed(2));}return a.join(" ");}
+function hexPts(s){var a=[];for(var i=0;i<6;i++){var t=Math.PI/180*(60*i+(FLAT?0:-30));a.push((s*Math.cos(t)).toFixed(2)+","+(s*Math.sin(t)).toFixed(2));}return a.join(" ");}
 function el(tag,attrs){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);return e;}
 
 var ICON={
@@ -672,7 +705,7 @@ var ICON={
     '<path d="M-10 10 l-6 -2 M-10 10 l-4 5" stroke="#D56A2E" stroke-width="2" stroke-linecap="round"/>'+
     '<path d="M-8 -12 C-14 -18 -18 -14 -22 -18 M-8 -12 C-12 -20 -8 -22 -12 -26" fill="none" stroke="#D56A2E" stroke-width="1.3"/>'+
     '<circle cx="-5" cy="-11" r="1.6" fill="#222"/>';},
-  current:function(t){return '<g transform="rotate('+(-60*t.dir)+')">'+
+  current:function(t){return '<g transform="rotate('+((FLAT?30:0)-60*t.dir)+')">'+
     '<path d="M-18 -8 q4 -4 8 0 t8 0 M-18 8 q4 -4 8 0 t8 0" fill="none" stroke="#3E97A6" stroke-width="2" stroke-linecap="round"/>'+
     '<path d="M-10 0 H12 M5 -8 L14 0 L5 8" fill="none" stroke="#1C5E6B" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></g>';},
   whirl:function(){return '<path d="M0 0 C3 -1 3 -5 0 -5 C-5 -5 -7 1 -3 5 C2 9 10 5 10 -2 C10 -10 1 -14 -6 -12 C-14 -9 -17 1 -13 9 C-9 16 2 18 10 14" fill="none" stroke="#1C5E6B" stroke-width="2.6" stroke-linecap="round"/>';},
@@ -709,7 +742,9 @@ function saveOpts(){try{localStorage.setItem(KEY_OPTS,JSON.stringify(opts));}cat
 var S, view, sel=null, busy=false, token=0, LOG=[], hexEls={}, sigs={}, pieceEls={};
 
 function buildBoard(){
-  var svg=$("board"), w=HS*SQ*(R+.5)+8, h=HS*(1.5*R+1)+8;
+  FLAT=wantsFlat();
+  var svg=$("board"), side=HS*SQ*(R+.5)+8, end=HS*(1.5*R+1)+8;
+  var w=FLAT?end:side, h=FLAT?side:end;
   svg.setAttribute("viewBox",(-w)+" "+(-h)+" "+(2*w)+" "+(2*h));
   var g=$("gTiles"); g.innerHTML=""; hexEls={}; sigs={};
   CELLS.forEach(function(c){
@@ -879,8 +914,16 @@ $("seats").addEventListener("click",function(e){
   opts.seats[i]=v; saveOpts(); renderSetup();
 });
 $("tideBtn").addEventListener("click",function(){opts.tide=!opts.tide;saveOpts();renderSetup();});
+$("gear").addEventListener("click",function(){
+  var on=document.body.classList.toggle("opts");
+  this.setAttribute("aria-expanded",String(on));
+});
 $("goalBtn").addEventListener("click",function(){opts.goal=opts.goal>=5?2:opts.goal+1;saveOpts();renderSetup();});
 $("reset").addEventListener("click",newGame);
+window.addEventListener("resize",function(){
+  if(wantsFlat()===FLAT)return;
+  buildBoard(); render();   /* buildBoard drops the cached tiles and pieces */
+});
 $("gTiles").addEventListener("click",function(e){var h=e.target.closest(".hex");if(h)onHex(h.getAttribute("data-k"));});
 
 /* the side cards become tabs on a phone; on a wide screen they all show at once */
