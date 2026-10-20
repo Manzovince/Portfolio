@@ -30,7 +30,7 @@
   --flood:#03131A;
 }
 *{box-sizing:border-box;}
-h1,h2,.setup,.status,.tabs,.hint,.ticker,.pl,.lg,summary{user-select:none;-webkit-user-select:none;}
+h1,h2,.status,.tabs,.hint,.ticker,.pl,.lg,summary,.sheet{user-select:none;-webkit-user-select:none;}
 body{
   margin:0;min-height:100vh;color:var(--ink);
   touch-action:manipulation;overscroll-behavior:none;
@@ -54,20 +54,48 @@ h1 small{margin-left:10px;font-size:13px;font-weight:500;letter-spacing:.04em;co
   border:1px solid var(--line-2);border-radius:999px;background:transparent;padding:6px 13px;
   transition:background .15s ease,border-color .15s ease,color .15s ease,opacity .15s ease;
 }
-.btn:hover,.seat button:hover,.toggle:hover{border-color:var(--ink);}
+.btn:hover{border-color:var(--ink);}
 .btn.pri{background:var(--accent);border-color:var(--accent);color:#1d1405;font-weight:650;}
-.btn:focus-visible,.seat button:focus-visible,.toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
 .hgroup{display:flex;align-items:center;gap:8px;}
-.btn.icon{display:none;padding:7px 10px;line-height:0;}
+.btn.icon{padding:7px 10px;line-height:0;}
 .btn.icon svg{display:block;}
-.setup{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;font-size:12px;color:var(--muted);}
-.seat{display:inline-flex;align-items:center;gap:6px;}
-.seat i{width:12px;height:12px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px rgba(0,0,0,.25);}
-.seat button{padding:4px 10px;min-width:74px;}
-.seat button[data-v="off"]{opacity:.45;}
-.toggle[aria-pressed="true"]{background:var(--ink);color:var(--abyss);border-color:var(--ink);}
-.setup .sep{width:1px;height:18px;background:var(--line-2);}
+/* ---- settings page ---- */
+.sheet{
+  position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;
+  padding:16px;background:rgba(3,19,26,.72);backdrop-filter:blur(3px);
+}
+.sheetbox{
+  display:flex;flex-direction:column;width:100%;max-width:430px;max-height:100%;
+  background:var(--deep);border:1px solid var(--line-2);border-radius:18px;
+  box-shadow:0 24px 60px rgba(0,0,0,.5);overflow:hidden;
+}
+.sheethead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px 10px;}
+.sheethead h2{margin:0;font-size:17px;font-weight:700;letter-spacing:-.01em;color:var(--ink);text-transform:none;}
+.sheetbody{flex:1 1 auto;min-height:0;padding:0 16px 4px;overflow:auto;-webkit-overflow-scrolling:touch;}
+.sheetbody h3{
+  margin:12px 0 8px;font-size:11px;font-weight:650;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted);
+}
+.sheetfoot{display:flex;align-items:center;gap:12px;padding:12px 16px 16px;border-top:1px solid var(--line);}
+.sheetfoot .note{margin:0;flex:1;font-size:11.5px;line-height:1.35;color:var(--muted);}
+.sheetfoot .btn{padding:9px 16px;}
+.srow,.orow{display:flex;align-items:center;gap:10px;padding:7px 0;}
+.srow+.srow,.orow+.orow{border-top:1px solid var(--line);}
+.srow i{flex:0 0 auto;width:13px;height:13px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px rgba(0,0,0,.25);}
+.srow .sname,.olab{flex:1;min-width:0;font-weight:600;color:var(--ink);}
+.olab{display:flex;flex-direction:column;gap:2px;font-size:13px;}
+.olab small{font-weight:400;font-size:11px;line-height:1.3;color:var(--muted);}
+.srow.off .sname{color:var(--muted);font-weight:500;}
+.seg{flex:0 0 auto;display:inline-flex;border:1px solid var(--line-2);border-radius:999px;padding:2px;}
+.seg button{
+  appearance:none;font:inherit;font-size:12px;cursor:pointer;
+  border:0;border-radius:999px;background:none;color:var(--muted);padding:6px 11px;
+  transition:background .15s ease,color .15s ease;
+}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--abyss);font-weight:650;}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
 /* ---- board ---- */
 .main{display:flex;flex-direction:column;gap:12px;min-width:0;}
@@ -172,19 +200,18 @@ details p{margin:10px 0 0;font-size:12px;}
   h1{font-size:23px;}
   h1 small{display:none;}
   .btn.pri{padding:9px 15px;}
-  .setup{gap:6px 10px;font-size:11px;}
-  .setup .sep{display:none;}
-  .seat button{min-width:64px;padding:7px 8px;}
-  .toggle{padding:7px 12px;}
+  .sheet{padding:0;align-items:stretch;}
+  .sheetbox{max-width:none;border-radius:0;border:0;}
+  .sheethead{padding-top:max(14px,env(safe-area-inset-top));}
+  .sheetfoot{padding-bottom:max(16px,env(safe-area-inset-bottom));}
+  .seg button{padding:8px 12px;}
   .main{flex:0 0 auto;gap:8px;}
   .status{padding:7px 11px;min-height:0;}
   /* edge to edge, and as tall as the rest of the column allows */
   .boardwrap{display:flex;justify-content:center;margin:0 -10px;width:calc(100% + 20px);}
   /* 300px is what the header, status, ticker, tabs and panel need below it */
   svg#board{width:100%;height:auto;max-height:calc(100dvh - 300px);}
-  .btn.icon{display:block;}
-  .setup{display:none;}
-  body.opts .setup{display:flex;}
+  /* 300px is what the header, status, ticker, tabs and panel need below the board */
   .hint{display:none;}
   .ticker{display:block;}
   .tabs{display:flex;}
@@ -206,7 +233,6 @@ details p{margin:10px 0 0;font-size:12px;}
     gap:8px 12px;height:100dvh;min-height:0;align-content:start;
   }
   header{grid-column:1/-1;grid-row:1;}
-  .setup{grid-column:1/-1;grid-row:2;}
   .main{grid-column:1;grid-row:3/5;min-height:0;}
   .tabs{grid-column:2;grid-row:3;}
   aside{grid-column:2;grid-row:4;min-height:0;}
@@ -229,17 +255,11 @@ details p{margin:10px 0 0;font-size:12px;}
   <header>
     <h1>Récif<small>un Croa! en nid d'abeille</small></h1>
     <span class="hgroup">
-      <button class="btn icon" id="gear" type="button" aria-label="Options de partie" aria-expanded="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.3 5.3l1.9 1.9M16.8 16.8l1.9 1.9M18.7 5.3l-1.9 1.9M7.2 16.8l-1.9 1.9"/></svg></button>
+      <button class="btn icon" id="gear" type="button" aria-label="Réglages" title="Réglages"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h8M17 7h3M4 17h3M12 17h8"/><circle cx="14.5" cy="7" r="2.3"/><circle cx="9.5" cy="17" r="2.3"/></svg></button>
       <button class="btn pri" id="reset" type="button">Nouvelle partie</button>
     </span>
   </header>
 
-  <div class="setup" id="setup">
-    <span id="seats"></span>
-    <span class="sep"></span>
-    <button class="toggle" id="tideBtn" type="button" aria-pressed="true">Marée</button>
-    <button class="toggle" id="goalBtn" type="button">3 perles</button>
-  </div>
 
   <div class="main">
     <div class="status" id="status" aria-live="polite">
@@ -307,6 +327,32 @@ details p{margin:10px 0 0;font-size:12px;}
       </details>
     </div>
   </aside>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheetbox" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheethead">
+      <h2 id="sheetTitle">Réglages</h2>
+      <button class="btn icon" id="sheetClose" type="button" aria-label="Fermer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="sheetbody">
+      <h3>Joueurs</h3>
+      <div id="seats"></div>
+      <h3>Partie</h3>
+      <div class="orow">
+        <span class="olab">Marée montante<small>l'anneau extérieur sombre à la manche 13, puis 21 et 29</small></span>
+        <span class="seg" id="tideSeg"></span>
+      </div>
+      <div class="orow">
+        <span class="olab">Perles pour gagner<small>l'autre façon de l'emporter : rester la dernière Reine</small></span>
+        <span class="seg" id="goalSeg"></span>
+      </div>
+    </div>
+    <div class="sheetfoot">
+      <p class="note">Les réglages s'appliquent à la prochaine partie.</p>
+      <button class="btn pri" id="sheetNew" type="button">Nouvelle partie</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -897,28 +943,46 @@ function newGame(){
   buildBoard(); render(); maybeBot();
 }
 
-/* ---------- setup controls ---------- */
-var SEAT_LABEL={human:"Humain",bot:"IA",off:"—"};
+/* ---------- settings page ---------- */
+var SEAT_KINDS=[["human","Humain"],["bot","IA"],["off","—"]];
+function seg(name,i,val,choices){
+  return choices.map(function(c){
+    return '<button type="button" data-'+name+'="'+i+'" data-v="'+c[0]+'" aria-pressed="'+(String(c[0])===String(val))+'">'+c[1]+'</button>';
+  }).join("");
+}
 function renderSetup(){
   $("seats").innerHTML=opts.seats.map(function(v,i){
-    return '<span class="seat" style="--c:'+SEATS[i].c+'"><i></i><button type="button" data-seat="'+i+'" data-v="'+v+'" aria-label="'+SEATS[i].name+'">'+SEAT_LABEL[v]+'</button></span>';
-  }).join(" ");
-  $("tideBtn").setAttribute("aria-pressed",String(opts.tide));
-  $("goalBtn").textContent=opts.goal+" perles";
+    return '<div class="srow'+(v==="off"?" off":"")+'" style="--c:'+SEATS[i].c+'"><i></i>'+
+      '<span class="sname">'+SEATS[i].name+'</span>'+
+      '<span class="seg">'+seg("seat",i,v,SEAT_KINDS)+'</span></div>';
+  }).join("");
+  $("tideSeg").innerHTML=seg("tide",0,opts.tide,[[true,"Oui"],[false,"Non"]]);
+  $("goalSeg").innerHTML=seg("goal",0,opts.goal,[[2,"2"],[3,"3"],[4,"4"],[5,"5"]]);
+}
+function openSheet(on){
+  $("sheet").hidden=!on;
+  if(on)$("sheetClose").focus();else $("gear").focus();
 }
 $("seats").addEventListener("click",function(e){
   var b=e.target.closest("button[data-seat]"); if(!b)return;
-  var i=+b.dataset.seat, order=["human","bot","off"], v=order[(order.indexOf(opts.seats[i])+1)%3];
+  var i=+b.getAttribute("data-seat"), v=b.getAttribute("data-v");
   var others=opts.seats.filter(function(s,j){return j!==i&&s!=="off";}).length;
-  if(v==="off"&&others<2)v="human";
+  if(v==="off"&&others<2)return;   /* two seats minimum */
   opts.seats[i]=v; saveOpts(); renderSetup();
 });
-$("tideBtn").addEventListener("click",function(){opts.tide=!opts.tide;saveOpts();renderSetup();});
-$("gear").addEventListener("click",function(){
-  var on=document.body.classList.toggle("opts");
-  this.setAttribute("aria-expanded",String(on));
+$("tideSeg").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-tide]"); if(!b)return;
+  opts.tide=b.getAttribute("data-v")==="true"; saveOpts(); renderSetup();
 });
-$("goalBtn").addEventListener("click",function(){opts.goal=opts.goal>=5?2:opts.goal+1;saveOpts();renderSetup();});
+$("goalSeg").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-goal]"); if(!b)return;
+  opts.goal=+b.getAttribute("data-v"); saveOpts(); renderSetup();
+});
+$("gear").addEventListener("click",function(){openSheet(true);});
+$("sheetClose").addEventListener("click",function(){openSheet(false);});
+$("sheetNew").addEventListener("click",function(){openSheet(false);newGame();});
+$("sheet").addEventListener("click",function(e){if(e.target===this)openSheet(false);});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("sheet").hidden)openSheet(false);});
 $("reset").addEventListener("click",newGame);
 window.addEventListener("resize",function(){
   if(wantsFlat()===FLAT)return;
