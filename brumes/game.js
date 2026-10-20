@@ -61,6 +61,7 @@ const MOVES = {
   eboulement: { n: 'Éboulement', t: 'roche', p: 9, acc: .85, pp: 10, tg: 'around' },
   lechouille: { n: 'Léchouille', t: 'spectre', p: 8, acc: .95, pp: 20, tg: 'front' },
   ombre: { n: "Ball'Ombre", t: 'spectre', p: 11, acc: .9, pp: 10, tg: 'line' },
+  dardvenin: { n: 'Dard-Venin', t: 'normal', p: 6, acc: .95, pp: 20, tg: 'front', fx: 'poison', fxp: .4 },
   berceuse: { n: 'Berceuse', t: 'normal', p: 0, acc: .55, pp: 8, tg: 'room', fx: 'sleep' },
 };
 const TG_LABEL = { front: 'devant', line: 'à distance', around: 'autour', room: 'toute la salle', self: 'soi-même' };
@@ -80,7 +81,7 @@ const SPECIES = {
     desc: 'Souris électrique : puissante mais fragile.' },
   rongeot: { n: 'Rongeot', t: 'normal', shape: 'rat', c1: '#9a7aa8', c2: '#e6d8e8', hp: 15, atk: 7, def: 5, moves: ['charge', 'morsure', 'rugissement'] },
   piafou: { n: 'Piafou', t: 'normal', shape: 'bird', c1: '#b08a5e', c2: '#f2e2c4', hp: 14, atk: 8, def: 4, moves: ['picpic', 'rugissement'] },
-  mousseron: { n: 'Mousseron', t: 'plante', shape: 'mushroom', c1: '#d8443c', c2: '#f4e8cc', hp: 17, atk: 6, def: 6, moves: ['charge', 'poudre', 'fouet'] },
+  mousseron: { n: 'Mousseron', t: 'plante', shape: 'mushroom', c1: '#d8443c', c2: '#f4e8cc', hp: 17, atk: 6, def: 6, moves: ['dardvenin', 'poudre', 'fouet'] },
   bulleau: { n: 'Bulleau', t: 'eau', shape: 'slime', c1: '#56b0e8', c2: '#c8ecff', hp: 16, atk: 7, def: 6, moves: ['charge', 'pistolet'] },
   caillou: { n: 'Caillou', t: 'roche', shape: 'rock', c1: '#8f8a82', c2: '#c9c3b6', hp: 18, atk: 8, def: 9, moves: ['charge', 'jetpierre', 'eboulement'] },
   brasillon: { n: 'Brasillon', t: 'feu', shape: 'ember', c1: '#ee5a2c', c2: '#ffd25a', hp: 16, atk: 9, def: 5, moves: ['griffe', 'braise'] },
@@ -88,6 +89,7 @@ const SPECIES = {
   spectrelin: { n: 'Spectrelin', t: 'spectre', shape: 'ghost', c1: '#8a6cd2', c2: '#e8dcff', hp: 17, atk: 9, def: 6, moves: ['lechouille', 'berceuse', 'ombre'] },
   golemon: { n: 'Golemon', t: 'roche', shape: 'golem', c1: '#7a6a5c', c2: '#ff5a3a', hp: 44, atk: 11, def: 10,
     moves: ['eboulement', 'jetpierre', 'rugissement'], boss: true, big: 1.55 },
+  marchand: { n: 'Troquin', t: 'normal', shape: 'merchant', c1: '#7a9ad0', c2: '#f0e6c8', hp: 99, atk: 1, def: 99, moves: [] },
 };
 for (const s of Object.values(SPECIES)) { s.d1 = shade(s.c1, -.32); s.l1 = shade(s.c1, .35); }
 const STARTERS = Object.keys(SPECIES).filter(k => SPECIES[k].starter);
@@ -98,29 +100,37 @@ const POOLS = [
   { upTo: 9, sp: { caillou: 2, brasillon: 2, etincelot: 3, spectrelin: 3, bulleau: 1 } },
 ];
 const BIOMES = [
-  { upTo: 3, n: 'Bois Brumeux', fa: '#86a35c', fb: '#7f9c56', wt: '#2f5735', wf: '#203f27', wl: '#4d7e4a', void: '#0e1b12', deco: 'grass' },
-  { upTo: 6, n: 'Grotte Ocre', fa: '#b8956a', fb: '#af8c61', wt: '#5c4130', wf: '#3f2c20', wl: '#7d5c44', void: '#1a120c', deco: 'pebble' },
-  { upTo: 9, n: 'Caverne Cristal', fa: '#6a78a4', fb: '#63709c', wt: '#2b3566', wf: '#1c2348', wl: '#4b5aa0', void: '#0b0e20', deco: 'crystal' },
-  { upTo: 10, n: 'Cœur du Volcan', fa: '#6e4a44', fb: '#67443e', wt: '#2e1a18', wf: '#1e100f', wl: '#5a2c22', void: '#0d0605', deco: 'ember' },
+  { upTo: 3, n: 'Bois Brumeux', fa: '#86a35c', fb: '#7f9c56', wt: '#2f5735', wf: '#203f27', wl: '#4d7e4a', void: '#0e1b12', deco: 'grass', water: '#3f7fb8' },
+  { upTo: 6, n: 'Grotte Ocre', fa: '#b8956a', fb: '#af8c61', wt: '#5c4130', wf: '#3f2c20', wl: '#7d5c44', void: '#1a120c', deco: 'pebble', water: '#3a6fa0' },
+  { upTo: 9, n: 'Caverne Cristal', fa: '#6a78a4', fb: '#63709c', wt: '#2b3566', wf: '#1c2348', wl: '#4b5aa0', void: '#0b0e20', deco: 'crystal', water: '#4a8ad8' },
+  { upTo: 10, n: 'Cœur du Volcan', fa: '#6e4a44', fb: '#67443e', wt: '#2e1a18', wf: '#1e100f', wl: '#5a2c22', void: '#0d0605', deco: 'ember', water: '#e0582a' },
 ];
 
 const ITEMS = {
-  oran: { n: 'Baie Oran', d: 'Restaure 40 PV à un membre de l’équipe.', tgt: true },
-  pomme: { n: 'Pomme', d: 'Remplit le Ventre de 50.' },
-  gpomme: { n: 'Grosse Pomme', d: 'Remplit totalement le Ventre.' },
-  elixir: { n: 'Élixir', d: 'Rend 10 PP à chaque capacité de toute l’équipe.' },
-  gexplo: { n: 'Graine Explosive', d: 'Explose : 25 dégâts à chaque ennemi adjacent.' },
-  epine: { n: 'Épine de Fer', d: 'Se lance droit devant : 12 dégâts au premier ennemi.', stack: true, thr: true },
-  osommeil: { n: 'Orbe Sommeil', d: 'Endort tous les ennemis de la salle.' },
-  otp: { n: 'Orbe Téléport', d: 'Téléporte le chef ailleurs dans l’étage.' },
-  ocarte: { n: 'Orbe Lumière', d: 'Révèle le plan de l’étage et l’escalier.' },
-  gvie: { n: 'Graine Vie', d: 'S’active seule : ranime le chef s’il tombe K.O.' },
+  oran: { n: 'Baie Oran', d: 'Restaure 40 PV à un membre de l’équipe.', tgt: true, p: 30 },
+  sitrus: { n: 'Baie Sitrus', d: 'Restaure tous les PV d’un membre.', tgt: true, p: 120 },
+  pecha: { n: 'Baie Pêcha', d: 'Guérit poison et sommeil, annule les baisses de stats.', tgt: true, p: 40 },
+  pomme: { n: 'Pomme', d: 'Remplit le Ventre de 50.', p: 40 },
+  gpomme: { n: 'Grosse Pomme', d: 'Remplit totalement le Ventre.', p: 120 },
+  elixir: { n: 'Élixir', d: 'Rend 10 PP à chaque capacité de toute l’équipe.', p: 100 },
+  gexplo: { n: 'Graine Explosive', d: 'Explose : 25 dégâts à chaque ennemi adjacent.', p: 80 },
+  epine: { n: 'Épine de Fer', d: 'À lancer droit devant : 12 dégâts au premier ennemi.', stack: true, thr: true, p: 6 },
+  gsommeil: { n: 'Graine Sommeil', d: 'À lancer : endort le premier ennemi touché.', thr: true, p: 60 },
+  gtoxik: { n: 'Graine Toxik', d: 'À lancer : empoisonne le premier ennemi touché.', thr: true, p: 60 },
+  gjoie: { n: 'Graine Joie', d: 'Fait monter un membre d’un niveau.', tgt: true, p: 400 },
+  osommeil: { n: 'Orbe Sommeil', d: 'Endort tous les ennemis de la salle.', p: 120 },
+  otp: { n: 'Orbe Téléport', d: 'Téléporte le chef ailleurs dans l’étage.', p: 80 },
+  ocarte: { n: 'Orbe Plan', d: 'Révèle le plan de l’étage, l’escalier, les objets et les pièges.', p: 90 },
+  osoin: { n: 'Orbe Soin', d: 'Rend 50 PV à toute l’équipe et guérit ses statuts.', p: 150 },
+  gvie: { n: 'Graine Vie', d: 'S’active seule : ranime le chef s’il tombe K.O.', p: 300 },
+  sacoche: { n: 'Sacoche', d: 'Agrandit le sac de 4 places.', p: 200 },
   ecus: { n: 'Écus', d: 'De l’argent.' },
 };
-const ITEM_W = { oran: 24, pomme: 13, gpomme: 3, elixir: 7, gexplo: 8, epine: 9, osommeil: 5, otp: 4, ocarte: 5, gvie: 3, ecus: 18 };
+const ITEM_W = { oran: 22, sitrus: 3, pecha: 6, pomme: 13, gpomme: 3, elixir: 6, gexplo: 7, epine: 8, gsommeil: 6, gtoxik: 6, gjoie: 1,
+  osommeil: 4, otp: 4, ocarte: 5, osoin: 3, gvie: 2, sacoche: 1, ecus: 22 };
 const TRAPS = {
   pics: { n: 'Piège à Pics', c: '#d0d4dc' }, tp: { n: 'Piège Téléport', c: '#3ccfb0' },
-  sommeil: { n: 'Piège Sommeil', c: '#a68cf0' }, faim: { n: 'Piège Glouton', c: '#e0a030' },
+  sommeil: { n: 'Piège Sommeil', c: '#a68cf0' }, faim: { n: 'Piège Glouton', c: '#e0a030' }, toxik: { n: 'Piège Toxik', c: '#b46cff' },
 };
 
 /* ---------- État ---------- */
@@ -141,12 +151,13 @@ function calcStats(e) {
   e.maxHp = Math.round(s.hp * (1 + L * .14));
   e.atk = s.atk * (1 + L * .1);
   e.def = s.def * (1 + L * .1);
+  if (e.team === 'wild') { e.maxHp = Math.round(e.maxHp * .9); e.atk *= s.boss ? .95 : .82; }
 }
 function makeCreature(sp, lvl, team) {
   const s = SPECIES[sp];
   const e = {
     id: ++uid, sp, name: s.n, lvl, xp: 0, team, x: 0, y: 0, rx: 0, ry: 0, dir: { x: 0, y: 1 },
-    status: { sleep: 0, atk: 0, def: 0 }, lunge: 0, flash: 0, alpha: 1, boss: !!s.boss,
+    status: { sleep: 0, atk: 0, def: 0, poison: 0 }, lunge: 0, flash: 0, alpha: 1, boss: !!s.boss,
     moves: s.moves.map(id => ({ id, pp: MOVES[id].pp, max: MOVES[id].pp })),
   };
   if (s.learn) for (const l in s.learn) if (lvl >= +l) learnMove(e, s.learn[l], true);
@@ -179,7 +190,7 @@ function gainXp(a, n) {
 }
 const nm = e => `<span class="${e.team === 'ally' ? 'a' : 'w'}">${e.name}</span>`;
 function poolFor(d) { return (POOLS.find(p => d <= p.upTo) || POOLS[POOLS.length - 1]).sp; }
-function makeWild() { return makeCreature(wpick(poolFor(F.depth)), Math.max(1, F.depth + ri(0, 2)), 'wild'); }
+function makeWild() { return makeCreature(wpick(poolFor(F.depth)), Math.max(1, F.depth + ri(-1, 1)), 'wild'); }
 
 /* ---------- Génération d’étage ---------- */
 function genLayout(depth) {
@@ -187,7 +198,7 @@ function genLayout(depth) {
   const fillRoom = r => { for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) { tiles[y * W + x] = 1; roomOf[y * W + x] = r.id; } };
   if (depth === MAXF) { const r = { x: 16, y: 10, w: 24, h: 17, id: 0 }; rooms.push(r); fillRoom(r); return { tiles, roomOf, rooms }; }
 
-  const cols = 4, rows = 3, cw = Math.floor((W - 2) / cols), ch = Math.floor((H - 2) / rows);
+  const cols = depth < 4 ? ri(3, 4) : ri(4, 5), rows = ri(3, 4), cw = Math.floor((W - 2) / cols), ch = Math.floor((H - 2) / rows);
   const cells = [];
   for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
     const x0 = 1 + i * cw, y0 = 1 + j * ch;
@@ -199,6 +210,16 @@ function genLayout(depth) {
   }
   if (rooms.length < 4) return genLayout(depth);
   rooms.forEach(fillRoom);
+  // piliers ou bassin (eau / lave) dans certaines grandes salles
+  for (const r of rooms) {
+    if (r.w < 7 || r.h < 6) continue;
+    const roll = rnd();
+    if (roll < .22) { for (let y = r.y + 2; y < r.y + r.h - 2; y += 2) for (let x = r.x + 2; x < r.x + r.w - 2; x += 2) tiles[y * W + x] = 0; }
+    else if (roll < .45) {
+      const pw = ri(2, r.w - 4), ph = ri(2, r.h - 4), px = r.x + ri(2, r.w - 2 - pw), py = r.y + ri(2, r.h - 2 - ph);
+      for (let y = py; y < py + ph; y++) for (let x = px; x < px + pw; x++) tiles[y * W + x] = 2;
+    }
+  }
 
   // arbre couvrant aléatoire + quelques boucles
   const idx = (i, j) => j * cols + i, seen = new Set([0]), stack = [0], edges = [];
@@ -211,8 +232,8 @@ function genLayout(depth) {
     seen.add(n); edges.push([c, n]); stack.push(n);
   }
   for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
-    if (i < cols - 1 && rnd() < .2) edges.push([idx(i, j), idx(i + 1, j)]);
-    if (j < rows - 1 && rnd() < .2) edges.push([idx(i, j), idx(i, j + 1)]);
+    if (i < cols - 1 && rnd() < .3) edges.push([idx(i, j), idx(i + 1, j)]);
+    if (j < rows - 1 && rnd() < .3) edges.push([idx(i, j), idx(i, j + 1)]);
   }
   const carve = (x, y) => { tiles[y * W + x] = 1; };
   const hline = (xa, xb, y) => { for (let x = Math.min(xa, xb); x <= Math.max(xa, xb); x++) carve(x, y); };
@@ -232,6 +253,9 @@ function canStep(x, y, dx, dy) {
   return true;
 }
 const canHit = (e, dx, dy) => (dx || dy) && canStep(e.x, e.y, dx, dy);
+// les projectiles passent au-dessus de l’eau
+const isOpen = (x, y) => x >= 0 && y >= 0 && x < W && y < H && F.tiles[y * W + x] > 0;
+const canShoot = (e, dx, dy) => (dx || dy) && isOpen(e.x + dx, e.y + dy) && !(dx && dy && (!isOpen(e.x + dx, e.y) || !isOpen(e.x, e.y + dy)));
 const entAt = (x, y) => ents.find(e => e.x === x && e.y === y);
 const itemAt = (x, y) => F.items.find(i => i.x === x && i.y === y);
 const onStairs = () => F.stairs && leader().x === F.stairs.x && leader().y === F.stairs.y;
@@ -239,7 +263,7 @@ const onStairs = () => F.stairs && leader().x === F.stairs.x && leader().y === F
 function freeTileIn(r, avoidItems) {
   for (let k = 0; k < 60; k++) {
     const x = ri(r.x, r.x + r.w - 1), y = ri(r.y, r.y + r.h - 1);
-    if (entAt(x, y)) continue;
+    if (!isFloor(x, y) || entAt(x, y)) continue;
     if (F.stairs && F.stairs.x === x && F.stairs.y === y) continue;
     if (avoidItems && (itemAt(x, y) || F.traps.some(t => t.x === x && t.y === y))) continue;
     return { x, y };
@@ -263,7 +287,7 @@ function findFreeNear(x, y) {
 function place(e, p) { e.x = e.rx = p.x; e.y = e.ry = p.y; }
 function randItemKind() { return wpick(ITEM_W); }
 function newItem(x, y, k = randItemKind()) {
-  const n = k === 'ecus' ? ri(8, 20) * F.depth : k === 'epine' ? ri(3, 7) : 1;
+  const n = k === 'ecus' ? ri(10, 25) * F.depth : k === 'epine' ? ri(3, 7) : 1;
   return { x, y, k, n };
 }
 
@@ -275,7 +299,7 @@ function buildFloor(depth) {
     biome: BIOMES.find(b => depth <= b.upTo) || BIOMES[BIOMES.length - 1],
   };
   ents = []; dying = []; projs = []; floats = []; distCache.clear();
-  for (const a of G.team) { a.status = { sleep: 0, atk: 0, def: 0 }; a.lunge = 0; a.flash = 0; a.alpha = 1; a.mem = null; }
+  for (const a of G.team) { a.status = { sleep: 0, atk: 0, def: 0, poison: 0 }; a.lunge = 0; a.flash = 0; a.alpha = 1; a.mem = null; }
   const L = leader();
 
   if (depth === MAXF) {
@@ -300,6 +324,14 @@ function buildFloor(depth) {
     }
     const nE = 3 + Math.floor(depth / 2);
     for (let i = 0; i < nE; i++) { const p = freeTileIn(pick(rs.slice(1))); if (p) { const e = makeWild(); place(e, p); ents.push(e); } }
+    if (depth >= 2 && rs.length > 4 && rnd() < .4) {
+      const r = rs[3], keeper = makeCreature('marchand', 1, 'npc');
+      place(keeper, freeTileIn(r)); ents.push(keeper);
+      const keys = Object.keys(ITEMS).filter(k => ITEMS[k].p && k !== 'sacoche');
+      const stock = [];
+      for (let i = 0; i < 6; i++) { const k = pick(keys), n = k === 'epine' ? 5 : 1; stock.push({ k, n, price: ITEMS[k].p * n }); }
+      F.shop = { room: r.id, stock, seen: false };
+    }
     if (depth >= 3 && rs.length > 3 && rnd() < .2) {
       const r = rs[2]; F.mh = r.id;
       for (let i = 0; i < 4; i++) { const p = freeTileIn(r, true); if (p) F.items.push(newItem(p.x, p.y)); }
@@ -382,7 +414,7 @@ function stepToward(e, tx, ty) {
 }
 
 /* ---------- Combat ---------- */
-const hostile = (a, b) => a.team !== b.team;
+const hostile = (a, b) => a.team !== b.team && a.team !== 'npc' && b.team !== 'npc';
 const stg = s => s >= 0 ? (2 + s) / 2 : 2 / (2 - s);
 
 function getTargets(e, M) {
@@ -394,10 +426,10 @@ function getTargets(e, M) {
       if (canHit(e, dx, dy)) { const o = entAt(e.x + dx, e.y + dy); if (o && hostile(e, o)) out.list = [o]; }
       break;
     case 'line': {
-      if (!canHit(e, dx, dy)) break;
+      if (!canShoot(e, dx, dy)) break;
       let x = e.x, y = e.y, n = 0;
       while (n < 10) {
-        if (!isFloor(x + dx, y + dy)) break;
+        if (!isOpen(x + dx, y + dy)) break;
         x += dx; y += dy; n++;
         const o = entAt(x, y);
         if (o && hostile(e, o)) { out.list = [o]; break; }
@@ -450,7 +482,13 @@ function hitWith(u, t, M) {
   if (M.fx === 'atk' || M.fx === 'def') {
     if (t.status[M.fx] > -3) { t.status[M.fx]--; if (vis) say(`${M.fx === 'atk' ? 'L’Attaque' : 'La Défense'} de ${nm(t)} baisse !`); }
   }
+  if (M.fx === 'poison' && rnd() < (M.fxp || 1)) poison(t);
   if (M.fx === 'sleep' && !t.status.sleep) { t.status.sleep = ri(3, 5); if (vis) say(`${nm(t)} s’endort !`); }
+}
+function poison(t) {
+  if (t.status.poison) return;
+  t.status.poison = ri(8, 12); floatT(t, 'Poison', '#c88cff');
+  if (seen(t)) say(`${nm(t)} est empoisonné !`, t.team === 'ally' ? 'bad' : '');
 }
 function fixedDamage(t, d, src) {
   t.hp -= d; t.flash = .35; floatT(t, String(d), '#fff');
@@ -495,10 +533,10 @@ function faint(t, src) {
 
 /* ---------- IA ---------- */
 function clearShot(e, dx, dy) {
-  if (!canHit(e, dx, dy)) return false;
+  if (!canShoot(e, dx, dy)) return false;
   let x = e.x, y = e.y;
   for (let n = 0; n < 10; n++) {
-    if (!isFloor(x + dx, y + dy)) return false;
+    if (!isOpen(x + dx, y + dy)) return false;
     x += dx; y += dy;
     const o = entAt(x, y);
     if (o && hostile(e, o)) return true;
@@ -585,8 +623,15 @@ function endTurn() {
   if (G.belly <= 0) { L.hp -= 1; if (L.hp <= 0) { say('Épuisé par la faim…', 'bad'); faint(L, null); } }
   if (!G.over) for (const a of G.team.slice(1)) { if (ents.includes(a)) allyAI(a); if (G.over) break; }
   if (!G.over) for (const e of ents.filter(e => e.team === 'wild')) { if (ents.includes(e)) wildAI(e); if (G.over) break; }
+  if (!G.over) for (const e of ents.slice()) {
+    if (!e.status.poison || !ents.includes(e)) continue;
+    e.status.poison--;
+    const d = Math.max(1, Math.round(e.maxHp / 16));
+    e.hp -= d; e.flash = .2; floatT(e, String(d), '#c88cff');
+    if (e.hp <= 0) { if (seen(e)) say(`${nm(e)} succombe au poison.`); faint(e, e.team === 'wild' ? leader() : null); if (G.over) break; }
+  }
   if (G.belly > 0) for (const a of G.team) {
-    if (a.hp <= 0) continue;
+    if (a.hp <= 0 || a.status.poison) continue;
     a.reg = (a.reg || 0) + a.maxHp / 110;
     if (a.reg >= 1) { const n = Math.floor(a.reg); a.reg -= n; a.hp = Math.min(a.maxHp, a.hp + n); }
   }
@@ -594,7 +639,7 @@ function endTurn() {
     F.spawnT = 0;
     if (ents.filter(e => e.team === 'wild').length < 6 + F.depth / 2) spawnWild();
   }
-  checkMonsterHouse();
+  checkMonsterHouse(); checkShop();
   computeVis(); updHUD();
   afterTurn();
 }
@@ -606,6 +651,13 @@ function spawnWild() {
     const e = makeWild(); place(e, p); ents.push(e); return;
   }
 }
+function checkShop() {
+  if (!F.shop || F.shop.seen) return;
+  const L = leader();
+  if (!areaRooms(L).includes(F.shop.room)) return;
+  F.shop.seen = true;
+  say('Une boutique ! Va parler au marchand Troquin.', 'good');
+}
 function checkMonsterHouse() {
   if (F.mh < 0 || F.mhDone) return;
   const L = leader();
@@ -614,7 +666,7 @@ function checkMonsterHouse() {
   const r = F.rooms[F.mh];
   say('C’est un repaire de monstres !', 'bad');
   flashFx = { col: '#ff3030', t0: performance.now() }; sfx('alarm');
-  const n = 5 + Math.floor(F.depth / 2);
+  const n = 4 + Math.floor(F.depth / 3);
   for (let i = 0; i < n; i++) {
     const p = freeTileIn(r); if (!p) break;
     const e = makeWild(); place(e, p); e.ry -= 3; e.alpha = 0; ents.push(e);
@@ -645,6 +697,7 @@ function leaderStep(dx, dy, faceOnly) {
   L.dir = { x: dx, y: dy };
   if (faceOnly || !canStep(L.x, L.y, dx, dy)) return;
   const o = entAt(L.x + dx, L.y + dy);
+  if (o && o.team === 'npc') { if (!faceOnly) openShop(); return; }
   if (o && o.team !== 'ally') return;
   if (o) { o.x = L.x; o.y = L.y; o.dir = { x: -dx, y: -dy }; }
   L.x += dx; L.y += dy;
@@ -673,6 +726,7 @@ function triggerTrap(tr, a) {
     case 'tp': teleport(a); break;
     case 'sommeil': a.status.sleep = ri(3, 4); say(`${nm(a)} s’endort…`); break;
     case 'faim': G.belly = Math.max(0, G.belly - 20); say('Le Ventre se vide d’un coup !', 'warn'); break;
+    case 'toxik': poison(a); break;
   }
 }
 function teleport(a) {
@@ -694,8 +748,12 @@ function leaderMove(i) {
 /* ---------- Sac ---------- */
 function addItem(k, n) {
   if (k === 'ecus') { G.ecus += n; return true; }
+  if (k === 'sacoche') {
+    if (G.invMax >= 32) { G.ecus += 100; say('Le sac est déjà au maximum : la Sacoche est revendue 100 écus.'); return true; }
+    G.invMax += 4; say(`Le sac peut maintenant contenir ${G.invMax} objets !`, 'good'); return true;
+  }
   if (ITEMS[k].stack) { const s = G.inv.find(s => s.k === k); if (s) { s.n += n; return true; } }
-  if (G.inv.length >= INV_MAX) return false;
+  if (G.inv.length >= G.invMax) return false;
   G.inv.push({ k, n }); return true;
 }
 const itemLabel = it => ITEMS[it.k].stack ? `${ITEMS[it.k].n} ×${it.n}` : ITEMS[it.k].n;
@@ -718,11 +776,26 @@ function useItem(i, target) {
       for (const t of tg) fixedDamage(t, 25, L);
       break;
     }
-    case 'epine': {
+    case 'sitrus': heal(target || L, 999); break;
+    case 'pecha': {
+      const a = target || L;
+      a.status.poison = 0; a.status.sleep = 0; a.status.atk = Math.max(0, a.status.atk); a.status.def = Math.max(0, a.status.def);
+      say(`${nm(a)} se sent beaucoup mieux.`, 'good'); sfx('heal'); break;
+    }
+    case 'gjoie': { const a = target || L; gainXp(a, xpNeed(a.lvl) - a.xp); break; }
+    case 'osoin':
+      for (const a of G.team) { a.status.poison = 0; a.status.sleep = 0; heal(a, 50); }
+      break;
+    case 'epine': case 'gsommeil': case 'gtoxik': {
       const tg = getTargets(L, { tg: 'line' });
       L.lunge = 1;
-      projs.push({ x0: L.x, y0: L.y, x1: tg.end.x, y1: tg.end.y, t0: performance.now(), dur: 60 + tg.dist * 35, col: '#e8ecf4' });
-      if (tg.list.length) fixedDamage(tg.list[0], 12, L); else say('L’épine se perd au sol.');
+      projs.push({ x0: L.x, y0: L.y, x1: tg.end.x, y1: tg.end.y, t0: performance.now(), dur: 60 + tg.dist * 35,
+        col: { epine: '#e8ecf4', gsommeil: '#6aa8ff', gtoxik: '#b46cff' }[s.k] });
+      const t = tg.list[0];
+      if (!t) say(`${ITEMS[s.k].n} se perd au sol.`);
+      else if (s.k === 'epine') fixedDamage(t, 12, L);
+      else if (s.k === 'gsommeil') { t.status.sleep = ri(5, 8); say(`${nm(t)} s’endort !`); }
+      else poison(t);
       break;
     }
     case 'osommeil': {
@@ -734,6 +807,7 @@ function useItem(i, target) {
     case 'otp': teleport(L); computeVis(); break;
     case 'ocarte':
       for (let k = 0; k < W * H; k++) if (F.tiles[k]) for (const [dx, dy] of [[0, 0], ...DIRS]) { const n = k + dy * W + dx; if (n >= 0 && n < W * H) F.explored[n] = 1; }
+      for (const tr of F.traps) tr.seen = true;
       say('Le plan de l’étage se dévoile !', 'good'); break;
     case 'gvie': say('La Graine Vie agira seule si le chef tombe K.O.'); return false;
   }
@@ -773,7 +847,7 @@ function floorIntro() {
 function saveRun() {
   try {
     localStorage.setItem(SAVE, JSON.stringify({
-      floor: G.floor, belly: G.belly, ecus: G.ecus, kills: G.kills, turns: G.turns, inv: G.inv,
+      floor: G.floor, belly: G.belly, ecus: G.ecus, invMax: G.invMax, kills: G.kills, turns: G.turns, inv: G.inv,
       team: G.team.map(a => ({ sp: a.sp, lvl: a.lvl, xp: a.xp, hp: a.hp, moves: a.moves })),
     }));
   } catch (e) { /* stockage indisponible */ }
@@ -786,7 +860,7 @@ function recordBest(won) {
   try { localStorage.setItem(BEST, JSON.stringify(b)); } catch (e) { /* rien */ }
 }
 function restoreRun(s) {
-  G = { floor: s.floor, belly: s.belly, bellyT: 0, ecus: s.ecus, kills: s.kills, turns: s.turns, inv: s.inv, team: [] };
+  G = { floor: s.floor, belly: s.belly, bellyT: 0, ecus: s.ecus, invMax: s.invMax || 16, kills: s.kills, turns: s.turns, inv: s.inv, team: [] };
   for (const t of s.team) {
     const a = makeCreature(t.sp, t.lvl, 'ally');
     a.xp = t.xp; a.hp = Math.min(t.hp, a.maxHp); a.moves = t.moves;
@@ -974,6 +1048,15 @@ function drawCreature(c, sp, cx, cy, S, dir, t, o = {}) {
       if (!back) { eyes(c, 0, -1, dir, 3.4, 1.1, '#fff'); eyes(c, dir.x * .6, -.6, dir, 3.4, .55, '#2a1650'); }
       break;
     }
+    case 'merchant': {
+      E(c, f * 8, 6, 3.5, 3, '#8a5a2a');
+      E(c, 0, 3, 9, 8, C1);
+      if (!back) E(c, 0, 6, 6, 4, C2);
+      c.fillStyle = '#6a3a1a'; c.fillRect(-8, -7, 16, 3); c.fillRect(-5, -14, 10, 7);
+      c.fillStyle = '#e8c25a'; c.fillRect(-5, -9, 10, 2);
+      eyes(c, 0, 1, dir);
+      break;
+    }
     case 'golem': {
       E(c, -12, 5, 4.5, 4, D1); E(c, 12, 5, 4.5, 4, D1);
       c.save(); c.translate(0, 2); c.scale(1.15, 1.05); P(c, ROCK, C1); c.restore();
@@ -997,11 +1080,17 @@ function drawItem(c, k, x, y, S) {
       c.fillStyle = '#5a3a1a'; c.fillRect(-.6, -r - 1, 1.2, 3); P(c, [.5, -r, 4, -r - 2, 1.5, -r + 1.5], '#4caf3a'); break;
     }
     case 'elixir': c.fillStyle = '#d8ecff'; c.fillRect(-2, -7, 4, 3); E(c, 0, 1, 5, 5.5, '#7a5cff'); E(c, -1.5, -1, 1.2, 2, '#c8b8ff'); break;
+    case 'sitrus': E(c, 0, 1, 6, 5.5, '#f0c830'); E(c, -2, -1, 1.8, 1.4, '#fff3a0'); P(c, [0, -4, 3, -8, 1, -4], '#3d9a3a'); break;
+    case 'pecha': E(c, 0, 1, 5.5, 5, '#f08ab8'); E(c, -1.8, -.8, 1.6, 1.4, '#ffd0e4'); P(c, [0, -4, 3, -8, 1, -4], '#3d9a3a'); break;
+    case 'gsommeil': E(c, 0, 1, 4.5, 5.5, '#4a7ad8'); E(c, -1.4, -1, 1, 1.6, '#b0ccff'); break;
+    case 'gtoxik': E(c, 0, 1, 4.5, 5.5, '#9a4ad0'); E(c, -1.4, -1, 1, 1.6, '#e0b0ff'); break;
+    case 'gjoie': E(c, 0, 1, 4.5, 5.5, '#ff7ab0'); E(c, 0, 1, 2.5, 3, '#ffe066'); break;
+    case 'sacoche': E(c, 0, 2, 7, 5.5, '#9a6a34'); c.fillStyle = '#6a4220'; c.fillRect(-7, -1, 14, 2.5); c.fillStyle = '#e8c25a'; c.fillRect(-1.5, 0, 3, 2.5); break;
     case 'gexplo': E(c, 0, 1, 4.5, 5.5, '#d0532c'); E(c, -1.4, -1, 1, 1.6, '#ffb07a'); break;
     case 'gvie': E(c, 0, 1, 4.5, 5.5, '#f0d04a'); E(c, -1.4, -1, 1, 1.6, '#fff6b0'); break;
     case 'epine': c.rotate(-.6); c.fillStyle = '#b8bcc6'; c.fillRect(-7, -1, 12, 2); P(c, [5, -2.5, 9, 0, 5, 2.5], '#e8ecf4'); break;
-    case 'osommeil': case 'otp': case 'ocarte': {
-      const col = { osommeil: '#9a7cf0', otp: '#3ccfb0', ocarte: '#f0c040' }[k];
+    case 'osommeil': case 'otp': case 'ocarte': case 'osoin': {
+      const col = { osommeil: '#9a7cf0', otp: '#3ccfb0', ocarte: '#f0c040', osoin: '#5ad46a' }[k];
       E(c, 0, 1, 5.5, 5.5, col); E(c, -2, -1.5, 1.8, 1.4, 'rgba(255,255,255,.7)'); break;
     }
     case 'ecus': for (const [ox, oy] of [[-2, 3], [2, 2], [0, 0]]) { E(c, ox, oy, 3.5, 2.2, '#a87a20'); E(c, ox, oy - .7, 3.5, 2.2, '#f2c94c'); } break;
@@ -1097,6 +1186,15 @@ function drawWall(x, y, px, py, B) {
   if (isFloor(x - 1, y)) ctx.fillRect(px, py, 1, 16);
   if (isFloor(x + 1, y)) ctx.fillRect(px + 15, py, 1, 16);
 }
+function drawWater(x, y, px, py, B, t) {
+  ctx.fillStyle = B.water; ctx.fillRect(px, py, 16, 16);
+  const lava = B.deco === 'ember';
+  ctx.fillStyle = lava ? '#ffb040' : 'rgba(255,255,255,.35)';
+  const o = Math.floor(t * 4 + x * 3 + y * 5);
+  ctx.fillRect(px + (o % 12) + 1, py + 4 + (y & 1) * 6, 3, 1);
+  ctx.fillRect(px + ((o + 7) % 12) + 1, py + 10 - (y & 1) * 6, 2, 1);
+  if (F.tiles[(y - 1) * W + x] === 1) { ctx.fillStyle = lava ? '#ffd27a' : 'rgba(255,255,255,.5)'; ctx.fillRect(px, py, 16, 1); }
+}
 function drawStairs(px, py) {
   ctx.fillStyle = '#10142e'; ctx.fillRect(px + 1, py + 1, 14, 14);
   for (let i = 0; i < 4; i++) {
@@ -1110,6 +1208,7 @@ function render(now) {
   const t = now / 1000;
   sctx.setTransform(1, 0, 0, 1, 0, 0);
   if (!F || !G) { sctx.fillStyle = '#0d1310'; sctx.fillRect(0, 0, cv.width, cv.height); return; }
+  if (BW < 1 || BH < 1 || VW !== innerWidth || VH !== innerHeight) { resize(); if (BW < 1 || BH < 1) return; }
   const B = F.biome, L = leader();
   const camX = Math.round((L.rx + .5) * TS - BW / 2), camY = Math.round((L.ry + .5) * TS - BH * .42);
   ctx.globalAlpha = 1;
@@ -1119,7 +1218,7 @@ function render(now) {
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
     const k = y * W + x; if (!F.explored[k]) continue;
     const px = x * TS - camX, py = y * TS - camY;
-    if (F.tiles[k]) drawFloor(x, y, px, py, B, t); else drawWall(x, y, px, py, B);
+    if (F.tiles[k] === 1) drawFloor(x, y, px, py, B, t); else if (F.tiles[k] === 2) drawWater(x, y, px, py, B, t); else drawWall(x, y, px, py, B);
   }
   if (F.stairs && F.explored[F.stairs.y * W + F.stairs.x]) drawStairs(F.stairs.x * TS - camX, F.stairs.y * TS - camY);
   for (const tr of F.traps) if (tr.seen) ctx.drawImage(trapSpr(tr.k), tr.x * TS - camX, tr.y * TS - camY);
@@ -1150,6 +1249,7 @@ function render(now) {
     ctx.globalAlpha = alpha * (SPECIES[e.sp].shape === 'ghost' ? .82 : 1);
     ctx.drawImage(s, px - (s.width >> 1), py - (s.height >> 1) + bob);
     ctx.globalAlpha = 1;
+    if (e.status.poison) { ctx.fillStyle = '#c88cff'; ctx.fillRect(px - 6, py - 11 - Math.floor(t * 4 % 3), 2, 2); ctx.fillRect(px - 3, py - 14 + Math.floor(t * 4 % 3), 1, 1); }
     if (asleep) texts.push({ x: px + 5, y: py - 9 - (t * 6 % 4), txt: 'z', col: '#d8ccff', sz: 9 });
     if (e.team === 'wild' && e.hp < e.maxHp && e.hp > 0) {
       const w = big > 1 ? 18 : 12, bx = px - w / 2, by = py - (big > 1 ? 22 : 12);
@@ -1205,11 +1305,11 @@ function drawMini() {
   const c = mc.getContext('2d'); c.setTransform(DPR, 0, 0, DPR, 0, 0); c.clearRect(0, 0, w, h);
   c.fillStyle = 'rgba(0,0,0,.35)'; c.fillRect(0, 0, w, h);
   c.fillStyle = 'rgba(200,220,255,.42)';
-  for (let k = 0; k < W * H; k++) if (F.tiles[k] && F.explored[k]) c.fillRect((k % W) * s, ((k / W) | 0) * s, s, s);
+  for (let k = 0; k < W * H; k++) if (F.tiles[k] && F.explored[k]) { c.fillStyle = F.tiles[k] === 2 ? 'rgba(90,150,240,.55)' : 'rgba(200,220,255,.42)'; c.fillRect((k % W) * s, ((k / W) | 0) * s, s, s); }
   const dot = (x, y, col, r = 1) => { c.fillStyle = col; c.fillRect(x * s - s * (r - 1) / 2, y * s - s * (r - 1) / 2, s * r, s * r); };
   if (F.stairs && F.explored[F.stairs.y * W + F.stairs.x]) dot(F.stairs.x, F.stairs.y, '#4fa8ff', 1.6);
   for (const it of F.items) if (F.explored[it.y * W + it.x]) dot(it.x, it.y, '#ffd23a');
-  for (const e of ents) if (seen(e)) dot(e.x, e.y, e.team === 'wild' ? '#ff4d4d' : e === leader() ? '#ffffff' : '#7ee0ff', e === leader() ? 1.6 : 1.3);
+  for (const e of ents) if (seen(e)) dot(e.x, e.y, e.team === 'npc' ? '#5ad46a' : e.team === 'wild' ? '#ff4d4d' : e === leader() ? '#ffffff' : '#7ee0ff', e === leader() ? 1.6 : 1.3);
 }
 
 /* =====================================================================
@@ -1219,7 +1319,7 @@ function hpCol(a) { const r = a.hp / a.maxHp; return r > .5 ? '#5ad45a' : r > .2
 function updHUD() {
   if (!F || !G) return;
   $('#floor').innerHTML = `<b>B${F.depth}F</b> ${F.biome.n} · <span class="${G.belly <= 20 ? 'low' : ''}">Ventre ${G.belly}</span> · ${G.ecus} écus`;
-  $('#team').innerHTML = G.team.map((a, i) => `<div class="mem${i ? '' : ' lead'}"><div>${a.name} <small>Nv ${a.lvl}</small>${a.status.sleep ? ' <span class="z">z</span>' : ''}</div>
+  $('#team').innerHTML = G.team.map((a, i) => `<div class="mem${i ? '' : ' lead'}"><div>${a.name} <small>Nv ${a.lvl}</small>${a.status.sleep ? ' <span class="z">z</span>' : ''}${a.status.poison ? ' <span class="psn">psn</span>' : ''}</div>
     <div class="bar"><i style="width:${100 * a.hp / a.maxHp}%;background:${hpCol(a)}"></i></div><div class="hp">PV ${a.hp}/${a.maxHp}</div></div>`).join('');
   const L = leader();
   $('#moves').innerHTML = L.moves.map((m, i) => {
@@ -1302,6 +1402,7 @@ function showHelp() {
     <p><b>Mobile</b> : joystick à gauche (glisse le doigt), boutons à droite. ⟲ verrouille la rotation sur place.</p>
     <p>Les <b>types</b> comptent : Eau &gt; Feu &gt; Plante &gt; Eau, Électrik &gt; Eau, Roche &gt; Feu &amp; Électrik.</p>
     <p>Surveille le <b>Ventre</b> : il baisse en marchant. Vide, tu perds des PV. Les ennemis vaincus peuvent parfois <b>rejoindre l’équipe</b> (3 membres max).</p>
+    <p>Certains étages ont une <b>boutique</b> : marche vers le marchand pour acheter, vendre ou agrandir ton sac. Gare au <b>poison</b> : la Baie Pêcha le guérit.</p>
     <div class="btns"><button id="hB">Retour</button></div></div>`);
   $('#hB').onclick = showTitle;
 }
@@ -1323,7 +1424,7 @@ function chooseStarters() {
   draw();
 }
 function newRun(a, b) {
-  G = { floor: 1, belly: 100, bellyT: 0, ecus: 0, kills: 0, turns: 0, inv: [{ k: 'oran', n: 1 }, { k: 'oran', n: 1 }, { k: 'pomme', n: 1 }], team: [] };
+  G = { floor: 1, belly: 100, bellyT: 0, ecus: 50, invMax: 12, kills: 0, turns: 0, inv: [{ k: 'oran', n: 1 }, { k: 'oran', n: 1 }, { k: 'pomme', n: 1 }], team: [] };
   G.team.push(makeCreature(a, 5, 'ally'), makeCreature(b, 5, 'ally'));
   startFloor(true);
 }
@@ -1354,7 +1455,7 @@ function openBag(tab = 'bag', sel = -1) {
         : s.k === 'gvie' ? '' : `<button data-use="0">${I.thr ? 'Lancer' : 'Utiliser'}</button>`;
       body += `<div class="det"><b>${I.n}</b><p>${I.d}</p><div class="btns">${useBtns}<button class="sec" data-drop>Poser</button></div></div>`;
     }
-    body += `<p class="help">${G.inv.length}/${INV_MAX} objets · ${G.ecus} écus</p>`;
+    body += `<p class="help">${G.inv.length}/${G.invMax} objets · ${G.ecus} écus</p>`;
   } else if (tab === 'team') {
     body = G.team.map(a => `<div class="tm">${spriteCanvas(a.sp, 56)}<div style="flex:1">
       <b>${a.name}</b> <small>Nv ${a.lvl} · ${TYPES[SPECIES[a.sp].t].n}</small>
@@ -1391,6 +1492,40 @@ function openBag(tab = 'bag', sel = -1) {
     else { closeOv('title'); showTitle(); }
   });
   if (sel >= 0) { const f = ov.querySelector('[data-use],[data-drop]'); if (f) f.focus({ preventScroll: true }); }
+}
+
+/* ---------- Boutique ---------- */
+const sellPrice = s => Math.max(1, Math.floor((ITEMS[s.k].p || 2) * s.n / 2));
+const bagPrice = () => 150 + (G.invMax - 12) / 4 * 100;
+function openShop(tab = 'buy') {
+  const sh = F.shop; if (!sh) return;
+  let body = '';
+  if (tab === 'buy') {
+    body = sh.stock.length ? `<div class="list">${sh.stock.map((it, i) => `<button data-b="${i}" ${it.price > G.ecus || G.inv.length >= G.invMax ? 'disabled' : ''}>${itemCanvas(it.k)}<span style="flex:1">${itemLabel(it)}</span>${it.price} écus</button>`).join('')}</div>`
+      : '<p class="empty">« Tout est vendu ! Merci ! »</p>';
+    if (G.invMax < 32) body += `<div class="list" style="margin-top:8px"><button data-bag ${bagPrice() > G.ecus ? 'disabled' : ''}>${itemCanvas('sacoche')}<span style="flex:1">Agrandir le sac (+4)</span>${bagPrice()} écus</button></div>`;
+    body += '<p class="help">Choisis un objet pour l’acheter.</p>';
+  } else {
+    body = G.inv.length ? `<div class="list">${G.inv.map((s, i) => `<button data-v="${i}">${itemCanvas(s.k)}<span style="flex:1">${itemLabel(s)}</span>+${sellPrice(s)} écus</button>`).join('')}</div>`
+      : '<p class="empty">Ton sac est vide.</p>';
+  }
+  openOv(`<div class="box"><h2>Boutique de Troquin</h2><p>« Bienvenue, explorateur ! » · <b>${G.ecus} écus</b> · sac ${G.inv.length}/${G.invMax}</p><div class="tabs">
+    <button data-tab="buy" class="${tab === 'buy' ? 'on' : ''}">Acheter</button>
+    <button data-tab="sell" class="${tab === 'sell' ? 'on' : ''}">Vendre</button>
+    <button class="x" data-close>✕</button></div>${body}</div>`);
+  ov.dataset.cancel = 'close';
+  ov.querySelectorAll('[data-tab]').forEach(el => el.onclick = () => openShop(el.dataset.tab));
+  ov.querySelector('[data-close]').onclick = () => { closeOv(); updHUD(); };
+  ov.querySelectorAll('[data-b]').forEach(el => el.onclick = () => {
+    const it = sh.stock[+el.dataset.b];
+    if (it.price > G.ecus || !addItem(it.k, it.n)) return;
+    G.ecus -= it.price; sh.stock.splice(+el.dataset.b, 1); sfx('pick'); openShop('buy');
+  });
+  const bg = ov.querySelector('[data-bag]');
+  if (bg) bg.onclick = () => { const pr = bagPrice(); if (pr > G.ecus) return; G.ecus -= pr; G.invMax += 4; sfx('lvl'); openShop('buy'); };
+  ov.querySelectorAll('[data-v]').forEach(el => el.onclick = () => {
+    const i = +el.dataset.v; G.ecus += sellPrice(G.inv[i]); G.inv.splice(i, 1); sfx('pick'); openShop('sell');
+  });
 }
 
 /* ---------- Son ---------- */
