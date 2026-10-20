@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#3d9cf2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Alizé">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Alizé</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --px: 2px; --ink: #f4f8ff; --shade: rgba(14, 26, 58, .55); }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1630; overscroll-behavior: none; }
+  body { font-family: 'Pixelify Sans', ui-monospace, monospace; color: var(--ink); user-select: none; -webkit-user-select: none; }
+  #c { position: fixed; inset: 0; display: block; touch-action: none; image-rendering: pixelated; }
+  #hud { position: fixed; inset: 0; pointer-events: none;
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+  #compass { position: absolute; top: inherit; left: inherit; margin: max(12px, env(safe-area-inset-top)) 0 0 max(12px, env(safe-area-inset-left));
+    top: 0; left: 0; width: calc(var(--px) * 33); height: calc(var(--px) * 33); image-rendering: pixelated; }
+  #side { position: absolute; top: 0; right: 0; margin: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 0 0;
+    display: flex; flex-direction: column; gap: calc(var(--px) * 5); }
+  .btn { pointer-events: auto; width: calc(var(--px) * 20); height: calc(var(--px) * 20); min-width: 40px; min-height: 40px;
+    border: 0; padding: 0; background: var(--shade); box-shadow: 0 0 0 var(--px) rgba(236, 244, 255, .9), 0 0 0 calc(var(--px) * 2) rgba(14, 26, 58, .6);
+    display: grid; place-items: center; cursor: pointer; }
+  .btn svg { width: 60%; height: 60%; shape-rendering: crispEdges; }
+  #snd.off .on, #snd:not(.off) .off { display: none; }
+  #action { position: absolute; right: 0; bottom: 0; margin: 0 max(14px, env(safe-area-inset-right)) calc(max(14px, env(safe-area-inset-bottom)) + var(--px) * 24) 0;
+    pointer-events: auto; font: 600 17px 'Pixelify Sans', monospace; color: #1a2440; background: #ffd27a; border: 0;
+    padding: calc(var(--px) * 4) calc(var(--px) * 7); box-shadow: 0 0 0 var(--px) #fff6dc, 0 0 0 calc(var(--px) * 2) rgba(14, 26, 58, .7), 0 calc(var(--px) * 3) 0 calc(var(--px) * 2) rgba(14, 26, 58, .4);
+    cursor: pointer; transition: transform .15s, opacity .2s; }
+  #action[hidden] { display: none; }
+  #action:active { transform: translateY(2px); }
+  #toast { position: absolute; left: 50%; top: 0; transform: translate(-50%, -10px); margin-top: calc(max(12px, env(safe-area-inset-top)) + var(--px) * 4);
+    max-width: 70vw; text-align: center; font-size: 15px; padding: calc(var(--px) * 3) calc(var(--px) * 6); background: rgba(14, 26, 58, .72);
+    box-shadow: 0 0 0 var(--px) rgba(236, 244, 255, .6); opacity: 0; transition: opacity .5s, transform .5s; }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+  #toast small { display: block; font-size: 12px; opacity: .75; }
+  .sheet { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(8, 14, 32, .55); z-index: 5;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); }
+  .sheet[hidden] { display: none; }
+  .paper { position: relative; width: min(92vw, 520px); max-height: 100%; overflow: auto; background: #efe2c2; color: #46382a;
+    box-shadow: 0 0 0 4px #6e5a40, 0 0 0 8px rgba(14, 26, 58, .5); padding: 18px 18px 20px; }
+  .paper h2 { margin: 0 0 10px; font-size: 22px; font-weight: 600; letter-spacing: .03em; }
+  .paper h3 { margin: 16px 0 6px; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; opacity: .7; }
+  .paper .close { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border: 0; background: #6e5a40; color: #efe2c2;
+    font: 600 18px 'Pixelify Sans', monospace; cursor: pointer; }
+  #mapcv { display: block; width: 100%; height: auto; image-rendering: pixelated; box-shadow: 0 0 0 2px #6e5a40; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+  .stats b { display: block; font-size: 26px; }
+  .stats span { font-size: 12px; }
+  .species { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
+  .species div { padding: 6px 8px; background: rgba(110, 90, 64, .12); font-size: 14px; }
+  .species div.no { opacity: .55; }
+  .species small { display: block; font-size: 11px; opacity: .8; }
+  .list { font-size: 14px; line-height: 1.5; }
+  .list button { font: inherit; color: inherit; background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; text-align: left; }
+  #letter .paper { width: min(86vw, 400px); font-size: 19px; line-height: 1.45; padding: 30px 26px 24px; transform: rotate(-1.2deg); }
+  #letter .paper p { margin: 0 0 16px; }
+  #letter .paper small { display: block; opacity: .6; font-size: 13px; }
+  #joy { position: fixed; width: 96px; height: 96px; margin: -48px 0 0 -48px; border-radius: 50%; pointer-events: none;
+    border: 3px solid rgba(236, 244, 255, .55); background: rgba(14, 26, 58, .2); display: none; }
+  #joy i { position: absolute; left: 50%; top: 50%; width: 36px; height: 36px; margin: -18px 0 0 -18px; background: rgba(255, 210, 122, .85);
+    box-shadow: 0 0 0 3px rgba(14, 26, 58, .5); }
+  body.walking #helm { display: none; }
+  #sail { position: absolute; left: 0; right: 0; bottom: 0; margin-bottom: calc(max(14px, env(safe-area-inset-bottom)) + var(--px) * 14);
+    text-align: center; font-size: 15px; letter-spacing: .04em; text-shadow: 0 2px 0 rgba(14, 26, 58, .65); }
+  #sail b { font-weight: 600; }
+  #sail.land .spd { display: none; }
+  #helm { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); margin-bottom: max(14px, env(safe-area-inset-bottom));
+    width: calc(var(--px) * 60); height: calc(var(--px) * 5); background: var(--shade);
+    box-shadow: 0 0 0 var(--px) rgba(236, 244, 255, .5); opacity: .45; transition: opacity .3s; }
+  #helm.on { opacity: 1; }
+  #helm::after { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: var(--px); background: rgba(236, 244, 255, .5); }
+  #helm-knob { position: absolute; top: calc(var(--px) * -1); width: calc(var(--px) * 3); height: calc(var(--px) * 7); margin-left: calc(var(--px) * -1.5);
+    background: #ffba50; box-shadow: 0 0 0 var(--px) rgba(14, 26, 58, .7); left: 50%; }
+  #title { position: fixed; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none;
+    transition: opacity 1.6s ease, transform 1.6s ease; }
+  #title h1 { margin: 0; font-size: clamp(54px, 16vw, 112px); font-weight: 600; letter-spacing: .06em; line-height: 1;
+    text-shadow: 0 4px 0 rgba(14, 26, 58, .55); }
+  #title p { margin: 14px 0 0; font-size: 16px; opacity: .9; text-shadow: 0 2px 0 rgba(14, 26, 58, .6); }
+  #title.gone { opacity: 0; transform: translateY(-12px); }
+</style>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <canvas id="compass" width="33" height="33"></canvas>
+  <div id="side">
+    <button class="btn" id="cam" aria-label="Changer de caméra">
+      <svg viewBox="0 0 10 10" fill="#f4f8ff" aria-hidden="true">
+        <rect x="1" y="3" width="6" height="5"/><rect x="2" y="2" width="2" height="1"/>
+        <rect x="7" y="4" width="2" height="3"/><rect x="3" y="4" width="2" height="2" fill="#0e1a3a"/>
+      </svg>
+    </button>
+    <button class="btn" id="mapbtn" aria-label="Carte">
+      <svg viewBox="0 0 10 10" fill="#f4f8ff" aria-hidden="true">
+        <rect x="1" y="2" width="2" height="6"/><rect x="4" y="1" width="2" height="6"/><rect x="7" y="2" width="2" height="6"/>
+        <rect x="3" y="2" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="2" y="5" width="2" height="1" fill="#ff7060"/>
+      </svg>
+    </button>
+    <button class="btn" id="bookbtn" aria-label="Carnet">
+      <svg viewBox="0 0 10 10" fill="#f4f8ff" aria-hidden="true">
+        <rect x="2" y="1" width="6" height="8"/><rect x="2" y="1" width="1" height="8" fill="#ffba50"/>
+        <rect x="4" y="3" width="3" height="1" fill="#0e1a3a"/><rect x="4" y="5" width="3" height="1" fill="#0e1a3a"/>
+      </svg>
+    </button>
+    <button class="btn" id="snd" aria-label="Son">
+      <svg viewBox="0 0 10 10" fill="#f4f8ff" aria-hidden="true">
+        <rect x="1" y="4" width="2" height="2"/><rect x="3" y="3" width="1" height="4"/><rect x="4" y="2" width="1" height="6"/>
+        <g class="on"><rect x="6" y="4" width="1" height="2"/><rect x="8" y="3" width="1" height="4"/></g>
+        <g class="off" fill="#ff7060"><rect x="6" y="3" width="1" height="1"/><rect x="7" y="4" width="1" height="2"/><rect x="8" y="3" width="1" height="1"/><rect x="6" y="6" width="1" height="1"/><rect x="8" y="6" width="1" height="1"/></g>
+      </svg>
+    </button>
+  </div>
+  <button id="action" hidden></button>
+  <div id="toast"></div>
+  <div id="sail"><b id="pos">Travers</b><span class="spd"> · <span id="spd">0.0</span> nds</span></div>
+  <div id="helm"><div id="helm-knob"></div></div>
+</div>
+<div id="joy"><i></i></div>
+<div class="sheet" id="mapsheet" hidden><div class="paper"><button class="close" aria-label="Fermer">×</button><h2>Carte</h2><canvas id="mapcv"></canvas></div></div>
+<div class="sheet" id="booksheet" hidden><div class="paper"><button class="close" aria-label="Fermer">×</button><h2>Carnet de bord</h2><div id="bookbody"></div></div></div>
+<div class="sheet" id="letter" hidden><div class="paper"><p id="lettertext"></p><small>Toucher pour refermer</small></div></div>
+<div id="title"><div><h1>Alizé</h1><p>glisse pour barrer</p></div></div>
+<script type="module" src="js/main.js?v=1"></script>
+</body>
+</html>
