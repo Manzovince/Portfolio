@@ -2,8 +2,23 @@
 let G = null;
 const SAVE_KEY = 'dada-party-save-v2';
 const CFG_KEY = 'dada-party-cfg-v1';
-const MARKET_EVERY = 3;
-const EXIT = v => v === 1 || v === 6; // a 1 or a 6 lets a horse leave the stable
+// Game options (menu > Paramètres de partie). Defaults are the house rules.
+const OPT_DEFAULT = {
+  startOut: false,      // each player starts with one horse on its start square
+  exit: '16',           // '16': a 1 or a 6 leaves the stable, '6': only a 6
+  exact: false,         // need the exact number to reach the centre
+  capReplay: true,      // a capture gives another roll
+  refuge: true,         // star refuges pay 1 coin passing, 3 stopping
+  coins: 3,             // starting coins
+  spawn: 'normal',      // mystery squares: off | rare | normal | often
+  market: 3,            // market every N rounds, 0 = never
+  squares: ['coin', 'chance', 'coffre', 'turbo', 'piege', 'portal'],
+  items: ['dore', 'turbo', 'bis', 'maudit', 'escargot', 'sortie', 'tpiege', 'tpeage', 'tturbo'],
+};
+const O = () => (G && G.cfg.opts) || OPT_DEFAULT;
+const EXIT = v => v === 6 || (v === 1 && O().exit === '16');
+const SPAWN = { off: [0, 99], rare: [.18, 5], normal: [.35, 3], often: [.65, 2] }; // chance per round, max dry rounds
+const itemOn = k => O().items.includes(k);
 
 const CHANCE = [
   { id: 'or', t: "Pluie d'or !", s: '+6 pièces', good: 1, w: 3 },
@@ -21,7 +36,8 @@ const CHANCE = [
 // The board starts plain. Each new round a few special squares appear on free
 // squares; past NAT_MAX the oldest natural ones vanish. Players add tiles on top.
 const NAT_MAX = 12;
-const NAT_POOL = ['coin', 'coin', 'coin', 'chance', 'chance', 'coffre', 'coffre', 'turbo', 'piege', 'portal'];
+const NAT_WEIGHT = { coin: 3, chance: 2, coffre: 2, turbo: 1, piege: 1, portal: 1 };
+const natPool = () => O().squares.flatMap(t => Array(NAT_WEIGHT[t] || 1).fill(t));
 function freeSquares() {
   const busy = new Set();
   for (const P of G.players) P.pawns.forEach(r => { if (r >= 0 && r <= LAST) busy.add(absOf(P.c, r)); });
@@ -57,8 +73,11 @@ async function revealSquare() {
   const pool = freeSquares().concat(G.nat.filter(a => G.specials[a] && G.owners[a] == null && !busy.has(a)));
   if (!pool.length) return;
   const target = pick(pool), old = G.specials[target];
-  let type = pick(NAT_POOL);
-  while (type === old) type = pick(NAT_POOL);
+  const types = natPool();
+  if (!types.length) return;
+  const others = types.filter(t => t !== old);
+  if (!others.length) return;
+  const type = pick(others);
   if (!G.spawnedOnce) {
     G.spawnedOnce = true;
     await UI.banner('Case mystère !', 'De temps en temps, une case spéciale apparaît', { col: '#ffd84a', dur: 1400 });
@@ -81,7 +100,7 @@ async function revealSquare() {
   if (old) await wait(500);
   SFX.play('ding'); R.addShake(2);
   // the type spins in the lit square
-  const kinds = ['coin', 'chance', 'coffre', 'turbo', 'piege', 'portal'];
+  const kinds = [...new Set(types)];
   for (let i = 0; i < 12; i++) {
     rv.type = i === 11 ? type : kinds[(kinds.indexOf(rv.type) + 1 + rnd(kinds.length - 1)) % kinds.length];
     SFX.play('roulette', i);
@@ -124,9 +143,11 @@ async function placeTile(P, kind, a) {
 
 function newGame(cfg) {
   const players = [];
+  const opts = cfg.opts = Object.assign({}, OPT_DEFAULT, cfg.opts || {});
+  const firstItem = ['turbo', 'bis', 'dore'].find(k => opts.items.includes(k));
   cfg.slots.forEach((t, c) => {
     if (t === 'off') return;
-    players.push({ c, type: t, name: t === 'ai' ? COLORS[c].ia : COLORS[c].nom, pawns: Array(cfg.pawns).fill(-1), coins: 3, dice: ['turbo'], curse: null, bonus: false, stats: { caps: 0, coins: 3 } });
+    players.push({ c, type: t, name: t === 'ai' ? COLORS[c].ia : COLORS[c].nom, pawns: Array(cfg.pawns).fill(-1).map((r, k) => k === 0 && opts.startOut ? 0 : r), coins: opts.coins, dice: firstItem ? [firstItem] : [], curse: null, bonus: false, stats: { caps: 0, coins: opts.coins } });
   });
   return { sid: Math.random(), cfg, players, cur: 0, round: 1, specials: {}, owners: {}, tolls: {}, nat: [], spawnedOnce: false, marketDue: false, over: false, winner: -1, moves: null, usedSpecial: false };
 }
@@ -169,10 +190,11 @@ async function runGame() {
     G.cur = (G.cur + 1) % G.players.length;
     if (G.cur === 0) {
       G.round++;
-      if ((G.round - 1) % MARKET_EVERY === 0) G.marketDue = true;
+      if (O().market && (G.round - 1) % O().market === 0) G.marketDue = true;
       // only some rounds: always the first time, never three dry rounds in a row
       G.dry = (G.dry || 0) + 1;
-      if (G.round === 2 || G.dry >= 3 || Math.random() < .35) {
+      const [chanceSp, dryMax] = SPAWN[O().spawn] || SPAWN.normal;
+      if (chanceSp > 0 && O().squares.length && (G.round === 2 || G.dry >= dryMax || Math.random() < chanceSp)) {
         G.dry = 0;
         await revealSquare();
         if (!alive()) return;
@@ -258,6 +280,7 @@ function legalMoves(P, v, exit) {
   P.pawns.forEach((rel, k) => {
     if (rel === FIN) return;
     if (rel === -1) { if (exit && v > 0) out.push({ k, from: -1, to: 0 }); return; }
+    if (v > 0 && O().exact && rel + v > FIN) return;
     const to = v > 0 ? Math.min(FIN, rel + v) : Math.max(0, rel + v);
     if (to !== rel) out.push({ k, from: rel, to });
   });
@@ -329,7 +352,7 @@ async function movePawn(P, k, v, opts = {}) {
         UI.pop('Péage -1', p.x, p.y - 16, { col: '#ff8f7f', size: 1 });
         SFX.play('coin');
       }
-      if (dir > 0 && r <= LAST && REFUGE.has(absOf(P.c, r))) {
+      if (O().refuge && dir > 0 && r <= LAST && REFUGE.has(absOf(P.c, r))) {
         UI.pop('+1', p.x, p.y - 16, { col: '#ffd84a', size: 1 });
         R.burst(p.x, p.y - 6, 5, ['#ffd84a', '#fff6c2'], 1.2);
         gain(P, 1, p.x, p.y);
@@ -365,7 +388,7 @@ async function landOn(P, k, depth, opts = {}) {
   } else if (SAFE.has(abs) && !opts.exit && G.players.some(Q => Q !== P && Q.pawns.some(r => r >= 0 && r <= LAST && absOf(Q.c, r) === abs))) {
     UI.pop('Case refuge', p.x, p.y - 18, { col: '#cfd9e8', size: 1 });
   }
-  if (REFUGE.has(abs)) {
+  if (O().refuge && REFUGE.has(abs)) {
     SFX.play('coin'); R.burst(p.x, p.y - 6, 12, ['#ffd84a', '#fff6c2', '#cfd9e8'], 1.6);
     UI.pop('Refuge +3', p.x, p.y - 20, { col: '#ffd84a', size: 2 });
     gain(P, 3, p.x, p.y); UI.refresh(); await wait(spd(400));
@@ -397,7 +420,7 @@ async function capture(P, k, victims) {
     R.dust(dest.x, dest.y); R.burst(dest.x, dest.y - 4, 8, [COLORS[Q.c].l, '#ffffff'], 1.2);
   }));
   P.stats.caps += victims.length;
-  P.bonus = P.bonus || 'capture';
+  if (O().capReplay) P.bonus = P.bonus || 'capture';
   gain(P, 3 * victims.length, p.x, p.y);
   UI.pop(`+${3 * victims.length}`, p.x + 10, p.y - 10, { col: '#ffd84a' });
   UI.refresh();
@@ -465,11 +488,12 @@ async function special(P, k, type, depth, abs) {
 }
 
 async function giveRandomDie(P, p, label) {
-  if (P.dice.length >= MAXDICE) {
-    UI.pop('Sac plein : +3', p.x, p.y - 20, { col: '#ffd84a', size: 1 });
+  const pool = ['dore', 'turbo', 'turbo', 'bis', 'bis', 'maudit', 'maudit', 'escargot', 'tpiege', 'tpiege', 'tpeage', 'tturbo'].filter(itemOn);
+  if (P.dice.length >= MAXDICE || !pool.length) {
+    UI.pop(pool.length ? 'Sac plein : +3' : '+3 pièces', p.x, p.y - 20, { col: '#ffd84a', size: 1 });
     gain(P, 3, p.x, p.y); UI.refresh(); await wait(spd(500)); return;
   }
-  const d = pick(['dore', 'turbo', 'turbo', 'bis', 'bis', 'maudit', 'maudit', 'escargot', 'tpiege', 'tpiege', 'tpeage', 'tturbo']);
+  const d = pick(pool);
   P.dice.push(d);
   UI.refresh();
   await UI.banner(`${label} : ${ITEM(d).nom} !`, ITEM(d).desc, { col: '#ffd84a', icon: d, dur: spd(1300) });
@@ -551,7 +575,9 @@ async function quake() {
 async function market() {
   SFX.play('market'); UI.hint('Marché ouvert');
   await UI.banner('MARCHÉ !', "Chacun peut acheter jusqu'à 2 objets", { col: '#ffd84a', dur: 1300 });
-  const offer = [...shuffle(Object.keys(TILES)).slice(0, 2), ...shuffle(['dore', 'turbo', 'bis', 'maudit', 'escargot', 'sortie']).slice(0, 3)];
+  const tiles = shuffle(Object.keys(TILES).filter(itemOn)).slice(0, 2);
+  const offer = [...tiles, ...shuffle(['dore', 'turbo', 'bis', 'maudit', 'escargot', 'sortie'].filter(itemOn)).slice(0, 5 - tiles.length)];
+  if (!offer.length) return;
   const order = G.players.slice().sort((a, b) => progress(a) - progress(b) || a.coins - b.coins);
   for (const P of order) {
     if (!G || G.over) return;
@@ -592,7 +618,7 @@ const AI = {
     let to, s = 0;
     if (from === -1) { if (!exit) return -1e9; to = 0; s += 42; if (!onTrack(P)) s += 25; }
     else if (from === FIN) return -1e9;
-    else to = v > 0 ? Math.min(FIN, from + v) : Math.max(0, from + v);
+    else { if (v > 0 && O().exact && from + v > FIN) return -1e9; to = v > 0 ? Math.min(FIN, from + v) : Math.max(0, from + v); }
     if (from >= 0 && to === from) return -1e9;
     if (to === FIN) return s + 100;
     s += (to - Math.max(0, from)) * .8;
@@ -606,7 +632,7 @@ const AI = {
       else if (sp === 'piege') s -= mine ? 0 : 14; else if (sp === 'turbo') s += 13;
       else if (sp === 'peage') s -= mine ? 0 : 12;
       else if (sp === 'portal') { let d = 1; while (d < 52 && G.specials[(abs + d) % 52] !== 'portal') d++; if (to + d <= LAST) s += d * .9; }
-      if (REFUGE.has(abs)) s += 6;
+      if (O().refuge && REFUGE.has(abs)) s += 6;
       if (safe) s += 8; else s -= this.danger(P, abs) * 13;
     }
     if (from >= 0 && from <= LAST) { const a = absOf(P.c, from); if (!SAFE.has(a)) s += this.danger(P, a) * 10; }

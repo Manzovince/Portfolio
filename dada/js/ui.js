@@ -34,12 +34,14 @@ const UI = {
     $('#btnPlay').onclick = () => { SFX.init(); this.startNew(); };
     $('#btnResume').onclick = () => { SFX.init(); this.resume(); };
     $('#btnRules').onclick = () => { SFX.init(); this.rules(); };
+    $('#btnOpts').onclick = () => { SFX.init(); SFX.play('select'); this.options(); };
     $('#btnRoll').onclick = () => this.onRoll();
     $('#btnPause').onclick = () => this.pause();
     $('#board').addEventListener('pointerdown', e => this.onBoardTap(e));
     window.addEventListener('resize', () => this.layout());
     document.addEventListener('pointerdown', () => SFX.init(), { once: true });
     this.updateResume();
+    this.optsTag();
   },
 
   // ---------- menu ----------
@@ -47,6 +49,7 @@ const UI = {
     let c = null;
     try { c = JSON.parse(localStorage.getItem(CFG_KEY)); } catch (e) { }
     this.cfg = Object.assign({ slots: ['human', 'ai', 'ai', 'ai'], pawns: 4, speed: 1, sound: true }, c || {});
+    this.cfg.opts = Object.assign({}, OPT_DEFAULT, this.cfg.opts || {});
     SFX.on = this.cfg.sound;
   },
   saveCfg() { try { localStorage.setItem(CFG_KEY, JSON.stringify(this.cfg)); } catch (e) { } },
@@ -111,14 +114,14 @@ const UI = {
   startNew() {
     if (this.cfg.slots.filter(s => s !== 'off').length < 2) return;
     Tw.clear();
-    G = newGame({ slots: this.cfg.slots.slice(), pawns: this.cfg.pawns, speed: this.cfg.speed });
+    G = newGame({ slots: this.cfg.slots.slice(), pawns: this.cfg.pawns, speed: this.cfg.speed, opts: JSON.parse(JSON.stringify(this.cfg.opts)) });
     this.enterGame();
     this.banner('À vos chevaux !', 'Fais 1 ou 6 pour sortir de l\'écurie', { col: '#ffd84a', dur: 1200 }).then(() => runGame());
   },
   resume() {
     const s = loadSave(); if (!s) return;
     Tw.clear();
-    G = s; G.sid = Math.random(); G.moves = null; G.placing = null; G.cfg.speed = this.cfg.speed;
+    G = s; G.cfg.opts = Object.assign({}, OPT_DEFAULT, G.cfg.opts || {}); G.sid = Math.random(); G.moves = null; G.placing = null; G.cfg.speed = this.cfg.speed;
     G.owners = G.owners || {}; G.nat = G.nat || []; G.tolls = G.tolls || {};
     this.enterGame();
     runGame();
@@ -185,8 +188,8 @@ const UI = {
       el.querySelector('.curse').innerHTML = P.curse ? `<img src="${PX.iconURL[P.curse]}" alt="">` : '';
       el.classList.toggle('active', G.players[G.cur] === P);
     }
-    const left = MARKET_EVERY - ((G.round - 1) % MARKET_EVERY);
-    $('#info').innerHTML = `Manche <b>${G.round}</b> · Marché ${left === 1 ? '<b>à la fin de la manche</b>' : `dans <b>${left}</b> manches`}`;
+    const every = O().market, left = every ? every - ((G.round - 1) % every) : 0;
+    $('#info').innerHTML = `Manche <b>${G.round}</b>` + (every ? ` · Marché ${left === 1 ? '<b>à la fin de la manche</b>' : `dans <b>${left}</b> manches`}` : '');
     const P = G.players[G.cur];
     this.renderInv(P);
   },
@@ -440,11 +443,60 @@ const UI = {
     });
   },
 
+  // ---------- game options ----------
+  options() {
+    const o = this.cfg.opts;
+    const seg = (key, choices) => `<div class="seg">${choices.map(([v, l]) => `<button data-k="${key}" data-v="${v}" class="${String(o[key]) === String(v) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+    const row = (label, ctl, sub = '') => `<div class="orow"><div><b>${label}</b>${sub ? `<small>${sub}</small>` : ''}</div>${ctl}</div>`;
+    const yn = key => seg(key, [[true, 'Oui'], [false, 'Non']]);
+    const chips = (key, list, img, name) => `<div class="chips">${list.map(k => `<button class="chip ${o[key].includes(k) ? 'on' : ''}" data-list="${key}" data-v="${k}"><img src="${img(k)}" alt=""><span>${name(k)}</span></button>`).join('')}</div>`;
+    const draw = () => {
+      const html = `<h2>Paramètres</h2>
+        <h3>Départ</h3>
+        ${row('Un cheval déjà en piste', yn('startOut'), 'Chaque joueur commence avec un cheval sur sa case de départ')}
+        ${row('Sortir de l\'écurie', seg('exit', [['16', '1 ou 6'], ['6', '6']]))}
+        ${row('Pièces de départ', seg('coins', [[0, '0'], [3, '3'], [6, '6'], [10, '10']]))}
+        <h3>Règles</h3>
+        ${row('Arrivée au nombre exact', yn('exact'))}
+        ${row('Capture = rejoue', yn('capReplay'))}
+        ${row('Refuges payants', yn('refuge'), '+1 en passant, +3 en s\'arrêtant')}
+        ${row('Marché', seg('market', [[0, 'Non'], [2, '2'], [3, '3'], [4, '4']]), 'Toutes les N manches')}
+        <h3>Cases mystère</h3>
+        ${row('Apparitions', seg('spawn', [['off', 'Aucune'], ['rare', 'Rares'], ['normal', 'Normales'], ['often', 'Souvent']]))}
+        ${chips('squares', Object.keys(NAT_WEIGHT), k => this.cellURL[k], k => SPECIALS[k].nom)}
+        <h3>Dés spéciaux</h3>
+        ${chips('items', Object.keys(DICE), k => PX.iconURL[k], k => DICE[k].nom.replace('Dé ', ''))}
+        <h3>Tuiles et objets</h3>
+        ${chips('items', [...Object.keys(TILES), 'sortie'], k => PX.iconURL[k], k => SHOP[k].nom.replace('Tuile ', ''))}
+        <div class="orow2"><button class="btn ghost" data-reset>Par défaut</button><button class="btn big" data-done>OK</button></div>`;
+      this.modal(html, el => {
+        el.querySelectorAll('.seg button').forEach(b => b.onclick = () => {
+          const k = b.dataset.k, v = b.dataset.v;
+          o[k] = v === 'true' ? true : v === 'false' ? false : /^\d+$/.test(v) && k !== 'exit' ? +v : v;
+          SFX.play('select'); this.saveCfg(); const st = el.scrollTop; draw(); $('#panel').scrollTop = st;
+        });
+        el.querySelectorAll('.chip').forEach(b => b.onclick = () => {
+          const list = o[b.dataset.list], v = b.dataset.v, i = list.indexOf(v);
+          if (i >= 0) list.splice(i, 1); else list.push(v);
+          SFX.play('select'); this.saveCfg(); const st = el.scrollTop; draw(); $('#panel').scrollTop = st;
+        });
+        el.querySelector('[data-reset]').onclick = () => { this.cfg.opts = JSON.parse(JSON.stringify(OPT_DEFAULT)); this.saveCfg(); this.options(); };
+        el.querySelector('[data-done]').onclick = () => { this.closeModal(); this.optsTag(); };
+      }, 'opts');
+    };
+    draw();
+  },
+  optsTag() {
+    const changed = JSON.stringify(this.cfg.opts) !== JSON.stringify(OPT_DEFAULT) &&
+      Object.keys(OPT_DEFAULT).some(k => JSON.stringify([].concat(this.cfg.opts[k]).sort()) !== JSON.stringify([].concat(OPT_DEFAULT[k]).sort()));
+    $('#optsTag').textContent = changed ? ' ★' : '';
+  },
   rules() {
     const sp = (t, txt) => `<li><img src="${this.cellURL[t]}" alt=""><span><b>${t === 'safe' ? 'Refuge' : SPECIALS[t].nom}</b> — ${txt}</span></li>`;
     const di = (k) => `<li><img src="${PX.iconURL[k]}" alt=""><span><b>${SHOP[k].nom}</b> — ${SHOP[k].desc}</span></li>`;
     this.modal(`<h2>Règles</h2>
       <p><b>But :</b> amener tous tes chevaux au centre du plateau.</p>
+      <p class="sub">Certaines règles se changent dans <b>Paramètres de partie</b>.</p>
       <p>Fais un <b>1</b> ou un <b>6</b> pour sortir un cheval de l'écurie. Un 6 te fait relancer (2 fois max). Si tu n'as aucun cheval en piste, tu as 3 essais.</p>
       <p>Le plateau commence <b>vide</b>. De temps en temps, entre deux manches, une lumière fait le tour du circuit et révèle une nouvelle case spéciale. Si elle tombe sur une case déjà spéciale, celle-ci est remplacée ! (Les plus anciennes finissent par disparaître, les tuiles des joueurs ne sont jamais touchées.)</p>
       <p>Tomber sur un cheval adverse le renvoie à l'écurie, te rapporte <b>3 pièces</b> et te fait <b>rejouer</b>. Pas besoin du nombre exact pour arriver : chaque cheval arrivé rapporte <b>4 pièces</b>.</p>
@@ -460,7 +512,7 @@ const UI = {
       ${['tpiege', 'tpeage', 'tturbo'].map(di).join('')}</ul>
       <h3>Dés spéciaux</h3><p>Un seul dé spécial par tour, à utiliser avant de lancer. Ton sac contient 4 objets (dés et tuiles).</p><ul class="lst">
       ${['dore', 'turbo', 'bis', 'maudit', 'escargot'].map(di).join('')}</ul>
-      <h3>Marché</h3><p>Toutes les ${MARKET_EVERY} manches, le marché ouvre pour tout le monde : chacun peut acheter jusqu'à 2 objets, en commençant par le joueur le plus en retard. On y trouve toujours des tuiles.</p>
+      <h3>Marché</h3><p>Toutes les ${O().market || 3} manches, le marché ouvre pour tout le monde : chacun peut acheter jusqu'à 2 objets, en commençant par le joueur le plus en retard. On y trouve toujours des tuiles.</p>
       <ul class="lst">${di('sortie')}</ul>
       <button class="btn big" data-x>Compris !</button>`, el => el.querySelector('[data-x]').onclick = () => this.closeModal(), 'rules');
   },

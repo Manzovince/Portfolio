@@ -235,3 +235,20 @@ img, canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 @media (min-width: 700px) {
   #game { max-width: 640px; margin: 0 auto; width: 100%; }
 }
+
+/* ---------- game options ---------- */
+.panel.opts { gap: 8px; }
+.orow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; font-size: 15px; color: #eee6ff; }
+.orow .seg { margin-left: auto; }
+.orow > div:first-child { display: flex; flex-direction: column; }
+.orow small { font-size: 12px; color: #b8a8e0; }
+.orow .seg { flex: 0 0 auto; }
+.orow .seg button { padding: 5px 9px; font-size: 14px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--font); font-size: 13px; display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px 4px 4px; border: 3px solid var(--ink); border-radius: 6px; background: #241c38; color: #8f80b8; cursor: pointer; }
+.chip img { width: 22px; height: 22px; filter: grayscale(1) brightness(.6); }
+.chip.on { background: #4a3a6a; color: #fff; box-shadow: 0 3px 0 var(--ink); }
+.chip.on img { filter: none; }
+.orow2 { display: flex; gap: 8px; margin-top: 6px; }
+.orow2 .btn { flex: 1; }
+#optsTag { color: var(--gold); }
