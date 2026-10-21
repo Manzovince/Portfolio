@@ -136,13 +136,14 @@ const UI = {
   layout() {
     const area = $('#boardArea');
     if (!area || $('#game').classList.contains('hidden')) return;
-    const w = area.clientWidth - 8, h = area.clientHeight - 4;
+    const w = area.clientWidth, h = area.clientHeight - 2;
     const dpr = window.devicePixelRatio || 1;
     let css = Math.max(120, Math.min(w, h, 720));
-    // Prefer whole device-pixel scales for crisp pixels, unless that wastes too much room.
+    // On low-density screens snap to whole pixel scales so the art stays even;
+    // from 2x up the unevenness is invisible, so use every pixel of width.
     const sc = Math.floor(css * dpr / BW);
-    if (sc >= 1 && sc * BW / dpr >= css * .9) css = sc * BW / dpr;
-    else css = Math.floor(css);
+    if (dpr < 2 && sc >= 1 && sc * BW / dpr >= css * .9) css = sc * BW / dpr;
+    else css = Math.floor(css * dpr) / dpr;
     const cv = $('#board'), wrap = $('#boardWrap');
     cv.style.width = cv.style.height = css + 'px';
     wrap.style.width = wrap.style.height = css + 'px';
