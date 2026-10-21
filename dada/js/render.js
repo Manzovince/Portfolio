@@ -136,8 +136,8 @@ const R = {
   async roll(faces) {
     // faces: [{val, kind}]  — tumbles then lands on the given values
     const n = faces.length;
-    const xs = n === 1 ? [120] : [109, 131];
-    this.dice = faces.map((f, i) => ({ val: d6(), final: f.val, kind: f.kind, x: xs[i], y: 120, oy: -60, sq: 1, glow: 0 }));
+    const xs = n === 1 ? [117] : [104, 129];
+    this.dice = faces.map((f, i) => ({ val: d6(), final: f.val, kind: f.kind, x: xs[i], y: 115, oy: -60, sq: 1, glow: 0 }));
     SFX.play('whoosh');
     let last = 0;
     await Tw.add(620, k => {
@@ -151,7 +151,7 @@ const R = {
     });
     for (const d of this.dice) { d.val = d.final; d.oy = 0; d.sq = 1; d.glow = Math.abs(d.final) === 6 ? 1 : 0; }
     SFX.play('dice'); this.addShake(2);
-    for (const d of this.dice) this.burst(d.x + 8, d.y + 14, 6, ['#ffffff', '#ffe48a'], 1.2, .05, 20, 1);
+    for (const d of this.dice) this.burst(d.x + 11, d.y + 20, 8, ['#ffffff', '#ffe48a'], 1.2, .05, 20, 1);
     await Tw.add(160, k => { for (const d of this.dice) d.sq = 1 + Math.sin(k * Math.PI) * .25; });
   },
   hideDice() { this.dice = null; UI.rollFaces = null; if (G) UI.renderInv(G.players[G.cur]); },
@@ -211,16 +211,16 @@ const R = {
     if (this.dice) {
       for (const d of this.dice) {
         x.fillStyle = 'rgba(26,28,44,.35)';
-        const sw = Math.max(6, 14 + d.oy / 4);
-        x.fillRect(Math.round(d.x + 8 - sw / 2), d.y + 15, Math.round(sw), 2);
+        const sw = Math.max(8, 20 + d.oy / 4);
+        x.fillRect(Math.round(d.x + 11 - sw / 2), d.y + 22, Math.round(sw), 2);
         if (d.glow) {
           const g = Math.floor(t / 120) % 2 ? '#fff6a0' : '#ffd84a';
-          x.fillStyle = g; x.fillRect(d.x - 2, d.y - 2 + d.oy, 20, 20);
+          x.fillStyle = g; x.fillRect(d.x - 2, d.y - 2 + d.oy, 27, 27);
         }
         x.save();
-        const cx = d.x + 8, by = d.y + 16 + d.oy;
+        const cx = d.x + 11, by = d.y + 23 + d.oy;
         x.translate(cx, by); x.scale(2 - d.sq, d.sq); x.translate(-cx, -by);
-        drawDie(x, d.x, d.y + d.oy, d.val || 1, d.kind);
+        drawDie(x, d.x, d.y + d.oy, d.val || 1, d.kind, 23);
         x.restore();
       }
     }

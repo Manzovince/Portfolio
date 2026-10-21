@@ -201,14 +201,19 @@ function drawDieBody(ctx, x, y, s, sch) {
   ctx.fillStyle = sch.body;
   ctx.fillRect(x + 2, y + 1, s - 4, s - 4); ctx.fillRect(x + 1, y + 2, s - 2, s - 5);
   ctx.fillStyle = 'rgba(255,255,255,.55)';
-  ctx.fillRect(x + 2, y + 2, 2, 1);
+  ctx.fillRect(x + 2, y + 2, s > 16 ? 3 : 2, 1);
 }
-function drawDie(ctx, x, y, val, kind = 'normal') {
+// size 16 (icons) or 23 (the big die on the board): 3x3 pips on a 5/10/15 grid
+const BIG = { 4: 5, 7: 10, 10: 15 };
+function drawDie(ctx, x, y, val, kind = 'normal', size = 16) {
   const sch = DIE_SCHEMES[kind] || DIE_SCHEMES.normal;
   x = Math.round(x); y = Math.round(y);
-  drawDieBody(ctx, x, y, 16, sch);
+  drawDieBody(ctx, x, y, size, sch);
   ctx.fillStyle = sch.pip;
-  for (const [px, py] of PIPS[Math.abs(val)] || []) ctx.fillRect(x + px, y + py - 1, 2, 2);
+  for (const [px, py] of PIPS[Math.abs(val)] || []) {
+    if (size === 16) ctx.fillRect(x + px, y + py - 1, 2, 2);
+    else ctx.fillRect(x + BIG[px], y + BIG[py] - 2, 3, 3);
+  }
   if (val < 0) { ctx.fillStyle = sch.pip; ctx.fillRect(x - 5, y + 6, 4, 2); }
 }
 function drawSymbol(ctx, rows, x, y, col) {
