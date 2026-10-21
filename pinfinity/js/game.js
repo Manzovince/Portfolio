@@ -10,7 +10,7 @@ const ctx = cv.getContext('2d');
 const lo = document.createElement('canvas');
 const g = lo.getContext('2d');
 const safeProbe = document.getElementById('safe');
-const HUDH = 28;
+const HUDH = 28, BARH = 30;
 let VW = 180, VH = 380, SC = 2, DPR = 1, BX = 0, BY = HUDH, TOP = 0, BOT = 0;
 
 const MAXV = 1050, SUBSTEPS = 10;
@@ -45,7 +45,7 @@ function resize() {
   const standalone = navigator.standalone || matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
   if (standalone && st < 20 && /iPhone|iPad|iPod/.test(navigator.userAgent)) st = Math.max(window.screen.height, window.screen.width) >= 812 ? 54 : 20;
   lastSafe = cs.paddingTop + '|' + cs.paddingBottom + '|' + cw + 'x' + ch;
-  const needH = HUDH + 334;
+  const needH = HUDH + 332 + BARH;
   SC = Math.min(cw / W, (ch - st - sb) / needH);
   VW = Math.ceil(cw / SC); VH = Math.ceil(ch / SC);
   lo.width = VW; lo.height = VH;
@@ -1392,14 +1392,16 @@ function drawEffects(G) {
   }
 }
 
+function barTop() { return BY + 332; }
 function hudButtons() {
   const R = Math.min(VW - 3, BX + W - 2);
-  const y = TOP + 4;
+  const y = TOP + 4, by = barTop() + 4, cx = Math.floor(VW / 2);
   return {
     pause: { x: R - 15, y, w: 15, h: 18 },
-    slots: [{ x: R - 15 - 42, y, w: 19, h: 18 }, { x: R - 15 - 21, y, w: 19, h: 18 }],
+    slots: [{ x: cx - 61, y: by, w: 58, h: 22 }, { x: cx + 3, y: by, w: 58, h: 22 }],
   };
 }
+const ITEM_SHORT = { multi: 'MULTI', magnet: 'MAGNET', giant: 'GIANT', slow: 'SLOW-MO', shield: 'SHIELD', fire: 'FIRE', coinrain: 'COINS', saver: 'GUARD' };
 
 function drawHUD(G) {
   const T = G.board.theme;
@@ -1418,7 +1420,7 @@ function drawHUD(G) {
   const c = G.combo;
   const hb = hudButtons();
   if (c.n >= 2) {
-    const cx = Math.round((x + hb.slots[0].x) / 2) + 6;
+    const cx = Math.round((x + hb.pause.x) / 2) + 4;
     const sc = c.punch > .5 ? 2 : 1;
     const col = comboCol(c.n);
     drawText(g, 'COMBO', cx, y0 + 4, col, 1, 'c', '#000');
@@ -1427,27 +1429,36 @@ function drawHUD(G) {
     g.fillStyle = '#222'; g.fillRect(cx - bw / 2, y0 + 23, bw, 2);
     g.fillStyle = col; g.fillRect(cx - bw / 2, y0 + 23, Math.round(bw * clamp(c.t / 2.2, 0, 1)), 2);
   }
-  // item slots
-  hb.slots.forEach((s, i) => {
-    const it = G.items[i];
-    g.fillStyle = '#000'; g.fillRect(s.x - 1, s.y - 1, s.w + 2, s.h + 2);
-    g.fillStyle = it ? '#2a1838' : '#140c1c'; g.fillRect(s.x, s.y, s.w, s.h);
-    g.fillStyle = it ? ITEM_INFO[it].col : '#3a2a48'; g.fillRect(s.x, s.y, s.w, 1);
-    if (it) {
-      const bob = Math.round(Math.sin(G.rt * 4 + i) * .7);
-      g.drawImage(iconCanvas(it, 2), s.x + 2, s.y + 1 + bob);
-      if (Math.floor(G.rt * 3 + i) % 4 === 0) { g.fillStyle = '#fff'; g.fillRect(s.x + 2, s.y + 2, 1, 1); }
-    } else drawText(g, '+', s.x + 10, s.y + 7, '#3a2a48', 1, 'c', null);
-    drawText(g, String(i + 1), s.x + 1, s.y + 12, '#6a5a78', 1, 'l', null);
-  });
   const p = hb.pause;
   g.fillStyle = '#000'; g.fillRect(p.x - 1, p.y - 1, p.w + 2, p.h + 2);
   g.fillStyle = '#140c1c'; g.fillRect(p.x, p.y, p.w, p.h);
   g.fillStyle = '#fff'; g.fillRect(p.x + 4, p.y + 5, 2, 8); g.fillRect(p.x + 9, p.y + 5, 2, 8);
 }
 
+function drawItemBar(G) {
+  const T = G.board.theme, y0 = barTop();
+  g.fillStyle = '#0b0712'; g.fillRect(0, y0, VW, VH - y0);
+  g.fillStyle = '#000'; g.fillRect(0, y0, VW, 1);
+  g.fillStyle = T.a1lo; g.fillRect(0, y0 + 1, VW, 1);
+  hudButtons().slots.forEach((s, i) => {
+    const it = G.items[i];
+    const ready = it && Math.floor(G.rt * 2 + i) % 2 === 0;
+    g.fillStyle = '#000'; g.fillRect(s.x - 1, s.y - 1, s.w + 2, s.h + 3);
+    g.fillStyle = it ? '#2a1838' : '#140c1c'; g.fillRect(s.x, s.y, s.w, s.h);
+    g.fillStyle = it ? ITEM_INFO[it].col : '#3a2a48'; g.fillRect(s.x, s.y, s.w, 1);
+    if (it && ready) { g.fillStyle = ITEM_INFO[it].col; g.fillRect(s.x, s.y + s.h - 1, s.w, 1); }
+    if (it) {
+      const bob = Math.round(Math.sin(G.rt * 4 + i) * .7);
+      g.drawImage(iconCanvas(it, 2), s.x + 3, s.y + 3 + bob);
+      drawText(g, ITEM_SHORT[it], s.x + 22, s.y + 6, '#fff', 1, 'l', '#000');
+      drawText(g, 'TAP', s.x + 22, s.y + 13, ITEM_INFO[it].col, 1, 'l', null);
+    } else drawText(g, 'EMPTY', s.x + s.w / 2, s.y + 9, '#3a2a48', 1, 'c', null);
+  });
+}
+
 function drawBottom(G) {
-  const top = BY + 336;
+  drawItemBar(G);
+  const top = barTop() + BARH;
   const space = VH - BOT - top;
   if (space < 26) return;
   const cy = top + Math.floor(space / 2);
@@ -1666,6 +1677,10 @@ cv.addEventListener('pointerdown', e => {
   if (y < TOP + HUDH + 2) {
     const hb = hudButtons();
     if (inRect(x, y, hb.pause)) { pauseGame(); Sfx.ui(); return; }
+    return;
+  }
+  if (y >= barTop()) {
+    const hb = hudButtons();
     for (let i = 0; i < 2; i++) if (inRect(x, y, hb.slots[i])) { useItem(G, i); return; }
     return;
   }
