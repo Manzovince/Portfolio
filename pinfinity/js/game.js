@@ -21,7 +21,7 @@ const save = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}') || {}; } catch (e) { s = {}; }
   const d = Object.assign({ best: 0, coins: 0, deepest: 0, boards: 0, games: 0, tricks: 0, sfx: true, music: true, haptics: true }, s);
-  d.upg = Object.assign({ balls: 0, save: 0, start: 0, luck: 0 }, s.upg || {});
+  d.upg = Object.assign({ balls: 0, save: 0, start: 0, luck: 0, kick: 0 }, s.upg || {});
   return d;
 })();
 function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) { /* private mode */ } }
@@ -31,6 +31,7 @@ const UPGRADES = [
   { k: 'save', name: 'BALL SAVER', desc: '+3 SEC BALL SAVE', costs: [60, 160, 340] },
   { k: 'start', name: 'STARTER KIT', desc: 'START WITH AN ITEM', costs: [120, 320] },
   { k: 'luck', name: 'LUCKY CHARM', desc: 'MORE ITEM DROPS', costs: [100, 260, 520] },
+  { k: 'kick', name: 'KICKBACKS', desc: 'RELIT ON EVERY NEW BALL', costs: [90, 240] },
 ];
 
 // ---- layout ------------------------------------------------------------------
@@ -38,7 +39,12 @@ function resize() {
   DPR = Math.min(3, window.devicePixelRatio || 1);
   const cw = window.innerWidth, ch = window.innerHeight;
   const cs = getComputedStyle(safeProbe);
-  const st = parseFloat(cs.paddingTop) || 0, sb = parseFloat(cs.paddingBottom) || 0;
+  let st = parseFloat(cs.paddingTop) || 0;
+  const sb = parseFloat(cs.paddingBottom) || 0;
+  // home-screen apps draw under the status bar; if env() hasn't reported it yet, reserve it anyway
+  const standalone = navigator.standalone || matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
+  if (standalone && st < 20 && /iPhone|iPad|iPod/.test(navigator.userAgent)) st = Math.max(window.screen.height, window.screen.width) >= 812 ? 54 : 20;
+  lastSafe = cs.paddingTop + '|' + cs.paddingBottom + '|' + cw + 'x' + ch;
   const needH = HUDH + 334;
   SC = Math.min(cw / W, (ch - st - sb) / needH);
   VW = Math.ceil(cw / SC); VH = Math.ceil(ch / SC);
@@ -50,7 +56,13 @@ function resize() {
   const spare = VH - TOP - BOT - needH;
   BY = TOP + HUDH + Math.max(0, Math.min(10, Math.floor(spare * .2)));
 }
+let lastSafe = '';
 window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 300));
+setInterval(() => {
+  const cs = getComputedStyle(safeProbe);
+  if (cs.paddingTop + '|' + cs.paddingBottom + '|' + window.innerWidth + 'x' + window.innerHeight !== lastSafe) resize();
+}, 500);
 resize();
 
 // ---- game objects -------------------------------------------------------------
@@ -72,6 +84,7 @@ function newGame(ai = false) {
     particles: [], popups: [], banners: [], shake: 0, sx: 0, sy: 0, hitstop: 0, flash: 0, flashCol: '#fff',
     trans: null, deepest: 0, boardsSeen: 0, continues: 0, tricksDone: 0,
     frenzy: [], lastRamp: -9, cool: {}, coinStreak: 0, coinT: 0, pendingCannon: 0, pendingOver: 0, multiQ: 0, multiT: 0,
+    kick: { L: true, R: true, flash: { L: 0, R: 0 } },
     aiHold: { L: 0, R: 0 }, aiRest: { L: 0, R: 0 }, aiCool: { L: 0, R: 0 }, aiT: 0, lockMsgT: 0, skillLane: -1, dropT: -9,
   };
   G.board = getBoard(G, 0, 0);
@@ -168,6 +181,7 @@ function toCannon(G, fresh) {
   b.mode = 'cannon';
   G.balls.push(b);
   Object.assign(G.cannon, { active: true, ball: b, t: Math.random() * 3, charge: 0, charging: false, fresh });
+  if (fresh && save.upg.kick && !G.ai && G.time > 1) { if (save.upg.kick >= 1) G.kick.L = true; if (save.upg.kick >= 2) G.kick.R = true; }
   G.skillLane = G.board.lanes.length ? Math.floor(Math.random() * G.board.lanes.length) : -1;
   G.aiT = 0;
 }
@@ -179,7 +193,7 @@ function fireCannon(G, power = null, ang = null) {
   const a = ang != null ? ang : c.ang;
   const spd = 560 + 380 * p;
   b.vx = Math.sin(a) * spd; b.vy = -Math.cos(a) * spd;
-  b.mode = 'free'; b.fromCannon = 2.6;
+  b.mode = 'free'; b.fromCannon = 2.6; b.ghost = .3;
   c.active = false; c.ball = null; c.recoil = 1; c.charging = false; c.hint = false;
   if (c.fresh) G.ballSave = Math.max(G.ballSave, 6 + 3 * save.upg.save);
   sfx(G, 'launch', p); shake(G, 2 + p * 3); buzz(G, 30);
@@ -450,6 +464,7 @@ function bankDone(G, bank) {
   bank.clears++;
   bank.resetT = 1.4;
   if (Math.random() < .3 + .1 * save.upg.luck) spawnCapsule(G, bank.x - bank.fx * 16, bank.y - bank.fy * 16);
+  armKick(G, !G.kick.L ? 'L' : 'R', 'BANK BONUS');
   checkExits(G);
 }
 
@@ -458,6 +473,27 @@ function spawnCapsule(G, x, y) {
   G.board.pickups.push({ kind: 'item', x, y, item: ITEM_KEYS[Math.floor(Math.random() * ITEM_KEYS.length)], t: 0, life: 15, taken: false });
   burst(G, x, y, 14, ['#fff', '#ff5bd1', '#7af2ff'], 90);
   popup(G, x, y - 10, 'ITEM!', '#ff5bd1');
+}
+
+function armKick(G, side, why) {
+  const sides = side ? [side] : ['L', 'R'];
+  const fresh = sides.filter(k => !G.kick[k]);
+  if (!fresh.length) return;
+  for (const k of fresh) { G.kick[k] = true; G.kick.flash[k] = 1.5; }
+  banner(G, fresh.length === 2 ? 'KICKBACKS LIT' : (fresh[0] === 'L' ? 'LEFT' : 'RIGHT') + ' KICKBACK LIT', why || 'OUTLANE GUARDED', '#4cff7a', 2, 1.1);
+  sfx(G, 'unlock');
+}
+function kickSensor(G, b) {
+  if (b.y < 262 || b.y > 322 || b.vy < -100) return;
+  const k = b.x < 22 ? 'L' : b.x > 158 ? 'R' : null;
+  if (!k || !G.kick[k]) return;
+  G.kick[k] = false; G.kick.flash[k] = 1;
+  b.vy = -760 - Math.random() * 60; b.vx = k === 'L' ? 25 : -25;
+  addScore(G, 500, b.x, b.y - 10, '#4cff7a', true);
+  banner(G, 'KICKBACK!', 'SAVED BY THE OUTLANE', '#4cff7a', 2, 1);
+  sfx(G, 'kick'); sfx(G, 'launch', .8); shake(G, 4); buzz(G, 40);
+  burst(G, b.x, b.y, 16, ['#4cff7a', '#fff', '#ffd93b'], 120, 60, .5);
+  G.hitstop = Math.max(G.hitstop, .05);
 }
 
 function laneHit(G, b, i) {
@@ -477,6 +513,7 @@ function laneHit(G, b, i) {
     banner(G, `MULTIPLIER ${G.mult}X`, 'LANES +' + fmtScore(p), B.theme.a3hi, 2, 1.3);
     sfx(G, 'bank');
     for (const q of B.lanes) { q.lit = false; q.flash = 1.5; }
+    armKick(G, null, 'LANES BONUS');
     checkExits(G);
   }
 }
@@ -508,6 +545,7 @@ function updateTube(G, b, dt) {
     b.x = p[0]; b.y = p[1]; b.vx = p[2] * v; b.vy = p[3] * v;
     b.mode = 'free'; b.tube = null; b.z = 0;
     rp.count++; B.stats.ramp++;
+    if (!G.kick[rp.side]) armKick(G, rp.side, 'RAMP BONUS');
     const pts = addScore(G, 1200, p[0], p[1] - 14, B.theme.rampHi, true);
     banner(G, 'RAMP!', '+' + fmtScore(pts), B.theme.rampHi, 2, .9);
     sfx(G, 'rampOut'); shake(G, 2);
@@ -624,7 +662,7 @@ function physStep(G, h) {
       const d = Math.sqrt(d2) || 1e-4;
       contact(G, b, dx / d, dy / d, R - d, c.vx, c.vy, c.e, c.kind, c.ref || c);
     }
-    for (const f of G.flips) capsuleCollide(G, b, f.px, f.py, f.ang, f.len, f.r0, f.r1, f.omega, .28, 'flipper', f);
+    if (!(b.ghost > 0)) for (const f of G.flips) capsuleCollide(G, b, f.px, f.py, f.ang, f.len, f.r0, f.r1, f.omega, .28, 'flipper', f);
     for (const w of B.windmills) {
       capsuleCollide(G, b, w.x, w.y, w.ang, w.len, 2.5, 2.5, w.w, .5, 'windmill', w);
       capsuleCollide(G, b, w.x, w.y, w.ang + Math.PI, w.len, 2.5, 2.5, w.w, .5, 'windmill', w);
@@ -633,6 +671,7 @@ function physStep(G, h) {
     const sp = Math.hypot(b.vx, b.vy);
     if (sp > MAXV) { b.vx *= MAXV / sp; b.vy *= MAXV / sp; }
     sensors(G, b, h);
+    if (b.mode === 'free') kickSensor(G, b);
   }
   // ball-ball
   const bs = G.balls;
@@ -681,6 +720,7 @@ function sensors(G, b, h) {
       b.mode = 'saucer'; b.x = s.x; b.y = s.y; b.vx = b.vy = 0;
       s.ball = b; s.hold = 1.1; s.flash = 1;
       B.stats.saucer++;
+      armKick(G, !G.kick.L ? 'L' : 'R', 'SAUCER BONUS');
       addScore(G, 500, s.x, s.y - 10, B.theme.a3hi);
       addCombo(G);
       sfx(G, 'saucer'); shake(G, 2);
@@ -769,7 +809,7 @@ function update(G, dt) {
       G.multiQ--; G.multiT = .35;
       const b = mkBall(CANNON.x, CANNON.y - 2);
       const a = (Math.random() - .5) * .8, s = 650 + Math.random() * 200;
-      b.vx = Math.sin(a) * s; b.vy = -Math.cos(a) * s;
+      b.vx = Math.sin(a) * s; b.vy = -Math.cos(a) * s; b.ghost = .3;
       G.balls.push(b);
       sfx(G, 'launch', .6); shake(G, 3); c.recoil = 1;
       burst(G, CANNON.x, CANNON.y - 4, 10, ['#ddd', '#fff'], 80, -30, .4);
@@ -784,6 +824,7 @@ function update(G, dt) {
   // balls: tubes, timers, trail, cradle, stuck
   for (const b of G.balls) {
     b.portalCool = Math.max(0, b.portalCool - sdt);
+    if (b.ghost > 0) b.ghost -= sdt;
     b.fromCannon = Math.max(0, b.fromCannon - sdt);
     const targetR = G.fx.giant > 0 ? 5.5 : 4;
     b.r += (targetR - b.r) * Math.min(1, dt * 6);
@@ -816,6 +857,7 @@ function update(G, dt) {
   for (const bm of B.bumpers) { bm.flash = Math.max(0, bm.flash - dt * 5); bm.squash = Math.max(0, bm.squash - dt * 9); bm.cool -= sdt; }
   for (const m of B.movers) { m.flash = Math.max(0, (m.flash || 0) - dt * 5); m.squash = Math.max(0, (m.squash || 0) - dt * 9); m.cool = (m.cool || 0) - sdt; }
   for (const s of B.slings) { s.flash = Math.max(0, s.flash - dt * 6); s.cool = (s.cool || 0) - sdt; }
+  for (const k of ['L', 'R']) G.kick.flash[k] = Math.max(0, G.kick.flash[k] - dt);
   for (const l of B.lanes) l.flash = Math.max(0, l.flash - dt * 2);
   for (const rp of B.ramps) rp.flash = Math.max(0, rp.flash - dt * 2);
   for (const e of B.exits) { e.flash = Math.max(0, (e.flash || 0) - dt * 3); e.anim += dt; }
@@ -1105,6 +1147,18 @@ function drawBoardDynamic(G, B, live) {
   }
   // cannon
   drawCannon(G, T, live);
+  // kickback lights in the outlanes
+  if (live) for (const k of ['L', 'R']) {
+    const x = k === 'L' ? 15 : 165, on = G.kick[k], fl = G.kick.flash[k];
+    const blink = fl > 0 && Math.floor(t * 12) % 2;
+    for (let i = 0; i < 3; i++) {
+      const y = 296 - i * 8 - (on ? Math.round((t * 16) % 8) : 0);
+      g.fillStyle = T.out; pxPoly(g, [[x, y - 4], [x + 4, y + 1], [x - 4, y + 1]]);
+      g.fillStyle = on ? (blink ? '#fff' : (i === 0 ? '#4cff7a' : '#2a9a4a')) : '#2a2030';
+      pxPoly(g, [[x, y - 3], [x + 3, y], [x - 3, y]]);
+    }
+    if (on) { g.fillStyle = `rgba(76,255,122,${.25 + .15 * Math.sin(t * 6)})`; g.fillRect(x - 5, 306, 11, 3); g.fillStyle = '#4cff7a'; g.fillRect(x - 5, 307, 11, 1); }
+  }
   // ball save light
   if (live && G.ballSave > 0 && (G.ballSave > 2 || Math.floor(t * 8) % 2)) drawText(g, 'SAVE', 90, 328, '#4cff7a', 1, 'c', T.out);
 }
@@ -1616,15 +1670,16 @@ cv.addEventListener('pointerdown', e => {
     return;
   }
   try { cv.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
-  const side = x < VW / 2 ? 'L' : 'R';
+  const launching = G.cannon.active && !G.balls.some(b => b.mode === 'free' || b.mode === 'tube' || b.mode === 'saucer');
+  const side = launching ? 'launch' : x < VW / 2 ? 'L' : 'R';
   pointers.set(e.pointerId, { side, x0: e.clientX, y0: e.clientY, t0: performance.now(), nudged: false });
   updateFlippersFromPointers();
-  if (G.cannon.active && !G.cannon.charging) { G.cannon.charging = true; G.cannon.charge = 0; }
+  if (launching && !G.cannon.charging) { G.cannon.charging = true; G.cannon.charge = 0; }
 }, { passive: false });
 
 cv.addEventListener('pointermove', e => {
   const p = pointers.get(e.pointerId);
-  if (!p || mode !== 'play') return;
+  if (!p || mode !== 'play' || p.side === 'launch') return;
   if (!p.nudged && p.y0 - e.clientY > 38 && performance.now() - p.t0 < 300) { p.nudged = true; nudge(G); }
 });
 
@@ -1639,7 +1694,7 @@ function endPointer(e) {
   if (!pointers.has(e.pointerId)) return;
   pointers.delete(e.pointerId);
   updateFlippersFromPointers();
-  if (G.cannon.active && G.cannon.charging && pointers.size === 0 && !keys.space) fireCannon(G);
+  if (G.cannon.active && G.cannon.charging && ![...pointers.values()].some(p => p.side === 'launch') && !keys.space) fireCannon(G);
 }
 cv.addEventListener('pointerup', endPointer);
 cv.addEventListener('pointercancel', e => { pointers.delete(e.pointerId); if (mode === 'play') updateFlippersFromPointers(); });
