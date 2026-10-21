@@ -290,6 +290,8 @@ const SFX = {
       case 'curse': this.tone(110, .5, { type: 'sawtooth', slide: -50, v: .1 }); this.tone(116, .5, { type: 'sawtooth', slide: -50, v: .08 }); break;
       case 'roulette': this.tone(700 + x * 30, .03, { v: .05 }); break;
       case 'whoosh': this.noise(.2, { v: .15, f: 2500 }); break;
+      case 'chase': this.tone(700 + x * 500, .035, { v: .05, type: 'square' }); break;
+      case 'ding': this.seq([1319, 1568, 2093], .06, { type: 'triangle', v: .12 }); break;
       case 'spawn': this.seq([392, 523, 784, 659, 1047], .05, { type: 'triangle', v: .1 }); break;
       case 'place': this.noise(.1, { v: .25, f: 600 }); this.tone(180, .15, { type: 'triangle', v: .25 }); this.tone(660, .1, { v: .06, at: .08 }); break;
       case 'buy': this.seq([659, 988, 1319], .05, { v: .08 }); break;

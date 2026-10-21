@@ -20,7 +20,7 @@ const CHANCE = [
 
 // The board starts plain. Each new round a few special squares appear on free
 // squares; past NAT_MAX the oldest natural ones vanish. Players add tiles on top.
-const NAT_MAX = 18;
+const NAT_MAX = 12;
 const NAT_POOL = ['coin', 'coin', 'coin', 'chance', 'chance', 'coffre', 'coffre', 'turbo', 'piege', 'portal'];
 function freeSquares() {
   const busy = new Set();
@@ -36,31 +36,52 @@ function setSquare(a, type, owner) {
 function clearSquare(a) { delete G.specials[a]; delete G.owners[a]; }
 const rebuild = () => R.buildBase(G.specials, G.owners);
 
-async function spawnSpecials(n) {
-  const free = shuffle(freeSquares()), added = [];
-  for (let i = 0; i < n && free.length; i++) {
-    let t = pick(NAT_POOL);
-    if (t === 'portal' && free.length < 2) t = 'coin';
-    const a = free.pop(); setSquare(a, t); added.push(a); G.nat.push(a);
-    // portals come in pairs so they always lead somewhere
-    if (t === 'portal') { const b = free.pop(); setSquare(b, 'portal'); added.push(b); G.nat.push(b); }
-  }
-  const gone = [];
-  while (G.nat.length > NAT_MAX) { const a = G.nat.shift(); if (G.specials[a] && G.owners[a] == null) { clearSquare(a); gone.push(a); } }
-  for (const a of gone) { const [cx, cy] = TRACK[a], p = cellPx(cx, cy); R.burst(p.x, p.y, 8, ['#ffffff', '#cdbff0'], 1.2); }
-  if (!added.length) return;
+// Casino-style reveal: a light chases round the circuit, slows down and stops on
+// a free square, then the square's type spins like a slot machine.
+async function revealSquare() {
+  const free = freeSquares();
+  if (!free.length) return;
+  const target = pick(free), type = pick(NAT_POOL);
   if (!G.spawnedOnce) {
     G.spawnedOnce = true;
-    await UI.banner('Des cases apparaissent !', 'Chaque manche, de nouvelles cases spéciales surgissent', { col: '#b48cff', dur: 1500 });
+    await UI.banner('Case mystère !', 'De temps en temps, une case spéciale apparaît', { col: '#ffd84a', dur: 1400 });
   }
-  SFX.play('spawn');
+  UI.hint('Une case spéciale va apparaître…');
+  const start = rnd(52), steps = 52 + (target - start + 52) % 52 + (rnd(2) ? 0 : 26);
+  const rv = R.reveal = { pos: start, trail: [], target, type: null, flash: false };
+  let last = -1;
+  SFX.play('whoosh');
+  await Tw.add(3000, k => {
+    const n = Math.round((1 - Math.pow(1 - k, 3)) * steps);
+    if (n === last) return;
+    last = n;
+    rv.trail.push(rv.pos); if (rv.trail.length > 7) rv.trail.shift();
+    rv.pos = (start + n) % 52;
+    SFX.play('chase', n / steps);
+  });
+  rv.trail = []; rv.flash = true;
+  SFX.play('ding'); R.addShake(2);
+  // the type spins in the lit square
+  const kinds = ['coin', 'chance', 'coffre', 'turbo', 'piege', 'portal'];
+  for (let i = 0; i < 12; i++) {
+    rv.type = i === 11 ? type : kinds[(kinds.indexOf(rv.type) + 1 + rnd(kinds.length - 1)) % kinds.length];
+    SFX.play('roulette', i);
+    await wait(50 + i * i * 2.5);
+  }
+  setSquare(target, type); G.nat.push(target);
+  while (G.nat.length > NAT_MAX) {
+    const a = G.nat.shift();
+    if (G.specials[a] && G.owners[a] == null) { clearSquare(a); const [cx, cy] = TRACK[a], p = cellPx(cx, cy); R.burst(p.x, p.y, 8, ['#ffffff', '#cdbff0'], 1.2); }
+  }
+  R.reveal = null;
   rebuild();
-  for (const a of added) {
-    const [cx, cy] = TRACK[a], p = cellPx(cx, cy);
-    R.ring(p.x, p.y, '#ffffff'); R.burst(p.x, p.y, 10, [SPECIALS[G.specials[a]].fill, '#ffffff'], 1.6);
-    UI.pop(SPECIALS[G.specials[a]].nom, p.x, p.y - 10, { col: SPECIALS[G.specials[a]].fill, size: 1 });
-  }
-  await wait(700);
+  const [cx, cy] = TRACK[target], p = cellPx(cx, cy);
+  SFX.play('spawn');
+  R.ring(p.x, p.y, '#ffd84a'); R.ring(p.x, p.y, '#ffffff');
+  R.burst(p.x, p.y, 24, [SPECIALS[type].fill, '#ffd84a', '#ffffff'], 2.2);
+  UI.pop(SPECIALS[type].nom + ' !', p.x, p.y - 12, { col: SPECIALS[type].fill, size: 2 });
+  await wait(900);
+  UI.hint('');
 }
 
 // Squares where a tile may be placed.
@@ -126,8 +147,13 @@ async function runGame() {
     if (G.cur === 0) {
       G.round++;
       if ((G.round - 1) % MARKET_EVERY === 0) G.marketDue = true;
-      await spawnSpecials(G.round === 2 ? 4 : 2);
-      if (!alive()) return;
+      // only some rounds: always the first time, never three dry rounds in a row
+      G.dry = (G.dry || 0) + 1;
+      if (G.round === 2 || G.dry >= 3 || Math.random() < .35) {
+        G.dry = 0;
+        await revealSquare();
+        if (!alive()) return;
+      }
     }
   }
   if (alive() && G.over) await victory();

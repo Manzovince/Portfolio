@@ -197,6 +197,7 @@ const R = {
           x.fillRect(bx, by + 16, 4, 1); x.fillRect(bx, by + 13, 1, 4); x.fillRect(bx + 13, by + 16, 4, 1); x.fillRect(bx + 16, by + 13, 1, 4);
         }
       }
+      if (this.reveal) this.drawReveal(x, t);
       if (G.placing) {
         const blink = .25 + .25 * Math.sin(t / 120);
         for (const a of G.placing) {
@@ -254,6 +255,32 @@ const R = {
     } else if (this.shake) { this.shake = 0; this.cv.style.transform = ''; }
   },
 
+  drawReveal(x, t) {
+    const rv = this.reveal;
+    // dim the board so the lights pop
+    x.globalAlpha = .38; x.fillStyle = OUT; x.fillRect(M, M, 240, 240); x.globalAlpha = 1;
+    const lit = (a, alpha, col) => {
+      const [cx, cy] = TRACK[a], px = M + cx * CELL, py = M + cy * CELL;
+      x.globalAlpha = alpha; x.fillStyle = col; x.fillRect(px + 1, py + 1, 15, 15); x.globalAlpha = 1;
+    };
+    rv.trail.forEach((a, i) => lit(a, (i + 1) / (rv.trail.length + 1) * .6, '#ffd84a'));
+    const a = rv.flash ? rv.target : rv.pos;
+    const [cx, cy] = TRACK[a], px = M + cx * CELL, py = M + cy * CELL;
+    const on = !rv.flash || Math.floor(t / 90) % 2;
+    x.fillStyle = OUT; x.fillRect(px - 1, py - 1, 19, 19);
+    x.fillStyle = on ? '#fff6a0' : '#ffd84a'; x.fillRect(px, py, 17, 17);
+    if (rv.type) {
+      x.fillStyle = SPECIALS[rv.type].fill; x.fillRect(px + 2, py + 2, 13, 13);
+      if (rv.type === 'portal') ['#b48cff', '#41a6f6', '#73eff7'].forEach((c, i) => this.disc(x, px + 8, py + 8, 5 - i * 2, c));
+      else this.drawSpecialIcon(x, rv.type, a, px, py);
+    }
+    // marquee bulbs round the lit square
+    for (let i = 0; i < 8; i++) {
+      const bulbOn = (Math.floor(t / 70) + i) % 2;
+      const bx = [0, 8, 16, 16, 16, 8, 0, 0][i], by = [0, 0, 0, 8, 16, 16, 16, 8][i];
+      x.fillStyle = bulbOn ? '#ffffff' : '#ff6d7c'; x.fillRect(px + bx - 1, py + by - 1, 2, 2);
+    }
+  },
   drawPawns(x, dt) {
     // group resting pawns by spot so stacks spread out a little
     const groups = new Map();
