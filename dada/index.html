@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#2b2140">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dada Party">
+<meta name="robots" content="noindex, nofollow">
+<title>Dada Party</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+<div id="app">
+  <section id="menu" class="screen">
+    <div class="logo"><span class="l1">DADA</span><span class="l2">PARTY</span></div>
+    <div class="tagline">Les petits chevaux, version fête foraine</div>
+    <canvas id="menuRun" width="160" height="24"></canvas>
+    <div id="slots"></div>
+    <div class="opt"><span>Chevaux par joueur</span><div class="seg" id="optPawns"><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button></div></div>
+    <div class="opt"><span>Vitesse de l'IA</span><div class="seg" id="optSpeed"><button data-v="1">Normale</button><button data-v="0.5">Rapide</button></div></div>
+    <div id="menuWarn"></div>
+    <button class="btn big" id="btnPlay">JOUER</button>
+    <button class="btn" id="btnResume">Reprendre la partie</button>
+    <button class="btn ghost" id="btnRules">Règles</button>
+  </section>
+
+  <section id="game" class="screen hidden">
+    <div class="cards" id="cardsTop"></div>
+    <div id="boardArea"><div id="boardWrap"><canvas id="board"></canvas><div id="fx"></div></div></div>
+    <div class="cards" id="cardsBot"></div>
+    <div id="hud">
+      <div id="hudTop"><div id="info"></div><button id="btnPause" class="btn mini" aria-label="Pause">II</button></div>
+      <div id="hudMain"><div id="inv"></div><button id="btnRoll" class="btn roll" disabled>…</button></div>
+      <div id="hint"></div>
+    </div>
+  </section>
+
+  <div id="banner"></div>
+  <div id="modal" class="hidden"><div class="panel" id="panel"></div></div>
+</div>
+<script src="js/core.js?v=2"></script>
+<script src="js/render.js?v=2"></script>
+<script src="js/game.js?v=2"></script>
+<script src="js/ui.js?v=2"></script>
+</body>
+</html>
