@@ -299,6 +299,13 @@ async function movePawn(P, k, v, opts = {}) {
     P.pawns[k] = r;
     if (r !== to) {
       R.dust(p.x, p.y);
+      const ab = r <= LAST ? absOf(P.c, r) : -1, own = G.owners[ab];
+      if (dir > 0 && G.specials[ab] === 'peage' && own != null && G.players[own] !== P && P.coins > 0) {
+        // toll for passing over someone's péage
+        P.coins--; gain(G.players[own], 1, p.x, p.y);
+        UI.pop('Péage -1', p.x, p.y - 16, { col: '#ff8f7f', size: 1 });
+        SFX.play('coin');
+      }
       if (dir > 0 && r <= LAST && REFUGE.has(absOf(P.c, r))) {
         UI.pop('+1', p.x, p.y - 16, { col: '#ffd84a', size: 1 });
         R.burst(p.x, p.y - 6, 5, ['#ffd84a', '#fff6c2'], 1.2);
@@ -385,7 +392,7 @@ async function special(P, k, type, depth, abs) {
     // a player's tile is used up once it triggers
     clearSquare(abs); rebuild();
     if (type === 'peage') {
-      const n = Math.min(4, P.coins);
+      const n = Math.min(3, P.coins);
       SFX.play('bad'); say('PÉAGE !', '#ff8f7f');
       P.coins -= n;
       if (n) { gain(O, n, p.x, p.y); UI.pop(`${O.name} +${n}`, p.x, p.y - 6, { col: '#ffd84a', size: 1 }); }
