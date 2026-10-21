@@ -51,9 +51,14 @@ const rebuild = () => R.buildBase(G.specials, G.owners);
 // Casino-style reveal: a light chases round the circuit, slows down and stops on
 // a free square, then the square's type spins like a slot machine.
 async function revealSquare() {
-  const free = freeSquares();
-  if (!free.length) return;
-  const target = pick(free), type = pick(NAT_POOL);
+  // free squares, plus natural special squares (players' tiles are left alone)
+  const busy = new Set();
+  for (const Q of G.players) Q.pawns.forEach(r => { if (r >= 0 && r <= LAST) busy.add(absOf(Q.c, r)); });
+  const pool = freeSquares().concat(G.nat.filter(a => G.specials[a] && G.owners[a] == null && !busy.has(a)));
+  if (!pool.length) return;
+  const target = pick(pool), old = G.specials[target];
+  let type = pick(NAT_POOL);
+  while (type === old) type = pick(NAT_POOL);
   if (!G.spawnedOnce) {
     G.spawnedOnce = true;
     await UI.banner('Case mystère !', 'De temps en temps, une case spéciale apparaît', { col: '#ffd84a', dur: 1400 });
@@ -72,7 +77,8 @@ async function revealSquare() {
     rv.pos = (start + n) % 52;
     SFX.play('chase', n / steps);
   });
-  rv.pos = target; rv.trail = []; rv.flash = true;
+  rv.pos = target; rv.trail = []; rv.flash = true; rv.type = old || null;
+  if (old) await wait(500);
   SFX.play('ding'); R.addShake(2);
   // the type spins in the lit square
   const kinds = ['coin', 'chance', 'coffre', 'turbo', 'piege', 'portal'];
@@ -81,7 +87,8 @@ async function revealSquare() {
     SFX.play('roulette', i);
     await wait(50 + i * i * 2.5);
   }
-  setSquare(target, type); G.nat.push(target);
+  setSquare(target, type);
+  G.nat = G.nat.filter(a => a !== target); G.nat.push(target);
   while (G.nat.length > NAT_MAX) {
     const a = G.nat.shift();
     if (G.specials[a] && G.owners[a] == null) { clearSquare(a); const [cx, cy] = TRACK[a], p = cellPx(cx, cy); R.burst(p.x, p.y, 8, ['#ffffff', '#cdbff0'], 1.2); }
@@ -93,6 +100,7 @@ async function revealSquare() {
   R.ring(p.x, p.y, '#ffd84a'); R.ring(p.x, p.y, '#ffffff');
   R.burst(p.x, p.y, 24, [SPECIALS[type].fill, '#ffd84a', '#ffffff'], 2.2);
   UI.pop(SPECIALS[type].nom + ' !', p.x, p.y - 12, { col: SPECIALS[type].fill, size: 2 });
+  if (old) UI.pop(`${SPECIALS[old].nom} remplacé`, p.x, p.y + 6, { col: '#ffffff', size: 1 });
   await wait(900);
   UI.hint('');
 }
