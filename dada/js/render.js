@@ -42,6 +42,11 @@ const R = {
         x.fillRect(px + 1, py + 1, 15, 1); x.fillRect(px + 1, py + 15, 15, 1); x.fillRect(px + 1, py + 1, 1, 15); x.fillRect(px + 15, py + 1, 1, 15);
         x.fillStyle = OUT; x.fillRect(px + 12, py + 1, 1, 6);
         x.fillStyle = C.b; x.fillRect(px + 13, py + 1, 3, 3); x.fillStyle = C.l; x.fillRect(px + 13, py + 1, 2, 1);
+        if (specials[i] === 'peage' && G.tolls) {
+          // remaining passages as dots along the bottom
+          const left = G.tolls[i] ?? 3;
+          for (let d = 0; d < 3; d++) { x.fillStyle = d < left ? '#e0892e' : 'rgba(26,28,44,.25)'; x.fillRect(px + 3 + d * 4, py + 13, 2, 2); }
+        }
       }
     });
     HOME.forEach((col, c) => col.forEach(([cx, cy], j) => {

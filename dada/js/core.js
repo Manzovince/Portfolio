@@ -100,7 +100,7 @@ const DICE = {
 // Tiles: a player places them on an empty square; they carry the owner's colour.
 const TILES = {
   tpiege: { nom: 'Tuile Piège', desc: "Pose-la sur une case libre : l'adversaire qui s'y arrête recule de 3.", prix: 3, tile: 'piege' },
-  tpeage: { nom: 'Tuile Péage', desc: "Pose-la sur une case libre : l'adversaire qui passe dessus te paie 1 pièce, 3 s'il s'y arrête.", prix: 4, tile: 'peage' },
+  tpeage: { nom: 'Tuile Péage', desc: "L'adversaire qui passe dessus te paie 1 pièce, 3 s'il s'y arrête. Dure 3 passages, 1 péage par joueur.", prix: 4, tile: 'peage' },
   tturbo: { nom: 'Tuile Turbo', desc: "Pose-la devant tes chevaux : celui qui s'y arrête avance de 4.", prix: 3, tile: 'turbo' },
 };
 const ITEM = k => DICE[k] || TILES[k];

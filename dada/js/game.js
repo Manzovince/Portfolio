@@ -33,7 +33,19 @@ function setSquare(a, type, owner) {
   G.specials[a] = type;
   if (owner != null) G.owners[a] = owner; else delete G.owners[a];
 }
-function clearSquare(a) { delete G.specials[a]; delete G.owners[a]; }
+function clearSquare(a) { delete G.specials[a]; delete G.owners[a]; delete G.tolls[a]; }
+const TOLL_USES = 3;
+const hasToll = P => Object.keys(G.owners).some(a => G.players[G.owners[a]] === P && G.specials[a] === 'peage');
+// One passage (passing over or stopping) used up on a péage.
+function useToll(a) {
+  G.tolls[a] = (G.tolls[a] ?? TOLL_USES) - 1;
+  if (G.tolls[a] <= 0) {
+    const [cx, cy] = TRACK[a], p = cellPx(cx, cy);
+    clearSquare(a); R.burst(p.x, p.y, 10, ['#ffb3a7', '#ffffff'], 1.4);
+    UI.pop('Péage usé', p.x, p.y + 6, { col: '#ffb3a7', size: 1 });
+  }
+  rebuild();
+}
 const rebuild = () => R.buildBase(G.specials, G.owners);
 
 // Casino-style reveal: a light chases round the circuit, slows down and stops on
@@ -86,10 +98,12 @@ async function revealSquare() {
 
 // Squares where a tile may be placed.
 const tileSquares = () => freeSquares();
+const canPlace = (P, kind) => !(TILES[kind].tile === 'peage' && hasToll(P));
 async function placeTile(P, kind, a) {
   const T = TILES[kind];
   removeDie(P, kind); G.usedTile = true;
   setSquare(a, T.tile, pidx(P));
+  if (T.tile === 'peage') G.tolls[a] = TOLL_USES;
   rebuild();
   const [cx, cy] = TRACK[a], p = cellPx(cx, cy);
   SFX.play('place'); buzz(20); R.addShake(2);
@@ -105,7 +119,7 @@ function newGame(cfg) {
     if (t === 'off') return;
     players.push({ c, type: t, name: t === 'ai' ? COLORS[c].ia : COLORS[c].nom, pawns: Array(cfg.pawns).fill(-1), coins: 3, dice: ['turbo'], curse: null, bonus: false, stats: { caps: 0, coins: 3 } });
   });
-  return { sid: Math.random(), cfg, players, cur: 0, round: 1, specials: {}, owners: {}, nat: [], spawnedOnce: false, marketDue: false, over: false, winner: -1, moves: null, usedSpecial: false };
+  return { sid: Math.random(), cfg, players, cur: 0, round: 1, specials: {}, owners: {}, tolls: {}, nat: [], spawnedOnce: false, marketDue: false, over: false, winner: -1, moves: null, usedSpecial: false };
 }
 
 const humanCount = () => G.players.filter(p => p.type === 'human').length;
@@ -302,7 +316,7 @@ async function movePawn(P, k, v, opts = {}) {
       const ab = r <= LAST ? absOf(P.c, r) : -1, own = G.owners[ab];
       if (dir > 0 && G.specials[ab] === 'peage' && own != null && G.players[own] !== P && P.coins > 0) {
         // toll for passing over someone's péage
-        P.coins--; gain(G.players[own], 1, p.x, p.y);
+        P.coins--; gain(G.players[own], 1, p.x, p.y); useToll(ab);
         UI.pop('Péage -1', p.x, p.y - 16, { col: '#ff8f7f', size: 1 });
         SFX.play('coin');
       }
@@ -389,9 +403,10 @@ async function special(P, k, type, depth, abs) {
   if (owner != null) {
     const O = G.players[owner];
     if (owner === pi && type !== 'turbo') { say(type === 'peage' ? 'Ton péage' : 'Ton piège', COLORS[O.c].l, 1); await wait(spd(300)); return; }
-    // a player's tile is used up once it triggers
-    clearSquare(abs); rebuild();
+    // tiles are used up once they trigger; a péage lasts several passages
+    if (type !== 'peage') { clearSquare(abs); rebuild(); }
     if (type === 'peage') {
+      useToll(abs);
       const n = Math.min(3, P.coins);
       SFX.play('bad'); say('PÉAGE !', '#ff8f7f');
       P.coins -= n;
@@ -627,7 +642,7 @@ const AI = {
   async chooseDie(P) {
     await wait(spd(380));
     for (const kind of Object.keys(TILES)) {
-      if (G.usedTile || !P.dice.includes(kind) || Math.random() > .8) continue;
+      if (G.usedTile || !P.dice.includes(kind) || !canPlace(P, kind) || Math.random() > .8) continue;
       const a = this.tileSpot(P, kind);
       if (a != null) { await placeTile(P, kind, a); break; }
     }

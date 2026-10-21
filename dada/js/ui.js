@@ -119,7 +119,7 @@ const UI = {
     const s = loadSave(); if (!s) return;
     Tw.clear();
     G = s; G.sid = Math.random(); G.moves = null; G.placing = null; G.cfg.speed = this.cfg.speed;
-    G.owners = G.owners || {}; G.nat = G.nat || [];
+    G.owners = G.owners || {}; G.nat = G.nat || []; G.tolls = G.tolls || {};
     this.enterGame();
     runGame();
   },
@@ -256,6 +256,7 @@ const UI = {
     if (!this.rollPending || this.plainOnly) return;
     if (TILES[kind]) {
       if (G.usedTile) return;
+      if (!canPlace(P, kind)) { SFX.play('bad'); this.hint('Tu as déjà un <b>péage</b> sur le plateau (1 maximum).'); return; }
       if (this.placing) { const same = this.placing.kind === kind; this.cancelPlacing(); if (same) return; }
       SFX.play('select');
       this.selected = null;
