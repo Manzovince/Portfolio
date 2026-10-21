@@ -297,7 +297,14 @@ async function movePawn(P, k, v, opts = {}) {
     SFX.play('hop', i++);
     await hop(vis, p.x, p.y, dur, r === to ? 9 : 5);
     P.pawns[k] = r;
-    if (r !== to) R.dust(p.x, p.y);
+    if (r !== to) {
+      R.dust(p.x, p.y);
+      if (dir > 0 && r <= LAST && REFUGE.has(absOf(P.c, r))) {
+        UI.pop('+1', p.x, p.y - 16, { col: '#ffd84a', size: 1 });
+        R.burst(p.x, p.y - 6, 5, ['#ffd84a', '#fff6c2'], 1.2);
+        gain(P, 1, p.x, p.y);
+      }
+    }
   }
   vis.anim = false;
   const p = posOf(P.c, k, to);
@@ -327,6 +334,11 @@ async function landOn(P, k, depth, opts = {}) {
     if (victims.length) await capture(P, k, victims);
   } else if (SAFE.has(abs) && !opts.exit && G.players.some(Q => Q !== P && Q.pawns.some(r => r >= 0 && r <= LAST && absOf(Q.c, r) === abs))) {
     UI.pop('Case refuge', p.x, p.y - 18, { col: '#cfd9e8', size: 1 });
+  }
+  if (REFUGE.has(abs)) {
+    SFX.play('coin'); R.burst(p.x, p.y - 6, 12, ['#ffd84a', '#fff6c2', '#cfd9e8'], 1.6);
+    UI.pop('Refuge +3', p.x, p.y - 20, { col: '#ffd84a', size: 2 });
+    gain(P, 3, p.x, p.y); UI.refresh(); await wait(spd(400));
   }
   const sp = G.specials[abs];
   if (sp && depth < 4) await special(P, k, sp, depth, abs);
@@ -563,6 +575,7 @@ const AI = {
       else if (sp === 'piege') s -= mine ? 0 : 14; else if (sp === 'turbo') s += 13;
       else if (sp === 'peage') s -= mine ? 0 : 12;
       else if (sp === 'portal') { let d = 1; while (d < 52 && G.specials[(abs + d) % 52] !== 'portal') d++; if (to + d <= LAST) s += d * .9; }
+      if (REFUGE.has(abs)) s += 6;
       if (safe) s += 8; else s -= this.danger(P, abs) * 13;
     }
     if (from >= 0 && from <= LAST) { const a = absOf(P.c, from); if (!SAFE.has(a)) s += this.danger(P, a) * 10; }

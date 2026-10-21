@@ -64,6 +64,7 @@ const HOME = [
   [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]],
 ];
 const SAFE = new Set([0, 8, 13, 21, 26, 34, 39, 47]);
+const REFUGE = new Set([8, 21, 34, 47]); // star squares (not the coloured starts): coins for passing or stopping
 const LAST = 50, FIN = 56; // rel 0..50 track, 51..55 home column, 56 arrived
 const FINPT = [[M + 96 + 13, M + 120], [M + 120, M + 96 + 13], [M + 144 - 13, M + 120], [M + 120, M + 144 - 13]];
 const SLOTS = [[30, 30], [66, 30], [30, 66], [66, 66]];

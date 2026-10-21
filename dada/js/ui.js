@@ -447,7 +447,7 @@ const UI = {
       <p>Le plateau commence <b>vide</b>. De temps en temps, entre deux manches, une lumière fait le tour du circuit et révèle une nouvelle case spéciale (les plus anciennes finissent par disparaître).</p>
       <p>Tomber sur un cheval adverse le renvoie à l'écurie, te rapporte <b>3 pièces</b> et te fait <b>rejouer</b>. Pas besoin du nombre exact pour arriver : chaque cheval arrivé rapporte <b>4 pièces</b>.</p>
       <h3>Cases</h3><ul class="lst">
-      ${sp('safe', 'personne ne peut t\'y capturer.')}
+      ${sp('safe', 'personne ne peut t\'y capturer. +1 pièce quand tu passes dessus, +3 si tu t\'y arrêtes.')}
       ${sp('coin', '+3 pièces.')}
       ${sp('coffre', 'un dé spécial gratuit.')}
       ${sp('chance', 'une surprise, bonne… ou pas.')}
