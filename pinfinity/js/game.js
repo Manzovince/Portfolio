@@ -78,7 +78,7 @@ function newGame(ai = false) {
     board: null, balls: [], flips: [mkFlip('L'), mkFlip('R')],
     score: 0, dispScore: 0, coinsRun: 0, ballsLeft: 3 + save.upg.balls, items: [null, null],
     fx: { magnet: 0, giant: 0, slow: 0, shield: 0, fire: 0 },
-    combo: { n: 0, t: 0, punch: 0, best: 0 }, mult: 1, ballSave: 0, tilt: 0, tilted: false, warned: false, nudgeCool: 0, lastNudge: -9,
+    combo: { n: 0, t: 0, punch: 0, best: 0 }, nextEB: 20, mult: 1, ballSave: 0, tilt: 0, tilted: false, warned: false, nudgeCool: 0, lastNudge: -9,
     time: 0, ptime: 0, rt: 0,
     cannon: { active: false, ball: null, ang: 0, t: 0, charge: 0, charging: false, recoil: 0, fresh: true, hint: true },
     particles: [], popups: [], banners: [], shake: 0, sx: 0, sy: 0, hitstop: 0, flash: 0, flashCol: '#fff',
@@ -130,6 +130,17 @@ function addCombo(G) {
   c.n++; c.t = 2.2; c.punch = 1;
   if (c.n > c.best) c.best = c.n;
   if (c.n >= 3) sfx(G, 'combo', c.n);
+  if (c.n >= G.nextEB) { G.nextEB += 20; extraBall(G, `COMBO ${c.n} PRIZE`); }
+}
+function extraBall(G, why) {
+  if (G.ai) return;
+  G.ballsLeft++;
+  banner(G, 'EXTRA BALL!', why, '#4cff7a', 3, 1.8);
+  Sfx.unlock(); Sfx.item();
+  G.flash = .6; G.flashCol = '#4cff7a';
+  shake(G, 5); buzz(G, 80);
+  const b = G.balls.find(x => x.mode === 'free') || { x: 90, y: 160 };
+  burst(G, b.x, b.y, 40, ['#4cff7a', '#fff', '#ffd93b'], 160);
 }
 function endCombo(G) {
   const c = G.combo;
@@ -496,6 +507,26 @@ function kickSensor(G, b) {
   G.hitstop = Math.max(G.hitstop, .05);
 }
 
+function splitBall(G, b, sp) {
+  sp.cool = 18; sp.flash = 1;
+  const sp0 = Math.max(260, Math.hypot(b.vx, b.vy));
+  const a = Math.atan2(b.vy, b.vx);
+  const c = mkBall(b.x, b.y);
+  c.r = b.r;
+  b.vx = Math.cos(a - .42) * sp0; b.vy = Math.sin(a - .42) * sp0;
+  c.vx = Math.cos(a + .42) * sp0; c.vy = Math.sin(a + .42) * sp0;
+  c.x += Math.cos(a + Math.PI / 2) * 4; c.y += Math.sin(a + Math.PI / 2) * 4;
+  b.x -= Math.cos(a + Math.PI / 2) * 4; b.y -= Math.sin(a + Math.PI / 2) * 4;
+  G.balls.push(c);
+  G.ballSave = Math.max(G.ballSave, 5);
+  const pts = addScore(G, 1000, sp.x, sp.y - 10, '#7af2ff', true);
+  banner(G, 'SPLIT!', 'BALL X2 +' + fmtScore(pts), '#7af2ff', 2, 1);
+  sfx(G, 'item'); sfx(G, 'kick'); shake(G, 3); buzz(G, 40);
+  G.flash = .3; G.flashCol = '#7af2ff'; G.hitstop = Math.max(G.hitstop, .06);
+  burst(G, sp.x, sp.y, 24, ['#7af2ff', '#fff', '#c45bff'], 130);
+  addCombo(G);
+}
+
 function laneHit(G, b, i) {
   const B = G.board, l = B.lanes[i];
   l.flash = 1;
@@ -525,8 +556,9 @@ function rotateLanes(B, dir) {
 }
 
 function enterRamp(G, b, rp) {
-  b.mode = 'tube'; b.tube = rp; b.ts = 2;
+  b.mode = 'tube'; b.tube = rp; b.ts = 2; b.laps = 0;
   b.tv = Math.max(80, b.vx * rp.fx + b.vy * rp.fy);
+  if (rp.kind === 'loop') b.tv = Math.max(b.tv, Math.hypot(b.vx, b.vy) * .9);
   if (!rp.G) rp.G = 300 * 300 * Math.PI / (2 * rp.L);
   rp.flash = 1;
   sfx(G, 'rampIn');
@@ -536,8 +568,19 @@ function enterRamp(G, b, rp) {
 }
 function updateTube(G, b, dt) {
   const rp = b.tube, B = G.board;
-  b.tv -= rp.G * Math.cos(Math.PI * b.ts / rp.L) * dt;
-  b.ts += b.tv * dt;
+  if (rp.kind === 'loop') {
+    const before = b.ts;
+    b.tv -= 330 * dt;
+    b.ts += b.tv * dt;
+    if (before < rp.cEnd && b.ts >= rp.cEnd && b.laps < 3 && b.tv > 470) {
+      b.ts -= rp.circ; b.laps++; b.tv *= .88;
+      popup(G, rp.cx, rp.cy - rp.lr - 6, 'LAP ' + (b.laps + 1), '#fff');
+      sfx(G, 'lane'); addCombo(G);
+    }
+  } else {
+    b.tv -= rp.G * Math.cos(Math.PI * b.ts / rp.L) * dt;
+    b.ts += b.tv * dt;
+  }
   for (const c of B.coins) if (c.ramp === rp && !c.taken && Math.abs(c.s - b.ts) < 7) collectCoin(G, b, c);
   if (b.ts >= rp.L) {
     const p = pathAt(rp, rp.L);
@@ -545,11 +588,15 @@ function updateTube(G, b, dt) {
     b.x = p[0]; b.y = p[1]; b.vx = p[2] * v; b.vy = p[3] * v;
     b.mode = 'free'; b.tube = null; b.z = 0;
     rp.count++; B.stats.ramp++;
-    if (!G.kick[rp.side]) armKick(G, rp.side, 'RAMP BONUS');
-    const pts = addScore(G, 1200, p[0], p[1] - 14, B.theme.rampHi, true);
-    banner(G, 'RAMP!', '+' + fmtScore(pts), B.theme.rampHi, 2, .9);
-    sfx(G, 'rampOut'); shake(G, 2);
-    if (G.time - G.lastRamp < 6) trick(G, 'RAMP COMBO', 3000, p[0], p[1] - 20);
+    const loop = rp.kind === 'loop';
+    if (!G.kick[rp.side]) armKick(G, rp.side, loop ? 'LOOP BONUS' : 'RAMP BONUS');
+    const laps = loop ? 1 + (b.laps || 0) : 0;
+    const name = !loop ? 'RAMP!' : ['LOOP!', 'DOUBLE LOOP!', 'TRIPLE LOOP!', 'QUAD LOOP!'][laps - 1];
+    const pts = addScore(G, loop ? 1000 * laps * laps : 1200, p[0], p[1] - 14, B.theme.rampHi, true);
+    banner(G, name, '+' + fmtScore(pts), loop && laps > 1 ? '#ffd93b' : B.theme.rampHi, laps > 1 ? 3 : 2, laps > 1 ? 1.3 : .9);
+    if (laps > 1) { G.tricksDone++; sfx(G, 'trick'); G.flash = .3; G.flashCol = '#fff6c0'; burst(G, rp.cx, rp.cy, 24, ['#ffd93b', '#fff', B.theme.rampHi], 140); }
+    sfx(G, 'rampOut'); shake(G, 2 + laps);
+    if (G.time - G.lastRamp < 6) trick(G, loop ? 'LOOP COMBO' : 'RAMP COMBO', 3000, p[0], p[1] - 20);
     G.lastRamp = G.time;
     rp.flash = 1;
     checkExits(G);
@@ -563,7 +610,7 @@ function updateTube(G, b, dt) {
   } else {
     const p = pathAt(rp, b.ts);
     b.x = p[0]; b.y = p[1];
-    b.z = Math.sin(Math.PI * b.ts / rp.L);
+    b.z = rp.kind === 'loop' ? clamp(Math.min(b.ts, rp.L - b.ts) / 10, 0, 1) * .7 : Math.sin(Math.PI * b.ts / rp.L);
     if (Math.random() < .5) b.trail.push([b.x, b.y]);
   }
 }
@@ -750,6 +797,12 @@ function sensors(G, b, h) {
       } else if (b.x > 169 && Math.abs(b.y - e.y) < 8) { enterPortal(G, b, e); return; }
     }
   }
+  for (const sp of B.splitters) {
+    if (sp.cool > 0 || Math.abs(b.x - sp.x) > 6 || Math.abs(b.y - sp.y) > 6) continue;
+    const live = G.balls.filter(x => x.mode !== 'gone' && x.mode !== 'cannon').length;
+    if (live >= 6) continue;
+    splitBall(G, b, sp);
+  }
   const rr = b.r + 3.2;
   for (const c of B.coins) {
     if (c.taken || c.ramp) continue;
@@ -858,6 +911,7 @@ function update(G, dt) {
   for (const m of B.movers) { m.flash = Math.max(0, (m.flash || 0) - dt * 5); m.squash = Math.max(0, (m.squash || 0) - dt * 9); m.cool = (m.cool || 0) - sdt; }
   for (const s of B.slings) { s.flash = Math.max(0, s.flash - dt * 6); s.cool = (s.cool || 0) - sdt; }
   for (const k of ['L', 'R']) G.kick.flash[k] = Math.max(0, G.kick.flash[k] - dt);
+  for (const sp of B.splitters) { if (sp.cool > 0) { sp.cool -= sdt; if (sp.cool <= 0) { sp.flash = 1; if (!G.ai) popup(G, sp.x, sp.y - 10, 'SPLIT READY', '#7af2ff'); } } sp.flash = Math.max(0, sp.flash - dt * 2); }
   for (const l of B.lanes) l.flash = Math.max(0, l.flash - dt * 2);
   for (const rp of B.ramps) rp.flash = Math.max(0, rp.flash - dt * 2);
   for (const e of B.exits) { e.flash = Math.max(0, (e.flash || 0) - dt * 3); e.anim += dt; }
@@ -1120,6 +1174,21 @@ function drawBoardDynamic(G, B, live) {
     g.fillStyle = T.a2; pxCapsule(g, w.x - c, w.y - s, w.x + c, w.y + s, 2.4);
     g.fillStyle = T.a2hi; pxLine(g, w.x - c * .9, w.y - s * .9 - 1, w.x + c * .9, w.y + s * .9 - 1);
     celBall(g, w.x, w.y, 2.4, T.metal, T.metalLo, T.metalHi, T.out);
+  }
+  // split pads
+  for (const sp of B.splitters) {
+    const ready = sp.cool <= 0;
+    const hex = (r, o = 0) => { const P = []; for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + o; P.push([sp.x + Math.cos(a) * r, sp.y + Math.sin(a) * r]); } return P; };
+    if (ready) { g.fillStyle = `rgba(122,242,255,${.15 + .12 * Math.sin(t * 6)})`; pxPoly(g, hex(10 + Math.sin(t * 6), t)); }
+    g.fillStyle = T.out; pxPoly(g, hex(7.5));
+    g.fillStyle = ready ? (sp.flash > 0 && Math.floor(t * 12) % 2 ? '#fff' : '#1f5a78') : '#241a30'; pxPoly(g, hex(6.5));
+    if (ready) { g.fillStyle = '#7af2ff'; pxPoly(g, hex(4.5, t * 2)); }
+    else {
+      const k = 1 - sp.cool / 18;
+      g.fillStyle = '#3a6a88';
+      for (let i = 0; i < 12; i++) if (i / 12 < k) { const a = -Math.PI / 2 + i / 12 * Math.PI * 2; g.fillRect(Math.round(sp.x + Math.cos(a) * 5), Math.round(sp.y + Math.sin(a) * 5), 1, 1); }
+    }
+    drawText(g, 'X2', sp.x + 1, sp.y - 2, ready ? '#120a1c' : '#5a4a68', 1, 'c', null);
   }
   // coins
   for (const cn of B.coins) if (!cn.taken && !cn.ramp) drawCoin(cn, t);
@@ -1422,8 +1491,9 @@ function drawHUD(G) {
   if (c.n >= 2) {
     const cx = Math.round((x + hb.pause.x) / 2) + 4;
     const sc = c.punch > .5 ? 2 : 1;
-    const col = comboCol(c.n);
-    drawText(g, 'COMBO', cx, y0 + 4, col, 1, 'c', '#000');
+    const near = c.n >= G.nextEB - 5;
+    const col = near && Math.floor(G.rt * 8) % 2 ? '#4cff7a' : comboCol(c.n);
+    drawText(g, near ? `BALL AT ${G.nextEB}` : 'COMBO', cx, y0 + 4, col, 1, 'c', '#000');
     drawText(g, c.n + (comboMult(G) > 1 ? ' X' + comboMult(G) : ''), cx, y0 + 11 - (sc - 1) * 3, '#fff', sc, 'c', '#000');
     const bw = 30;
     g.fillStyle = '#222'; g.fillRect(cx - bw / 2, y0 + 23, bw, 2);

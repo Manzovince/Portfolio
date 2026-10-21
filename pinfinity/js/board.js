@@ -86,7 +86,7 @@ function genBoard(seed, gx, gy) {
     gx, gy, depth, seed: hash3(gx, gy, seed),
     segs: [], circles: [], occ: [],
     walls: [], slings: [], posts: [],
-    bumpers: [], banks: [], lanes: [], spinners: [], ramps: [], saucers: [], coins: [], pickups: [],
+    bumpers: [], banks: [], splitters: [], lanes: [], spinners: [], ramps: [], saucers: [], coins: [], pickups: [],
     exits: [], movers: [], windmills: [], deco: [],
     stats: { bump: 0, bank: 0, lanes: 0, ramp: 0, spin: 0, saucer: 0, coin: 0 },
     visited: false, laneDone: 0,
@@ -193,6 +193,43 @@ function genBoard(seed, gx, gy) {
     const ramp = { x: m.x, y: m.y, fx, fy, tx, ty, hw, g1, g2, b1, b2, pts, cum, L: cum[cum.length - 1], side, flash: 0, count: 0 };
     B.ramps.push(ramp);
     occ(m.x + fx * 6, m.y + fy * 6, 17);
+  }
+
+  // ---- loops: overhead ring, the ball circles and comes back out of the mouth ----
+  if (R.chance(.5)) {
+    const LR = 14;
+    for (let tries = 0; tries < 40; tries++) {
+      const m = place(15, 30, 150, 110, 196, 1);
+      if (!m) continue;
+      let [fx, fy] = toward(m.x, m.y, 90, 300); fx = -fx; fy = -fy;
+      const cx = m.x + fx * (13 + LR), cy = m.y + fy * (13 + LR);
+      if (!inField(cx, cy, LR + 5) || cy < 40) continue;
+      const tx = -fy, ty = fx, hw = 7;
+      const g1 = [m.x + tx * hw, m.y + ty * hw], g2 = [m.x - tx * hw, m.y - ty * hw];
+      const b1 = [g1[0] + fx * 12, g1[1] + fy * 12], b2 = [g2[0] + fx * 12, g2[1] + fy * 12];
+      seg(g1[0], g1[1], b1[0], b1[1], 1.8, .4, 'lip'); seg(g2[0], g2[1], b2[0], b2[1], 1.8, .4, 'lip'); seg(b1[0], b1[1], b2[0], b2[1], 1.8, .3, 'lip');
+      const dir = R.pick([1, -1]);
+      const pts = [];
+      for (let d = 3; d <= 13; d += 1.5) pts.push([m.x + fx * d, m.y + fy * d]);
+      const a0 = Math.atan2(-fy, -fx);
+      const N = 48;
+      for (let k = 1; k <= N; k++) { const a = a0 + dir * Math.PI * 2 * k / N; pts.push([cx + Math.cos(a) * LR, cy + Math.sin(a) * LR]); }
+      for (let d = 11.5; d >= -1; d -= 1.5) pts.push([m.x + fx * d, m.y + fy * d]);
+      const cum = [0];
+      for (let k = 1; k < pts.length; k++) cum.push(cum[k - 1] + dist(pts[k][0], pts[k][1], pts[k - 1][0], pts[k - 1][1]));
+      const lead = 10, circ = Math.PI * 2 * LR;
+      B.ramps.push({ kind: 'loop', x: m.x, y: m.y, fx, fy, tx, ty, hw, g1, g2, b1, b2, pts, cum, L: cum[cum.length - 1],
+        cStart: lead, cEnd: lead + circ, circ, cx, cy, lr: LR, side: m.x < 90 ? 'L' : 'R', flash: 0, count: 0 });
+      occ(m.x + fx * 6, m.y + fy * 6, 16);
+      occ(cx, cy, LR + 3);
+      break;
+    }
+  }
+
+  // ---- split pads: duplicate the ball ----
+  if (R.chance(.55)) {
+    const c = place(9, 26, 154, 70, 206);
+    if (c) { B.splitters.push({ x: c.x, y: c.y, cool: 0, flash: 0 }); occ(c.x, c.y, 9); }
   }
 
   // ---- bumpers ----
@@ -310,7 +347,8 @@ function genBoard(seed, gx, gy) {
     if (c) { B.coins.push({ x: c.x, y: c.y, val: 5, taken: false, respawn: 0, ph: 0 }); occ(c.x, c.y, 6); }
   }
   for (const rp of B.ramps) {
-    for (const f of [.32, .44, .56]) {
+    const fr = rp.kind === 'loop' ? [(rp.cStart + rp.circ * .5) / rp.L] : [.32, .44, .56];
+    for (const f of fr) {
       const s = rp.L * f;
       const p = pathAt(rp, s);
       B.coins.push({ x: p[0], y: p[1], val: 1, taken: false, respawn: 0, ph: f * 10, ramp: rp, s });
@@ -322,7 +360,7 @@ function genBoard(seed, gx, gy) {
   if (B.bumpers.length) opts.push({ k: 'bump', n: R.int(6, 12), label: 'BUMPS' });
   if (B.banks.length) opts.push({ k: 'bank', n: 1, label: B.banks[0].kind === 'drop' ? 'DROPS' : 'TARGETS' });
   if (B.lanes.length) opts.push({ k: 'lanes', n: 1, label: 'LANES' });
-  if (B.ramps.length) opts.push({ k: 'ramp', n: R.int(1, 2), label: 'RAMPS' });
+  if (B.ramps.length) opts.push({ k: 'ramp', n: R.int(1, 2), label: B.ramps.every(r => r.kind === 'loop') ? 'LOOPS' : 'RAMPS' });
   if (B.spinners.length) opts.push({ k: 'spin', n: R.int(12, 24), label: 'SPINS' });
   if (B.saucers.length) opts.push({ k: 'saucer', n: 1, label: 'SAUCER' });
   if (B.coins.filter(c => !c.ramp).length >= 8) opts.push({ k: 'coin', n: R.int(4, 6), label: 'COINS' });
