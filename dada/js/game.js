@@ -59,7 +59,8 @@ async function revealSquare() {
     await UI.banner('Case mystère !', 'De temps en temps, une case spéciale apparaît', { col: '#ffd84a', dur: 1400 });
   }
   UI.hint('Une case spéciale va apparaître…');
-  const start = rnd(52), steps = 52 + (target - start + 52) % 52 + (rnd(2) ? 0 : 26);
+  // whole laps only, so the light always stops on the target
+  const start = rnd(52), steps = 52 * (1 + rnd(2)) + (target - start + 52) % 52;
   const rv = R.reveal = { pos: start, trail: [], target, type: null, flash: false };
   let last = -1;
   SFX.play('whoosh');
@@ -71,7 +72,7 @@ async function revealSquare() {
     rv.pos = (start + n) % 52;
     SFX.play('chase', n / steps);
   });
-  rv.trail = []; rv.flash = true;
+  rv.pos = target; rv.trail = []; rv.flash = true;
   SFX.play('ding'); R.addShake(2);
   // the type spins in the lit square
   const kinds = ['coin', 'chance', 'coffre', 'turbo', 'piege', 'portal'];
