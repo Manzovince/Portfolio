@@ -971,16 +971,16 @@ function stageFinal() {
         btns.forEach(b => b.classList.add('down'));
         hint.textContent = "Shuffling 🎩";
         let n = 0;
-        const total = rand(6, 9);
+        const total = rand(3, 5);
         const step = () => {
           const i = rand(0, 2); let j = rand(0, 1); if (j >= i) j++;
           [order[i], order[j]] = [order[j], order[i]];
-          const d = Math.max(.22, .6 - n * .05);
+          const d = Math.max(.45, .75 - n * .06);
           speed(d); place(); n++;
           swapT = setTimeout(n < total ? step : () => { speed(.5); busy = false; hint.textContent = "Your turn! Which one is “Create account”?"; }, d * 1000 + 80);
         };
-        swapT = setTimeout(step, 700);
-      }, 1800);
+        swapT = setTimeout(step, 800);
+      }, 2500);
     };
     arena.onclick = e => {
       const b = e.target.closest('.shell'); if (!b || busy) return;
