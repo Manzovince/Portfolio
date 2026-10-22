@@ -1192,12 +1192,12 @@ setInterval(() => {
   if (S.level >= 3 && S.level <= 9 && !hurryOpen && $('#loader').hidden && !longLoading && now > hurryAt) hurry();
 }, 1000);
 
-// secret: 6 quick clicks on the ™ skip to the next step
+// secret: 2 quick clicks on the ™ skip to the next step
 let tmClicks = [];
 $('#tm').addEventListener('click', () => {
   const now = Date.now();
-  tmClicks = tmClicks.filter(t => now - t < 3000).concat(now);
-  if (tmClicks.length < 6 || S.level >= STAGES.length - 1) return;
+  tmClicks = tmClicks.filter(t => now - t < 1000).concat(now);
+  if (tmClicks.length < 2 || S.level >= STAGES.length - 1) return;
   tmClicks = [];
   document.querySelectorAll('.modal-bg').forEach(m => m.remove());
   hurryOpen = false; hurryAt = Date.now() + 30000;
