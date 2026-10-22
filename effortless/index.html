@@ -170,9 +170,14 @@
 
   /* final */
   .arena { position: relative; height: 260px; border: 2px dashed var(--line); border-radius: 12px; margin: 16px 0; }
-  .shell { position: absolute; transform: translate(-50%, -50%); width: auto; margin: 0; padding: 12px 18px; font-size: 16px;
-    white-space: nowrap; transition: left .7s ease-in-out, top .7s ease-in-out; }
-  .shell:active { transform: translate(-50%, -46%); }
+  .shell { position: absolute; width: 270px; max-width: 92%; height: 54px; padding: 0; margin: 0; border: 0; background: none;
+    transform: translate(-50%, -50%); transform-style: preserve-3d; transition: left .5s ease-in-out, top .5s ease-in-out, transform .5s; }
+  .shell.down { transform: translate(-50%, -50%) rotateY(180deg); }
+  .shell .face { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 12px; color: #fff;
+    font-weight: 800; font-size: 15px; box-shadow: 0 6px 0 rgba(0,0,0,.18); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .shell .front { background: var(--good); }
+  .shell .back { background: var(--brand); transform: rotateY(180deg); font-size: 24px;
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.12) 0 8px, transparent 8px 16px); }
   #flee { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: auto;
     padding: 16px 22px; font-size: 18px; margin: 0; transition: left .18s, top .18s; white-space: nowrap; }
 
@@ -940,50 +945,69 @@ function stageFinal() {
   btn.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') dodge(); });
   btn.addEventListener('pointerdown', e => { if (dodge()) e.preventDefault(); });
 
-  // then the shell game: three identical-looking buttons swapping places, faster and faster
-  const confirmRestart = () => {
-    paused = true;
+  // then the shell game: the three buttons turn face down, swap places, and you pick one
+  const confirmRestart = onNo => {
     const opts = shuffle([['y', "Oui"], ['n', "Non"]]);
     const bg = modal(`<h3>Voulez-vous ne pas annuler le recommencement ?</h3><div class="btns">${opts.map(([k, l]) => `<button data-k="${k}" class="${k === 'y' ? 'primary' : ''}">${l}</button>`).join('')}</div>`);
     bg.querySelector('.btns').onclick = e => {
       const k = e.target.dataset.k; if (!k) return;
-      bg.remove(); paused = false;
-      if (k === 'y') { toast("C’est reparti depuis le début ! 🎉"); go(0); } else toast("Ouf. Recommencement annulé, on continue.");
+      bg.remove();
+      if (k === 'y') { toast("C’est reparti depuis le début ! 🎉"); go(0); } else { toast("Ouf. Recommencement annulé. On remélange !"); onNo(); }
     };
   };
   function shellGame() {
     if (!btn.isConnected) return;
     btn.remove();
-    $('#hint').textContent = "Suivez bien le bon bouton 👀";
+    const hint = $('#hint');
     const btns = [['create', "Créer mon compte"], ['restart', "Recommencer depuis le début"], ['gary', "Aider Gérard 💚"]].map(([k, l]) => {
       const b = document.createElement('button');
-      b.className = 'big green shell'; b.dataset.k = k; b.textContent = l;
+      b.className = 'shell'; b.dataset.k = k;
+      b.innerHTML = `<span class="face front">${l}</span><span class="face back">❓</span>`;
       arena.appendChild(b);
       return b;
     });
-    let order = shuffle([0, 1, 2]), swaps = 0;
+    let order = shuffle([0, 1, 2]), busy = true;
     const place = () => order.forEach((bi, slot) => {
       btns[bi].style.left = arena.clientWidth / 2 + 'px';
       btns[bi].style.top = arena.clientHeight * (slot + .5) / 3 + 'px';
     });
-    place();
-    const step = () => {
-      if (!paused) {
-        const i = rand(0, 2); let j = rand(0, 1); if (j >= i) j++;
-        [order[i], order[j]] = [order[j], order[i]];
-        const dur = Math.max(.25, .7 - swaps * .03);
-        btns.forEach(b => b.style.transitionDuration = dur + 's');
-        place(); swaps++;
-      }
-      swapT = setTimeout(step, Math.max(450, 1500 - swaps * 70));
+    const speed = d => btns.forEach(b => b.style.transitionDuration = d + 's');
+    const round = () => {
+      busy = true; speed(.5);
+      btns.forEach(b => b.classList.remove('down'));
+      hint.textContent = "Retenez bien où est « Créer mon compte »…";
+      swapT = setTimeout(() => {
+        btns.forEach(b => b.classList.add('down'));
+        hint.textContent = "Mélange en cours 🎩";
+        let n = 0;
+        const total = rand(6, 9);
+        const step = () => {
+          const i = rand(0, 2); let j = rand(0, 1); if (j >= i) j++;
+          [order[i], order[j]] = [order[j], order[i]];
+          const d = Math.max(.22, .6 - n * .05);
+          speed(d); place(); n++;
+          swapT = setTimeout(n < total ? step : () => { speed(.5); busy = false; hint.textContent = "À vous ! Lequel est « Créer mon compte » ?"; }, d * 1000 + 80);
+        };
+        swapT = setTimeout(step, 700);
+      }, 1800);
     };
-    swapT = setTimeout(step, 1200);
     arena.onclick = e => {
-      const b = e.target.closest('.shell'); if (!b) return;
-      if (b.dataset.k === 'create') { clearTimeout(swapT); confirmChain(0); }
-      else if (b.dataset.k === 'restart') confirmRestart();
-      else if (garyMood !== 'talking') { $('#chat').hidden = false; garyTalks(); }
+      const b = e.target.closest('.shell'); if (!b || busy) return;
+      busy = true;
+      b.classList.remove('down');
+      hint.textContent = '🤞';
+      swapT = setTimeout(() => {
+        if (b.dataset.k === 'create') confirmChain(0);
+        else if (b.dataset.k === 'restart') confirmRestart(round);
+        else {
+          if (garyMood !== 'talking') { $('#chat').hidden = false; garyTalks(); }
+          toast("Gérard vous remercie. On remélange !");
+          swapT = setTimeout(round, 1500);
+        }
+      }, 650);
     };
+    place();
+    round();
   }
 }
 
