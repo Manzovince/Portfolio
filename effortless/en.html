@@ -170,6 +170,9 @@
 
   /* final */
   .arena { position: relative; height: 260px; border: 2px dashed var(--line); border-radius: 12px; margin: 16px 0; }
+  .shell { position: absolute; transform: translate(-50%, -50%); width: auto; margin: 0; padding: 12px 18px; font-size: 16px;
+    white-space: nowrap; transition: left .7s ease-in-out, top .7s ease-in-out; }
+  .shell:active { transform: translate(-50%, -46%); }
   #flee { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: auto;
     padding: 16px 22px; font-size: 18px; margin: 0; transition: left .18s, top .18s; white-space: nowrap; }
 
@@ -912,16 +915,9 @@ function stageFinal() {
   </section>`;
   const btn = $('#flee'), arena = $('#arena');
   const LIMIT = 6;
-  let dodges = 0, mode = 'create', morph = null;
+  let dodges = 0, swapT = null, paused = false;
   const quips = ["Whoops!", "Too slow.", "Over here!", "Catch me 😜", "So close!", "Okay okay. Fine. 😮‍💨"];
-  // once it stops running away, it can't decide what it is
-  const MODES = { create: ["Create account", ''], restart: ["Start over from the beginning", '#e0344b'], gary: ["Help Gary 💚", '#1fb5a8'] };
-  const setMode = m => { mode = m; btn.textContent = MODES[m][0]; btn.style.background = MODES[m][1]; };
-  const tick = () => {
-    setMode(mode !== 'create' ? 'create' : Math.random() < .5 ? 'restart' : 'gary');
-    morph = setTimeout(tick, mode === 'create' ? rand(1200, 2600) : rand(900, 1700));
-  };
-  onLeave(() => clearTimeout(morph));
+  onLeave(() => clearTimeout(swapT));
   const dodge = () => {
     if (dodges >= LIMIT) return false;
     const w = arena.clientWidth - btn.offsetWidth, h = arena.clientHeight - btn.offsetHeight;
@@ -929,17 +925,57 @@ function stageFinal() {
     btn.style.left = rand(0, Math.max(0, w)) + 'px';
     btn.style.top = rand(0, Math.max(0, h)) + 'px';
     $('#hint').textContent = quips[dodges];
-    if (++dodges === LIMIT) morph = setTimeout(tick, 1500);
+    if (++dodges === LIMIT) setTimeout(shellGame, 900);
     return true;
   };
   btn.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') dodge(); });
   btn.addEventListener('pointerdown', e => { if (dodge()) e.preventDefault(); });
-  btn.addEventListener('click', () => {
-    if (dodges < LIMIT) return;
-    if (mode === 'create') { clearTimeout(morph); confirmChain(0); }
-    else if (mode === 'restart') { toast("Back to the beginning! 🎉"); go(0); }
-    else if (garyMood !== 'talking') { $('#chat').hidden = false; garyTalks(); }
-  });
+
+  // then the shell game: three identical-looking buttons swapping places, faster and faster
+  const confirmRestart = () => {
+    paused = true;
+    const opts = shuffle([['y', "Yes"], ['n', "No"]]);
+    const bg = modal(`<h3>Do you not want to cancel starting over?</h3><div class="btns">${opts.map(([k, l]) => `<button data-k="${k}" class="${k === 'y' ? 'primary' : ''}">${l}</button>`).join('')}</div>`);
+    bg.querySelector('.btns').onclick = e => {
+      const k = e.target.dataset.k; if (!k) return;
+      bg.remove(); paused = false;
+      if (k === 'y') { toast("Back to the beginning! 🎉"); go(0); } else toast("Phew. Starting over cancelled, carry on.");
+    };
+  };
+  function shellGame() {
+    if (!btn.isConnected) return;
+    btn.remove();
+    $('#hint').textContent = "Keep your eye on the right button 👀";
+    const btns = [['create', "Create account"], ['restart', "Start over from the beginning"], ['gary', "Help Gary 💚"]].map(([k, l]) => {
+      const b = document.createElement('button');
+      b.className = 'big green shell'; b.dataset.k = k; b.textContent = l;
+      arena.appendChild(b);
+      return b;
+    });
+    let order = shuffle([0, 1, 2]), swaps = 0;
+    const place = () => order.forEach((bi, slot) => {
+      btns[bi].style.left = arena.clientWidth / 2 + 'px';
+      btns[bi].style.top = arena.clientHeight * (slot + .5) / 3 + 'px';
+    });
+    place();
+    const step = () => {
+      if (!paused) {
+        const i = rand(0, 2); let j = rand(0, 1); if (j >= i) j++;
+        [order[i], order[j]] = [order[j], order[i]];
+        const dur = Math.max(.25, .7 - swaps * .03);
+        btns.forEach(b => b.style.transitionDuration = dur + 's');
+        place(); swaps++;
+      }
+      swapT = setTimeout(step, Math.max(450, 1500 - swaps * 70));
+    };
+    swapT = setTimeout(step, 1200);
+    arena.onclick = e => {
+      const b = e.target.closest('.shell'); if (!b) return;
+      if (b.dataset.k === 'create') { clearTimeout(swapT); confirmChain(0); }
+      else if (b.dataset.k === 'restart') confirmRestart();
+      else if (garyMood !== 'talking') { $('#chat').hidden = false; garyTalks(); }
+    };
+  }
 }
 
 const CONFIRMS = [
