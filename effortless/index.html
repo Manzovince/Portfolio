@@ -241,9 +241,9 @@
 
   @media (max-width: 520px) {
     h1 { font-size: 29px; }
-    .email { grid-template-columns: 1fr auto 1fr; }
-    .email select { grid-column: 1 / -1; }
+    .email { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) 78px; gap: 3px; }
     .email span.dot { display: none; }
+    .email input, .email select { padding: 10px 7px; font-size: 15px; }
     header { flex-wrap: wrap; }
   }
 </style>
