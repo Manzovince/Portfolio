@@ -430,7 +430,8 @@ const COOKIE_LABELS = [['Autoriser', true], ['Ne pas autoriser', false], ['Ne pa
   ['Autoriser à ne pas autoriser', false], ['Bloquer', false], ['Ne pas bloquer', true], ['Refuser de refuser', true],
   ['Ne pas refuser d’accepter', true], ['Désactiver le blocage', true], ['Accepter le refus', false],
   ['Ne jamais ne pas bloquer', false], ['Ne pas désactiver l’autorisation', true]];
-const newCookie = n => ({ n, on: true, l: pick(COOKIE_LABELS) });
+// the locked "strictly necessary" one always gets a label where ticked = allowed, so it shows ticked
+const newCookie = (n, i) => ({ n, on: true, l: pick(i === 0 ? COOKIE_LABELS.filter(l => l[1]) : COOKIE_LABELS) });
 function stageCookies() {
   const cookies = COOKIE_BASE.map(newCookie);
   let pool = shuffle(PARTNERS.slice());
