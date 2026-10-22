@@ -1,0 +1,1182 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Effortless™ — Inscription en quelques secondes*</title>
+<style>
+  :root {
+    --ink: #2b2140;
+    --muted: #8a8399;
+    --brand: #6c3ce0;
+    --brand2: #1fb5a8;
+    --bad: #e0344b;
+    --good: #2fae5c;
+    --card: #fffdf7;
+    --line: #d9d2e6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background: #efeaf7;
+    min-height: 100vh;
+    transition: background .6s;
+    overflow-x: hidden;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 16px;
+    background: linear-gradient(90deg, var(--brand), #b03cd8);
+    color: #fff;
+  }
+  .logo { font-weight: 800; font-size: 22px; letter-spacing: -0.5px; }
+  .logo sup { font-size: 10px; cursor: default; user-select: none; -webkit-user-select: none; }
+  #steps { font-size: 13px; opacity: .9; }
+  #timer {
+    font-family: "Courier New", monospace; font-weight: 700; font-size: 18px;
+    background: rgba(0,0,0,.25); padding: 4px 10px; border-radius: 6px;
+  }
+  #timer.pen { animation: flash .6s 3; }
+  @keyframes flash { 50% { background: var(--bad); } }
+  #progress { height: 6px; background: #d8cfe9; }
+  #bar { height: 100%; width: 5%; background: var(--brand2); transition: width 1.2s cubic-bezier(.6,-0.6,.4,1.6); }
+
+  main { max-width: 640px; margin: 28px auto 120px; padding: 0 16px; transition: transform 1s; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 28px 24px; box-shadow: 0 10px 30px rgba(60,30,120,.12); position: relative;
+  }
+  h1 { margin: 0 0 10px; font-size: 34px; line-height: 1.12; }
+  h2 { margin: 0 0 6px; font-size: 22px; }
+  .lead { color: var(--muted); margin: 0 0 22px; }
+  .fine { font-size: 10px; color: #b8b2c4; margin-top: 26px; }
+  .small { font-size: 13px; }
+  .hint { min-height: 1.2em; color: var(--brand); font-size: 13px; font-style: italic; }
+
+  /* ---------- buttons ---------- */
+  button { font: inherit; cursor: pointer; }
+  .big {
+    display: block; width: 100%; padding: 22px; margin: 6px 0 18px;
+    font-size: 26px; font-weight: 800; letter-spacing: 1px;
+    border: 0; border-radius: 12px; color: #fff;
+    box-shadow: 0 6px 0 rgba(0,0,0,.18);
+  }
+  .big:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(0,0,0,.18); }
+  .green { background: var(--good); }
+  .blue { background: #2f6fe0; }
+  .purple { background: var(--brand); }
+  .meh {
+    background: #e7e3ee; color: #a59fb2; border: 1px dashed #cfc8dc;
+    padding: 6px 12px; border-radius: 4px; font-size: 12px;
+  }
+  .linkish {
+    background: none; border: 0; padding: 0; color: #9a94a8; text-decoration: underline;
+    font-size: 11px;
+  }
+  a { color: var(--brand); }
+  .sneaky { cursor: pointer; }
+  .shake { animation: shake .4s; }
+  @keyframes shake { 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .between { justify-content: space-between; }
+
+  /* ---------- forms ---------- */
+  label.f { display: block; margin: 16px 0 4px; font-size: 13px; font-weight: 700; }
+  label.f small { font-weight: 400; color: var(--muted); }
+  input[type=text], input[type=password], select {
+    font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px;
+    background: #fff; color: var(--ink); width: 100%; min-width: 0;
+  }
+  input.ghost { color: #b9b3c6; }
+  input.err, select.err { border-color: var(--bad); background: #fff3f4; }
+  .email { display: grid; grid-template-columns: 1fr auto 1fr auto 96px; gap: 4px; align-items: center; }
+  .email span { font-weight: 700; color: var(--muted); }
+  .rules { list-style: none; padding: 0; margin: 8px 0 0; font-size: 13px; }
+  .rules li { padding: 6px 10px; border-radius: 6px; margin-bottom: 4px; }
+  .rules li.ok { background: #e8f7ee; color: #1f7a42; }
+  .rules li.no { background: #fdecee; color: var(--bad); }
+  .errbox { color: var(--bad); font-size: 13px; min-height: 1.2em; margin-top: 12px; }
+  input[type=range] { width: 100%; accent-color: var(--brand); }
+  .readout { font-family: "Courier New", monospace; font-size: 20px; font-weight: 700; }
+  .daybox {
+    display: inline-block; min-width: 54px; text-align: center; padding: 8px;
+    border: 1px solid var(--line); border-radius: 6px; background: #fff; font-weight: 700;
+  }
+  .die { display: inline-block; }
+  .die.rolling { animation: roll .7s cubic-bezier(.3,.7,.4,1); }
+  @keyframes roll {
+    0% { transform: translateY(0) rotate(0); }
+    30% { transform: translateY(-14px) rotate(260deg) scale(1.3); }
+    60% { transform: translateY(0) rotate(520deg); }
+    80% { transform: translateY(-4px) rotate(680deg); }
+    100% { transform: translateY(0) rotate(720deg); }
+  }
+  .tiny.spinning { color: var(--brand); font-family: "Courier New", monospace; min-width: 44px; }
+  .wheelwrap { position: relative; width: 240px; max-width: 80%; margin: 6px auto 10px; }
+  .wheel { display: block; width: 100%; transition: transform 3.5s cubic-bezier(.15,.75,.1,1); filter: drop-shadow(0 4px 8px rgba(0,0,0,.2)); }
+  .wheelptr { position: absolute; left: 50%; top: -8px; margin-left: -11px; width: 0; height: 0; z-index: 1;
+    border-left: 11px solid transparent; border-right: 11px solid transparent; border-top: 22px solid var(--ink); }
+  .tiny { padding: 6px 10px; font-size: 12px; border: 1px solid var(--line); background: #fff; border-radius: 5px; }
+
+  /* cookies */
+  .cookie { display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px dotted var(--line); font-size: 14px; }
+  .cookie label { font-size: 11px; color: var(--muted); display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+  .cookie-list { max-height: 260px; overflow: auto; margin-bottom: 14px; }
+  .cookie.new { animation: pop .5s; }
+  @keyframes pop { from { background: #fff4a8; } }
+
+  /* interests */
+  .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin: 14px 0; }
+  .chip { display: flex; gap: 8px; align-items: center; padding: 10px; border: 1px solid var(--line);
+    border-radius: 8px; background: #fff; font-size: 14px; cursor: pointer; transition: transform .25s; }
+  .chip.on { border-color: var(--brand); background: #f1ebff; }
+
+  /* terms */
+  .terms { height: 220px; overflow: auto; border: 1px solid var(--line); padding: 12px; font-size: 12px;
+    background: #fff; line-height: 1.5; }
+  .terms p { margin: 0 0 10px; }
+  .check { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0; font-size: 14px; }
+  .check input { margin-top: 3px; }
+
+  /* captcha */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 14px auto; max-width: 300px; }
+  .tile { aspect-ratio: 1; display: grid; place-items: center; font-size: 46px; background: #f4f1f8;
+    border: 3px solid transparent; border-radius: 8px; cursor: pointer; user-select: none; }
+  .tile.sel { border-color: #2f6fe0; background: #dfe9ff; transform: scale(.94); }
+  .captcha-q { background: #2f6fe0; color: #fff; padding: 12px 14px; border-radius: 8px; font-size: 15px; }
+  .captcha-q b { font-size: 19px; display: block; }
+  .micro { font-size: 8px; padding: 0 3px; border: 1px solid var(--line); background: #fff; border-radius: 2px; color: var(--muted); }
+  .rot { font-size: 90px; text-align: center; margin: 16px 0; transition: transform .3s; }
+
+  /* calibration */
+  .calib { position: relative; height: 300px; border: 2px dashed var(--line); border-radius: 12px; margin: 16px 0;
+    background: repeating-linear-gradient(0deg, transparent 0 29px, #eee8f6 29px 30px), repeating-linear-gradient(90deg, transparent 0 29px, #eee8f6 29px 30px);
+    touch-action: none; user-select: none; -webkit-user-select: none; }
+  @media (pointer: fine) { .calib, .calib * { cursor: none !important; } }
+  .target { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%;
+    background: radial-gradient(circle, var(--bad) 0 4px, #fff 4px 8px, var(--bad) 8px 11px, #fff 11px 15px); box-shadow: 0 0 0 2px var(--bad); }
+  .mark { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; color: var(--bad); font: 700 14px/14px monospace;
+    text-align: center; pointer-events: none; animation: markfade 2.5s forwards; }
+  @keyframes markfade { 70% { opacity: 1; } to { opacity: 0; } }
+  .fakecur { position: absolute; width: 22px; height: 28px; pointer-events: none; z-index: 2; display: none; }
+  .meter { font-family: "Courier New", monospace; font-size: 13px; color: var(--muted); }
+
+  /* final */
+  .arena { position: relative; height: 260px; border: 2px dashed var(--line); border-radius: 12px; margin: 16px 0; }
+  #flee { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: auto;
+    padding: 16px 22px; font-size: 18px; margin: 0; transition: left .18s, top .18s; white-space: nowrap; }
+
+  /* ---------- overlays ---------- */
+  .modal-bg { position: fixed; inset: 0; background: rgba(30,15,60,.45); display: grid; place-items: center;
+    z-index: 50; padding: 16px; }
+  .modal { background: #fff; border-radius: 12px; padding: 22px; max-width: 380px; width: 100%; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3); position: relative; }
+  .modal h3 { margin: 0 0 10px; }
+  .modal .hx { font-size: 15px; color: #b9b3c6; cursor: pointer; line-height: 1; }
+  .modal .micro { cursor: pointer; }
+  .modal .copy { font-size: 9px; color: #c4bfcf; margin-top: 10px; cursor: pointer; }
+  .modal .btns { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+  .modal .btns button { padding: 10px 18px; border-radius: 8px; border: 1px solid var(--line); background: #fff; }
+  .modal .btns button.primary { background: var(--brand); color: #fff; border-color: var(--brand); font-weight: 700; }
+
+  #chat { position: fixed; right: 16px; bottom: 16px; width: 270px; max-width: calc(100vw - 32px);
+    background: #fff; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25); z-index: 40; overflow: hidden;
+    animation: up .4s; }
+  @keyframes up { from { transform: translateY(40px); opacity: 0; } }
+  #chat .head { background: var(--brand2); color: #fff; padding: 10px 12px; font-weight: 700; font-size: 14px;
+    display: flex; justify-content: space-between; }
+  #chat .head button { background: none; border: 0; color: rgba(255,255,255,.55); font-size: 9px; padding: 0 2px; }
+  #chat .body { padding: 12px; font-size: 14px; min-height: 60px; }
+  #chat.talk { width: 320px; }
+  #chat.talk .body { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+  .msg { padding: 7px 10px; border-radius: 12px; font-size: 13px; max-width: 85%; animation: up .25s; }
+  .msg.g { background: #e6f6f3; align-self: flex-start; border-bottom-left-radius: 3px; }
+  .msg.u { background: var(--brand); color: #fff; align-self: flex-end; border-bottom-right-radius: 3px; }
+  .msg.typing { font-style: italic; color: var(--muted); background: none; padding-left: 0; }
+  #chat .acts button:disabled { opacity: .45; cursor: default; }
+  #chat .acts { display: flex; gap: 6px; padding: 0 12px 12px; }
+  #chat .acts button { flex: 1; padding: 10px 8px; border-radius: 8px; border: 2px solid; color: #fff; font-size: 14px; font-weight: 800;
+    box-shadow: 0 3px 0 rgba(0,0,0,.2); text-shadow: 0 1px 0 rgba(0,0,0,.2); }
+  #chat .acts button.wiggle { animation: wiggle .5s 2; }
+  @keyframes wiggle { 25% { transform: rotate(-4deg) scale(1.05); } 75% { transform: rotate(4deg) scale(1.05); } }
+
+  #longload { position: fixed; inset: 0; background: rgba(255,255,255,.96); z-index: 60; display: grid; place-items: center;
+    text-align: center; padding: 16px; font-size: 15px; }
+  .llbar { width: 260px; max-width: 80vw; height: 12px; background: #e3dcf0; border-radius: 6px; overflow: hidden; margin: 14px auto 6px; }
+  #llFill { height: 100%; width: 0; background: var(--brand); transition: width .25s; }
+  .llsay { max-width: 300px; margin: 18px auto 4px; font-size: 14px; background: #e6f6f3; padding: 8px 12px; border-radius: 12px; text-align: left; }
+  #crank { touch-action: none; cursor: grab; display: block; margin: 8px auto 0; }
+  #loader { position: fixed; inset: 0; background: rgba(255,255,255,.92); z-index: 60; display: grid; place-items: center;
+    font-size: 15px; text-align: center; }
+  .spin { width: 44px; height: 44px; border: 5px solid #e3dcf0; border-top-color: var(--brand); border-radius: 50%;
+    margin: 0 auto 12px; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #toast { position: fixed; left: 50%; top: 80px; transform: translate(-50%, -20px); opacity: 0;
+    background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 14px; z-index: 70;
+    transition: .3s; pointer-events: none; max-width: calc(100vw - 32px); text-align: center; }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  [hidden] { display: none !important; }
+
+  /* ---------- progressive decay ---------- */
+  body.d3 { background: #e9f2e0; }
+  body.d3 h1, body.d3 h2 { font-family: Georgia, "Times New Roman", serif; }
+  body.d4 { background: repeating-linear-gradient(45deg, #f6e7ff 0 22px, #e4fff4 22px 44px); }
+  body.d4 .card { border-radius: 2px 30px 4px 18px; }
+  body.d5 main { transform: rotate(-1.2deg); }
+  body.d5 h1, body.d5 h2 { font-family: "Comic Sans MS", "Comic Neue", "Chalkboard SE", cursive; color: #c0287a; }
+  body.d5 { background: repeating-radial-gradient(circle at 30% 30%, #fff6b0 0 18px, #ffd1ec 18px 36px); }
+  body.d6 main { transform: rotate(1.4deg) skewX(-1deg); }
+  body.d7 { background: #1b1b1b; animation: hue 6s linear infinite; }
+  body.d7 main { animation: wobble 5s ease-in-out infinite; }
+  @keyframes hue { to { filter: hue-rotate(360deg); } }
+  @keyframes wobble { 50% { transform: rotate(-1.6deg) translateY(4px); } }
+
+  @media (max-width: 520px) {
+    h1 { font-size: 29px; }
+    .email { grid-template-columns: 1fr auto 1fr; }
+    .email select { grid-column: 1 / -1; }
+    .email span.dot { display: none; }
+    header { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Effortless<sup id="tm">™</sup></div>
+  <div id="steps"></div>
+  <div id="timer">00:00</div>
+</header>
+<div id="progress"><div id="bar"></div></div>
+<main id="app"></main>
+
+<div id="chat" hidden>
+  <div class="head"><span>💬 Gérard du Support</span><button id="chatX" aria-label="fermer">fermer</button></div>
+  <div class="body" id="chatBody"></div>
+  <div class="acts"><button id="chatYes">Oui, svp</button><button id="chatNo">Non merci</button></div>
+</div>
+<div id="loader" hidden><div><div class="spin"></div><div id="loaderTxt">Chargement…</div></div></div>
+<div id="toast"></div>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const app = $('#app');
+const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rand(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const cap1 = s => s[0].toUpperCase() + s.slice(1);
+
+const S = { level: 0, start: 0, penalty: 0, clicks: 0, done: false };
+let cleanups = [];
+const onLeave = fn => cleanups.push(fn);
+
+/* ---------- utilitaires ---------- */
+let toastT;
+function toast(msg, ms = 2600) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms);
+}
+function shake(el) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+function penalize(sec, why) {
+  S.penalty += sec; toast(`+${sec} s ${why}`);
+  const t = $('#timer'); t.classList.remove('pen'); void t.offsetWidth; t.classList.add('pen');
+}
+function modal(html) {
+  const bg = document.createElement('div'); bg.className = 'modal-bg';
+  bg.innerHTML = `<div class="modal">${html}</div>`;
+  document.body.appendChild(bg);
+  return bg;
+}
+document.addEventListener('click', () => S.clicks++, true);
+
+/* ---------- chrono & en-tête mensonger ---------- */
+const fmt = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+const elapsed = () => S.start ? (Date.now() - S.start) / 1000 + S.penalty : 0;
+setInterval(() => { if (!S.done) $('#timer').textContent = fmt(elapsed()); }, 250);
+
+const STEP_LIES = [['1', '3'], ['1', '3'], ['2', '4'], ['5', '4'], ['3', '4'], ['π', '4'], ['7', '6'], ['6', '6'], ['8', '7'], ['9', '8'], ['✓', '✓']];
+const BAR_LIES = [3, 35, 22, 61, 48, 83, 34, 12, 99, 100, 100];
+
+let goToken = 0;
+function go(n, opts = {}) {
+  cleanups.forEach(f => f()); cleanups = [];
+  const token = ++goToken;
+  if (cancelLong) cancelLong();
+  const forward = n > S.level;
+  S.level = n;
+  if (n === 1 && !S.start) S.start = Date.now();
+  const render = () => {
+    if (token !== goToken) return;
+    document.body.className = [[3, 'd3'], [4, 'd4'], [5, 'd5'], [6, 'd6'], [8, 'd7']].filter(([l]) => n >= l).map(([, c]) => c).join(' ');
+    const [a, b] = STEP_LIES[n];
+    $('#steps').textContent = `Étape ${a} sur ${b}`;
+    $('#bar').style.width = BAR_LIES[n] + '%';
+    STAGES[n]();
+    window.scrollTo(0, 0);
+  };
+  if (forward && n >= 5 && !opts.fast) (n === 6 ? longLoad : fakeLoad)(render); else render();
+}
+
+// the very long one: ~50 s on its own, until Gérard brings a crank
+let longLoading = false, cancelLong = null;
+const LL_LINES = ["Chargement du captcha…", "Recherche d’images de passages piétons…", "Comptage des feux tricolores…", "Ça arrive…", "Toujours là ?", "Merci de votre patience (vous n’avez pas le choix).", "Vérification de votre patience…", "Presque… non.", "Défragmentation des cookies…", "Réveil du serveur…", "Le serveur s’est rendormi…"];
+function longLoad(then) {
+  longLoading = true;
+  const ov = document.createElement('div'); ov.id = 'longload';
+  ov.innerHTML = `<div>
+    <div class="spin"></div>
+    <div id="llTxt">${LL_LINES[0]}</div>
+    <div class="llbar"><div id="llFill"></div></div>
+    <div class="readout" id="llPct">0 %</div>
+    <div id="llGary" hidden>
+      <p class="llsay">💬 <b>Gérard :</b> <span id="llSay"></span></p>
+      <svg id="crank" viewBox="0 0 120 120" width="130" height="130">
+        <circle cx="60" cy="60" r="54" fill="#f4f1f8" stroke="#d9d2e6" stroke-width="3"/>
+        <g id="arm"><rect x="56" y="16" width="8" height="44" rx="4" fill="#8a8399"/><circle cx="60" cy="20" r="12" fill="#e0344b" stroke="#fff" stroke-width="3"/></g>
+        <circle cx="60" cy="60" r="9" fill="#2b2140"/>
+      </svg>
+      <p class="small" style="color:var(--muted)">Faites tourner la manivelle (cliquer-glisser en rond)</p>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  let p = 0, stall = 0, line = 0, t0 = Date.now(), rot = 0, drag = false, last = 0;
+  const draw = () => { ov.querySelector('#llFill').style.width = p + '%'; ov.querySelector('#llPct').textContent = Math.floor(p) + ' %'; };
+  const iv = setInterval(() => {
+    const el = Date.now() - t0;
+    if (stall > 0) stall -= 250;
+    else if (Math.random() < .06) stall = rand(2000, 5000);
+    else if (Math.random() < .03) p = Math.max(0, p - 2);
+    else p += Math.random() * 2;
+    if (el > 8000 && ov.querySelector('#llGary').hidden) {
+      ov.querySelector('#llSay').textContent = garyMood === 'sulky' ? "Je ne devrais pas vous aider, après ce que vous m’avez fait. Mais bon. Tenez, une manivelle. 🙂" : garyMood === 'grateful' ? "Pour vous remercier de m’avoir écouté, je vous ai bricolé une manivelle 🥹 Tournez !" : "Psst ! C’est Gérard. Ça rame, hein ? J’ai bricolé une manivelle. Tournez-la !";
+      ov.querySelector('#llGary').hidden = false;
+    }
+    if (el / 4000 > line + 1) ov.querySelector('#llTxt').textContent = LL_LINES[++line % LL_LINES.length];
+    if (p >= 100) { p = 100; draw(); finish(true); return; }
+    draw();
+  }, 250);
+  const crank = ov.querySelector('#crank'), arm = ov.querySelector('#arm');
+  const angle = e => { const r = crank.getBoundingClientRect(); return Math.atan2(e.clientY - r.top - r.height / 2, e.clientX - r.left - r.width / 2) * 180 / Math.PI; };
+  crank.addEventListener('pointerdown', e => { drag = true; last = angle(e); crank.setPointerCapture(e.pointerId); p += .3; });
+  crank.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const a = angle(e); let d = a - last; last = a;
+    if (d > 180) d -= 360; if (d < -180) d += 360;
+    rot += d; p = Math.min(100, p + Math.abs(d) / 360 * 8);
+    arm.setAttribute('transform', `rotate(${rot} 60 60)`);
+    draw();
+  });
+  const up = () => drag = false;
+  crank.addEventListener('pointerup', up); crank.addEventListener('pointercancel', up);
+  const finish = ok => {
+    clearInterval(iv); ov.remove(); longLoading = false; cancelLong = null;
+    if (ok) then();
+  };
+  cancelLong = () => finish(false);
+}
+
+function fakeLoad(then) {
+  const L = $('#loader'), txt = $('#loaderTxt');
+  const lines = ['Sauvegarde de votre progression…', 'Vérification que vous n’êtes pas pressé…', 'Réticulation des cases à cocher…', 'Presque fini (pas du tout)…'];
+  let p = 0; L.hidden = false;
+  const iv = setInterval(() => {
+    p += rand(-9, 23); p = Math.max(0, Math.min(p, 99));
+    txt.innerHTML = `${pick(lines)}<br><b>${p} %</b>`;
+  }, 300);
+  setTimeout(() => { clearInterval(iv); L.hidden = true; then(); }, rand(1800, 3200));
+}
+
+/* =====================================================================
+   ÉTAPE 0 — accueil
+   ===================================================================== */
+function stageWelcome() {
+  app.innerHTML = `
+  <section class="card">
+    <h1>Bonjour 👋 et bienvenue sur <em>Effortless™</em></h1>
+    <p class="lead">L’inscription la plus intuitive du monde. Primée*. Sans friction**.</p>
+    <button class="big green" id="no">NON</button>
+    <p class="small">Veuillez cliquer <a href="#" id="here">ICI</a> pour <span id="begin" class="sneaky">commencer</span> votre inscription.</p>
+    <p class="hint" id="hint"></p>
+    <p class="fine">* prix pas encore décerné. ** friction incluse sans supplément. En existant, vous acceptez nos conditions.</p>
+  </section>`;
+  let misses = 0;
+  const hint = $('#hint');
+  const miss = msg => {
+    misses++;
+    hint.textContent = misses >= 4 ? 'Indice : vous voulez commencer, non ? Alors cliquez sur « commencer ».' : msg;
+  };
+  const noMsgs = ['Ce bouton est décoratif.', 'NON, c’est non.', 'Toujours décoratif.', 'Avez-vous essayé de lire ?'];
+  $('#no').onclick = e => { shake(e.target); miss(noMsgs[Math.min(misses, 3)]); };
+  $('#here').onclick = e => { e.preventDefault(); miss('Pas ICI. Ailleurs.'); };
+  $('#begin').onclick = () => go(1);
+}
+
+/* =====================================================================
+   ÉTAPE 1 — cookies
+   ===================================================================== */
+const COOKIE_BASE = ['Strictement nécessaires', 'Performance', 'Fonctionnels', 'Ciblage', 'Suivi de votre humeur', 'Revente de vos données (un peu)'];
+const PARTNERS = ['Partenaire n° 1 (faites-nous confiance)', 'La start-up du cousin du PDG', 'Un certain Kevin', 'Démarchage Téléphonique SARL',
+  'Pubs selon la météo', 'Votre ex', 'Courtiers en Données Anonymes', 'Pigeon Analytics', 'Profil Fantôme SAS', 'Big Biscotte',
+  'Une IA qui note votre façon de taper', 'Ciblage par horoscope', 'Partenaire n° 2 (on a perdu le n° 1)', 'Musique d’Attente & Fils'];
+// [libellé, true si « coché » veut dire « autorisé »]
+const COOKIE_LABELS = [['Autoriser', true], ['Ne pas autoriser', false], ['Ne pas ne pas autoriser', true],
+  ['Autoriser à ne pas autoriser', false], ['Bloquer', false], ['Ne pas bloquer', true], ['Refuser de refuser', true],
+  ['Ne pas refuser d’accepter', true], ['Désactiver le blocage', true], ['Accepter le refus', false],
+  ['Ne jamais ne pas bloquer', false], ['Ne pas désactiver l’autorisation', true]];
+const newCookie = n => ({ n, on: true, l: pick(COOKIE_LABELS) });
+function stageCookies() {
+  const cookies = COOKIE_BASE.map(newCookie);
+  let pool = shuffle(PARTNERS.slice());
+  app.innerHTML = `
+  <section class="card">
+    <h2>🍪 Votre vie privée compte pour nous</h2>
+    <p class="lead small">Nous et nos <b id="pcount">6</b> partenaires utilisons des cookies pour améliorer votre expérience de pistage.</p>
+    <div class="cookie-list" id="clist"></div>
+    <button class="big purple" id="accept">Tout accepter &amp; continuer</button>
+    <div class="row between">
+      <button class="linkish" id="save">enregistrer mes choix</button>
+      <button class="linkish" id="learn">en savoir plus</button>
+    </div>
+  </section>`;
+  const list = $('#clist');
+  const draw = newOnes => {
+    list.innerHTML = cookies.map((c, i) => `
+      <div class="cookie ${newOnes && i >= cookies.length - newOnes ? 'new' : ''}">
+        <span>${c.n}</span>
+        <label>${c.l[0]} <input type="checkbox" data-i="${i}" ${c.on === c.l[1] ? 'checked' : ''} ${i === 0 ? 'disabled' : ''}></label>
+      </div>`).join('');
+    $('#pcount').textContent = cookies.length;
+  };
+  draw();
+  list.onchange = e => { const c = cookies[e.target.dataset.i]; c.on = e.target.checked === c.l[1]; };
+  $('#accept').onclick = () => {
+    const add = pool.splice(0, 3);
+    if (!add.length) { toast('Vous avez accepté tout le monde. Il ne reste personne. Refusez quelque chose, svp.'); return; }
+    add.forEach(n => cookies.push(newCookie(n)));
+    draw(add.length);
+    list.scrollTop = list.scrollHeight;
+    toast(`Merci ! Nous avons ajouté ${add.length} partenaires de confiance 🤝`);
+  };
+  $('#learn').onclick = () => toast('Les cookies sont de petits biscuits. De rien.');
+  $('#save').onclick = () => {
+    const left = cookies.slice(1).filter(c => c.on).length;
+    if (left) { shake(list); toast(`${left} cookie${left > 1 ? 's sont encore autorisés' : ' est encore autorisé'}. Regardez mieux.`); return; }
+    go(2);
+  };
+}
+
+/* =====================================================================
+   ÉTAPE 2 — compte
+   ===================================================================== */
+const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const PW_RULES = [
+  ['Au moins 10 caractères.', p => p.length >= 10],
+  ['Doit contenir une majuscule.', p => /[A-Z]/.test(p)],
+  ['Doit contenir un chiffre.', p => /\d/.test(p)],
+  ['Doit contenir le nom d’un mois.', p => MONTHS.some(m => p.toLowerCase().includes(m))],
+  ['La somme des chiffres doit faire 13.', p => [...p].filter(c => /\d/.test(c)).reduce((s, c) => s + +c, 0) === 13],
+  ['Ne doit pas contenir la lettre « e ». Aucun « e ».', p => !/[eéèêë]/i.test(p)],
+  ['Doit contenir un emoji, pour l’ambiance.', p => /\p{Extended_Pictographic}/u.test(p)],
+];
+const TLDS = ['.rf', '.fr.', '.frr', '.fe', '.web', '.cmo', '.org', '.net', '.biz', '.lol', '.com', '.io', '.xyz', '.f r', '.moe', '.ninja', '.pizza', '.fr', '.rf.fr'];
+function stageAccount() {
+  let revealed = 0;
+  app.innerHTML = `
+  <section class="card">
+    <h2>Créez votre compte</h2>
+    <p class="lead small">Ça ne prend qu’une seconde. Une longue seconde.</p>
+
+    <label class="f">Nom <small>(celui qu’on vous a donné)</small></label>
+    <input type="text" id="name" class="ghost" value="Votre nom" autocomplete="off">
+
+    <label class="f">Mot de passe <small>(visible par tous, par souci de transparence)</small></label>
+    <input type="text" id="pw" autocomplete="off" spellcheck="false">
+    <ul class="rules" id="rules"></ul>
+
+    <label class="f">Répétez le mot de passe <small>(à l’envers, pour la sécurité)</small></label>
+    <input type="password" id="pw2" autocomplete="off">
+
+    <label class="f">E-mail</label>
+    <div class="email">
+      <input type="text" id="eu" placeholder="domaine" autocomplete="off">
+      <span>@</span>
+      <input type="text" id="ed" placeholder="identifiant" autocomplete="off">
+      <span class="dot"></span>
+      <select id="et"><option value="">.ext</option>${TLDS.map(t => `<option>${t}</option>`).join('')}</select>
+    </div>
+
+    <p class="errbox" id="err"></p>
+    <button class="big blue" id="clear">EFFACER LE FORMULAIRE</button>
+    <p class="small" style="text-align:right">Tout est bon ? <button class="linkish" id="next">suivant</button></p>
+  </section>`;
+  const name = $('#name');
+  name.addEventListener('input', () => name.classList.remove('ghost'));
+  name.addEventListener('blur', () => { if (!name.value.trim()) { name.value = 'Votre nom'; name.classList.add('ghost'); } });
+
+  const drawRules = () => {
+    const pw = $('#pw').value;
+    $('#rules').innerHTML = PW_RULES.slice(0, revealed).map(([t, f]) => `<li class="${f(pw) ? 'ok' : 'no'}">${f(pw) ? '✓' : '✗'} ${t}</li>`).join('');
+  };
+  $('#pw').addEventListener('input', drawRules);
+
+  $('#clear').onclick = () => {
+    app.querySelectorAll('input').forEach(i => i.value = '');
+    $('#et').value = ''; name.value = 'Votre nom'; name.classList.add('ghost');
+    toast('Formulaire effacé ✨ De rien.');
+  };
+
+  $('#next').onclick = () => {
+    app.querySelectorAll('.err').forEach(e => e.classList.remove('err'));
+    const pw = $('#pw').value, bad = [];
+    const nm = name.value.trim();
+    if (!nm || nm === 'Votre nom') bad.push(name);
+    const firstFail = PW_RULES.findIndex(([, f]) => !f(pw));
+    if (firstFail !== -1) { revealed = Math.max(revealed, firstFail + 1); bad.push($('#pw')); }
+    else revealed = PW_RULES.length;
+    drawRules();
+    if ($('#pw2').value !== [...pw].reverse().join('') || !pw) bad.push($('#pw2'));
+    if (!/^[^\s@]+$/.test($('#eu').value)) bad.push($('#eu'));
+    if (!/^[a-z0-9-]+$/i.test($('#ed').value)) bad.push($('#ed'));
+    if (!$('#et').value) bad.push($('#et'));
+    if (bad.length) {
+      bad.forEach(b => b.classList.add('err'));
+      const msgs = ['Quelque chose ne va pas. Quelque part.', `Il y a ${bad.length === 1 ? '1 problème' : `${bad.length} problèmes`}. Bon courage.`,
+        'Erreur : erreur.', 'Corrigez les trucs rouges. Le rouge, c’est mal.'];
+      $('#err').textContent = pick(msgs);
+      return;
+    }
+    go(3);
+  };
+}
+
+/* =====================================================================
+   ÉTAPE 3 — informations personnelles
+   ===================================================================== */
+function stageDetails() {
+  const months = MONTHS.map((m, i) => [m, i]).sort((a, b) => a[0].localeCompare(b[0], 'fr'));
+  app.innerHTML = `
+  <section class="card">
+    <h2>Encore quelques informations</h2>
+    <p class="lead small">Obligatoire selon la loi. Quelle loi ? Une loi.</p>
+
+    <label class="f">Année de naissance</label>
+    <input type="range" id="yr" min="1" max="9999" value="5000">
+    <div class="readout" id="yrv"></div>
+    <div class="row" style="margin-top:6px"><button class="tiny" id="ym"></button><button class="tiny" id="yp"></button><button class="tiny" id="yr2"><span class="die">🎲</span> nouveaux numéros</button></div>
+
+    <label class="f">Mois <small>(par ordre alphabétique, comme le veut la nature)</small></label>
+    <div class="row" style="flex-wrap:nowrap"><select id="mo" style="flex:1"><option value="">— choisir —</option>${months.map(([m, i]) => `<option value="${i}">${cap1(m)}</option>`).join('')}</select><button class="tiny" id="moShuffle" style="white-space:nowrap">🔀 autres mois</button></div>
+    <p class="small" style="margin:4px 0 0;color:var(--muted)">Certains mois sont momentanément indisponibles.</p>
+
+    <label class="f">Jour</label>
+    <div class="wheelwrap"><div class="wheelptr"></div><svg class="wheel" id="wheel" viewBox="0 0 200 200"></svg></div>
+    <div class="row" style="justify-content:center"><button class="tiny" id="spin">🎡 Lancer la roue</button><span class="daybox" id="day">?</span></div>
+
+    <label class="f">Numéro de téléphone <small>(glissez jusqu’à votre numéro)</small></label>
+    <input type="range" id="ph" min="0" max="999999999" value="0">
+    <div class="readout" id="phv"></div>
+    <div class="row" style="margin-top:6px"><button class="tiny" id="phm">−1</button><button class="tiny" id="php">+1</button></div>
+
+    <p class="errbox" id="err"></p>
+    <div class="row between" style="margin-top:14px">
+      <button class="meh" id="next">← Suivant</button>
+      <button class="big green" id="prev" style="width:auto;margin:0;padding:14px 26px;font-size:18px">Précédent →</button>
+    </div>
+  </section>`;
+  let day = 0;
+  const yr = $('#yr'), ph = $('#ph');
+  // only 5 months are on offer at any time
+  const mo = $('#mo');
+  const rollMonths = () => {
+    const open = new Set(shuffle([...Array(12).keys()]).slice(0, 5));
+    [...mo.options].slice(1).forEach(o => o.disabled = !open.has(+o.value));
+    if (mo.value !== '' && !open.has(+mo.value)) { mo.value = ''; toast('Votre mois n’est plus disponible. Désolé.'); }
+  };
+  rollMonths();
+  $('#moShuffle').onclick = rollMonths;
+  const showYr = () => $('#yrv').textContent = yr.value;
+  const showPh = () => {
+    const d = '0' + String(ph.value).padStart(9, '·');
+    $('#phv').textContent = d.match(/.{2}/g).join(' ');
+  };
+  yr.oninput = showYr; ph.oninput = showPh; showYr(); showPh();
+  // fine-tuning, with a new random step after every click
+  let ym, yp;
+  const rollY = () => { ym = rand(1, 99); yp = rand(1, 99); $('#ym').textContent = '−' + ym; $('#yp').textContent = '+' + yp; };
+  rollY();
+  $('#ym').onclick = () => { yr.value = +yr.value - ym; showYr(); rollY(); };
+  $('#yp').onclick = () => { yr.value = +yr.value + yp; showYr(); rollY(); };
+  $('#yr2').onclick = () => {
+    const b = $('#yr2'), die = b.querySelector('.die');
+    if (b.disabled) return;
+    b.disabled = $('#ym').disabled = $('#yp').disabled = true;
+    die.classList.remove('rolling'); void die.offsetWidth; die.classList.add('rolling');
+    $('#ym').classList.add('spinning'); $('#yp').classList.add('spinning');
+    const iv = setInterval(() => { $('#ym').textContent = '−' + rand(1, 99); $('#yp').textContent = '+' + rand(1, 99); }, 60);
+    setTimeout(() => {
+      clearInterval(iv); rollY();
+      b.disabled = $('#ym').disabled = $('#yp').disabled = false;
+      $('#ym').classList.remove('spinning'); $('#yp').classList.remove('spinning');
+    }, 700);
+  };
+  // wheel of fortune for the day: 31 wedges, number 1 at the top
+  const SEG = 360 / 31, wheel = $('#wheel'), COLORS = ['#6c3ce0', '#1fb5a8', '#e0344b', '#f2b632'];
+  const pt = (a, r) => [100 + r * Math.sin(a * Math.PI / 180), 100 - r * Math.cos(a * Math.PI / 180)];
+  wheel.innerHTML = [...Array(31)].map((_, i) => {
+    const [x0, y0] = pt((i - .5) * SEG, 98), [x1, y1] = pt((i + .5) * SEG, 98), [tx, ty] = pt(i * SEG, 82);
+    return `<path d="M100 100 L${x0} ${y0} A98 98 0 0 1 ${x1} ${y1} Z" fill="${COLORS[i % 4]}" stroke="#fff" stroke-width=".6"/>
+      <text x="${tx}" y="${ty}" transform="rotate(${i * SEG} ${tx} ${ty})" text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="700" fill="#fff">${i + 1}</text>`;
+  }).join('') + '<circle cx="100" cy="100" r="12" fill="#fff" stroke="#2b2140" stroke-width="2"/>';
+  let rot = 0, spinning = false;
+  $('#spin').onclick = () => {
+    if (spinning) return;
+    spinning = true; $('#day').textContent = '…';
+    const k = rand(0, 30), jitter = (Math.random() - .5) * SEG * .7;
+    const target = ((-k * SEG + jitter) % 360 + 360) % 360;
+    rot += 360 * rand(4, 6) + ((target - rot % 360) + 360) % 360;
+    wheel.style.transform = `rotate(${rot}deg)`;
+    setTimeout(() => { day = k + 1; $('#day').textContent = day; spinning = false; }, 3600);
+  };
+  const resetDay = () => { day = 0; $('#day').textContent = '?'; };
+  $('#phm').onclick = () => { ph.value = +ph.value - 1; showPh(); };
+  $('#php').onclick = () => { ph.value = +ph.value + 1; showPh(); };
+  $('#prev').onclick = () => { toast('Retour en arrière. Vos informations ont été jetées avec amour.'); go(2); };
+  $('#next').onclick = () => {
+    const y = +yr.value, m = $('#mo').value, err = $('#err');
+    const age = 2026 - y;
+    if (age < 13) { err.textContent = y > 2026 ? `Né(e) en ${y} ? Bienvenue, voyageur temporel. Mais non.` : 'Vous devez avoir au moins 13 ans.'; return; }
+    if (age > 120) { err.textContent = `Né(e) en ${y} ? Impressionnant. Soyez plus jeune, svp.`; return; }
+    if (m === '') { err.textContent = 'Le mois est obligatoire. Les douze conviennent.'; return; }
+    if (!day) { err.textContent = 'Le jour est obligatoire. Lancez la roue.'; return; }
+    const maxDay = new Date(y, +m + 1, 0).getDate();
+    if (day > maxDay) { err.textContent = `Le ${day} ${MONTHS[m]} ? Ce n’est pas un jour. A priori.`; return; }
+    if (+ph.value < 1e8) { err.textContent = 'Un numéro commence par 01 à 09. Le vôtre a trop de zéros. Prenez-en un plus long.'; return; }
+    // the suspicion step
+    const ask = (title, body, yes, no, onYes) => {
+      const bg = modal(`<h3>${title}</h3><p>${body}</p><div class="btns">${shuffle([['y', yes], ['n', no]]).map(([k, l]) => `<button data-k="${k}" class="${k === 'n' ? 'primary' : ''}">${l}</button>`).join('')}</div>`);
+      bg.querySelector('.btns').onclick = e => {
+        const k = e.target.dataset.k; if (!k) return;
+        bg.remove();
+        if (k === 'y') onYes(); else { resetDay(); toast('Merci pour votre honnêteté. Relancez la roue.'); }
+      };
+    };
+    ask('🤨 Petit doute', `Nous avons comme l’impression que vous avez choisi votre jour de naissance <b>au pif</b>. Le ${day}, vraiment ?`, `Oui, c’est vraiment le ${day}`, 'Bon… un peu au pif',
+      () => ask('Vraiment vraiment ?', 'Pile le numéro sur lequel la roue s’est arrêtée ? Quelle coïncidence.', 'Je le jure 🤚', 'D’accord, je relance', () => go(4)));
+  };
+}
+
+/* =====================================================================
+   ÉTAPE 4 — centres d’intérêt
+   ===================================================================== */
+const NONE = 'Aucun des choix ci-dessus';
+const INTERESTS = ['Respirer', 'Les formulaires', 'Les pop-ups', 'Attendre', 'Les cookies (de navigateur)', 'Les captchas', 'Les CGU',
+  'Les icônes de chargement', 'Les petites lignes', 'Donner son avis', 'La musique d’attente', NONE];
+function stageInterests() {
+  const sel = new Set();
+  let order = shuffle(INTERESTS.slice());
+  app.innerHTML = `
+  <section class="card">
+    <h2>Qu’est-ce qui vous passionne ?</h2>
+    <p class="lead small">Choisissez <b>exactement 3</b> centres d’intérêt pour personnaliser des choses que vous ne verrez jamais.</p>
+    <div class="chips" id="chips"></div>
+    <p class="errbox" id="err"></p>
+    <button class="big purple" id="skip">PASSER CETTE ÉTAPE</button>
+    <div style="text-align:center"><button class="meh" id="next">continuer</button></div>
+  </section>`;
+  const chips = $('#chips');
+  const draw = () => {
+    chips.innerHTML = order.map(n => `<label class="chip ${sel.has(n) ? 'on' : ''}"><input type="checkbox" value="${n}" ${sel.has(n) ? 'checked' : ''}>${n}</label>`).join('');
+  };
+  draw();
+  chips.onchange = e => {
+    const v = e.target.value;
+    if (e.target.checked) {
+      if (v === NONE) sel.clear();
+      else sel.delete(NONE);
+      sel.add(v);
+    } else sel.delete(v);
+    order = shuffle(order);           // pour la fraîcheur
+    draw();
+  };
+  $('#skip').onclick = () => { sel.clear(); draw(); toast('Impossible de passer cette étape. On l’a réinitialisée pour vous aider.'); };
+  $('#next').onclick = () => {
+    const n = sel.size;
+    if (n === 3) return go(5);
+    $('#err').textContent = n < 3 ? `Vous en avez choisi ${n}. C’est moins que 3.` : `Vous en avez choisi ${n}. C’est plus que 3. Bien plus.`;
+  };
+}
+
+/* =====================================================================
+   ÉTAPE 5 — CGU
+   ===================================================================== */
+const CLAUSES = ['L’Utilisateur accepte que « accepter » puisse signifier « refuser » le mardi.',
+  'Effortless™ peut modifier ces conditions à tout moment, y compris rétroactivement, y compris hier.',
+  'L’Utilisateur concède à Effortless™ une licence perpétuelle et irrévocable sur ses vibes.',
+  'Toute ressemblance entre cette inscription et une bonne expérience serait purement fortuite.',
+  'Les cookies refusés seront regrettés avec tendresse et reproposés régulièrement.',
+  'L’Utilisateur s’interdit d’utiliser le Service pour son usage prévu sans accord écrit préalable.',
+  'Les notifications pourront être envoyées par e-mail, SMS, pigeon voyageur ou vague sentiment de malaise.',
+  'Effortless™ décline toute responsabilité pour le temps perdu, y compris celui passé à lire cet article.',
+  'Le lien « Se désabonner » est fourni à titre purement décoratif.',
+  'En cas de litige, les parties s’en remettront à un pierre-feuille-ciseaux (en 101 manches gagnantes).',
+  'L’Utilisateur confirme avoir défilé jusqu’ici, ce que personne ne fait.',
+  'L’article 12 a été rendu volontairement confus.',
+  'Gérard du Support est une vraie personne et ses sentiments sont couverts par le présent contrat.',
+  'Votre mot de passe sera stocké en clair, pour plus de lisibilité.',
+  'Les présentes sont régies par le droit d’un pays restant à déterminer.'];
+function stageTerms() {
+  const paras = [];
+  for (let i = 0; i < 34; i++) paras.push(`<p><b>Art. ${i + 1}.</b> ${CLAUSES[i % CLAUSES.length]}</p>`);
+  app.innerHTML = `
+  <section class="card">
+    <h2>Conditions Générales d’Utilisation</h2>
+    <p class="lead small">À lire attentivement. Notre défilement-assisté™ vous aidera à relire les passages importants.</p>
+    <div class="terms" id="terms">${paras.join('')}<p id="tbottom"><b>FIN.</b> Félicitations, vous êtes le premier.</p></div>
+    <label class="check"><input type="checkbox" id="notAccept" checked> Je n’accepte pas les Conditions Générales d’Utilisation.</label>
+    <label class="check" id="readWrap" hidden><input type="checkbox" id="read"> J’ai vraiment lu les conditions.</label>
+    <label class="check"><input type="checkbox" checked> Décochez cette case si vous ne souhaitez pas ne plus ne pas recevoir notre newsletter.</label>
+    <p class="errbox" id="err"></p>
+    <button class="big green" id="next">J’ACCEPTE</button>
+  </section>`;
+  const box = $('#terms');
+  let reached = false;
+  const iv = setInterval(() => {
+    if (reached) return;
+    if (box.scrollTop + box.clientHeight >= box.scrollHeight - 4) {
+      reached = true; $('#readWrap').hidden = false; toast('Waouh. Vous avez tout lu. Probablement.');
+    } else if (box.scrollTop > 0) box.scrollTop -= 3;   // défilement-assisté™
+  }, 40);
+  onLeave(() => clearInterval(iv));
+  $('#next').onclick = () => {
+    const err = $('#err');
+    if ($('#notAccept').checked) { err.textContent = 'Vous avez indiqué ne pas accepter les conditions.'; return; }
+    if (!reached) { err.textContent = 'Vous n’avez pas lu les conditions. Ça se voit.'; return; }
+    if (!$('#read').checked) { err.textContent = 'Merci de confirmer que vous avez lu ce que vous avez lu.'; return; }
+    go(6);
+  };
+}
+
+/* =====================================================================
+   ÉTAPE 6 — captcha
+   ===================================================================== */
+const POOL = {
+  fruit: ['🍎', '🍌', '🍇', '🍓', '🍒', '🍍', '🥝', '🍑', '🍋'],
+  animal: ['🐶', '🐱', '🐸', '🐙', '🦆', '🐢', '🦔', '🐌', '🦒'],
+  vehicle: ['🚗', '🚲', '🚀', '🚂', '🛵', '🚁', '⛵', '🚜', '🛸'],
+};
+const ROUNDS = [
+  { q: 'Sélectionnez toutes les cases avec un <u>fruit</u>.', pools: ['fruit', 'animal', 'vehicle'], ok: k => k === 'fruit' },
+  { q: 'Sélectionnez toutes les cases qui ne contiennent <u>pas</u> de <u>non-animal</u>.', pools: ['animal', 'fruit', 'vehicle'], ok: k => k === 'animal' },
+  { q: 'Sélectionnez toutes les cases qui ne sont pas pas pas un <u>véhicule</u>.', pools: ['vehicle', 'fruit', 'animal'], ok: k => k !== 'vehicle' },
+];
+function stageCaptcha() {
+  let round = 0;
+  app.innerHTML = `<section class="card" id="cap"></section>`;
+  const cap = $('#cap');
+  const drawRound = () => {
+    const R = ROUNDS[round];
+    const tiles = [];
+    // au moins 2 du premier groupe, pour qu’il y ait toujours quelque chose à trouver
+    const counts = { [R.pools[0]]: rand(2, 4) };
+    counts[R.pools[1]] = rand(2, 9 - counts[R.pools[0]] - 1);
+    counts[R.pools[2]] = 9 - counts[R.pools[0]] - counts[R.pools[1]];
+    for (const k in counts) shuffle(POOL[k].slice()).slice(0, counts[k]).forEach(e => tiles.push({ e, k }));
+    shuffle(tiles);
+    cap.innerHTML = `
+      <h2>Prouvez que vous êtes humain 🤖</h2>
+      <p class="lead small">Manche ${round + 1} sur ${round + 2}</p>
+      <div class="captcha-q">Veuillez suivre la consigne :<b>${R.q}</b></div>
+      <div class="grid" id="grid">${tiles.map((t, i) => `<div class="tile" data-i="${i}">${t.e}</div>`).join('')}</div>
+      <p class="errbox" id="err"></p>
+      <div class="row between"><button class="tiny" id="reroll">↻ autres images</button><button class="big blue" id="verify" style="width:auto;margin:0;padding:12px 26px;font-size:17px">VÉRIFIER</button></div>`;
+    const sel = new Set();
+    $('#grid').onclick = e => {
+      const t = e.target.closest('.tile'); if (!t) return;
+      const i = +t.dataset.i; sel.has(i) ? sel.delete(i) : sel.add(i); t.classList.toggle('sel');
+    };
+    $('#reroll').onclick = () => { penalize(5, 'pour avoir fait le difficile'); drawRound(); };
+    $('#verify').onclick = () => {
+      const right = tiles.every((t, i) => R.ok(t.k) === sel.has(i));
+      if (!right) { toast(pick(['Faux. Seriez-vous un robot ? 🤖', 'Incorrect. Très robot, tout ça.', 'Non. Bip boup ?'])); drawRound(); return; }
+      round++;
+      round < ROUNDS.length ? drawRound() : drawRotate();
+    };
+  };
+  const drawRotate = () => {
+    let a = rand(90, 270);
+    cap.innerHTML = `
+      <h2>Une dernière vérification</h2>
+      <p class="lead small">Manche 4 sur 4 (on avait dit 3, on a menti)</p>
+      <div class="captcha-q">Faites pivoter le chat pour qu’il soit <b>à l’endroit.</b></div>
+      <div class="rot" id="cat">🐈</div>
+      <button class="big purple" id="r1" style="font-size:44px;padding:30px">−1°</button>
+      <div style="text-align:right"><button class="micro" id="r37">+37°</button></div>
+      <p class="errbox" id="err"></p>
+      <button class="big blue" id="verify">VÉRIFIER</button>`;
+    const cat = $('#cat');
+    const set = () => cat.style.transform = `rotate(${a}deg)`;
+    set();
+    // near upright, the big and small buttons quietly swap their steps
+    let big = -1, small = 37;
+    const relabel = () => {
+      const off = Math.abs(((a % 360) + 540) % 360 - 180);
+      [big, small] = off <= 40 ? [37, -1] : [-1, 37];
+      $('#r1').textContent = (big > 0 ? '+' : '−') + Math.abs(big) + '°';
+      $('#r37').textContent = (small > 0 ? '+' : '−') + Math.abs(small) + '°';
+    };
+    $('#r1').onclick = () => { a += big; set(); relabel(); };
+    $('#r37').onclick = () => { a += small; set(); relabel(); };
+    $('#verify').onclick = () => {
+      const off = ((a % 360) + 540) % 360 - 180;
+      if (off === 0) go(7);
+      else if (Math.abs(off) <= 5) $('#err').textContent = `Presque ! Encore ${Math.abs(off)}°. Le chat est très pointilleux.`;
+      else $('#err').textContent = `Le chat est mécontent à ${Math.abs(off)}°.`;
+    };
+  };
+  drawRound();
+}
+
+/* =====================================================================
+   ÉTAPE 7 — calibrage de la souris
+   ===================================================================== */
+// the visible arrow sits 25–45px away from the real pointer, in a new direction after every click
+function stageCalibrate() {
+  app.innerHTML = `
+  <section class="card">
+    <h2>Calibrage du pointeur 🎯</h2>
+    <p class="lead small">Pour votre sécurité, veuillez toucher 5 cibles. Notre pointeur Haute Précision™ est activé.</p>
+    <div class="row between meter"><span>Cibles : <b id="hits">0</b>/5</span><span>Précision : <b id="acc">100</b> %</span></div>
+    <div class="calib" id="calib">
+      <div class="target" id="tgt"></div>
+      <svg class="fakecur" id="cur" viewBox="0 0 22 28"><path d="M1 1 L1 22 L6 17 L10 26 L13 25 L9 16 L16 16 Z" fill="#000" stroke="#fff" stroke-width="1.5"/></svg>
+    </div>
+    <p class="hint" id="hint"></p>
+  </section>`;
+  const box = $('#calib'), tgt = $('#tgt'), cur = $('#cur');
+  const MISS = ["Raté.", "Raté. Votre souris semble mal calibrée.", "Encore raté. Avez-vous essayé de viser ?", "Le × rouge, c’est là où vous avez vraiment cliqué. Intéressant, non ?", "Astuce : le décalage change à chaque clic. Bon courage."], OK = ["Touché !", "Bien joué.", "Pas mal.", "Encore une !", "Calibrage terminé ✓"];
+  let hits = 0, shots = 0, misses = 0, size = 30, tx = 0, ty = 0, ox = 30, oy = 30, lx = null, ly = null;
+  const rollOffset = () => {
+    const ang = Math.random() * Math.PI * 2, d = rand(25, 45);
+    ox = Math.round(Math.cos(ang) * d); oy = Math.round(Math.sin(ang) * d);
+    if (lx !== null) { cur.style.left = lx + ox + 'px'; cur.style.top = ly + oy + 'px'; }
+  };
+  const local = e => { const r = box.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  const place = () => {
+    tx = rand(30, box.clientWidth - 30); ty = rand(30, box.clientHeight - 30);
+    tgt.style.left = tx + 'px'; tgt.style.top = ty + 'px';
+    tgt.style.transform = `scale(${size / 30})`;
+  };
+  place();
+  box.addEventListener('pointermove', e => {
+    if (e.pointerType !== 'mouse') return;
+    const [x, y] = local(e);
+    cur.style.display = 'block';
+    lx = x; ly = y;
+    cur.style.left = x + ox + 'px'; cur.style.top = y + oy + 'px';
+  });
+  box.addEventListener('pointerleave', () => cur.style.display = 'none');
+  box.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    let [x, y] = local(e);
+    // no arrow on touch screens: shift the finger instead
+    if (e.pointerType !== 'mouse') { x -= ox; y -= oy; }
+    const m = document.createElement('div'); m.className = 'mark'; m.textContent = '×';
+    m.style.left = x + 'px'; m.style.top = y + 'px'; box.appendChild(m);
+    setTimeout(() => m.remove(), 2600);
+    shots++;
+    if (Math.hypot(x - tx, y - ty) <= size / 2 + 2) {
+      hits++;
+      $('#hint').textContent = OK[hits - 1] + (hits === 3 ? ' ' + "La cible rétrécit, pour le défi." : '');
+      if (hits >= 3) size = 20;
+      if (hits >= 5) { setTimeout(() => go(8), 700); } else place();
+    } else {
+      misses++;
+      $('#hint').textContent = MISS[Math.min(misses - 1, MISS.length - 1)];
+    }
+    $('#hits').textContent = hits;
+    $('#acc').textContent = Math.round(hits / shots * 100);
+    rollOffset();
+  });
+}
+
+/* =====================================================================
+   ÉTAPE 8 — finale
+   ===================================================================== */
+function stageFinal() {
+  app.innerHTML = `
+  <section class="card">
+    <h2>Vous y êtes presque ! 🎉</h2>
+    <p class="lead small">Cliquez simplement sur le bouton ci-dessous pour créer votre compte.</p>
+    <div class="arena" id="arena"><button class="big green" id="flee">Créer mon compte</button></div>
+    <p class="hint" id="hint"></p>
+  </section>`;
+  const btn = $('#flee'), arena = $('#arena');
+  const LIMIT = 6;
+  let dodges = 0, mode = 'create', morph = null;
+  const quips = ["Oups !", "Trop lent.", "Par ici !", "Attrape-moi 😜", "Si près !", "Bon, d’accord. Ça va. 😮‍💨"];
+  // once it stops running away, it can't decide what it is
+  const MODES = { create: ["Créer mon compte", ''], restart: ["Recommencer depuis le début", '#e0344b'], gary: ["Aider Gérard 💚", '#1fb5a8'] };
+  const setMode = m => { mode = m; btn.textContent = MODES[m][0]; btn.style.background = MODES[m][1]; };
+  const tick = () => {
+    setMode(mode !== 'create' ? 'create' : Math.random() < .5 ? 'restart' : 'gary');
+    morph = setTimeout(tick, mode === 'create' ? rand(1200, 2600) : rand(900, 1700));
+  };
+  onLeave(() => clearTimeout(morph));
+  const dodge = () => {
+    if (dodges >= LIMIT) return false;
+    const w = arena.clientWidth - btn.offsetWidth, h = arena.clientHeight - btn.offsetHeight;
+    btn.style.transform = 'none';
+    btn.style.left = rand(0, Math.max(0, w)) + 'px';
+    btn.style.top = rand(0, Math.max(0, h)) + 'px';
+    $('#hint').textContent = quips[dodges];
+    if (++dodges === LIMIT) morph = setTimeout(tick, 1500);
+    return true;
+  };
+  btn.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') dodge(); });
+  btn.addEventListener('pointerdown', e => { if (dodge()) e.preventDefault(); });
+  btn.addEventListener('click', () => {
+    if (dodges < LIMIT) return;
+    if (mode === 'create') { clearTimeout(morph); confirmChain(0); }
+    else if (mode === 'restart') { toast("C’est reparti depuis le début ! 🎉"); go(0); }
+    else if (garyMood !== 'talking') { $('#chat').hidden = false; garyTalks(); }
+  });
+}
+
+const CONFIRMS = [
+  { q: 'Êtes-vous sûr de vouloir créer un compte ?', yes: 'Oui', no: 'Annuler', good: 'yes' },
+  { q: 'Voulez-vous annuler la création du compte ?', yes: 'Oui', no: 'Non', good: 'no' },
+  { q: 'N’êtes-vous pas incertain de ne pas vouloir arrêter maintenant ?', yes: 'Oui', no: 'Non', good: 'yes' },
+  { q: 'Dernière question. Abandonner ?', yes: 'Abandonner', no: 'Abandonner l’abandon', good: 'no' },
+];
+function confirmChain(i) {
+  if (i >= CONFIRMS.length) return go(9, { fast: true });
+  const C = CONFIRMS[i];
+  // position et mise en avant des boutons tirées au hasard à chaque fois
+  const btns = shuffle([['yes', C.yes], ['no', C.no]]);
+  const primary = rand(0, 1);
+  const bg = modal(`<h3>${C.q}</h3><div class="btns">${btns.map(([k, l], j) => `<button data-k="${k}" class="${j === primary ? 'primary' : ''}">${l}</button>`).join('')}</div>`);
+  bg.querySelector('.btns').onclick = e => {
+    const k = e.target.dataset.k; if (!k) return;
+    bg.remove();
+    if (k === C.good) confirmChain(i + 1);
+    else { penalize(15, 'pour avoir douté de vous'); toast('Création du compte annulée. On reprend les questions depuis le début.'); setTimeout(() => confirmChain(0), 700); }
+  };
+}
+
+/* =====================================================================
+   ÉTAPE 9 — confirmation de l’e-mail
+   ===================================================================== */
+function stageEmail() {
+  app.innerHTML = `
+  <section class="card" style="text-align:center">
+    <h1 style="font-size:32px">📬 Consultez votre boîte mail pour confirmer votre adresse.</h1>
+    <p style="font-size:9px;color:#c4bfcf;margin:0 0 24px">(nous n’avons rien envoyé)</p>
+    <label class="f">Code de confirmation à 5 chiffres</label>
+    <input type="text" id="code" inputmode="numeric" maxlength="5" autocomplete="one-time-code" placeholder="•••••"
+      style="font-size:28px;letter-spacing:12px;text-align:center;max-width:230px">
+    <p class="errbox" id="err"></p>
+    <button class="big blue" id="ok">CONFIRMER</button>
+    <button class="linkish" id="resend">renvoyer le code</button>
+  </section>`;
+  let tries = 0;
+  const code = $('#code');
+  code.oninput = () => code.value = code.value.replace(/\D/g, '').slice(0, 5);
+  $('#resend').onclick = () => toast("Code renvoyé ! (Toujours rien.)");
+  $('#ok').onclick = () => {
+    if (code.value.length !== 5) { $('#err').textContent = "Le code fait 5 chiffres. Pas plus, pas moins."; return; }
+    // any 5 digits work, just never the first ones
+    if (++tries === 1) { $('#err').textContent = "Code incorrect. Nous vous en avons renvoyé un autre. (Non plus.)"; code.value = ''; return; }
+    go(10, { fast: true });
+  };
+}
+
+/* =====================================================================
+   ÉTAPE 10 — terminé
+   ===================================================================== */
+function stageDone() {
+  S.done = true;
+  $('#chat').hidden = true;
+  const t = elapsed();
+  $('#timer').textContent = fmt(t);
+  app.innerHTML = `
+  <section class="card" style="text-align:center">
+    <h1>🎉 Compte créé !</h1>
+    <p class="lead">Bienvenue à bord. Adresse confirmée. Enfin, on suppose.</p>
+    <p class="readout">${fmt(t)}</p>
+    <p class="small">${S.clicks} clics · ${S.penalty} s de pénalités · 0 cookie refusé (on les a gardés quand même)</p>
+    <button class="big purple" id="again">Supprimer mon compte</button>
+    <p class="fine">La suppression de votre compte en créera un nouveau.</p>
+  </section>`;
+  $('#again').onclick = () => { Object.assign(S, { start: 0, penalty: 0, clicks: 0, done: false }); $('#timer').textContent = '00:00'; go(0); };
+}
+
+const STAGES = [stageWelcome, stageCookies, stageAccount, stageDetails, stageInterests, stageTerms, stageCaptcha, stageCalibrate, stageFinal, stageEmail, stageDone];
+
+/* =====================================================================
+   Nuisances globales, débloquées progressivement
+   ===================================================================== */
+// Gérard du Support (étape 2+)
+const GARY = ['Bonjour ! 👋 Moi c’est Gérard. Besoin d’aide ?', 'Toujours là ? Besoin d’aide ?', 'Coucou, encore Gérard ! Besoin d’aide ?',
+  'Vous avez l’air perdu. Besoin d’aide ?', 'Gérard à l’appareil. Besoin d’aide ? 🙂', 'Je ne suis pas un robot. Besoin d’aide ?'];
+const GARY_HELP = ['Avez-vous essayé d’éteindre et de rallumer ?', 'Notre équipe reviendra vers vous sous 6 à 8 semaines ouvrées.',
+  'Excellente question ! Reportez-vous aux CGU, article 12.', 'J’ai transmis votre demande à Gérard. Ah, attendez.',
+  'Avez-vous essayé de remplir le formulaire correctement ?', 'Désolé, je ne peux répondre qu’aux questions dont je connais déjà la réponse.'];
+let garyAt = Date.now() + 14000;
+// every time Gérard shows up, the three buttons get new labels, colours and jobs
+const CHAT_LABELS = ["Oui", "Non", "Fermer", "Oui, svp", "Non merci", "Peut-être", "Plus tard", "OK", "Annuler", "Ne plus afficher", "Aidez-moi", "Laissez-moi", "Continuer", "J’ai compris"];
+const CHAT_SULK_LABELS = ["Désolé", "Pardon Gérard", "…", "OK", "Fermer", "Je sais", "Tant pis", "Snif"];
+const CHAT_SMALL = ["fermer", "✕", "ok", "aide", "non", "oui", "réduire"];
+const CHAT_COLORS = ['#2fae5c', '#e0344b', '#f28c28', '#2f6fe0', '#c0287a', '#8a3cf0'];
+const CHAT_ACTIONS = {
+  help: () => { $('#chatBody').textContent = garyMood === 'sulky' ? pick(GARY_SULK_HELP) : pick(GARY_HELP) + " Autre chose ?"; garyAt = Date.now() + 25000; dealChat(); },
+  later: () => { $('#chatBody').textContent = "Pas de souci ! Je repasse dans un instant 😊"; garyAt = Date.now() + 9000; setTimeout(() => $('#chat').hidden = true, 1600); },
+  close: () => { $('#chat').hidden = true; garyAt = Date.now() + 30000; },
+};
+function dealChat() {
+  const jobs = shuffle(Object.keys(CHAT_ACTIONS)), names = shuffle((garyMood === 'sulky' ? CHAT_SULK_LABELS : CHAT_LABELS).slice()), cols = shuffle(CHAT_COLORS.slice());
+  ['#chatYes', '#chatNo', '#chatX'].forEach((id, i) => {
+    const b = $(id);
+    b.textContent = id === '#chatX' ? pick(CHAT_SMALL) : names[i];
+    if (id !== '#chatX') { b.style.background = cols[i]; b.style.borderColor = cols[i]; b.classList.remove('wiggle'); void b.offsetWidth; b.classList.add('wiggle'); }
+    b.onclick = CHAT_ACTIONS[jobs[i]];
+  });
+}
+
+// at some point Gérard is the one who needs help
+const GARY_STORY = [["Merci. Vraiment. Personne ne demande jamais à Gérard comment il va.", "Je travaille au support d’Effortless™ depuis 2009. Avant, je voulais être pilote de ligne."], ["Enfin, pilote de ligne de bus. Mais on m’a dit que j’étais trop gentil avec les gens."], ["Ici, je réponds à environ 4 000 personnes par jour.", "Aucune ne clique jamais sur « Oui »."], ["Sauf vous. 🥲"], ["Mon chat s’appelle Formulaire. Il ne vient jamais quand je l’appelle.", "Comme les gens, en fait."], ["Le week-end, je fais de la poterie. Surtout des tasses qui fuient.", "Mon rêve, c’est d’ouvrir un petit restaurant. Avec un formulaire de réservation de 14 pages. Pour rire."], ["Bon. Je vous ai assez embêté.", "Merci de m’avoir écouté. Retournez à votre inscription, et pensez à Gérard quand vous cocherez des cases. 💚"]];
+const GARY_REPLIES = ["Oh non…", "Et ensuite ?", "Je vous écoute 👂", "C’est beau, Gérard.", "Courage 💪", "Racontez-moi tout", "Hmm hmm.", "Waouh.", "Je comprends."];
+const GARY_SULK = ["Ah, c’est vous. 🙂", "Pas grave, je raconterai la suite à ma plante verte.", "Vous avez l’air occupé. Comme d’habitude.", "Je ne vous en veux pas. (Si.)", "Formulaire (mon chat) vous passe le bonjour. Lui, au moins, il écoute.", "Je voulais vous dire comment finissait l’histoire. Mais bon, vous avez un formulaire.", "Besoin d’aide ? Moi aussi, j’en avais besoin, tiens.", "Ce n’est rien. Je suis habitué. 🙂", "Vous savez, à 4 000 personnes par jour, on finit par oublier. Pas vous, par contre."];
+const GARY_SULK_HELP = ["Ah, maintenant vous voulez de l’aide ? 🙃", "Débrouillez-vous. Comme moi.", "Je vous aiderais bien, mais je dois parler à ma plante.", "Vous connaissez le chemin : « Couper court »."];
+const GARY_THANKS = ["Merci encore pour tout à l’heure 🥹 Besoin d’aide ?", "Formulaire (mon chat) vous fait un câlin. Besoin d’aide ?", "Vous êtes mon utilisateur préféré. Besoin d’aide ?"];
+let garySeen = 0, garyMood = 'normal', pleaDone = false, lastGary = '';   // mood: normal | talking | grateful | sulky
+
+function showGary() {
+  garySeen++;
+  const chat = $('#chat');
+  chat.classList.remove('talk');
+  if (!pleaDone && S.level >= 3 && (garySeen >= 4 || (garySeen >= 2 && Math.random() < .5))) return garyPlea();
+  const pool = garyMood === 'sulky' ? GARY_SULK : garyMood === 'grateful' && Math.random() < .5 ? GARY_THANKS : GARY;
+  // first visit = introduction, then never the same line twice in a row
+  const line = garySeen === 1 && garyMood === 'normal' ? GARY[0] : pick(pool.filter(l => l !== GARY[0] && l !== lastGary));
+  $('#chatBody').textContent = lastGary = line;
+  dealChat();
+  chat.hidden = false;
+  garyAt = Date.now() + (garyMood === 'sulky' ? 12000 : 20000);
+}
+
+function chatButtons(defs) {
+  ['#chatYes', '#chatNo'].forEach((id, i) => {
+    const b = $(id), [label, color, fn] = defs[i];
+    b.textContent = label; b.style.background = color; b.style.borderColor = color; b.onclick = fn; b.disabled = false;
+  });
+}
+
+function garySulks(line) {
+  garyMood = 'sulky';
+  chatButtons([['…', '#b9b3c6', null], ['…', '#b9b3c6', null]]);
+  return line;
+}
+
+function garyPlea() {
+  pleaDone = true;
+  garyAt = Infinity;
+  $('#chatBody').textContent = "Euh… en fait, c’est moi qui aurais besoin d’aide. Vous auriez deux minutes ? 🥺";
+  $('#chat').hidden = false;
+  const refuse = () => {
+    $('#chatBody').textContent = garySulks("Ah. Bien sûr. Pas de souci. 🙂");
+    setTimeout(() => $('#chat').hidden = true, 1800);
+    garyAt = Date.now() + 10000;
+  };
+  chatButtons(shuffle([["Oui, je vous écoute", '#2fae5c', garyTalks], ["Non, désolé", '#e0344b', refuse]]));
+  $('#chatX').textContent = "fermer"; $('#chatX').onclick = refuse;
+}
+
+function garyTalks() {
+  garyMood = 'talking';
+  const chat = $('#chat'), body = $('#chatBody'), yes = $('#chatYes'), no = $('#chatNo');
+  chat.classList.add('talk'); body.innerHTML = '';
+  let beat = 0, timers = [], typing = null, over = false;
+  const say = (txt, who) => {
+    const d = document.createElement('div'); d.className = 'msg ' + who; d.textContent = txt;
+    body.insertBefore(d, typing && typing.isConnected ? typing : null); body.scrollTop = body.scrollHeight;
+  };
+  const cut = () => {
+    if (over) return; over = true;
+    timers.forEach(clearTimeout); typing?.remove();
+    say(garySulks("Ah. D’accord. Non, pas de souci. Je… pas de souci. 🙂"), 'g');
+    setTimeout(() => { chat.hidden = true; chat.classList.remove('talk'); }, 2600);
+    garyAt = Date.now() + 12000;
+  };
+  const play = () => {
+    const lines = GARY_STORY[beat++];
+    yes.disabled = true;
+    typing = document.createElement('div'); typing.className = 'msg typing'; typing.textContent = "Gérard est en train d’écrire…";
+    body.appendChild(typing); body.scrollTop = body.scrollHeight;
+    lines.forEach((l, i) => timers.push(setTimeout(() => say(l, 'g'), 1300 + i * 1900)));
+    timers.push(setTimeout(() => {
+      typing.remove();
+      if (beat < GARY_STORY.length) { yes.textContent = pick(GARY_REPLIES); yes.disabled = false; return; }
+      over = true; garyMood = 'grateful';
+      setTimeout(() => { chat.hidden = true; chat.classList.remove('talk'); }, 3500);
+      garyAt = Date.now() + 40000;
+    }, 1300 + (lines.length - 1) * 1900 + 300));
+  };
+  chatButtons([['…', '#2fae5c', () => { say(yes.textContent, 'u'); play(); }], ["Couper court", '#e0344b', cut]]);
+  $('#chatX').textContent = "couper court"; $('#chatX').onclick = cut;
+  play();
+}
+
+// Pop-up « Dépêchez-vous » (étape 3+)
+let hurryAt = Date.now() + 35000, hurryOpen = false;
+// the free way out and the penalty swap roles, labels and places every time
+const HURRY_BIG = ["OK, je me dépêche", "Fermer", "✕ Fermer", "Ignorer", "Plus tard", "Ne pas fermer", "Compris !"];
+const HURRY_SMALL = ["© 2026 Effortless™ — fermer", "✕", "fermer", "ne pas fermer", "ok", "×", "plus tard", "J’ai lu les CGU"];
+const HURRY_PEN = ["pour avoir cliqué sur le mauvais bouton", "pour impatience", "pour avoir fermé trop vite", "pour avoir voulu vous dépêcher"];
+const HURRY_SPOTS = ['top:8px;right:12px', 'top:8px;left:12px', 'bottom:6px;right:12px', 'bottom:6px;left:12px', 'bottom:6px;left:50%;transform:translateX(-50%)'];
+function hurry() {
+  hurryOpen = true;
+  const look = rand(0, 2);   // 0: grey text, 1: a cross, 2: a micro button
+  const small = look === 1 ? pick(['✕', '×', '⨯']) : pick(HURRY_SMALL);
+  const bg = modal(`
+    <h3>⏰ Dépêchez-vous !</h3>
+    <p>Le temps presse. D’autres personnes s’inscrivent plus vite que vous.</p>
+    <div class="btns"><button class="primary" id="hOk">${pick(HURRY_BIG)}</button></div>
+    <span id="hClose" class="${['copy', 'hx', 'micro'][look]}" style="position:absolute;${pick(HURRY_SPOTS)}">${small}</span>`);
+  const shut = () => { bg.remove(); hurryOpen = false; hurryAt = Date.now() + rand(50000, 80000); };
+  const free = Math.random() < .55 ? '#hClose' : '#hOk';
+  bg.querySelector('#hOk').onclick = () => { shut(); if (free !== '#hOk') penalize(10, pick(HURRY_PEN)); };
+  bg.querySelector('#hClose').onclick = () => { shut(); if (free !== '#hClose') penalize(10, pick(HURRY_PEN)); };
+}
+
+setInterval(() => {
+  if (S.done) return;
+  const now = Date.now();
+  const busy = longLoading || !$('#loader').hidden || document.querySelector('.modal-bg');
+  if (S.level >= 2 && now > garyAt && $('#chat').hidden && !busy) showGary();
+  if (S.level >= 3 && S.level <= 9 && !hurryOpen && $('#loader').hidden && !longLoading && now > hurryAt) hurry();
+}, 1000);
+
+// secret: 6 quick clicks on the ™ skip to the next step
+let tmClicks = [];
+$('#tm').addEventListener('click', () => {
+  const now = Date.now();
+  tmClicks = tmClicks.filter(t => now - t < 3000).concat(now);
+  if (tmClicks.length < 6 || S.level >= STAGES.length - 1) return;
+  tmClicks = [];
+  document.querySelectorAll('.modal-bg').forEach(m => m.remove());
+  hurryOpen = false; hurryAt = Date.now() + 30000;
+  if (!S.start) S.start = Date.now();
+  go(S.level + 1, { fast: true });
+});
+
+go(0);
+</script>
+</body>
+</html>
