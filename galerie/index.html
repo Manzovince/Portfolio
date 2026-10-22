@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Galerie">
+<meta name="theme-color" content="#5fb8f0">
+<title>Galerie</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hidden">
+  <div id="clock"><span id="clkWx"></span><span id="clkTime"></span></div>
+  <div id="topR"><button id="bMap" class="round" aria-label="Carte">🗺️</button><button id="bBook" class="round" aria-label="Carnet">📖<span id="cnt"></span></button></div>
+  <div id="place"></div>
+  <div id="info"></div>
+  <div id="joy"><div id="joyBase"><div id="joyKnob"></div></div></div>
+  <div id="tools">
+    <button data-tool="filet" aria-label="Filet">🦋</button>
+    <button data-tool="canne" aria-label="Canne à pêche">🎣</button>
+    <button data-tool="photo" aria-label="Appareil photo">📷</button>
+  </div>
+  <button id="bA"><span id="bAicon"></span><span id="bAlbl"></span></button>
+  <button id="bCall" class="round hidden" aria-label="Appeler le bateau">⛵</button>
+  <div id="bite">!</div>
+</div>
+
+<div id="photoUI" class="hidden">
+  <div id="frame"><i></i><i></i><i></i><i></i></div>
+  <div id="phHint">Fais glisser pour viser</div>
+  <div id="zoomBox"><span>🔍</span><input id="zoom" type="range" min="0" max="1" step="0.01" value="0"></div>
+  <button id="shutter" aria-label="Déclencher"></button>
+  <button id="phExit" class="round" aria-label="Quitter">✕</button>
+</div>
+<div id="toasts"></div>
+<div id="flash"></div>
+<div id="fade"></div>
+<div id="card" class="hidden"></div>
+<div id="modal" class="hidden"><div id="mBox"><div id="mHead"><span id="mTitle"></span><button id="mClose" class="round">✕</button></div><div id="mTabs"></div><div id="mBody"></div></div></div>
+
+<div id="title">
+  <div id="tInner">
+    <div id="tLogo">Galerie</div>
+    <div id="tSub">Un muséum vide, un archipel à explorer.</div>
+    <div id="tLoad">Création de l'archipel…</div>
+    <button id="tPlay" class="hidden">Jouer</button>
+    <button id="tNew" class="hidden">Nouvelle partie</button>
+    <div id="tHelp">Joystick à gauche · bouton d'action à droite<br>Photographie, pêche, attrape au filet et plonge pour remplir le Muséum.</div>
+  </div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module" src="js/main.js?v=1"></script>
+</body>
+</html>
