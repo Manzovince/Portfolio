@@ -115,6 +115,7 @@ async function ping() {
 
 /* ---------- Thème ---------- */
 const THEME_KEY = 'dictee.theme';
+const SHARE_KEY = 'dictee.shareRecordings';
 function applyTheme(t) {
   if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
   else delete document.documentElement.dataset.theme;
@@ -122,7 +123,7 @@ function applyTheme(t) {
   for (const m of $$('meta[name="theme-color"]')) {
     m.content = t === 'light' || t === 'dark' ? color[t] : (m.media.includes('light') ? color.light : color.dark);
   }
-  for (const b of $$('[data-theme-opt]')) b.setAttribute('aria-pressed', String(b.dataset.themeOpt === t));
+  for (const b of $$('[data-theme-opt]')) b.setAttribute('aria-checked', String(b.dataset.themeOpt === t));
 }
 function setTheme(t) {
   try { localStorage.setItem(THEME_KEY, t); } catch { /* préférence non retenue */ }
@@ -379,7 +380,7 @@ function renderReview() {
       <span class="rv-main"><span class="rv-name">${c.title}${c.req ? '' : ' <em>facultatif</em>'}</span>
       <span class="rv-val">${esc(used ? cadreText(i, draft) || '—' : 'Non renseigné')}</span>
       ${note ? `<span class="rv-note">${esc(note)}</span>` : ''}</span>
-      <span class="rv-edit">›</span>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
     </button>`;
   }).join('');
   const n = Object.keys(errs).length;
@@ -536,8 +537,15 @@ async function send() {
 /* ---------- Événements ---------- */
 function bind() {
   $('#btn-new').addEventListener('click', startDictation);
-  $('#btn-settings').addEventListener('click', () => $('#settings').showModal());
-  $('#btn-help').addEventListener('click', () => { $('#settings').close(); $('#help').showModal(); });
+  $('#btn-settings').addEventListener('click', () => show('settings'));
+  $('#btn-settings-back').addEventListener('click', () => show('home'));
+  $('#btn-help').addEventListener('click', () => $('#help').showModal());
+  // Consentement au partage des enregistrements : préférence locale, désactivée par défaut.
+  const share = $('#opt-share');
+  try { share.checked = localStorage.getItem(SHARE_KEY) === '1'; } catch { /* */ }
+  share.addEventListener('change', () => {
+    try { localStorage.setItem(SHARE_KEY, share.checked ? '1' : '0'); } catch { toast('Préférence non enregistrée'); }
+  });
   for (const b of $$('[data-theme-opt]')) b.addEventListener('click', () => setTheme(b.dataset.themeOpt));
   $('#btn-all').addEventListener('click', () => show('history'));
   $('#btn-hist-back').addEventListener('click', () => show('home'));

@@ -15,7 +15,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 
@@ -47,7 +47,7 @@
 <!-- DICTÉE EN COURS -->
 <section id="dictate" class="screen">
   <header class="bar">
-    <button class="icon-btn" id="btn-discard" aria-label="Abandonner">✕</button>
+    <button class="icon-btn" id="btn-discard" aria-label="Abandonner"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <div class="rec-state"><span class="rec-dot" id="rec-dot"></span><span id="rec-label">Écoute</span><span class="timer" id="timer">0:00</span></div>
     <div class="status">
       <span class="st" data-st="mic" role="img" aria-label="Micro"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg></span>
@@ -78,7 +78,7 @@
 <!-- VALIDATION -->
 <section id="review" class="screen">
   <header class="bar">
-    <button class="icon-btn" id="btn-review-back" aria-label="Reprendre la dictée">‹</button>
+    <button class="icon-btn" id="btn-review-back" aria-label="Reprendre la dictée"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <div class="bar-title">Vérification</div>
     <span class="icon-btn ghost"></span>
   </header>
@@ -125,7 +125,7 @@
 <!-- HISTORIQUE -->
 <section id="history" class="screen">
   <header class="bar">
-    <button class="icon-btn" id="btn-hist-back" aria-label="Retour">‹</button>
+    <button class="icon-btn" id="btn-hist-back" aria-label="Retour"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <div class="bar-title">Historique</div>
     <span class="icon-btn ghost"></span>
   </header>
@@ -138,15 +138,57 @@
 <!-- DÉTAIL -->
 <section id="detail" class="screen">
   <header class="bar">
-    <button class="icon-btn" id="btn-detail-back" aria-label="Retour">‹</button>
+    <button class="icon-btn" id="btn-detail-back" aria-label="Retour"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <div class="bar-title" id="detail-title">Message</div>
-    <button class="icon-btn danger" id="btn-detail-del" aria-label="Supprimer">🗑</button>
+    <button class="icon-btn danger" id="btn-detail-del" aria-label="Supprimer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>
   </header>
   <div class="review-body">
     <div class="msg-preview" id="detail-msg"></div>
     <p class="detail-meta" id="detail-meta"></p>
     <h3 class="detail-h">Transcription</h3>
     <p class="detail-tr" id="detail-tr"></p>
+  </div>
+</section>
+
+<!-- RÉGLAGES -->
+<section id="settings" class="screen">
+  <header class="bar">
+    <button class="icon-btn" id="btn-settings-back" aria-label="Retour"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="bar-title">Réglages</div>
+    <span class="icon-btn ghost"></span>
+  </header>
+  <div class="review-body set-body">
+    <section class="set-group">
+      <h3>Apparence</h3>
+      <div class="set-card">
+        <div class="set-line"><span class="set-name">Thème</span></div>
+        <div class="seg" id="theme-seg" role="radiogroup" aria-label="Thème">
+          <button type="button" data-theme-opt="auto" role="radio">Auto</button>
+          <button type="button" data-theme-opt="light" role="radio">Clair</button>
+          <button type="button" data-theme-opt="dark" role="radio">Sombre</button>
+        </div>
+      </div>
+    </section>
+    <section class="set-group">
+      <h3>Données</h3>
+      <div class="set-card">
+        <label class="set-line set-switch">
+          <span>
+            <span class="set-name">Partager les enregistrements</span>
+            <span class="set-desc">Autorise la transmission des dictées (transcription et formulaire obtenu) pour améliorer la reconnaissance. Désactivé par défaut.</span>
+          </span>
+          <input type="checkbox" id="opt-share" role="switch">
+          <span class="switch" aria-hidden="true"></span>
+        </label>
+      </div>
+    </section>
+    <section class="set-group">
+      <h3>Aide</h3>
+      <div class="set-card">
+        <button class="set-line set-link" id="btn-help" type="button"><span class="set-name">Comment dicter</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+    </section>
+    <p class="set-version">Salve · version 0.11</p>
   </div>
 </section>
 
@@ -171,19 +213,9 @@
   <form method="dialog"><button class="big-cta">Compris</button></form>
 </dialog>
 
-<dialog id="settings">
-  <div class="dlg-head"><h2>Réglages</h2><form method="dialog"><button class="icon-btn" aria-label="Fermer">✕</button></form></div>
-  <p class="set-label">Thème</p>
-  <div class="seg" id="theme-seg">
-    <button type="button" data-theme-opt="auto">Auto</button>
-    <button type="button" data-theme-opt="light">Clair</button>
-    <button type="button" data-theme-opt="dark">Sombre</button>
-  </div>
-  <button class="set-row" id="btn-help" type="button">Comment dicter ?</button>
-</dialog>
 
 <dialog id="editor">
-  <div class="dlg-head"><h2 id="ed-title">Cadre</h2><form method="dialog"><button class="icon-btn" aria-label="Fermer">✕</button></form></div>
+  <div class="dlg-head"><h2 id="ed-title">Cadre</h2><form method="dialog"><button class="icon-btn" aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></form></div>
   <div class="ed-body" id="ed-body"></div>
   <form method="dialog"><button class="big-cta">OK</button></form>
 </dialog>
@@ -202,6 +234,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script type="module" src="js/app.js?v=10"></script>
+<script type="module" src="js/app.js?v=12"></script>
 </body>
 </html>
