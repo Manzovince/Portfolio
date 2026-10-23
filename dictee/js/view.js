@@ -1,5 +1,5 @@
 // Cases affichées pour le cadre déplié pendant la dictée, à partir d'un résultat de parse.
-import { FIELD, OPT, DEFAULTS, ROW_KIND, ROW_KEYS, ROW_LABELS, rowsUsed, rowText, fmtTime } from './form.js?v=10';
+import { FIELD, OPT, DEFAULTS, ROW_KIND, ROW_KEYS, ROW_LABELS, rowsUsed, rowText, fmtTime } from './form.js?v=20';
 
 const S = (label, text, state = text ? 'filled' : 'vacant', wide = false) => ({ label, text: text ?? '', state, wide });
 const opt = (o, k) => OPT[o][k] ?? '';
@@ -13,8 +13,8 @@ export const HINTS = [
   'Facultatif · chars, blindés, pick-up, personnel…',
   'Ligne A–H puis valeurs · ex. « Alpha 1250 3400 moins 12 »',
   'Facultatif · linéaire, surfacique ou circulaire',
-  'Grille ou déplacement · gisement d\'observ., X Y Z',
-  'Facultatif · amis : distance, gisement, posture',
+  'Facultatif · grille ou déplacement, gisement d\'observ., X Y Z',
+  'Amis : distance, gisement ou direction, posture',
   'À mon commandement, aussitôt prêt, HSO… · « terminé »',
 ];
 

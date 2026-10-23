@@ -3,7 +3,7 @@
 // Les cadres se remplissent dans l'ordre : un mot propre à un cadre suivant fait avancer,
 // les nombres vont dans la case suivante du cadre en cours (ou sont aiguillés par un mot-clé).
 
-import { CADRES, FIELD, ROW_KIND, ROW_KEYS, OPT, locationOk } from './form.js?v=10';
+import { CADRES, FIELD, ROW_KIND, ROW_KEYS, OPT, locationOk } from './form.js?v=20';
 
 export const SECTION_NAMES = CADRES.map((c) => c.title);
 export const redoMarker = (k) => `⟦r${k}⟧`;
@@ -310,7 +310,8 @@ function accFlush(acc) {
 const CODES = { _traj: ['plongeante', 'verticale', 'nominale'], _mode: ['pi', 'pcr', 'fusant', 'retard'] };
 const ARMES = { 81: 'mo81', 120: 'mo120', 155: 'c155' };
 // Cadre où vont les nombres quand le cadre en cours n'a plus de case libre.
-const OVERFLOW = { 1: 3, 2: 3, 3: 4, 6: 8, 7: 8, 8: 9 };
+// Le cadre 9 (facultatif) ne reçoit des nombres qu'après un de ses mots ; après le cadre 7, on passe aux amis.
+const OVERFLOW = { 1: 3, 2: 3, 3: 4, 6: 9, 7: 9, 8: 9 };
 const COMPANION = { coups: 'coups2', duree: 'duree2', interv: 'interv2' };
 // Cases où des chiffres annoncés un par un se mettent bout à bout (coordonnées, distances).
 const CONCAT = /\.(x|y|z|d)$|^obs[XYZ]$|^amisDist$|^front$|^prof$|^rayon$/;
@@ -593,7 +594,8 @@ export function parse(text, { final = false, ignoreStops = 0 } = {}) {
       if (v.geom === 'lineaire' || v.geom === 'surfacique') return !!(v.gis8 && v.front);
       return v.geom === 'circulaire' ? !!v.rayon : started(c);
     }
-    if (c === 8) return !!v.gisObs && !st.partial.has('gisObs');
+    if (c === 8) return started(c) && !st.partial.has('gisObs');
+    if (c === 9) return !!v.amisDist && !!(v.amisGis || v.amisDir) && !st.partial.has('amisGis');
     if (c === 10) return order(10).every((k) => v[k] && !st.partial.has(k));
     return started(c) && !CADRES[c].fields.some((fd) => st.partial.has(fd.key));
   });

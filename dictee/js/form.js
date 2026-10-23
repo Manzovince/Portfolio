@@ -1,5 +1,5 @@
 // Schéma du formulaire « Message de tir appuis feux sol/sol » (11 cadres).
-// Les cadres en fond rose sont obligatoires, ceux en fond blanc (4, 5, 6, 8, 10) facultatifs.
+// Cadres facultatifs : 4, 5, 6, 8 et 9 ; les autres sont obligatoires.
 // Toutes les valeurs vivent dans un objet plat ; les lignes du cadre 7 ont des clés « A.g », « D.x », « G.fu »…
 
 export const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
@@ -92,11 +92,11 @@ export const CADRES = [
     f('gis8', 'Gisement (mils)', 'fixed', { digits: 4 }), f('front', 'Front (m)', 'num'), f('prof', 'Profondeur (m)', 'num'),
     f('ouvert', 'Ouvert / fermé', 'choice', { opt: 'ouvert' }), f('centre', 'Centre', 'letter'), f('rayon', 'Rayon (m)', 'num'),
   ] },
-  { n: 9, title: 'Mise en place', req: true, fields: [
+  { n: 9, title: 'Mise en place', fields: [
     f('mep9', 'Mise en place', 'choice', { opt: 'mep9' }), f('gisObs', 'Gisement d\'observ. (mils)', 'fixed', { digits: 4 }),
     f('obsX', 'Observateur X', 'num'), f('obsY', 'Observateur Y', 'num'), f('obsZ', 'Observateur Z', 'snum'),
   ] },
-  { n: 10, title: 'Amis', fields: [
+  { n: 10, title: 'Amis', req: true, fields: [
     f('amisDist', 'Distance (m)', 'num'), f('amisGis', 'Gisement (mils)', 'fixed', { digits: 4 }),
     f('amisDir', 'ou N/O/E/S', 'choice', { opt: 'dir4' }), f('posture', 'Posture', 'choice', { opt: 'posture' }),
   ] },
@@ -247,6 +247,7 @@ export function draftErrors(raw) {
   if (!LETTERS.includes(v.letter)) e[1] = 'lettre de mission';
   if (v.panache && (!two(v.p1) || !two(v.p2))) e[2] = 'nombres du panaché';
   if (!locationOk(v)) e[6] = 'localisation';
+  if (!v.amisDist || !(v.amisGis || v.amisDir)) e[9] = 'amis (distance et gisement ou direction)';
   if (['apl', 'synchro', 'hso', 'hdt'].includes(v.tir) && !v.h1) e[10] = 'heure';
   if (v.tir === 'hsol' && (!v.h1 || !v.h2)) e[10] = 'heures début/fin';
   return e;

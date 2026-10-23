@@ -1,13 +1,13 @@
-import { parse, SECTION_NAMES, redoMarker } from './parser.js?v=10';
+import { parse, SECTION_NAMES, redoMarker } from './parser.js?v=20';
 import {
   CADRES, OPT, NATO_WORDS, LETTERS, DEFAULTS, ROW_KIND, ROW_KEYS, ROW_LABELS,
   cadreText, cadreStarted, messageLines, draftErrors, withDefaults, fmtTime as fmtHHMM,
-} from './form.js?v=10';
-import { cadreSlots } from './view.js?v=10';
-import { createDictation, speechSupported } from './speech.js?v=10';
+} from './form.js?v=20';
+import { cadreSlots } from './view.js?v=20';
+import { createDictation, speechSupported } from './speech.js?v=20';
 import {
   audioSupported, startAudio, pauseAudio, resumeAudio, stopAudio, discardAudio, saveAudio, loadAudio, deleteAudio,
-} from './audio.js?v=16';
+} from './audio.js?v=20';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
