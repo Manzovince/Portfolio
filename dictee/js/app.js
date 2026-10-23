@@ -461,10 +461,12 @@ function fieldHTML(fd, values, prefix = 'ed') {
   let input;
   if (fd.type === 'choice' || fd.type === 'letter') {
     const opts = fd.type === 'letter' ? Object.fromEntries(LETTERS.map((L) => [L, `${L} · ${NATO_WORDS[L]}`])) : OPT[fd.opt];
+    // Un champ avec valeur par défaut n'a pas d'option vide : la valeur par défaut est présélectionnée.
     const def = DEFAULTS[fd.key];
+    const cur = v ?? def;
     input = `<select id="${id}" data-k="${fd.key}">
-      <option value="">${def ? `${OPT[fd.opt][def]} (défaut)` : '—'}</option>
-      ${Object.entries(opts).map(([k, l]) => `<option value="${k}"${v === k ? ' selected' : ''}>${esc(l)}</option>`).join('')}
+      ${def ? '' : '<option value="">—</option>'}
+      ${Object.entries(opts).map(([k, l]) => `<option value="${k}"${cur === k ? ' selected' : ''}>${esc(l)}</option>`).join('')}
     </select>`;
   } else if (fd.type === 'bool') {
     input = `<button type="button" class="toggle" data-k="${fd.key}" aria-pressed="${!!v}">${fd.label}</button>`;
