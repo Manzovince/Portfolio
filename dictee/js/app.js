@@ -79,10 +79,38 @@ function renderStatus() {
     el.className = 'st ' + (micOk ? 'ok' : 'bad');
     el.setAttribute('aria-label', micOk ? 'Micro disponible' : 'Micro indisponible');
   }
+  const label = net.state === 'bad' ? 'Hors ligne' : net.ms === null ? '…' : net.ms < 1000 ? `${net.ms} ms` : `${(net.ms / 1000).toFixed(1)} s`;
   for (const el of $$('[data-st="net"]')) {
-    el.className = 'st ' + (navigator.onLine ? 'ok' : 'bad');
-    el.setAttribute('aria-label', navigator.onLine ? 'Réseau disponible' : 'Hors réseau');
+    el.className = `net-badge ${net.state}`;
+    $('b', el).textContent = label;
+    el.setAttribute('aria-label', net.state === 'bad' ? 'Réseau injoignable' : `Latence réseau ${label}`);
   }
+}
+
+/* ---------- Latence réseau ---------- */
+// Safari ne donne que « en ligne / hors ligne » : on chronomètre une petite requête vers le serveur.
+// Vert sous 300 ms, orange au-delà, rouge sans réponse en 4 s.
+const net = { state: 'unknown', ms: null };
+let pinging = false;
+async function ping() {
+  if (pinging) return;
+  if (!navigator.onLine) { Object.assign(net, { state: 'bad', ms: null }); renderHome(); return; }
+  pinging = true;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 4000);
+  const t0 = performance.now();
+  try {
+    const r = await fetch(`ping.txt?t=${Date.now()}`, { cache: 'no-store', signal: ctrl.signal });
+    await r.text();
+    const ms = Math.round(performance.now() - t0);
+    Object.assign(net, r.ok ? { state: ms < 300 ? 'ok' : 'slow', ms } : { state: 'bad', ms: null });
+  } catch {
+    Object.assign(net, { state: 'bad', ms: null });
+  } finally {
+    clearTimeout(timer);
+    pinging = false;
+  }
+  renderHome();
 }
 
 /* ---------- Thème ---------- */
@@ -108,7 +136,7 @@ function renderHome() {
   renderStatus();
   const w = $('#home-warn');
   if (!speechSupported) { w.hidden = false; w.textContent = 'Reconnaissance vocale indisponible ici : saisie clavier uniquement.'; }
-  else if (!navigator.onLine) { w.hidden = false; w.textContent = 'Hors réseau : la reconnaissance vocale peut ne pas fonctionner.'; }
+  else if (net.state === 'bad') { w.hidden = false; w.textContent = 'Réseau injoignable : la reconnaissance vocale risque de ne pas fonctionner.'; }
   else w.hidden = true;
 }
 
@@ -558,12 +586,14 @@ function bind() {
   $('#btn-send').addEventListener('click', send);
   $('#btn-done').addEventListener('click', () => show('home'));
 
-  addEventListener('online', renderHome);
-  addEventListener('offline', renderHome);
+  addEventListener('online', ping);
+  addEventListener('offline', ping);
+  setInterval(() => { if (!document.hidden) ping(); }, 5000);
   matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => applyTheme(savedTheme()));
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && screen === 'dictate' && dictation.listening) { dictation.stop(); pauseTimer(); }
     if (!document.hidden && screen === 'dictate') keepAwake(true);
+    if (!document.hidden) ping();
   });
 }
 
@@ -573,6 +603,7 @@ setupReview();
 bind();
 renderAll();
 setListening(false);
+ping();
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});

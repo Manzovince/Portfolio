@@ -536,3 +536,14 @@ dialog .dlg-head h2 { margin: 0; }
 #confirm .btn-sec, #confirm .btn-danger { height: 48px; font-size: 16px; white-space: nowrap; padding: 0 12px; }
 #confirm .btn-sec { border: 1px solid var(--line); }
 #confirm .btn-danger { background: var(--bad); color: #fff; }
+
+/* Badge de latence réseau */
+.net-badge {
+  display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 8px; border-radius: 3px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--faint);
+  font-family: var(--mono); font-size: 12px; font-weight: 700; white-space: nowrap;
+}
+.net-badge svg { width: 14px; height: 14px; fill: currentColor; }
+.net-badge.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); }
+.net-badge.slow { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.net-badge.bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); background: var(--bad-soft); }
