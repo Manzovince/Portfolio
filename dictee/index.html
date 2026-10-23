@@ -15,7 +15,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 
@@ -57,34 +57,7 @@
     </div>
   </header>
 
-  <div class="form" id="form">
-    <div class="sec" data-sec="0">
-      <div class="sec-head"><span class="sec-num">1</span><span class="sec-name">Identification</span><span class="sec-mark"></span></div>
-      <div class="slots">
-        <span class="slot num" data-f="id1"></span>
-        <span class="slot num" data-f="id2"></span>
-      </div>
-    </div>
-    <div class="sec" data-sec="1">
-      <div class="sec-head"><span class="sec-num">2</span><span class="sec-name">Type de mission</span><span class="sec-mark"></span></div>
-      <div class="slots">
-        <span class="slot letter" data-f="letter"></span>
-        <span class="slot word grow" data-f="type"></span>
-        <span class="slot letter" data-f="confirm"></span>
-      </div>
-    </div>
-    <div class="sec" data-sec="2">
-      <div class="sec-head"><span class="sec-num">3</span><span class="sec-name">Effet</span><span class="sec-mark"></span></div>
-      <div class="slots">
-        <span class="slot word grow" data-f="effect"></span>
-        <span class="slot tag" data-f="panache">Panaché</span>
-        <span class="slot num" data-f="p1"></span>
-        <span class="slot num" data-f="p2"></span>
-      </div>
-    </div>
-  </div>
-
-  <div class="hint" id="hint"></div>
+  <div class="cadres" id="form"></div>
 
   <div class="transcript" id="transcript"><span class="ph">Parlez, le formulaire se remplit tout seul…</span></div>
 
@@ -112,36 +85,8 @@
     <span class="icon-btn ghost"></span>
   </header>
   <div class="review-body">
-    <div class="rv-sec">
-      <label>Identification</label>
-      <div class="rv-row">
-        <input class="rv-in num" data-d="id1" inputmode="numeric" maxlength="2" pattern="\d*">
-        <input class="rv-in num" data-d="id2" inputmode="numeric" maxlength="2" pattern="\d*">
-      </div>
-    </div>
-    <div class="rv-sec">
-      <label>Type de mission</label>
-      <div class="rv-row">
-        <select class="rv-in grow" data-d="letter"></select>
-      </div>
-      <div class="rv-row">
-        <select class="rv-in grow" data-d="type"></select>
-      </div>
-      <p class="rv-note" id="rv-mismatch" hidden></p>
-    </div>
-    <div class="rv-sec">
-      <label>Effet</label>
-      <div class="rv-row">
-        <select class="rv-in grow" data-d="effect"></select>
-      </div>
-      <div class="rv-row">
-        <button class="toggle" id="rv-panache" type="button" aria-pressed="false">Panaché</button>
-        <input class="rv-in num" data-d="p1" inputmode="numeric" maxlength="2" pattern="\d*">
-        <input class="rv-in num" data-d="p2" inputmode="numeric" maxlength="2" pattern="\d*">
-      </div>
-      <p class="rv-note" id="rv-implicit" hidden>« Panaché » n'a pas été entendu, mais 2 nombres ont été annoncés.</p>
-    </div>
-    <div class="msg-preview" id="msg-preview"></div>
+    <p class="rv-tip">Touchez un cadre pour le corriger.</p>
+    <div class="rv-list" id="rv-list"></div>
   </div>
   <div class="review-cta">
     <p class="warn-line" id="rv-errors" hidden></p>
@@ -210,13 +155,21 @@
 <!-- AIDE -->
 <dialog id="help">
   <h2>Comment dicter</h2>
-  <p>Annoncez les sections dans l'ordre, sans pause obligatoire :</p>
-  <ol>
-    <li><b>Identification</b> — 2 nombres<br><i>« douze, trente-quatre »</i></li>
-    <li><b>Type de mission</b> — lettre de A à H en alphabet OTAN (Alpha… Hotel), type, lettre<br><i>« Alpha, mise en place, Alpha »</i><br><small>Types : emblée (défaut), mettre en place, mise en place décentrée, préparer, renouveler, accrochage</small></li>
-    <li><b>Effet</b> — effet, puis « panaché » + 2 nombres (facultatif)<br><i>« destruction, panaché cinquante-six, soixante-dix-huit »</i><br><small>Effets : neutralisation (défaut), destruction, arrêt, aveuglement, éclairement</small></li>
+  <p>Annoncez les cadres dans l'ordre 1 → 11. Les cadres en fond blanc (4, 5, 6, 8, 10) peuvent être sautés. Les choix se disent par leur mot, les nombres seuls dans l'ordre du cadre.</p>
+  <ol class="help-list">
+    <li><b>Identification</b> — 2 nombres <i>« douze, trente-quatre »</i></li>
+    <li><b>Type de mission</b> — lettre A–H, type, lettre <i>« Alpha, mise en place, Alpha »</i></li>
+    <li><b>Effet</b> — effet, « panaché » + 2 nombres, munition <i>« destruction, panaché 56 78, explo »</i></li>
+    <li><b>Coups</b> — coups, durée, intervalle <i>« 6, 2, 10 »</i> ou <i>« 6 coups, 2 minutes »</i></li>
+    <li><b>Lanceurs</b> — nombre, arme, trajectoire, mode <i>« 4, mortier de 120, plongeante, fusant 10 »</i></li>
+    <li><b>Objectif</b> <i>« chars en mouvement »</i></li>
+    <li><b>Localisation</b> — ligne puis valeurs <i>« Alpha 1250 3400 moins 12 »</i>, <i>« Delta X … Y … Z … »</i>, <i>« repère plus à l'est 200 »</i>, <i>« pour moi plus à droite 50 »</i>, <i>« TLE 2 »</i></li>
+    <li><b>Gerbe</b> <i>« linéaire, Alpha, 1600, 200, 50, ouvert »</i> · <i>« circulaire, centre Bravo, rayon 150 »</i></li>
+    <li><b>Mise en place</b> — grille ou déplacement, gisement d'observ., X Y Z <i>« 4800 »</i></li>
+    <li><b>Amis</b> <i>« amis 500, 1200, abrité »</i></li>
+    <li><b>Déclenchement</b> <i>« à mon commandement »</i>, <i>« heure sur objectif 14 h 30 »</i></li>
   </ol>
-  <p><b>Toucher une section</b> pendant la dictée la vide et la réenregistre.<br><b>« Correction »</b> efface la section en cours.<br><b>« Terminé »</b> ou <b>« Fin »</b> passe à la vérification.<br>Ré-annoncer 2 nombres ou une lettre remplace la valeur.</p>
+  <p><b>Toucher un cadre</b> pendant la dictée le vide et le réenregistre.<br><b>« Correction »</b> efface le cadre en cours.<br><b>« Terminé »</b> ou <b>« Fin »</b> passe à la vérification.</p>
   <form method="dialog"><button class="big-cta">Compris</button></form>
 </dialog>
 
@@ -231,6 +184,12 @@
   <button class="set-row" id="btn-help" type="button">Comment dicter ?</button>
 </dialog>
 
+<dialog id="editor">
+  <div class="dlg-head"><h2 id="ed-title">Cadre</h2><form method="dialog"><button class="icon-btn" aria-label="Fermer">✕</button></form></div>
+  <div class="ed-body" id="ed-body"></div>
+  <form method="dialog"><button class="big-cta">OK</button></form>
+</dialog>
+
 <dialog id="confirm">
   <p id="confirm-text"></p>
   <div class="dlg-row">
@@ -241,6 +200,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script type="module" src="js/app.js?v=2"></script>
+<script type="module" src="js/app.js?v=3"></script>
 </body>
 </html>
