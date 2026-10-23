@@ -1,7 +1,7 @@
 // Ciel, lumière du jour et de la nuit, météo (pluie, neige), nuages et étoiles.
-import { THREE, scene, Builder, modelFrom } from './gfx.js?v=1';
-import { waterU } from './world.js?v=1';
-import { clamp, lerp, sstep, hash2, mulberry32 } from './util.js?v=1';
+import { THREE, scene, Builder, modelFrom } from './gfx.js?v=2';
+import { waterU } from './world.js?v=2';
+import { clamp, lerp, sstep, hash2, mulberry32 } from './util.js?v=2';
 
 const NIGHT = { top: '#0c1a40', bot: '#2c4180', sun: '#a8c0ff', sI: .9, hs: '#6a80c8', hg: '#2a2c48', hI: 1.15, sh: '#1f5f7a', dp: '#0f2c4c', light: .5 };
 const DAWN = { top: '#6d74b8', bot: '#ffbe8f', sun: '#ffb47a', sI: 1.7, hs: '#d2b0c8', hg: '#6a5050', hI: .95, sh: '#57bfcc', dp: '#2a709a', light: .85 };

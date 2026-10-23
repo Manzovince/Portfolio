@@ -1,6 +1,6 @@
 // Vignettes des espèces pour le carnet, rendues hors écran une seule fois.
-import { THREE, renderer, U } from './gfx.js?v=1';
-import { speciesModel } from './species.js?v=1';
+import { THREE, renderer, U } from './gfx.js?v=2';
+import { speciesModel } from './species.js?v=2';
 
 const S = 160, rt = new THREE.WebGLRenderTarget(S, S), scn = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, 1, .01, 100);
 scn.add(new THREE.HemisphereLight('#ffffff', '#b8a888', 1.6));

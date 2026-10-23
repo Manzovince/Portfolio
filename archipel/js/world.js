@@ -1,6 +1,6 @@
 // Le monde : archipel procédural, terrain par morceaux, décor instancié, eau, Muséum et ponton.
-import { THREE, scene, Builder, MAT, mesh, inject, U, textTex, curveGLSL } from './gfx.js?v=1';
-import { mulberry32, fbm, vnoise, clamp, sstep, lerp, hash2, pick } from './util.js?v=1';
+import { THREE, scene, Builder, MAT, mesh, inject, U, textTex, curveGLSL } from './gfx.js?v=2';
+import { mulberry32, fbm, vnoise, clamp, sstep, lerp, hash2, pick } from './util.js?v=2';
 
 export const HALF = 720, SEA = -12, DEEP = -7;
 export const TERRAIN = {
@@ -61,7 +61,7 @@ export let museumPos = null, dockInfo = null;
 export function generate(seed) {
   const r = mulberry32(seed);
   islands.length = 0; grid.clear(); decks.length = 0; boxes.length = 0;
-  islands.push({ id: 0, x: 0, z: 0, R: 74, biome: 'prairie', seed: r() * 900, start: true, flat: { x: 0, z: -5, r: 14, h: 2.4 }, name: 'Île du Muséum' });
+  islands.push({ id: 0, x: 0, z: 0, R: 74, biome: 'prairie', seed: r() * 900, start: true, flat: { x: 0, z: -12, r: 24, h: 2.4 }, name: 'Île du Muséum' });
   const sizes = [];
   for (let i = 0; i < 5; i++) sizes.push(42 + r() * 18);
   for (let i = 0; i < 17; i++) sizes.push(18 + r() * 14);
@@ -272,28 +272,46 @@ export function updateWater(px, pz) { water.position.set(Math.round(px / 10) * 1
 // ---------- Muséum (extérieur) ----------
 export const door = { x: 0, z: 1.8 };
 function buildMuseumExt() {
-  const c = islands[0].flat, y = c.h, mz = -6;
+  const y = islands[0].flat.h, mz = -9;
   museumPos = { x: 0, y, z: mz };
-  door.z = mz + 7.7; door.y = y;
-  const b = new Builder();
-  b.box('#efe2c6', [0, 2.6, 0], [12, 5.2, 15]);
-  b.box('#d9c7a4', [0, 5.35, 0], [12.6, .5, 15.6]); b.box('#d9c7a4', [0, .2, 0], [12.4, .4, 15.4]);
-  for (let i = 0; i < 3; i++) b.box('#d9cfba', [0, .2 + (2 - i) * .25, 8 + i * .7], [8 + i * 1.2, .5, 1.6]);
-  for (let i = 0; i < 6; i++) { b.limb('#f6ecd6', [-5 + i * 2, .4, 8.2], [-5 + i * 2, 5, 8.2], .3, .26); b.box('#e3d3b2', [-5 + i * 2, 5, 8.2], [.75, .2, .75]); }
-  b.box('#e3d3b2', [0, 5.25, 8.2], [11, .4, 1.6]);
-  b.geo(new THREE.CylinderGeometry(1, 1, 11, 3), '#e9dcc0', [0, 6.05, 8.2], [Math.PI / 2, 0, Math.PI / 2], [1.2, 1, .9]);
-  b.box('#4a3424', [0, 1.9, 7.55], [2.2, 3.2, .2]); b.box('#f3c66a', [0, 3.6, 7.6], [2.4, .3, .1]);
-  for (const s of [-1, 1]) for (let k = 0; k < 4; k++) b.box('#bfe0ea', [s * 6.05, 3, -5 + k * 3.3], [.1, 2.2, 1.5]);
-  for (let i = 0; i < 5; i++) b.torus('#4a5a55', [0, 5.6, -6 + i * 3], 5.6, .12, Math.PI, [0, 0, 0], [1, .6, 1]);
-  b.part('glass').geo(new THREE.CylinderGeometry(5.6, 5.6, 14, 20, 1, true, -Math.PI / 2, Math.PI), '#bfe3ef', [0, 5.6, 0], [-Math.PI / 2, 0, 0], [1, 1, .6]);
+  door.z = mz + 9.2; door.y = y;
+  const b = new Builder(), STONE = '#efe2c6', TRIM = '#d9c7a4', DARK = '#4a3424';
+  // rotonde d'accueil, coiffée d'un dôme vert-de-gris
+  b.cyl(TRIM, [0, .25, 0], 7.4, 7.6, .5, null, 28); b.cyl(STONE, [0, 3.3, 0], 6.6, 6.6, 5.6, null, 28); b.cyl(TRIM, [0, 6.25, 0], 7, 7, .5, null, 28);
+  b.ball('#7fb8a4', [0, 6.4, 0], [6.4, 4.6, 6.4]); for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; b.box('#5f9a86', [Math.cos(a) * 3.4, 9.6, Math.sin(a) * 3.4], [.25, .25, .25]); }
+  b.cyl(STONE, [0, 11.2, 0], .9, 1.1, 1.4, null, 14); b.ball('#7fb8a4', [0, 12.1, 0], [1.05, .8, 1.05]); b.limb('#e9c46a', [0, 12.7, 0], [0, 13.8, 0], .06); b.ball('#e9c46a', [0, 13.9, 0], .14);
+  for (let k = 0; k < 10; k++) { const a = Math.PI / 2 + (k - 4.5) / 10 * Math.PI * 1.6; if (Math.abs(Math.cos(a)) < .3 && Math.sin(a) > 0) continue; b.box('#bfe0ea', [Math.cos(a) * 6.62, 3.6, Math.sin(a) * 6.62], [.12, 2.4, 1.1], [0, -a, 0]); }
+  // portique d'entrée
+  for (let i = 0; i < 4; i++) { const x = -3.3 + i * 2.2; b.limb('#f6ecd6', [x, .5, 8.1], [x, 5.4, 8.1], .3, .26); b.box(TRIM, [x, 5.4, 8.1], [.75, .2, .75]); b.box(TRIM, [x, .55, 8.1], [.75, .15, .75]); }
+  b.box(TRIM, [0, 5.7, 7.7], [8.6, .45, 2.2]); b.geo(new THREE.CylinderGeometry(1, 1, 8.6, 3), '#e9dcc0', [0, 6.45, 7.7], [Math.PI / 2, 0, Math.PI / 2], [1.25, 1, .9]);
+  for (let i = 0; i < 3; i++) b.box('#d9cfba', [0, .2 + (2 - i) * .25, 8.9 + i * .7], [8 + i * 1.3, .5, 1.6]);
+  b.box(DARK, [0, 2, 6.75], [2.4, 3.4, .3]); b.box('#f3c66a', [0, 3.85, 6.8], [2.6, .3, .2]);
+  // aile ouest : la serre des insectes
+  b.box(STONE, [-12.5, 1.2, -1], [11, 2.4, 11]); b.box(TRIM, [-12.5, 2.5, -1], [11.4, .3, 11.4]);
+  for (let k = 0; k < 5; k++) b.torus('#ffffff', [-12.5, 2.6, -5.5 + k * 2.25], 5.5, .1, Math.PI, null, [1, .75, 1]);
+  b.part('glassG').geo(new THREE.CylinderGeometry(5.5, 5.5, 11, 20, 1, true, -Math.PI / 2, Math.PI), '#bfe8c8', [-12.5, 2.6, -1], [-Math.PI / 2, 0, 0], [1, 1, .75]);
+  b.part('body');
+  for (let k = 0; k < 4; k++) b.ball(['#5fb85a', '#4fae4f', '#ff8fb0', '#5fb85a'][k], [-15 + k * 1.7, 3.2 + (k % 2) * .5, -1 + (k % 2 ? 2 : -2)], .9);
+  // aile est : l'aquarium (bleu, hublots)
+  b.box('#cfe3ea', [12.5, 2.2, -1], [11, 4.4, 11]); b.box('#3f7f9a', [12.5, 4.6, -1], [11.6, .5, 11.6]); b.box('#4f9ab8', [12.5, 5.2, -1], [9, .8, 9]);
+  for (const z of [-4, -1, 2]) { b.torus('#3f7f9a', [18.05, 2.4, z], .7, .14, Math.PI * 2, [0, Math.PI / 2, 0]); b.box('#7fd0e8', [18.03, 2.4, z], [.05, 1.2, 1.2]); }
+  for (const x of [9.5, 12.5, 15.5]) { b.torus('#3f7f9a', [x, 2.4, 4.55], .7, .14, Math.PI * 2); b.box('#7fd0e8', [x, 2.4, 4.53], [1.2, 1.2, .05]); }
+  b.ball('#ff8a1e', [12.5, 5.9, -1], [.9, .45, .25]); b.cone('#ff8a1e', [11.4, 5.9, -1], .4, .6, [0, 0, Math.PI / 2], [1, 1, .3]);
+  // aile nord : la Grande Galerie, longue nef sous verrière
+  b.box(STONE, [0, 2.8, -16], [12, 5.6, 18]); b.box(TRIM, [0, 5.7, -16], [12.6, .4, 18.6]);
+  for (let k = 0; k < 7; k++) b.torus('#4a5a55', [0, 5.8, -24 + k * 2.7], 5.8, .12, Math.PI, null, [1, .6, 1]);
+  for (const sx of [-1, 1]) for (let k = 0; k < 5; k++) b.box('#bfe0ea', [sx * 6.03, 3.2, -22 + k * 3.2], [.1, 2.4, 1.4]);
+  b.part('glass').geo(new THREE.CylinderGeometry(5.8, 5.8, 18, 20, 1, true, -Math.PI / 2, Math.PI), '#bfe3ef', [0, 5.8, -16], [-Math.PI / 2, 0, 0], [1, 1, .6]);
   const geos = b.geometries(), g = new THREE.Group(); g.position.set(0, y, mz);
-  const body = mesh(geos.body); g.add(body);
-  const gl = new THREE.Mesh(geos.glass, inject(new THREE.MeshToonMaterial({ vertexColors: true, transparent: true, opacity: .55, side: THREE.DoubleSide, depthWrite: false }))); g.add(gl);
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 1), inject(new THREE.MeshBasicMaterial({ map: textTex('MUSÉUM', 512, 116, '#2b2118', '#f3e6c8', 'bold 70px Georgia') })));
-  sign.position.set(0, 6.75, 8.97); g.add(sign);
+  g.add(mesh(geos.body));
+  const glassMat = c => inject(new THREE.MeshToonMaterial({ color: c, transparent: true, opacity: .55, side: THREE.DoubleSide, depthWrite: false }));
+  g.add(new THREE.Mesh(geos.glass, glassMat('#cfeaf4'))); g.add(new THREE.Mesh(geos.glassG, glassMat('#d4f2da')));
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(4.2, .95), inject(new THREE.MeshBasicMaterial({ map: textTex('MUSÉUM', 512, 116, '#2b2118', '#f3e6c8', 'bold 70px Georgia') })));
+  sign.position.set(0, 5.72, 8.82); g.add(sign);
   scene.add(g);
-  boxes.push({ x0: -6.5, x1: 6.5, z0: mz - 8, z1: mz + 7.6 });
-  exclusions.push([0, mz, 16], [0, mz + 12, 6]);
+  boxes.push({ x0: -6.8, x1: 6.8, z0: mz - 6.8, z1: mz + 6.9 }, { x0: -4.2, x1: 4.2, z0: mz + 6.9, z1: mz + 8.5 },
+    { x0: -18.2, x1: -6.8, z0: mz - 6.7, z1: mz + 4.7 }, { x0: 6.8, x1: 18.2, z0: mz - 6.7, z1: mz + 4.7 }, { x0: -6.2, x1: 6.2, z0: mz - 25.3, z1: mz - 6.5 });
+  exclusions.push([0, mz - 6, 24], [0, mz + 16, 10]);
 }
 function buildDock() {
   let z = 10, shore = null;

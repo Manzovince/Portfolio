@@ -1,8 +1,8 @@
 // Faune vivante : apparition autour du joueur selon le biome, l'heure et la météo, puis comportements.
-import { THREE, scene, inject } from './gfx.js?v=1';
-import { SPECIES, RARE_W, timeOk, speciesModel } from './species.js?v=1';
-import { H, islandAt, treesNear, DEEP } from './world.js?v=1';
-import { TAU, angDiff, weighted, clamp } from './util.js?v=1';
+import { THREE, scene, inject } from './gfx.js?v=2';
+import { SPECIES, RARE_W, timeOk, speciesModel } from './species.js?v=2';
+import { H, islandAt, treesNear, DEEP } from './world.js?v=2';
+import { TAU, angDiff, weighted, clamp } from './util.js?v=2';
 
 export const active = [];
 const CAP = { body: 11, shadow: 7, bubbles: 3, large: 4 };

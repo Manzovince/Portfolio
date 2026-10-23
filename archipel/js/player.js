@@ -1,7 +1,7 @@
 // L'explorateur et son bateau : modèles, marche, nage, navigation, collisions.
-import { THREE, scene, Builder, mesh, MAT, modelFrom } from './gfx.js?v=1';
-import { H, groundAt, onDeck, obstaclesNear, boxes, DEEP, HALF } from './world.js?v=1';
-import { clamp, angDiff, lerp } from './util.js?v=1';
+import { THREE, scene, Builder, mesh, MAT, modelFrom } from './gfx.js?v=2';
+import { H, groundAt, onDeck, obstaclesNear, boxes, DEEP, HALF } from './world.js?v=2';
+import { clamp, angDiff, lerp } from './util.js?v=2';
 
 // ---------- modèle du joueur (regarde vers +x) ----------
 function limbGroup(parent, pos, build) {
@@ -10,18 +10,31 @@ function limbGroup(parent, pos, build) {
 }
 export function createPlayer() {
   const g = new THREE.Group(), inner = new THREE.Group(); g.add(inner);
-  const b = new Builder();
-  b.cyl('#f2c84a', [0, .75, 0], .25, .31, .55); b.box('#e8b83a', [0, .52, 0], [.62, .08, .62]);
-  b.ball('#f6d7bd', [0, 1.38, 0], .42); b.ball('#5a3a26', [-.06, 1.5, 0], [.44, .34, .44]); b.ball('#5a3a26', [-.25, 1.3, 0], [.25, .3, .4]);
-  b.ball('#f6d7bd', [.4, 1.33, 0], .05);
-  for (const z of [-1, 1]) { b.ball('#1d1a1a', [.37, 1.38, z * .14], [.03, .075, .05]); b.ball('#f3a7a0', [.36, 1.26, z * .24], [.02, .045, .07]); }
-  b.ball('#3a8a5a', [0, 1.78, 0], [.46, .1, .46]); b.ball('#3a8a5a', [0, 1.86, 0], [.3, .16, .3]); b.box('#f2c84a', [0, 1.84, 0], [.62, .05, .62]);
-  b.box('#c9a46a', [-.3, .82, 0], [.18, .38, .4]);
+  const SKIN = '#f8dcc4', SHIRT = '#e9d6a0', b = new Builder();
+  // tenue d'exploratrice : short, chemise saharienne, ceinture, foulard, sac à dos
+  b.cyl('#6f7d4c', [0, .4, 0], .25, .27, .16); b.cyl(SHIRT, [0, .63, 0], .22, .27, .36);
+  b.torus('#7a5634', [0, .48, 0], .26, .025, Math.PI * 2, [Math.PI / 2, 0, 0]);
+  for (const z of [-1, 1]) { b.box('#d9c48a', [.22, .66, z * .1], [.04, .1, .09]); b.box('#c9b47a', [.24, .71, z * .1], [.03, .025, .09]); }
+  b.torus('#e2574a', [0, .82, 0], .17, .05, Math.PI * 2, [Math.PI / 2, 0, 0]); b.ball('#e2574a', [.17, .8, .05], [.06, .07, .06]); b.cone('#d84a3e', [.19, .72, .06], .05, .12, [0, 0, .3]);
+  b.box('#c9714a', [-.3, .66, 0], [.2, .34, .34]); b.box('#b5603e', [-.27, .78, 0], [.2, .1, .36]); b.ball('#e9c46a', [-.41, .62, 0], .035);
+  b.cyl('#6a8a5a', [-.3, .87, 0], .08, .08, .38, [Math.PI / 2, 0, 0]);
+  // tête : grands yeux brillants, joues roses
+  b.ball(SKIN, [0, 1.25, 0], [.47, .43, .46]);
+  b.ball('#6a3e24', [-.08, 1.36, 0], [.45, .36, .47]);
+  for (const z of [-.18, 0, .18]) b.ball('#6a3e24', [.3, 1.43, z], [.14, .09, .13]);
+  for (const z of [-1, 1]) {
+    b.ball('#6a3e24', [-.05, 1.12, z * .38], [.16, .26, .11]);
+    b.ball('#1d1a1a', [.42, 1.24, z * .16], [.03, .1, .075]); b.ball('#ffffff', [.445, 1.28, z * .145], .024);
+    b.ball('#f5a3a0', [.39, 1.12, z * .27], [.025, .045, .07]);
+  }
+  b.ball('#f0b89a', [.46, 1.17, 0], [.03, .03, .035]); b.ball('#9a4a40', [.44, 1.08, 0], [.015, .015, .04]);
+  // casque colonial
+  b.cyl('#e8d29a', [0, 1.6, 0], .62, .64, .05, null, 20); b.ball('#e8d29a', [-.02, 1.62, 0], [.37, .26, .37]); b.cyl('#7a5634', [-.02, 1.66, 0], .36, .37, .07, null, 20);
   inner.add(mesh(b.merged()));
-  const legs = [-1, 1].map(z => limbGroup(inner, [0, .5, z * .13], b => { b.limb('#3b4a6b', [0, 0, 0], [0, -.42, 0], .085, .075); b.ball('#5a3a26', [.05, -.46, 0], [.12, .06, .08]); }));
-  const arms = [-1, 1].map(z => limbGroup(inner, [0, .98, z * .3], b => { b.limb('#f2c84a', [0, 0, 0], [0, -.38, 0], .07, .06); b.ball('#f6d7bd', [0, -.42, 0], .07); }));
+  const legs = [-1, 1].map(z => limbGroup(inner, [0, .36, z * .12], b => { b.limb(SKIN, [0, 0, 0], [0, -.25, 0], .07, .065); b.cyl('#f6f1e4', [0, -.24, 0], .07, .07, .06); b.ball('#5a3a26', [.05, -.3, 0], [.13, .07, .09]); }));
+  const arms = [-1, 1].map(z => limbGroup(inner, [0, .8, z * .29], b => { b.ball(SHIRT, [0, -.04, 0], .1); b.limb(SKIN, [0, -.05, 0], [0, -.3, 0], .055, .05); b.ball(SKIN, [0, -.34, 0], .07); }));
   // outils, tenus dans la main droite (bras z>0)
-  const hand = new THREE.Group(); hand.position.set(0, -.42, 0); arms[1].add(hand);
+  const hand = new THREE.Group(); hand.position.set(0, -.34, 0); arms[1].add(hand);
   const tools = {};
   { const t = new Builder(); t.limb('#9a7044', [0, 0, 0], [1.1, .9, 0], .03); t.torus('#c9c9c9', [1.25, 1.05, 0], .28, .03, Math.PI * 2, [0, Math.PI / 2, -.7]);
     t.part('glass').cone('#ffffff', [1.42, .85, 0], .27, .5, [0, 0, -2.45]); tools.filet = modelFrom(t.geometries()); }

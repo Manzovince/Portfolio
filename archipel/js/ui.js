@@ -1,5 +1,5 @@
 // Interface tactile : joystick, bouton d'action, outils, messages, carnet et carte.
-import { SPECIES, BY_ID, BIOMES, METHODS, TIMES, WEATHER, timeOk } from './species.js?v=1';
+import { SPECIES, BY_ID, BIOMES, METHODS, TIMES, WEATHER, timeOk } from './species.js?v=2';
 
 const $ = id => document.getElementById(id);
 export const input = { jx: 0, jy: 0, mag: 0, dragX: 0, dragY: 0, zoom: 1, keys: {}, joyActive: false };
@@ -7,23 +7,22 @@ let handlers = {};
 
 export function setupUI(h) {
   handlers = h;
-  // joystick dynamique
-  const joy = $('joy'), base = $('joyBase'), knob = $('joyKnob'); let jid = null, ox = 0, oy = 0;
-  const defPos = () => { base.style.left = '90px'; base.style.top = ''; };
+  // joystick fixe en bas à gauche : seul un appui dessus déplace le personnage
+  const joy = $('joy'), knob = $('joyKnob'); let jid = null, ox = 0, oy = 0;
   joy.addEventListener('pointerdown', e => {
     if (jid !== null) return; jid = e.pointerId; joy.setPointerCapture(jid);
-    const r = joy.getBoundingClientRect(); ox = e.clientX; oy = e.clientY;
-    base.style.left = (ox - r.left) + 'px'; base.style.top = (oy - r.top) + 'px'; joy.classList.add('on'); input.joyActive = true; e.preventDefault();
+    const r = joy.getBoundingClientRect(); ox = r.left + r.width / 2; oy = r.top + r.height / 2;
+    joy.classList.add('on'); input.joyActive = true; e.preventDefault(); move(e);
   });
-  joy.addEventListener('pointermove', e => {
+  const move = e => {
     if (e.pointerId !== jid) return;
-    let dx = e.clientX - ox, dy = e.clientY - oy; const d = Math.hypot(dx, dy), m = 52;
+    let dx = e.clientX - ox, dy = e.clientY - oy; const d = Math.hypot(dx, dy), m = 48;
     if (d > m) { dx = dx / d * m; dy = dy / d * m; }
     knob.style.transform = `translate(${dx}px,${dy}px)`; input.jx = dx / m; input.jy = -dy / m; input.mag = Math.min(1, d / m);
-  });
-  const end = e => { if (e.pointerId !== jid) return; jid = null; input.jx = input.jy = input.mag = 0; knob.style.transform = ''; joy.classList.remove('on'); input.joyActive = false; defPos(); };
+  };
+  joy.addEventListener('pointermove', move);
+  const end = e => { if (e.pointerId !== jid) return; jid = null; input.jx = input.jy = input.mag = 0; knob.style.transform = ''; joy.classList.remove('on'); input.joyActive = false; };
   joy.addEventListener('pointerup', end); joy.addEventListener('pointercancel', end);
-  // glisser pour tourner la caméra (bateau, photo)
   // un doigt : tourner la caméra ; deux doigts : zoomer
   const dragOn = el => { const pts = new Map(); let pd = 0;
     const spread = () => { const [a, b] = [...pts.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };

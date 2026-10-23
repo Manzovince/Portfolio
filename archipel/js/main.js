@@ -1,15 +1,16 @@
 // Galerie — boucle de jeu : exploration, outils (filet, canne, photo, plongée), bateau, Muséum, sauvegarde.
-import { THREE, renderer, scene, camera, U, Builder, modelFrom, inject } from './gfx.js?v=1';
-import * as W from './world.js?v=1';
-import { updateSky, weatherFor, WEATHER_INFO, setOutdoor, hemi, sun, skyState } from './sky.js?v=1';
-import { createPlayer, createBoat, stepWalk, stepBoat, animatePlayer, animateBoat, showTool } from './player.js?v=1';
-import { active, updateFauna, removeEntity, prewarm, clearFauna, spawnFishNear } from './fauna.js?v=1';
-import { SPECIES, BIOMES, METHODS } from './species.js?v=1';
-import { buildMuseum, unloadMuseum, museum, ORIGIN, animateMuseum, nearestAnchor } from './museum.js?v=1';
-import * as UI from './ui.js?v=1';
-import { thumb } from './thumbs.js?v=1';
-import { sfx, unlockAudio } from './audio.js?v=1';
-import { clamp, lerp } from './util.js?v=1';
+import { THREE, renderer, scene, camera, U, Builder, modelFrom, inject } from './gfx.js?v=2';
+import * as W from './world.js?v=2';
+import { updateSky, weatherFor, WEATHER_INFO, setOutdoor, hemi, sun, skyState } from './sky.js?v=2';
+import { createPlayer, createBoat, stepWalk, stepBoat, animatePlayer, animateBoat, showTool } from './player.js?v=2';
+import { active, updateFauna, removeEntity, prewarm, clearFauna, spawnFishNear } from './fauna.js?v=2';
+import { SPECIES, BIOMES, METHODS } from './species.js?v=2';
+import { buildMuseum, unloadMuseum, museum, ORIGIN, animateMuseum, nearestAnchor, roomAt, camInside, ROOMS, WINGS } from './museum.js?v=2';
+import { timeOk } from './species.js?v=2';
+import * as UI from './ui.js?v=2';
+import { thumb } from './thumbs.js?v=2';
+import { sfx, unlockAudio } from './audio.js?v=2';
+import { clamp, lerp } from './util.js?v=2';
 
 const SAVE = 'galerie.save.v1', PHOTOS = 'galerie.photos.v1', HOURS_PER_SEC = 24 / 1200, EN = 128;
 const fresh = () => ({ seed: 20261022, day: 1, hour: 8, found: {}, tool: 'filet', p: null, boat: null, inBoat: false, explored: '', tips: {} });
@@ -23,7 +24,7 @@ const $ = id => document.getElementById(id);
 await new Promise(r => setTimeout(r, 30));
 W.generate(G.seed);
 const P = createPlayer(), boat = createBoat();
-let busy = false, mode = 'island', inBoat = false, photo = null, fishing = null, camYaw = Math.PI / 2, camPitch = .85, camZoom = 1, running = false, lastIsland = -1, lastBiome = 'prairie';
+let curRoom = 'hall', talkIdx = 0, busy = false, mode = 'island', inBoat = false, photo = null, fishing = null, camYaw = Math.PI / 2, camPitch = .85, camZoom = 1, running = false, lastIsland = -1, lastBiome = 'prairie';
 const spawnFront = () => ({ x: 0, z: W.door.z + 4.5 });
 if (G.p && !G.p.indoor) { P.x = G.p.x; P.z = G.p.z; P.ry = G.p.ry; } else { const s = spawnFront(); P.x = s.x; P.z = s.z; P.ry = Math.PI / 2; }
 P.y = W.groundAt(P.x, P.z);
@@ -219,8 +220,8 @@ function enterMuseum(withFade = true) {
     P.x = ORIGIN.x + museum.spawn.x; P.z = ORIGIN.z + museum.spawn.z; P.y = 0; P.ry = -Math.PI / 2; P.mode = 'walk'; showTool(P, null); P.toolPose = null; UI.showTools(false); UI.callBtn(false);
     scene.fog.color.set('#efe2c8'); scene.background = scene.fog.color.clone(); scene.fog.near = 45; scene.fog.far = 130;
     hemi.color.set('#fff1da'); hemi.groundColor.set('#6a4a30'); hemi.intensity = 1.5; sun.color.set('#fff3df'); sun.intensity = 1.4;
-    camT.set(P.x, 1.2, P.z); camYaw = Math.PI / 2; camPitch = .5;
-    sfx('door'); once('museum', 'Bienvenue au Muséum ! Chaque espèce trouvée vient prendre sa place ici.', 4500);
+    camT.set(P.x, 1.2, P.z); camYaw = Math.PI / 2; camPitch = .6; curRoom = 'hall'; talkIdx = 0;
+    sfx('door'); once('museum', 'Bienvenue au Muséum ! Va saluer la conservatrice au comptoir.', 4500);
     setTimeout(() => UI.fade(false), 60);
   };
   if (busy) return; busy = true;
@@ -239,11 +240,28 @@ function exitMuseum() {
   }, 380);
 }
 
+// ---------- la conservatrice ----------
+function curatorLine(i) {
+  const n = Object.keys(G.found).length, wx = weather();
+  const missing = SPECIES.filter(s => !G.found[s.id]);
+  const now = missing.filter(s => timeOk(s, G.hour) && (!s.weather || (s.weather === 'pluie') === (wx === 'pluie')));
+  const lines = [
+    n === 0 ? 'Bienvenue ! Nos salles sont encore vides… Rapportez-moi des photos et des spécimens de tout l’archipel !' : `Merci pour votre aide ! ${n} espèce${n > 1 ? 's' : ''} sur ${SPECIES.length} sont déjà exposées.`,
+    now.length ? (sp => `Un tuyau : en ce moment, on peut croiser ${sp.nom.toLowerCase().startsWith('é') || 'aeiouh'.includes(sp.nom[0].toLowerCase()) ? 'l’' : 'un·e '}${sp.nom.toLowerCase()} du côté ${BIOMES[sp.biomes[0]].nom === 'Grand large' ? 'du grand large' : 'des îles « ' + BIOMES[sp.biomes[0]].nom.toLowerCase() + ' »'}. ${METHODS[sp.method].emoji}`)(now[(G.day * 7 + talkIdx) % now.length])
+      : 'Certaines espèces ne sortent qu’à certaines heures, ou sous la pluie. Revenez plus tard !',
+    'Le nord de l’archipel est glacial, le sud brûlant. Chaque climat abrite ses propres espèces.',
+    'À gauche l’Insectarium, à droite l’Aquarium, et tout droit la Grande Galerie. Bonne visite !',
+  ];
+  return '<br>' + lines[i % lines.length];
+}
+function talk() { talkIdx++; sfx('pop'); info(`<b>Céleste, la conservatrice</b>${curatorLine(talkIdx)}`); }
+
 // ---------- action contextuelle ----------
 let action = { k: 'none' };
 function computeAction() {
   if (mode === 'museum') {
-    if (Math.hypot(P.x - (ORIGIN.x + museum.exit.x), P.z - (ORIGIN.z + museum.exit.z)) < 3.2) return { k: 'exit', i: '🚪', l: 'Sortir' };
+    if (Math.hypot(P.x - (ORIGIN.x + museum.exit.x), P.z - (ORIGIN.z + museum.exit.z)) < 2.6) return { k: 'exit', i: '🚪', l: 'Sortir' };
+    if (Math.hypot(P.x - ORIGIN.x, P.z - (ORIGIN.z + .9)) < 2.4) return { k: 'talk', i: '💬', l: 'Parler' };
     return { k: 'none', i: '🏛️', l: '', c: 'off' };
   }
   if (fishing) return fishing.state === 'bite' ? { k: 'hook', i: '❗', l: 'Ferrer !', c: 'alert' } : { k: 'reel', i: '🎣', l: 'Relever' };
@@ -270,7 +288,7 @@ function handleA() {
   else if (a.k === 'board') board(); else if (a.k === 'land') land(a.s);
   else if (a.k === 'dive') dive(); else if (a.k === 'net') swingNet();
   else if (a.k === 'cast') cast(); else if (a.k === 'hook' || a.k === 'reel') hook();
-  else if (a.k === 'photo') enterPhoto();
+  else if (a.k === 'photo') enterPhoto(); else if (a.k === 'talk') talk();
 }
 
 // ---------- sauvegarde ----------
@@ -304,15 +322,15 @@ function updateCamera(dt) {
   let target, dist;
   camYaw += UI.input.dragX * .006; camPitch = clamp(camPitch + UI.input.dragY * .004, .25, 1.25);
   camZoom = clamp(camZoom * UI.input.zoom, .5, 1.8); UI.input.zoom = 1;
-  if (mode === 'museum') { target = [P.x, 1.2, P.z]; dist = (portrait ? 16 : 13) * camZoom; camPitch = Math.min(camPitch, .75); U.uCurve.value = 0; }
+  if (mode === 'museum') { target = [P.x, 1.2, P.z]; dist = (portrait ? 16 : 13) * camZoom; U.uCurve.value = 0; }
   else if (inBoat) { target = [boat.x, 1.4, boat.z]; dist = (portrait ? 25 : 22) * camZoom; U.uCurve.value = .0024; }
   else { target = [P.x, P.y + 1, P.z]; dist = (portrait ? 21 : 16) * camZoom; U.uCurve.value = .0026; }
-  const pitch = camPitch, yaw = camYaw;
+  const pitch = mode === 'museum' ? Math.max(camPitch, .8) : camPitch, yaw = camYaw; // au Muséum, vue plongeante façon maison de poupée
   camT.x = lerp(camT.x, target[0], Math.min(1, dt * 7)); camT.y = lerp(camT.y, target[1], Math.min(1, dt * 4)); camT.z = lerp(camT.z, target[2], Math.min(1, dt * 7));
-  if (mode === 'museum') for (let k = 0; k < 30; k++) { // la caméra reste entre les murs de la galerie
-    const cx = camT.x + Math.cos(yaw) * Math.cos(pitch) * dist - ORIGIN.x, cz = camT.z + Math.sin(yaw) * Math.cos(pitch) * dist - ORIGIN.z;
-    if (Math.abs(cx) < 14 && cz > -31 && cz < 44) break; dist *= .9; }
   camera.position.set(camT.x + Math.cos(yaw) * Math.cos(pitch) * dist, camT.y + Math.sin(pitch) * dist, camT.z + Math.sin(yaw) * Math.cos(pitch) * dist);
+  if (mode === 'museum') { const r = ROOMS[roomAt(P.x, P.z) || curRoom], m = .8; // la caméra glisse le long des murs de la salle
+    camera.position.x = clamp(camera.position.x, ORIGIN.x + r.x0 + m, ORIGIN.x + r.x1 - m);
+    camera.position.z = clamp(camera.position.z, ORIGIN.z + r.z0 + m, ORIGIN.z + (r === ROOMS.hall ? r.z1 + 14 : r.z1 - m)); }
   camera.lookAt(camT);
   const fov = portrait ? 52 : 42; if (camera.fov !== fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
   U.uFocus.value = dist;
@@ -344,8 +362,8 @@ renderer.setAnimationLoop(() => {
       updateFauna(dt, { px: P.x, pz: P.z, pspeed: inBoat ? 0 : P.speed, hour: G.hour, weather: wx, t });
     } else {
       stepWalk(P, dt, inp, museum.colliders);
-      if (P.z > ORIGIN.z + 31) exitMuseum();
-      animateMuseum(t);
+      if (P.z > ORIGIN.z + museum.exitZ) exitMuseum();
+      animateMuseum(t, P.x, P.z);
     }
   }
   animatePlayer(P, dt, t); animateBoat(boat, t, inBoat);
@@ -371,8 +389,11 @@ renderer.setAnimationLoop(() => {
       callSpot = findCallSpot(); UI.callBtn(!!callSpot);
       info(null);
     } else {
+      const r = roomAt(P.x, P.z);
+      if (r && r !== curRoom) { curRoom = r; const w = WINGS[r]; UI.showPlace(ROOMS[r].nom, w ? `${w.filter(id => G.found[id]).length} / ${w.length} espèces exposées` : 'Muséum'); }
       const a = nearestAnchor(P.x, P.z);
       if (!a) info(null);
+      else if (a.id === '__curator') info(`<b>Céleste, la conservatrice</b>${curatorLine(talkIdx)}`);
       else { const sp = SPECIES.find(s => s.id === a.id), f = G.found[a.id];
         info(f ? `<b>${sp.nom}</b><small>${sp.biomes.map(b => BIOMES[b].emoji + ' ' + BIOMES[b].nom).join(' · ')} — ${METHODS[sp.method].verbe} le jour ${f.day}</small><br>${sp.desc}`
           : `<b>Emplacement vide</b><small>${sp.biomes.map(b => BIOMES[b].emoji + ' ' + BIOMES[b].nom).join(' · ')} · ${METHODS[sp.method].emoji} ${METHODS[sp.method].nom}</small><br>Une espèce manque encore ici…`); }

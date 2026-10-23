@@ -1,5 +1,5 @@
 // Les 42 espèces : où et quand les trouver, comment les collecter, et leur modèle 3D.
-import { Builder, modelFrom } from './gfx.js?v=1';
+import { Builder, modelFrom } from './gfx.js?v=2';
 
 export const BIOMES = {
   prairie: { nom: 'Prairie', emoji: '🌼' },
