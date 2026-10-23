@@ -420,7 +420,7 @@ dialog .dlg-head h2 { margin: 0; }
 .fs small { font-size: 9.5px; font-weight: 750; text-transform: uppercase; letter-spacing: .07em; color: var(--faint); white-space: nowrap; }
 .fs b { font-family: var(--mono); font-size: 18px; font-weight: 700; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 22px; }
 .fs.wide b, .fs b:not(:empty) { }
-.fs.filled, .fs.good, .fs.bad, .fs.partial, .fs.default { border-style: solid; border-color: transparent; }
+.fs.filled, .fs.good, .fs.bad, .fs.partial, .fs.default, .fs.blank { border-style: solid; border-color: transparent; }
 .fs.filled b { color: var(--accent); }
 .fs.default b { color: var(--muted); font-style: italic; font-weight: 550; font-family: inherit; font-size: 15px; }
 .fs.partial b { color: var(--muted); }
@@ -549,3 +549,8 @@ dialog .dlg-head h2 { margin: 0; }
 .net-badge.bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); background: var(--bad-soft); }
 /* Statut du cadre toujours calé à droite, même quand le résumé est masqué */
 .cad .sec-mark { margin-left: auto; }
+
+/* Chiffres attendus : un tiret par chiffre */
+.fs.blank b, .fs.partial b { letter-spacing: .08em; }
+.fs.blank b { color: var(--faint); font-weight: 500; }
+.ico-edit { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; display: block; }

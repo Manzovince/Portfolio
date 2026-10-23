@@ -1,10 +1,10 @@
-import { parse, SECTION_NAMES, redoMarker } from './parser.js?v=5';
+import { parse, SECTION_NAMES, redoMarker } from './parser.js?v=10';
 import {
   CADRES, OPT, NATO_WORDS, LETTERS, DEFAULTS, ROW_KIND, ROW_KEYS, ROW_LABELS,
   cadreText, cadreStarted, messageLines, draftErrors, fmtTime as fmtHHMM,
-} from './form.js?v=5';
-import { cadreSlots, HINTS } from './view.js?v=5';
-import { createDictation, speechSupported } from './speech.js?v=5';
+} from './form.js?v=10';
+import { cadreSlots } from './view.js?v=10';
+import { createDictation, speechSupported } from './speech.js?v=10';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -230,7 +230,8 @@ function buildCadres() {
     </div>`).join('');
 }
 
-const slotHTML = (s) => `<span class="fs ${s.state}${s.wide ? ' wide' : ''}${s.word ? ' word' : ''}"><small>${esc(s.label)}</small><b>${esc(s.text || '')}</b></span>`;
+const PENCIL = '<svg class="ico-edit" viewBox="0 0 24 24" aria-label="Édition"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg>';
+const slotHTML = (s) => `<span class="fs ${s.state}${s.wide ? ' wide' : ''}${s.word ? ' word' : ''}">${s.label ? `<small>${esc(s.label)}</small>` : ''}<b>${esc(s.text || '')}</b></span>`;
 
 function renderDictation() {
   const { text, interimAt } = dictation.snapshot();
@@ -246,7 +247,7 @@ function renderDictation() {
     const started = p.started[i] || cadreStarted(i, pv);
     const done = CADRES[i].fields.some((f) => f.key in overrides) ? started && !errs[i] : p.done[i];
     let st, mark = '';
-    if (i === openCadre) { st = 'open'; mark = '✎ édition'; }
+    if (i === openCadre) { st = 'open'; mark = PENCIL; }
     else if (i === 1 && p.mismatch && !('letter' in overrides)) { st = 'warn'; mark = `${p.values.letter} ≠ ${p.confirm}`; }
     else if (i === p.focus && !p.stop && openCadre === null) st = 'active';
     else if (done && (started || i < p.focus)) { st = 'done'; mark = '✓'; }
@@ -254,7 +255,7 @@ function renderDictation() {
     else st = started ? 'partial' : (i < p.focus ? 'skipped' : 'idle');
     if (st === 'active' && done) mark = '✓';
     el.dataset.state = st;
-    $('.sec-mark', el).textContent = mark;
+    $('.sec-mark', el).innerHTML = mark === PENCIL ? mark : esc(mark);
     $('.cad-sum', el).textContent = started ? cadreText(i, pv) : (CADRES[i].req ? '' : 'facultatif');
     const body = $('.cad-body', el);
     if (st === 'open') {
@@ -269,7 +270,7 @@ function renderDictation() {
     delete el.dataset.form;
     if (st === 'active' || (st === 'warn' && i === p.cur && openCadre === null)) {
       const slots = cadreSlots(i, pm);
-      body.innerHTML = `<div class="fslots">${slots.map(slotHTML).join('')}</div><p class="cad-hint">${HINTS[i]}</p>`;
+      body.innerHTML = `<div class="fslots">${slots.map(slotHTML).join('')}</div>`;
       // Petite animation sur les cases qui viennent de changer.
       $$('.fs', body).forEach((node, k) => {
         const key = `${i}:${slots[k].label}:${k}`;
@@ -409,7 +410,9 @@ function fieldHTML(fd, values, prefix = 'ed') {
       <input id="${id}" data-k="${fd.key}" data-t="${fd.type}" inputmode="${mode}" value="${esc(shown)}" autocomplete="off"${fd.type === 'time' ? ' placeholder="HHhMM"' : ''}></span>`;
   }
   if (fd.type === 'bool') return `<div class="ed-f wide">${input}</div>`;
-  return `<label class="ed-f${fd.type === 'choice' || fd.type === 'text' ? ' wide' : ''}" for="${id}"><span>${fd.label}</span>${input}</label>`;
+  // Pas d'étiquette pour les deux nombres d'identification : la carte suffit.
+  const lbl = fd.cadre === 0 || ['id1', 'id2'].includes(fd.key) ? '' : `<span>${fd.label}</span>`;
+  return `<label class="ed-f${fd.type === 'choice' || fd.type === 'text' ? ' wide' : ''}" for="${id}">${lbl}${input}</label>`;
 }
 
 // Formulaire d'un cadre (vérification et cadre ouvert pendant la dictée).

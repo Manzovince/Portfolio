@@ -57,7 +57,7 @@ const rowFields = LETTERS.flatMap((L) => ROW_KEYS[ROW_KIND[L]].map((k) => f(`${L
   k === 'g' ? 'fixed' : (k === 's' || k === 'z') ? 'snum' : 'num', { digits: k === 'g' ? 4 : undefined, row: L })));
 
 export const CADRES = [
-  { n: 1, title: 'Identification', req: true, fields: [f('id1', 'N° 1', 'pair'), f('id2', 'N° 2', 'pair')] },
+  { n: 1, title: 'Identification', req: true, fields: [f('id1', 'Identification 1', 'pair'), f('id2', 'Identification 2', 'pair')] },
   { n: 2, title: 'Type de mission', req: true, fields: [
     f('letter', 'Lettre', 'letter'), f('type', 'Type', 'choice', { opt: 'type' }),
     f('mepBox', 'Case mise en place', 'num'), f('ren1', 'Renouveler 1', 'num'), f('ren2', 'Renouveler 2', 'num'),

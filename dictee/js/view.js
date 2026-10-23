@@ -1,5 +1,5 @@
 // Cases affichées pour le cadre déplié pendant la dictée, à partir d'un résultat de parse.
-import { OPT, DEFAULTS, ROW_KIND, ROW_KEYS, ROW_LABELS, rowsUsed, rowText, fmtTime } from './form.js?v=5';
+import { FIELD, OPT, DEFAULTS, ROW_KIND, ROW_KEYS, ROW_LABELS, rowsUsed, rowText, fmtTime } from './form.js?v=10';
 
 const S = (label, text, state = text ? 'filled' : 'vacant', wide = false) => ({ label, text: text ?? '', state, wide });
 const opt = (o, k) => OPT[o][k] ?? '';
@@ -18,10 +18,17 @@ export const HINTS = [
   'À mon commandement, aussitôt prêt, HSO… · « terminé »',
 ];
 
+// « _ _ » pour 2 chiffres attendus ; « 1 _ » quand le premier est dit.
+const blanks = (have, n) => [...have.split(''), ...Array(Math.max(0, n - have.length)).fill('_')].join(' ');
+
 export function cadreSlots(i, p) {
   const v = p.values;
   const part = (k) => p.partial.includes(k);
-  const num = (label, k, wide) => S(label, v[k] !== undefined ? v[k] + (part(k) ? '_' : '') : '', v[k] === undefined ? 'vacant' : part(k) ? 'partial' : 'filled', wide);
+  const num = (label, k, wide) => {
+    const n = FIELD[k]?.digits;
+    if (n && (v[k] === undefined || part(k))) return S(label, blanks(v[k] ?? '', n), v[k] === undefined ? 'blank' : 'partial', wide);
+    return S(label, v[k] !== undefined ? v[k] + (part(k) ? '_' : '') : '', v[k] === undefined ? 'vacant' : part(k) ? 'partial' : 'filled', wide);
+  };
   const choice = (label, k, o, wide = true) => ({
     ...(v[k] !== undefined
       ? S(label, opt(o, v[k]), 'filled', wide)
@@ -30,10 +37,10 @@ export function cadreSlots(i, p) {
   });
   const pair = (label, vals, pending, k) => (vals[k] !== undefined
     ? S(label, vals[k])
-    : vals.filter(Boolean).length === k && pending !== null ? S(label, pending + '_', 'partial') : S(label, ''));
+    : vals.filter(Boolean).length === k && pending !== null ? S(label, blanks(pending, 2), 'partial') : S(label, '_ _', 'blank'));
 
   switch (i) {
-    case 0: return [pair('N° 1', [v.id1, v.id2], p.pending.id, 0), pair('N° 2', [v.id1, v.id2], p.pending.id, 1)];
+    case 0: return [pair('', [v.id1, v.id2], p.pending.id, 0), pair('', [v.id1, v.id2], p.pending.id, 1)];
     case 1: {
       const out = [S('Lettre', v.letter), choice('Type', 'type', 'type')];
       if (v.type === 'mettre_en_place' || v.type === 'mep_decentree') out.push(num('Case', 'mepBox'));
