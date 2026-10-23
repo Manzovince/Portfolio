@@ -547,3 +547,5 @@ dialog .dlg-head h2 { margin: 0; }
 .net-badge.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); }
 .net-badge.slow { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
 .net-badge.bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); background: var(--bad-soft); }
+/* Statut du cadre toujours calé à droite, même quand le résumé est masqué */
+.cad .sec-mark { margin-left: auto; }
