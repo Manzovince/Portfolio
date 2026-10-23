@@ -1,5 +1,5 @@
 // Cases affichées pour le cadre déplié pendant la dictée, à partir d'un résultat de parse.
-import { OPT, DEFAULTS, ROW_KIND, ROW_KEYS, ROW_LABELS, rowsUsed, rowText, fmtTime } from './form.js?v=3';
+import { OPT, DEFAULTS, ROW_KIND, ROW_KEYS, ROW_LABELS, rowsUsed, rowText, fmtTime } from './form.js?v=4';
 
 const S = (label, text, state = text ? 'filled' : 'vacant', wide = false) => ({ label, text: text ?? '', state, wide });
 const opt = (o, k) => OPT[o][k] ?? '';

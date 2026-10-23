@@ -3,7 +3,7 @@
 // Les cadres se remplissent dans l'ordre : un mot propre à un cadre suivant fait avancer,
 // les nombres vont dans la case suivante du cadre en cours (ou sont aiguillés par un mot-clé).
 
-import { CADRES, FIELD, ROW_KIND, ROW_KEYS, OPT, locationOk } from './form.js?v=3';
+import { CADRES, FIELD, ROW_KIND, ROW_KEYS, OPT, locationOk } from './form.js?v=4';
 
 export const SECTION_NAMES = CADRES.map((c) => c.title);
 export const redoMarker = (k) => `⟦r${k}⟧`;
