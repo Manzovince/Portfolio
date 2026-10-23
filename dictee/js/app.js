@@ -1,10 +1,10 @@
-import { parse, SECTION_NAMES, redoMarker } from './parser.js?v=4';
+import { parse, SECTION_NAMES, redoMarker } from './parser.js?v=5';
 import {
   CADRES, OPT, NATO_WORDS, LETTERS, DEFAULTS, ROW_KIND, ROW_KEYS, ROW_LABELS,
   cadreText, cadreStarted, messageLines, draftErrors, fmtTime as fmtHHMM,
-} from './form.js?v=4';
-import { cadreSlots, HINTS } from './view.js?v=4';
-import { createDictation, speechSupported } from './speech.js?v=4';
+} from './form.js?v=5';
+import { cadreSlots, HINTS } from './view.js?v=5';
+import { createDictation, speechSupported } from './speech.js?v=5';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -89,7 +89,7 @@ const THEME_KEY = 'dictee.theme';
 function applyTheme(t) {
   if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
   else delete document.documentElement.dataset.theme;
-  const color = { light: '#eef1ec', dark: '#0e1311' };
+  const color = { light: '#eef0f1', dark: '#101417' };
   for (const m of $$('meta[name="theme-color"]')) {
     m.content = t === 'light' || t === 'dark' ? color[t] : (m.media.includes('light') ? color.light : color.dark);
   }
