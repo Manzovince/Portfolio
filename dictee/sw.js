@@ -1,6 +1,6 @@
 // Cache de l'app pour un démarrage sans réseau (la reconnaissance vocale, elle, en a souvent besoin).
-const CACHE = 'dictee-v1';
-const FILES = ['./', 'index.html', 'style.css?v=1', 'js/app.js?v=1', 'js/parser.js?v=1', 'js/speech.js?v=1',
+const CACHE = 'dictee-v2';
+const FILES = ['./', 'index.html', 'style.css?v=2', 'js/app.js?v=2', 'js/parser.js?v=2', 'js/speech.js?v=2',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {

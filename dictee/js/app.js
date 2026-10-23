@@ -1,8 +1,8 @@
 import {
   parse, toDraft, draftErrors, formatMessage,
-  MISSION_TYPES, EFFECTS, NATO_WORDS, DEFAULT_TYPE, DEFAULT_EFFECT,
-} from './parser.js?v=1';
-import { createDictation, speechSupported } from './speech.js?v=1';
+  MISSION_TYPES, EFFECTS, NATO_WORDS, DEFAULT_TYPE, DEFAULT_EFFECT, SECTION_NAMES, redoMarker,
+} from './parser.js?v=2';
+import { createDictation, speechSupported } from './speech.js?v=2';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -69,15 +69,41 @@ function renderList(ul, empty, items) {
   empty.hidden = items.length > 0;
 }
 
+let micDenied = false;
+function renderStatus() {
+  const micOk = speechSupported && !micDenied;
+  for (const el of $$('[data-st="mic"]')) {
+    el.className = 'st ' + (micOk ? 'ok' : 'bad');
+    el.setAttribute('aria-label', micOk ? 'Micro disponible' : 'Micro indisponible');
+  }
+  for (const el of $$('[data-st="net"]')) {
+    el.className = 'st ' + (navigator.onLine ? 'ok' : 'bad');
+    el.setAttribute('aria-label', navigator.onLine ? 'Réseau disponible' : 'Hors réseau');
+  }
+}
+
+/* ---------- Thème ---------- */
+const THEME_KEY = 'dictee.theme';
+function applyTheme(t) {
+  if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  else delete document.documentElement.dataset.theme;
+  const color = { light: '#eef1ec', dark: '#0e1311' };
+  for (const m of $$('meta[name="theme-color"]')) {
+    m.content = t === 'light' || t === 'dark' ? color[t] : (m.media.includes('light') ? color.light : color.dark);
+  }
+  for (const b of $$('[data-theme-opt]')) b.setAttribute('aria-pressed', String(b.dataset.themeOpt === t));
+}
+function setTheme(t) {
+  try { localStorage.setItem(THEME_KEY, t); } catch { /* préférence non retenue */ }
+  applyTheme(t);
+}
+const savedTheme = () => { try { return localStorage.getItem(THEME_KEY) || 'auto'; } catch { return 'auto'; } };
+
 function renderHome() {
   const h = loadHistory();
   renderList($('#recent'), $('#recent-empty'), h.slice(0, 5));
   $('#btn-all').hidden = h.length === 0;
-  const mic = $('#chip-mic'), net = $('#chip-net');
-  mic.className = 'chip ' + (speechSupported ? 'ok' : 'bad');
-  mic.textContent = speechSupported ? 'Micro ✓' : 'Micro ✗';
-  net.className = 'chip ' + (navigator.onLine ? 'ok' : 'bad');
-  net.textContent = navigator.onLine ? 'Réseau ✓' : 'Hors réseau';
+  renderStatus();
   const w = $('#home-warn');
   if (!speechSupported) { w.hidden = false; w.textContent = 'Reconnaissance vocale indisponible ici : saisie clavier uniquement.'; }
   else if (!navigator.onLine) { w.hidden = false; w.textContent = 'Hors réseau : la reconnaissance vocale peut ne pas fonctionner.'; }
@@ -115,6 +141,7 @@ const dictation = createDictation({
   onChange: () => renderDictation(),
   onListening: (on) => setListening(on),
   onError: (code) => {
+    if (code === 'micro') { micDenied = true; renderStatus(); }
     if (code === 'micro') toast('Micro refusé : autorisez-le dans Réglages › Safari › Micro', 4000);
     else if (code === 'reseau') toast('Reconnaissance vocale indisponible (réseau)', 3500);
     else toast(`Erreur de reconnaissance : ${code}`);
@@ -129,7 +156,7 @@ function setListening(on) {
   $('#btn-mic').setAttribute('aria-label', on ? 'Mettre en pause' : 'Reprendre l\'écoute');
   $('#mic-caption').textContent = !speechSupported
     ? 'Reconnaissance vocale indisponible sur ce navigateur'
-    : on ? 'Dites « terminé » pour valider · appuyez pour pause' : 'Appuyez pour reprendre l\'écoute';
+    : on ? 'Touchez une section pour la refaire · « terminé » pour valider' : 'Appuyez pour reprendre l\'écoute';
 }
 
 const fmtDur = (ms) => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
@@ -231,6 +258,11 @@ function renderDictation() {
     let html = '', pos = 0;
     for (const t of p.tokens) {
       html += esc(text.slice(pos, t.start));
+      if (t.kind === 'redo') {
+        html += `<span class="redo-chip">↺ ${SECTION_NAMES[t.redo]}</span>`;
+        pos = t.end;
+        continue;
+      }
       const c = ['w'];
       if (t.sec === 'cmd') c.push('cmd');
       else if (t.sec !== null) c.push('s' + t.sec);
@@ -262,7 +294,8 @@ function goReview(byVoice = false) {
   const { text } = dictation.snapshot();
   const p = parse(text, { final: true, ignoreStops });
   draft = toDraft(p);
-  reviewMeta = { transcript: p.stopAt !== null ? text.slice(0, p.stopAt).trim() : text, mismatch: p.mission.mismatch ? [p.mission.letter, p.mission.confirm] : null, implicit: p.effet.implicit };
+  const said = p.stopAt !== null ? text.slice(0, p.stopAt).trim() : text;
+  reviewMeta = { transcript: said.replace(/⟦r(\d)⟧/g, (_, k) => `[${SECTION_NAMES[k]} refait]`), mismatch: p.mission.mismatch ? [p.mission.letter, p.mission.confirm] : null, implicit: p.effet.implicit };
   fillReview();
   show('review');
 }
@@ -374,7 +407,9 @@ async function send() {
 /* ---------- Événements ---------- */
 function bind() {
   $('#btn-new').addEventListener('click', startDictation);
-  $('#btn-help').addEventListener('click', () => $('#help').showModal());
+  $('#btn-settings').addEventListener('click', () => $('#settings').showModal());
+  $('#btn-help').addEventListener('click', () => { $('#settings').close(); $('#help').showModal(); });
+  for (const b of $$('[data-theme-opt]')) b.addEventListener('click', () => setTheme(b.dataset.themeOpt));
   $('#btn-all').addEventListener('click', () => show('history'));
   $('#btn-hist-back').addEventListener('click', () => show('home'));
   $('#btn-detail-back').addEventListener('click', () => show('history'));
@@ -389,10 +424,16 @@ function bind() {
   });
   $('#btn-undo').addEventListener('click', () => { if (!dictation.undo()) toast('Rien à annuler'); });
   $('#btn-review').addEventListener('click', () => goReview(false));
-  $('#btn-kbd').addEventListener('click', () => {
-    const k = $('#kbd'); k.hidden = !k.hidden;
-    if (!k.hidden) $('#kbd-input').focus();
-  });
+  // Toucher une section la vide et la réenregistre.
+  for (const sec of $$('#form .sec')) {
+    sec.addEventListener('click', () => {
+      const k = Number(sec.dataset.sec);
+      dictation.addText(redoMarker(k));
+      sec.classList.remove('redo'); void sec.offsetWidth; sec.classList.add('redo');
+      toast(`${SECTION_NAMES[k]} : réannoncez la section`, 1800);
+      if (speechSupported && !dictation.listening) resumeDictation();
+    });
+  }
   $('#kbd').addEventListener('submit', (e) => {
     e.preventDefault();
     const v = $('#kbd-input').value.trim();
@@ -415,12 +456,14 @@ function bind() {
 
   addEventListener('online', renderHome);
   addEventListener('offline', renderHome);
+  matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => applyTheme(savedTheme()));
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && screen === 'dictate' && dictation.listening) { dictation.stop(); pauseTimer(); }
     if (!document.hidden && screen === 'dictate') keepAwake(true);
   });
 }
 
+applyTheme(savedTheme());
 setupReview();
 bind();
 renderAll();

@@ -5,6 +5,8 @@
 // section suivante fait avancer le curseur.
 
 export const SECTIONS = ['id', 'mission', 'effet'];
+export const SECTION_NAMES = ['Identification', 'Type de mission', 'Effet'];
+export const redoMarker = (k) => `⟦r${k}⟧`;
 
 export const MISSION_TYPES = {
   emblee: 'Emblée',
@@ -86,7 +88,7 @@ export const norm = (s) => s.toLowerCase().replace(/œ/g, 'oe').replace(/æ/g, '
 
 export function tokenize(text) {
   const out = [];
-  for (const m of text.matchAll(/\p{L}+|\p{N}+/gu)) {
+  for (const m of text.matchAll(/⟦r\d⟧|\p{L}+|\p{N}+/gu)) {
     out.push({ text: m[0], n: norm(m[0]), start: m.index, end: m.index + m[0].length, sec: null, kind: null });
   }
   return out;
@@ -204,6 +206,18 @@ export function parse(text, { final = false, ignoreStops = 0 } = {}) {
 
   let i = 0;
   while (i < toks.length) {
+    // Marqueur ⟦rK⟧ inséré quand on touche une section : on la vide et on la réenregistre.
+    const redo = /^⟦r(\d)⟧$/.exec(toks[i].text);
+    if (redo) {
+      const k = Number(redo[1]);
+      moveTo(k);
+      resetSection(s, k);
+      for (const t of toks.slice(0, i)) if (t.sec === k) t.kind = 'erased';
+      mark(i, 1, 'cmd', 'redo');
+      toks[i].redo = k;
+      i++;
+      continue;
+    }
     const m = matchLexicon(toks, i);
     if (m) {
       if (m.kind === 'stop') {

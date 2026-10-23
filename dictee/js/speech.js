@@ -12,6 +12,11 @@ export function createDictation({ onChange, onListening, onError }) {
   let restarts = 0;
   const segments = []; // { key, text, final }
   const removed = new Set();
+  // Ordre d'arrivée de chaque segment : un marqueur ajouté pendant une session reste
+  // après les phrases déjà dites, même quand la session renvoie ses résultats.
+  const order = new Map();
+  let seq = 0;
+  const ordinal = (key) => { if (!order.has(key)) order.set(key, ++seq); return order.get(key); };
 
   const sessionResults = (results, sid) => {
     const out = [];
@@ -41,6 +46,7 @@ export function createDictation({ onChange, onListening, onError }) {
       const fresh = sessionResults(ev.results, sid);
       for (let k = segments.length - 1; k >= 0; k--) if (segments[k].key.startsWith(sid + ':')) segments.splice(k, 1);
       segments.push(...fresh);
+      segments.sort((a, b) => ordinal(a.key) - ordinal(b.key));
       onChange();
     };
     rec.onerror = (ev) => {
@@ -71,7 +77,12 @@ export function createDictation({ onChange, onListening, onError }) {
     stop() { wanted = false; try { rec?.stop(); } catch { /* */ } },
     abort() { wanted = false; try { rec?.abort(); } catch { /* */ } },
     get listening() { return wanted; },
-    addText(text) { segments.push({ key: `t:${segments.length}:${Date.now()}`, text, final: true }); onChange(); },
+    addText(text) {
+      const key = `t:${++seq}`;
+      order.set(key, seq);
+      segments.push({ key, text, final: true });
+      onChange();
+    },
     undo() {
       const l = live();
       if (!l.length) return false;
@@ -79,7 +90,7 @@ export function createDictation({ onChange, onListening, onError }) {
       onChange();
       return true;
     },
-    clear() { segments.length = 0; removed.clear(); onChange(); },
+    clear() { segments.length = 0; removed.clear(); order.clear(); onChange(); },
     // Texte complet + position où commence la partie encore intermédiaire.
     snapshot() {
       let text = '', interimAt = -1;

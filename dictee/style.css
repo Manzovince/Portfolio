@@ -21,8 +21,16 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
   color-scheme: dark;
 }
+:root[data-theme="light"] {
+  --bg: #eef1ec; --surface: #ffffff; --surface-2: #f3f5f1; --line: #d5dbd4;
+    --text: #121a16; --muted: #5d6b63; --faint: #9aa59e;
+    --accent: #c98a07; --accent-ink: #fff; --ok: #1f9d55; --ok-soft: rgba(31,157,85,.12);
+    --bad: #d63b2b; --bad-soft: rgba(214,59,43,.1); --accent-soft: rgba(201,138,7,.12);
+    --c-id: #1f6fb8; --c-mission: #a8710a; --c-effet: #c4521c;
+    color-scheme: light;
+}
 @media (prefers-color-scheme: light) {
-  :root {
+  :root:not([data-theme="dark"]) {
     --bg: #eef1ec; --surface: #ffffff; --surface-2: #f3f5f1; --line: #d5dbd4;
     --text: #121a16; --muted: #5d6b63; --faint: #9aa59e;
     --accent: #c98a07; --accent-ink: #fff; --ok: #1f9d55; --ok-soft: rgba(31,157,85,.12);
@@ -60,7 +68,17 @@ input, select { font: inherit; color: inherit; }
 .bar-title { font-weight: 650; font-size: 17px; }
 .brand { font-weight: 800; letter-spacing: .14em; font-size: 15px; display: flex; align-items: center; gap: 8px; }
 .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-.chips { display: flex; gap: 6px; align-items: center; }
+.chips, .status { display: flex; gap: 6px; align-items: center; }
+.st { width: 34px; height: 34px; display: grid; place-items: center; position: relative; color: var(--faint); }
+.st svg { width: 22px; height: 22px; fill: currentColor; }
+.st.ok { color: var(--ok); }
+.st.bad { color: var(--bad); }
+.st.bad::after {
+  content: ""; position: absolute; width: 26px; height: 2.5px; border-radius: 2px;
+  background: currentColor; transform: rotate(-45deg); box-shadow: 0 0 0 2px var(--bg);
+}
+.status .icon-btn { margin-left: 4px; }
+.icon-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .chip {
   font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 99px;
   background: var(--surface); color: var(--muted); border: 1px solid var(--line);
@@ -208,8 +226,11 @@ input, select { font: inherit; color: inherit; }
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   font-size: 13px; font-weight: 650; color: var(--muted);
 }
-.ctl-ico { font-size: 22px; color: var(--text); line-height: 1; }
-.ctl:active { background: var(--surface-2); }
+.ctl-ico { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.ctl.undo { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 35%, var(--line)); background: var(--bad-soft); }
+.ctl.primary { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); box-shadow: 0 8px 22px -10px var(--accent); }
+.ctl.primary .ctl-ico { stroke-width: 3; }
+.ctl:active { transform: scale(.96); }
 .ctl:disabled { opacity: .35; }
 .mic {
   width: 92px; height: 92px; border-radius: 50%; position: relative;
@@ -221,9 +242,9 @@ input, select { font: inherit; color: inherit; }
 .listening .mic-ring { animation: ring 1.6s ease-out infinite; }
 @keyframes ring { 0% { transform: scale(.9); opacity: .7; } 100% { transform: scale(1.25); opacity: 0; } }
 .mic-ico { width: 34px; height: 34px; background: #fff; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 4h4v16H6zM14 4h4v16h-4z'/%3E%3C/svg%3E") center/contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 4h4v16H6zM14 4h4v16h-4z'/%3E%3C/svg%3E") center/contain no-repeat; }
-.paused .mic { background: var(--accent); box-shadow: 0 10px 30px -8px var(--accent); }
+.paused .mic { background: var(--surface); border: 2px solid var(--bad); box-shadow: none; }
 .paused .mic-ico {
-  background: var(--accent-ink);
+  background: var(--bad);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z'/%3E%3C/svg%3E") center/contain no-repeat;
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
@@ -328,3 +349,23 @@ dialog .big-cta { min-height: 56px; font-size: 17px; margin-top: 6px; }
 .slot.letter { width: 46px; }
 .slot.word { font-size: 16px; padding: 0 9px; }
 .sec[data-sec="2"] .slot.default::after { display: none; }
+
+/* Toucher une section pour la refaire */
+.sec { cursor: pointer; }
+.sec:active { transform: scale(.985); }
+.sec.redo { animation: redo .5s ease-out; }
+@keyframes redo { 0% { box-shadow: 0 0 0 0 var(--accent); } 100% { box-shadow: 0 0 0 10px transparent; } }
+.transcript .redo-chip {
+  display: inline-block; font-size: 12px; font-weight: 750; text-transform: uppercase; letter-spacing: .06em;
+  padding: 1px 7px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); vertical-align: 2px;
+}
+
+/* Réglages */
+.set-label { font-size: 12px; font-weight: 750; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); margin: 4px 0 8px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: 14px; background: var(--surface-2); }
+.seg button { height: 48px; border-radius: 10px; font-weight: 650; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 6px; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+.set-row { width: 100%; height: 52px; border-radius: 14px; background: var(--surface-2); font-weight: 650; margin-top: 16px; }
+dialog .dlg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+dialog .dlg-head h2 { margin: 0; }
+#settings { width: min(400px, calc(100vw - 32px)); }
