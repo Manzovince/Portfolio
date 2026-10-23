@@ -5,6 +5,9 @@ import {
 } from './form.js?v=10';
 import { cadreSlots } from './view.js?v=10';
 import { createDictation, speechSupported } from './speech.js?v=10';
+import {
+  audioSupported, startAudio, pauseAudio, resumeAudio, stopAudio, discardAudio, saveAudio, loadAudio, deleteAudio,
+} from './audio.js?v=16';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -141,6 +144,8 @@ async function ping() {
 /* ---------- Thème ---------- */
 const THEME_KEY = 'dictee.theme';
 const SHARE_KEY = 'dictee.shareRecordings';
+const AUDIO_KEY = 'dictee.recordAudio';
+const recordAudioOn = () => { try { return localStorage.getItem(AUDIO_KEY) !== '0'; } catch { return true; } };
 function applyTheme(t) {
   if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
   else delete document.documentElement.dataset.theme;
@@ -180,9 +185,59 @@ function openDetail(id) {
   $('#btn-detail-del').onclick = async () => {
     if (!(await ask('Supprimer ce message ?', 'Il sera retiré de l\'historique de cet appareil.', 'Supprimer'))) return;
     saveHistory(loadHistory().filter((x) => x.id !== id));
+    deleteAudio(id);
+    stopPlayer();
     renderAll(); show('history');
   };
+  setupPlayer(m);
   show('detail');
+}
+
+/* Lecteur de l'enregistrement d'un message. */
+const player = new Audio();
+let playerURL = null;
+const PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5-12-7.5Z"/></svg>';
+const PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h3.5v16H7zM13.5 4H17v16h-3.5z"/></svg>';
+let playerTotal = 0;
+const fmtSec = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
+
+function stopPlayer() {
+  player.pause();
+  if (playerURL) { URL.revokeObjectURL(playerURL); playerURL = null; }
+}
+
+async function setupPlayer(m) {
+  stopPlayer();
+  const box = $('#detail-audio');
+  box.hidden = true;
+  if (!m.audio) return;
+  let blob;
+  try { blob = await loadAudio(m.id); } catch { blob = null; }
+  if (!blob) return;
+  playerURL = URL.createObjectURL(blob);
+  player.src = playerURL;
+  // Les fichiers webm de Chrome n'annoncent pas leur durée : on prend celle de la dictée.
+  playerTotal = (m.duration || 0) / 1000;
+  box.hidden = false;
+  updatePlayer();
+}
+
+function updatePlayer() {
+  const total = Number.isFinite(player.duration) && player.duration > 0 ? player.duration : playerTotal;
+  $('#pl-toggle').innerHTML = player.paused ? PLAY : PAUSE;
+  $('#pl-toggle').setAttribute('aria-label', player.paused ? 'Écouter' : 'Pause');
+  $('#pl-seek').value = total ? Math.round((player.currentTime / total) * 1000) : 0;
+  $('#pl-time').textContent = `${fmtSec(player.currentTime)} / ${fmtSec(total)}`;
+}
+
+function bindPlayer() {
+  $('#pl-toggle').addEventListener('click', () => { if (player.paused) player.play().catch(() => toast('Lecture impossible')); else player.pause(); });
+  $('#pl-seek').addEventListener('input', (e) => {
+    const total = Number.isFinite(player.duration) && player.duration > 0 ? player.duration : playerTotal;
+    if (total) player.currentTime = (e.target.value / 1000) * total;
+  });
+  for (const ev of ['timeupdate', 'play', 'pause', 'ended', 'loadedmetadata', 'durationchange']) player.addEventListener(ev, updatePlayer);
+  $('#btn-detail-back').addEventListener('click', () => player.pause());
 }
 
 // Texte brut d'un message, une ligne par cadre.
@@ -237,6 +292,7 @@ const dictation = createDictation({
   onListening: (on) => setListening(on),
   onError: (code) => {
     if (code === 'micro') { micDenied = true; renderStatus(); }
+    if (code === 'audio-capture') { toast('Micro occupé : désactivez l\'enregistrement audio dans les Réglages', 4500); return; }
     if (code === 'micro') toast('Micro refusé : autorisez-le dans Réglages › Safari › Micro', 4000);
     else if (code === 'reseau') toast('Reconnaissance vocale indisponible (réseau)', 3500);
     else toast(`Erreur de reconnaissance : ${code}`);
@@ -244,6 +300,7 @@ const dictation = createDictation({
 });
 
 function setListening(on) {
+  if (on) resumeAudio(); else pauseAudio();
   const el = $('#dictate');
   el.classList.toggle('listening', on);
   el.classList.toggle('paused', !on && speechSupported);
@@ -261,6 +318,8 @@ function tick() { $('#timer').textContent = fmtDur(elapsed + (timing ? Date.now(
 
 function startDictation() {
   dictation.clear();
+  // Démarré dans le geste de l'utilisateur, sinon Safari refuse le micro.
+  if (audioSupported && recordAudioOn()) startAudio().then((ok) => { if (ok && !dictation.listening) pauseAudio(); });
   ignoreStops = 0; lastSlots = {}; activeCadre = -1; overrides = {}; openCadre = null; elapsed = 0; timing = false;
   $('#kbd').hidden = speechSupported;
   $('#dictate').classList.toggle('nospeech', !speechSupported);
@@ -588,7 +647,13 @@ async function send() {
     at: new Date().toISOString(), ref,
     fields: { ...draft }, transcript: reviewMeta.transcript, duration: elapsed,
   };
-  saveHistory([entry, ...loadHistory()].slice(0, 200));
+  const blob = await stopAudio();
+  if (blob) {
+    try { await saveAudio(entry.id, blob); entry.audio = { type: blob.type, size: blob.size }; } catch { /* stockage plein */ }
+  }
+  const all = [entry, ...loadHistory()];
+  for (const old of all.slice(200)) if (old.audio) deleteAudio(old.id);
+  saveHistory(all.slice(0, 200));
   dictation.clear();
 
   anim.classList.add('sent');
@@ -608,6 +673,13 @@ function bind() {
   $('#btn-help').addEventListener('click', () => show('help'));
   $('#btn-help-back').addEventListener('click', () => show('settings'));
   // Consentement au partage des enregistrements : préférence locale, désactivée par défaut.
+  const rec = $('#opt-audio');
+  rec.checked = recordAudioOn();
+  rec.disabled = !audioSupported;
+  rec.addEventListener('change', () => {
+    try { localStorage.setItem(AUDIO_KEY, rec.checked ? '1' : '0'); } catch { toast('Préférence non enregistrée'); }
+  });
+  bindPlayer();
   const share = $('#opt-share');
   try { share.checked = localStorage.getItem(SHARE_KEY) === '1'; } catch { /* */ }
   share.addEventListener('change', () => {
@@ -651,7 +723,7 @@ function bind() {
   });
   $('#btn-discard').addEventListener('click', async () => {
     if (dictation.snapshot().text && !(await ask('Abandonner ce message ?', 'La dictée en cours et les valeurs saisies seront perdues.', 'Abandonner'))) return;
-    dictation.abort(); dictation.clear(); pauseTimer();
+    dictation.abort(); dictation.clear(); pauseTimer(); discardAudio();
     show('home');
   });
 

@@ -15,7 +15,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
-  <link rel="stylesheet" href="style.css?v=14">
+  <link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
 
@@ -145,6 +145,11 @@
   <div class="review-body">
     <div class="msg-preview" id="detail-msg"></div>
     <p class="detail-meta" id="detail-meta"></p>
+    <div class="player" id="detail-audio" hidden>
+      <button class="pl-btn" id="pl-toggle" type="button" aria-label="Écouter"></button>
+      <input type="range" id="pl-seek" min="0" max="1000" value="0" aria-label="Position">
+      <span class="pl-time" id="pl-time">0:00 / 0:00</span>
+    </div>
     <div class="detail-actions">
       <button class="act-btn" id="btn-copy" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/></svg>Copier</button>
       <button class="act-btn" id="btn-share" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6"/></svg>Partager</button>
@@ -176,6 +181,14 @@
     <section class="set-group">
       <h3>Données</h3>
       <div class="set-card">
+        <label class="set-line set-switch">
+          <span>
+            <span class="set-name">Enregistrer l'audio des dictées</span>
+            <span class="set-desc">Pour réécouter un message depuis l'historique. L'audio reste sur cet appareil.</span>
+          </span>
+          <input type="checkbox" id="opt-audio" role="switch">
+          <span class="switch" aria-hidden="true"></span>
+        </label>
         <label class="set-line set-switch">
           <span>
             <span class="set-name">Partager les enregistrements</span>
@@ -288,6 +301,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script type="module" src="js/app.js?v=15"></script>
+<script type="module" src="js/app.js?v=16"></script>
 </body>
 </html>
