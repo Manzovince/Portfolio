@@ -154,11 +154,11 @@ function setListening(on) {
   el.classList.toggle('listening', on);
   el.classList.toggle('paused', !on && speechSupported);
   $('#rec-label').textContent = on ? 'Écoute' : (speechSupported ? 'En pause' : 'Clavier');
-  $('#btn-mic').setAttribute('aria-label', on ? 'Mettre en pause' : 'Reprendre l\'écoute');
+  $('#btn-mic').setAttribute('aria-label', on ? 'Mettre en pause' : 'Reprendre l\'enregistrement');
   $('#mic-caption').textContent = !speechSupported
     ? 'Reconnaissance vocale indisponible sur ce navigateur'
     : openCadre !== null ? `Micro : réenregistrer le cadre ${CADRES[openCadre].n}`
-      : on ? 'Touchez un cadre pour l\'éditer · « terminé » pour valider' : 'Appuyez pour reprendre l\'écoute';
+      : on ? 'Touchez un cadre pour l\'éditer · « terminé » pour valider' : 'Appuyez pour reprendre l\'enregistrement';
   $('#dictate').classList.toggle('editing', openCadre !== null);
 }
 
