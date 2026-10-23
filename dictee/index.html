@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Dictée</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0e1311" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#eef1ec" media="(prefers-color-scheme: light)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Dictée">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+
+<!-- ACCUEIL -->
+<section id="home" class="screen active">
+  <header class="bar">
+    <div class="brand"><span class="brand-dot"></span>DICTÉE</div>
+    <div class="chips">
+      <span class="chip" id="chip-mic">Micro</span>
+      <span class="chip" id="chip-net">Réseau</span>
+      <button class="icon-btn" id="btn-help" aria-label="Aide">?</button>
+    </div>
+  </header>
+  <div class="home-body">
+    <div class="list-head">
+      <h2>Derniers messages</h2>
+      <button class="link" id="btn-all">Tout voir</button>
+    </div>
+    <ul class="history" id="recent"></ul>
+    <p class="empty" id="recent-empty">Aucun message envoyé pour l'instant.</p>
+  </div>
+  <div class="home-cta">
+    <p class="warn-line" id="home-warn" hidden></p>
+    <button class="big-cta" id="btn-new">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
+      <span>Nouveau message</span>
+    </button>
+  </div>
+</section>
+
+<!-- DICTÉE -->
+<section id="dictate" class="screen">
+  <header class="bar">
+    <button class="icon-btn" id="btn-discard" aria-label="Abandonner">✕</button>
+    <div class="rec-state"><span class="rec-dot" id="rec-dot"></span><span id="rec-label">Écoute</span><span class="timer" id="timer">0:00</span></div>
+    <button class="icon-btn" id="btn-kbd" aria-label="Saisie clavier">⌨</button>
+  </header>
+
+  <div class="form" id="form">
+    <div class="sec" data-sec="0">
+      <div class="sec-head"><span class="sec-num">1</span><span class="sec-name">Identification</span><span class="sec-mark"></span></div>
+      <div class="slots">
+        <span class="slot num" data-f="id1"></span>
+        <span class="slot num" data-f="id2"></span>
+      </div>
+    </div>
+    <div class="sec" data-sec="1">
+      <div class="sec-head"><span class="sec-num">2</span><span class="sec-name">Type de mission</span><span class="sec-mark"></span></div>
+      <div class="slots">
+        <span class="slot letter" data-f="letter"></span>
+        <span class="slot word grow" data-f="type"></span>
+        <span class="slot letter" data-f="confirm"></span>
+      </div>
+    </div>
+    <div class="sec" data-sec="2">
+      <div class="sec-head"><span class="sec-num">3</span><span class="sec-name">Effet</span><span class="sec-mark"></span></div>
+      <div class="slots">
+        <span class="slot word grow" data-f="effect"></span>
+        <span class="slot tag" data-f="panache">Panaché</span>
+        <span class="slot num" data-f="p1"></span>
+        <span class="slot num" data-f="p2"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hint" id="hint"></div>
+
+  <div class="transcript" id="transcript"><span class="ph">Parlez, le formulaire se remplit tout seul…</span></div>
+
+  <form class="kbd" id="kbd" hidden>
+    <input id="kbd-input" type="text" autocomplete="off" autocapitalize="off" placeholder="Taper le texte dicté…" enterkeyhint="send">
+    <button type="submit">Ajouter</button>
+  </form>
+
+  <div class="controls">
+    <button class="ctl" id="btn-undo"><span class="ctl-ico">↶</span><span>Annuler</span></button>
+    <button class="mic" id="btn-mic" aria-label="Terminer">
+      <span class="mic-ring"></span>
+      <span class="mic-ico" id="mic-ico"></span>
+    </button>
+    <button class="ctl" id="btn-review"><span class="ctl-ico">→</span><span>Valider</span></button>
+  </div>
+  <p class="mic-caption" id="mic-caption">Dites « terminé » ou appuyez pour finir</p>
+</section>
+
+<!-- VALIDATION -->
+<section id="review" class="screen">
+  <header class="bar">
+    <button class="icon-btn" id="btn-review-back" aria-label="Reprendre la dictée">‹</button>
+    <div class="bar-title">Vérification</div>
+    <span class="icon-btn ghost"></span>
+  </header>
+  <div class="review-body">
+    <div class="rv-sec">
+      <label>Identification</label>
+      <div class="rv-row">
+        <input class="rv-in num" data-d="id1" inputmode="numeric" maxlength="2" pattern="\d*">
+        <input class="rv-in num" data-d="id2" inputmode="numeric" maxlength="2" pattern="\d*">
+      </div>
+    </div>
+    <div class="rv-sec">
+      <label>Type de mission</label>
+      <div class="rv-row">
+        <select class="rv-in grow" data-d="letter"></select>
+      </div>
+      <div class="rv-row">
+        <select class="rv-in grow" data-d="type"></select>
+      </div>
+      <p class="rv-note" id="rv-mismatch" hidden></p>
+    </div>
+    <div class="rv-sec">
+      <label>Effet</label>
+      <div class="rv-row">
+        <select class="rv-in grow" data-d="effect"></select>
+      </div>
+      <div class="rv-row">
+        <button class="toggle" id="rv-panache" type="button" aria-pressed="false">Panaché</button>
+        <input class="rv-in num" data-d="p1" inputmode="numeric" maxlength="2" pattern="\d*">
+        <input class="rv-in num" data-d="p2" inputmode="numeric" maxlength="2" pattern="\d*">
+      </div>
+      <p class="rv-note" id="rv-implicit" hidden>« Panaché » n'a pas été entendu, mais 2 nombres ont été annoncés.</p>
+    </div>
+    <div class="msg-preview" id="msg-preview"></div>
+  </div>
+  <div class="review-cta">
+    <p class="warn-line" id="rv-errors" hidden></p>
+    <button class="big-cta send" id="btn-send">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20.5 21 12 3 3.5v7l12 1.5-12 1.5v7Z"/></svg>
+      <span>Envoyer</span>
+    </button>
+  </div>
+</section>
+
+<!-- ENVOI -->
+<section id="sending" class="screen">
+  <div class="send-wrap">
+    <div class="send-anim" id="send-anim">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="sa-track" cx="60" cy="60" r="52"/>
+        <circle class="sa-prog" id="sa-prog" cx="60" cy="60" r="52"/>
+        <path class="sa-check" d="M38 62 53 77 83 45"/>
+      </svg>
+    </div>
+    <h1 id="send-title">Transmission…</h1>
+    <ol class="steps" id="steps">
+      <li>Liaison radio établie</li>
+      <li>Chiffrement du message</li>
+      <li>Transmission</li>
+      <li>Accusé de réception</li>
+    </ol>
+    <div class="sent-info" id="sent-info" hidden>
+      <div class="msg-preview small" id="sent-msg"></div>
+      <p class="sent-ref" id="sent-ref"></p>
+    </div>
+  </div>
+  <div class="review-cta">
+    <button class="big-cta" id="btn-done" hidden><span>Retour à l'accueil</span></button>
+  </div>
+</section>
+
+<!-- HISTORIQUE -->
+<section id="history" class="screen">
+  <header class="bar">
+    <button class="icon-btn" id="btn-hist-back" aria-label="Retour">‹</button>
+    <div class="bar-title">Historique</div>
+    <span class="icon-btn ghost"></span>
+  </header>
+  <div class="home-body">
+    <ul class="history" id="all"></ul>
+    <p class="empty" id="all-empty">Aucun message.</p>
+  </div>
+</section>
+
+<!-- DÉTAIL -->
+<section id="detail" class="screen">
+  <header class="bar">
+    <button class="icon-btn" id="btn-detail-back" aria-label="Retour">‹</button>
+    <div class="bar-title" id="detail-title">Message</div>
+    <button class="icon-btn danger" id="btn-detail-del" aria-label="Supprimer">🗑</button>
+  </header>
+  <div class="review-body">
+    <div class="msg-preview" id="detail-msg"></div>
+    <p class="detail-meta" id="detail-meta"></p>
+    <h3 class="detail-h">Transcription</h3>
+    <p class="detail-tr" id="detail-tr"></p>
+  </div>
+</section>
+
+<!-- AIDE -->
+<dialog id="help">
+  <h2>Comment dicter</h2>
+  <p>Annoncez les sections dans l'ordre, sans pause obligatoire :</p>
+  <ol>
+    <li><b>Identification</b> — 2 nombres<br><i>« douze, trente-quatre »</i></li>
+    <li><b>Type de mission</b> — lettre de A à H en alphabet OTAN (Alpha… Hotel), type, lettre<br><i>« Alpha, mise en place, Alpha »</i><br><small>Types : emblée (défaut), mettre en place, mise en place décentrée, préparer, renouveler, accrochage</small></li>
+    <li><b>Effet</b> — effet, puis « panaché » + 2 nombres (facultatif)<br><i>« destruction, panaché cinquante-six, soixante-dix-huit »</i><br><small>Effets : neutralisation (défaut), destruction, arrêt, aveuglement, éclairement</small></li>
+  </ol>
+  <p><b>« Correction »</b> efface la section en cours.<br><b>« Terminé »</b> ou <b>« Fin »</b> passe à la vérification.<br>Ré-annoncer 2 nombres ou une lettre remplace la valeur.</p>
+  <form method="dialog"><button class="big-cta">Compris</button></form>
+</dialog>
+
+<dialog id="confirm">
+  <p id="confirm-text"></p>
+  <div class="dlg-row">
+    <button class="btn-sec" id="confirm-no">Annuler</button>
+    <button class="btn-danger" id="confirm-yes">Confirmer</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" hidden></div>
+
+<script type="module" src="js/app.js?v=1"></script>
+</body>
+</html>
