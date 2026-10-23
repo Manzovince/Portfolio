@@ -261,8 +261,7 @@ function renderDictation() {
       // Formulaire construit une seule fois pour ne pas perdre la saisie en cours.
       if (el.dataset.form !== '1') {
         el.dataset.form = '1';
-        body.innerHTML = cadreFormHTML(i, pv, 'dc')
-          + '<p class="cad-hint">Modifiez à la main, ou appuyez sur le micro pour réenregistrer ce cadre. Touchez le titre pour fermer.</p>';
+        body.innerHTML = cadreFormHTML(i, pv, 'dc');
         el.scrollIntoView({ block: 'start', behavior: 'smooth' });
       }
       continue;
