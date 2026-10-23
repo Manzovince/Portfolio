@@ -41,8 +41,9 @@ function toast(msg, ms = 2600) {
   toastTimer = setTimeout(() => { t.hidden = true; }, ms);
 }
 
-function ask(text, yesLabel = 'Confirmer') {
+function ask(title, text, yesLabel = 'Confirmer') {
   const d = $('#confirm');
+  $('#confirm-title').textContent = title;
   $('#confirm-text').textContent = text;
   $('#confirm-yes').textContent = yesLabel;
   d.showModal();
@@ -120,7 +121,7 @@ function openDetail(id) {
   $('#detail-meta').textContent = `Envoyé le ${d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} · durée de dictée ${fmtDur(m.duration || 0)}`;
   $('#detail-tr').textContent = m.transcript ? `« ${m.transcript} »` : '(saisie manuelle)';
   $('#btn-detail-del').onclick = async () => {
-    if (!(await ask('Supprimer ce message de l\'historique ?', 'Supprimer'))) return;
+    if (!(await ask('Supprimer ce message ?', 'Il sera retiré de l\'historique de cet appareil.', 'Supprimer'))) return;
     saveHistory(loadHistory().filter((x) => x.id !== id));
     renderAll(); show('history');
   };
@@ -544,7 +545,7 @@ function bind() {
     $('#kbd-input').value = '';
   });
   $('#btn-discard').addEventListener('click', async () => {
-    if (dictation.snapshot().text && !(await ask('Abandonner ce message ?', 'Abandonner'))) return;
+    if (dictation.snapshot().text && !(await ask('Abandonner ce message ?', 'La dictée en cours et les valeurs saisies seront perdues.', 'Abandonner'))) return;
     dictation.abort(); dictation.clear(); pauseTimer();
     show('home');
   });

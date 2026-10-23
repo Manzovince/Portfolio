@@ -15,7 +15,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
@@ -190,6 +190,10 @@
 </dialog>
 
 <dialog id="confirm">
+  <div class="cf-head">
+    <span class="cf-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4.5M12 17.2v.3"/></svg></span>
+    <h2 id="confirm-title"></h2>
+  </div>
   <p id="confirm-text"></p>
   <div class="dlg-row">
     <button class="btn-sec" id="confirm-no">Annuler</button>
@@ -199,6 +203,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script type="module" src="js/app.js?v=6"></script>
+<script type="module" src="js/app.js?v=7"></script>
 </body>
 </html>

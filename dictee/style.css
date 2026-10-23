@@ -521,3 +521,18 @@ dialog .dlg-head h2 { margin: 0; }
 .hist-btn:active { background: var(--surface-2); }
 .hist-count:empty { display: none; }
 .hist-count { min-width: 26px; height: 26px; padding: 0 8px; border-radius: 3px; background: var(--accent); color: var(--accent-ink); font-size: 14px; display: grid; place-items: center; }
+
+/* Confirmation */
+#confirm { width: min(360px, calc(100vw - 32px)); padding: 20px; }
+.cf-head { display: flex; align-items: center; gap: 12px; }
+.cf-icon {
+  width: 36px; height: 36px; flex: none; border-radius: 4px; display: grid; place-items: center;
+  background: var(--bad-soft); color: var(--bad);
+}
+.cf-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#confirm h2 { margin: 0; font-size: 18px; font-weight: 700; }
+#confirm-text { margin: 12px 0 0; color: var(--muted); font-size: 15px; line-height: 1.45; }
+#confirm .dlg-row { margin-top: 20px; }
+#confirm .btn-sec, #confirm .btn-danger { height: 48px; font-size: 16px; white-space: nowrap; padding: 0 12px; }
+#confirm .btn-sec { border: 1px solid var(--line); }
+#confirm .btn-danger { background: var(--bad); color: #fff; }
