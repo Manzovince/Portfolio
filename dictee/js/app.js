@@ -1,7 +1,7 @@
 import { parse, SECTION_NAMES, redoMarker } from './parser.js?v=10';
 import {
   CADRES, OPT, NATO_WORDS, LETTERS, DEFAULTS, ROW_KIND, ROW_KEYS, ROW_LABELS,
-  cadreText, cadreStarted, messageLines, draftErrors, fmtTime as fmtHHMM,
+  cadreText, cadreStarted, messageLines, draftErrors, withDefaults, fmtTime as fmtHHMM,
 } from './form.js?v=10';
 import { cadreSlots } from './view.js?v=10';
 import { createDictation, speechSupported } from './speech.js?v=10';
@@ -55,20 +55,45 @@ function ask(title, text, yesLabel = 'Confirmer') {
 }
 
 /* ---------- Accueil & historique ---------- */
-const fmtTime = (iso) => {
-  const d = new Date(iso), now = new Date();
-  const hm = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  if (d.toDateString() === now.toDateString()) return hm;
-  return `${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} ${hm}`;
-};
-const oneLine = (d) => [0, 1, 2, 6].map((i) => cadreText(i, d)).filter(Boolean).join(' / ');
+// Résumé court : identification et mission, puis effet et localisation.
+function shortLines(f) {
+  const v = withDefaults(f);
+  return [
+    `${v.id1 || '--'} ${v.id2 || '--'} · ${v.letter || '-'} ${OPT.type[v.type].toUpperCase()}`,
+    [OPT.effect[v.effect].toUpperCase(), cadreText(6, f) || 'sans localisation'].join(' · '),
+  ];
+}
+const hm = (iso) => new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+function dayLabel(d) {
+  const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diff = Math.round((today - day) / 86400000);
+  if (diff === 0) return 'Aujourd\'hui';
+  if (diff === 1) return 'Hier';
+  const opts = { weekday: 'long', day: 'numeric', month: 'long' };
+  if (d.getFullYear() !== now.getFullYear()) opts.year = 'numeric';
+  const t = d.toLocaleDateString('fr-FR', opts);
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
 
 function renderList(ul, empty, items) {
-  ul.innerHTML = items.map((m) => `
-    <li><button data-id="${m.id}">
-      <span class="h-msg">${esc(oneLine(m.fields))}</span>
-      <span class="h-time">${fmtTime(m.at)}<br><span class="h-ok">✓ ENVOYÉ</span></span>
-    </button></li>`).join('');
+  const groups = [];
+  for (const m of items) {
+    const label = dayLabel(new Date(m.at));
+    if (!groups.length || groups[groups.length - 1].label !== label) groups.push({ label, items: [] });
+    groups[groups.length - 1].items.push(m);
+  }
+  ul.innerHTML = groups.map((g) => `
+    <li class="h-day"><span>${g.label}</span><span>${g.items.length} message${g.items.length > 1 ? 's' : ''}</span></li>
+    ${g.items.map((m) => {
+      const [a, b] = shortLines(m.fields);
+      return `<li><button data-id="${m.id}">
+        <span class="h-time">${hm(m.at)}</span>
+        <span class="h-msg"><b>${esc(a)}</b><span>${esc(b)}</span></span>
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button></li>`;
+    }).join('')}`).join('');
   empty.hidden = items.length > 0;
 }
 
@@ -149,12 +174,51 @@ function openDetail(id) {
   $('#detail-title').textContent = m.ref;
   $('#detail-meta').textContent = `Envoyé le ${d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} · durée de dictée ${fmtDur(m.duration || 0)}`;
   $('#detail-tr').textContent = m.transcript ? `« ${m.transcript} »` : '(saisie manuelle)';
+  const text = messageText(m);
+  $('#btn-copy').onclick = () => copyText(text);
+  $('#btn-share').onclick = () => shareText(text, m.ref);
   $('#btn-detail-del').onclick = async () => {
     if (!(await ask('Supprimer ce message ?', 'Il sera retiré de l\'historique de cet appareil.', 'Supprimer'))) return;
     saveHistory(loadHistory().filter((x) => x.id !== id));
     renderAll(); show('history');
   };
   show('detail');
+}
+
+// Texte brut d'un message, une ligne par cadre.
+function messageText(m) {
+  const d = new Date(m.at);
+  const when = `${d.toLocaleDateString('fr-FR')} ${hm(m.at)}`;
+  const lines = messageLines(m.fields).map(([n, title, t]) => `${n.padStart(2, ' ')} ${title} : ${t || '—'}`);
+  return [`MESSAGE DE TIR ${m.ref}`, when, '', ...lines].join('\n');
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Message copié');
+  } catch {
+    // Repli : sélection dans un champ temporaire.
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    toast(ok ? 'Message copié' : 'Copie impossible sur cet appareil');
+  }
+}
+
+async function shareText(text, ref) {
+  if (navigator.share) {
+    try { await navigator.share({ title: `Message de tir ${ref}`, text }); } catch { /* partage annulé */ }
+    return;
+  }
+  // Sans feuille de partage : téléchargement d'un fichier texte.
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+  a.download = `${ref}.txt`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 function renderAll() {

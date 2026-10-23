@@ -587,3 +587,27 @@ dialog .dlg-head h2 { margin: 0; }
 .icon-btn svg { width: 20px; height: 20px; }
 .chev { width: 18px; height: 18px; flex: none; color: var(--faint); }
 .icon-btn.danger { color: var(--bad); }
+
+/* ---------- Historique par jour ---------- */
+.history { gap: 6px; }
+.history .h-day {
+  display: flex; justify-content: space-between; align-items: baseline; margin: 14px 2px 2px;
+  font-size: 12px; font-weight: 750; text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
+}
+.history .h-day:first-child { margin-top: 4px; }
+.history .h-day span + span { font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--faint); }
+.history li button { grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; }
+.history .h-time { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--muted); text-align: left; }
+.history .h-msg { display: flex; flex-direction: column; min-width: 0; gap: 2px; line-height: 1.35; }
+.history .h-msg b, .history .h-msg span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history .h-msg b { font-size: 14px; font-weight: 700; }
+.history .h-msg span { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+
+/* Copier / partager */
+.detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.act-btn {
+  height: 48px; border-radius: 5px; border: 1px solid var(--line); background: var(--surface);
+  display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 650; font-size: 15px;
+}
+.act-btn:active { background: var(--surface-2); }
+.act-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
