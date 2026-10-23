@@ -368,7 +368,6 @@ dialog .big-cta { min-height: 56px; font-size: 17px; margin-top: 6px; }
 .set-row { width: 100%; height: 52px; border-radius: 5px; background: var(--surface-2); font-weight: 650; margin-top: 16px; }
 dialog .dlg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 dialog .dlg-head h2 { margin: 0; }
-#settings { width: min(400px, calc(100vw - 32px)); }
 
 /* ---------- 11 cadres ---------- */
 .cadres {
@@ -634,3 +633,10 @@ dialog .dlg-head h2 { margin: 0; }
 .pl-btn:active { transform: scale(.95); }
 .pl-time { font-family: var(--mono); font-size: 13px; color: var(--muted); white-space: nowrap; }
 #pl-seek { width: 100%; accent-color: var(--accent); }
+
+/* Réglages et aide : marges intérieures plus serrées */
+.set-line { padding: 10px 12px; min-height: 46px; gap: 12px; }
+.set-card .seg { margin: 0 12px 12px; }
+.set-card .set-line:has(+ .seg) { padding-bottom: 8px; }
+.hp-row { padding: 10px 12px; gap: 10px; }
+.set-body { gap: 16px; }
