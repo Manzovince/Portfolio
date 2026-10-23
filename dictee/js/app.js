@@ -605,7 +605,8 @@ function bind() {
   $('#btn-new').addEventListener('click', startDictation);
   $('#btn-settings').addEventListener('click', () => show('settings'));
   $('#btn-settings-back').addEventListener('click', () => show('home'));
-  $('#btn-help').addEventListener('click', () => $('#help').showModal());
+  $('#btn-help').addEventListener('click', () => show('help'));
+  $('#btn-help-back').addEventListener('click', () => show('settings'));
   // Consentement au partage des enregistrements : préférence locale, désactivée par défaut.
   const share = $('#opt-share');
   try { share.checked = localStorage.getItem(SHARE_KEY) === '1'; } catch { /* */ }
