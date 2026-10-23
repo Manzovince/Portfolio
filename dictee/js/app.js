@@ -754,6 +754,15 @@ renderAll();
 setListening(false);
 ping();
 
+// Écran de démarrage : affiché au moins 1,2 s, puis fondu.
+const splashStart = performance.now();
+setTimeout(() => {
+  const sp = $('#splash');
+  sp.classList.add('out');
+  sp.addEventListener('transitionend', () => sp.remove(), { once: true });
+  setTimeout(() => sp.remove(), 800);
+}, Math.max(0, 1200 - (performance.now() - splashStart)));
+
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
