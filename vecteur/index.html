@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#04050b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Vecteur">
+  <title>Vecteur</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+  <canvas id="cv"></canvas>
+  <div id="safe"></div>
+
+  <section id="title" class="screen show">
+    <div class="logo"><span>VECTEUR</span></div>
+    <p class="sub">course vectorielle · frotte les murs</p>
+    <button id="play" class="btn big">JOUER</button>
+    <div class="row">
+      <button id="snd" class="btn ghost">SON : OUI</button>
+    </div>
+    <p class="help">◀ gauche · droite ▶ pour pivoter<br>les deux en même temps pour pousser</p>
+  </section>
+
+  <section id="levels" class="screen">
+    <header><button class="btn ghost back" data-go="title">◀</button><h2>TRANSMISSIONS</h2><span id="totStars"></span></header>
+    <div id="grid"></div>
+  </section>
+
+  <section id="story" class="screen">
+    <div class="dialog">
+      <div class="who">NOYAU</div>
+      <p id="storyText"></p>
+      <div class="tap">toucher pour continuer ▸</div>
+    </div>
+  </section>
+
+  <button id="pauseBtn" aria-label="Pause">II</button>
+
+  <section id="pause" class="screen modal">
+    <div class="card">
+      <h2>PAUSE</h2>
+      <button id="resume" class="btn big">REPRENDRE</button>
+      <button id="restart" class="btn">RECOMMENCER</button>
+      <button id="quit" class="btn ghost">QUITTER</button>
+    </div>
+  </section>
+
+  <section id="results" class="screen modal">
+    <div class="card">
+      <h2 id="resTitle">TERMINÉ</h2>
+      <div id="resStars" class="stars"></div>
+      <div id="resBody"></div>
+      <button id="next" class="btn big">SUIVANT</button>
+      <button id="again" class="btn">REJOUER</button>
+      <button id="menu" class="btn ghost">MENU</button>
+    </div>
+  </section>
+
+  <script type="module" src="js/main.js?v=1"></script>
+</body>
+</html>
