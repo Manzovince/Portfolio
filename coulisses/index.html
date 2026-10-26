@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Coulisses</title>
+<link rel="icon" href="/assets/favicon-32x32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: rgb(4, 30, 42); --text: rgb(231, 215, 192); --muted: rgba(231, 215, 192, .55); --accent: hsl(175, 43%, 47%); --link: hsl(22, 100%, 58%); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font: 17px/1.5 'IBM Plex Serif', serif; min-height: 100dvh; display: flex; justify-content: center; padding: 15vh 16px 48px; }
+  main { width: 100%; max-width: 520px; }
+  h1 { font: 600 1.6rem 'Unbounded', sans-serif; margin-bottom: 1.5rem; }
+  form { display: flex; gap: 8px; }
+  input { flex: 1; min-width: 0; font: inherit; color: var(--text); background: transparent; border: 1px solid var(--muted); border-radius: 6px; padding: 10px 12px; }
+  input:focus { outline: none; border-color: var(--accent); }
+  button { font: 600 .85rem 'Unbounded', sans-serif; color: var(--bg); background: var(--accent); border: 0; border-radius: 6px; padding: 0 16px; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: wait; }
+  #err { color: var(--link); min-height: 1.5em; margin-top: .5rem; font-style: italic; }
+  ul { list-style: none; }
+  li { border-top: 1px solid rgba(231, 215, 192, .15); }
+  li:last-child { border-bottom: 1px solid rgba(231, 215, 192, .15); }
+  li a { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; padding: 12px 0; color: inherit; text-decoration: none; }
+  li a:hover b { color: var(--link); }
+  b { font: 400 .95rem 'Unbounded', sans-serif; }
+  li span { color: var(--muted); font-style: italic; text-align: right; font-size: .9rem; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Coulisses</h1>
+  <section id="lock">
+    <form>
+      <input type="password" placeholder="Mot de passe" autocomplete="current-password" autofocus required>
+      <button>Entrer</button>
+    </form>
+    <p id="err"></p>
+  </section>
+  <ul id="list" hidden></ul>
+</main>
+<script>
+const DATA = {"iter":600000,"salt":"BR2wLQ+0/sRuUndfzKuPNw==","iv":"iF33yMmFPCqS0ALF","ct":"qx0d8sfCXba9xfwz0CZYIpxeLTrbDPKKYPFWKjp0Q2Hq6bGN9ZQ3/H0HxTVnvZ/xmwQvqrGrB42K4miCTp+MWMD0vCrBrZ9QXAjjFwG7RtPRJ1g53ATuvHYkaojR7N8DtA/GJt9E4bbPQIk+kl216nLEDwmNq+EFDrCqoA7lev3OA1XPIY/ZoSSAQlXzCNctVEXM7r5sYYZPibpNw80n22+sjrjKe7lWdOZpdZ8PghGvKbgsDvck2y6vKCfRi216Q0uGEN7p7ICHGrq247WS6kJtOR5fttP7bcL6WyBGF0vtg+QkIbzVL+is+u+bxD4bv4jvyQGmb8GUJs8cE3Dcuhcsb6zityK1fkiUFGPjseQsSarRIRvYMjHqlKwBRDttAXkJijqMKkNRFdztnyPGPLhUhJXgKhJOehQ4qrCS5zGMJpp7AwNSTDvKU8UJEiCAxufGYvWFroEqWhbJNdul7FFG+PIQK014kyAu4qijj75zmWSfEoF3zHr8Id5SO66LxX+P2e6z3N71qTQHMJzEhzvDFrIEKiSogIoRaMBrik34M8ZeBSle+MaBHXzVX2DX+pCtbXy0CiPPvSgIO2Dc2i1LcvmJd3iEbWZlFMd3ni2961LUgd63mArQMKX/5WKyj8reHuzmnymaqiQy7/CTbdUUmtBgPTWR1UT1vUCK/xvRHUUBIReZsg7YT5bgCM4vGFCZ/Tk8ltO9ZfZLpn5EPgg8r3zEW0aqO5x8nxWZK0zo2E2PI9Yj7cAATrMAQpn8GI1au9tGN4B/KDhqnaKM9tgVtkoxzP6l1VWUhRTKUtr6siKefxr1T9wzrBvhbSnfyWmt8HdwQvabO3UwLqVIU/8mKaAX9VydKJZxuARM8F/v1y3ZP+IYbWoUZO3DggBGGiHiaNgPQFoVs3DAkwr0w2bCUxch6EkxJFg0fxOBEr+2FQ8nel1H83cay5/UOj0gGt0YyBADXp8JggLXO9rgi5dV0kHXJcYFC3qy9RDYQ1xCdJ+KdfOylBXaJoxgfiGsuG4glgdi1SDlK1ZYr8guSJ8V9P8GVyzEJ4SBpFI6BsEcLXkxaVu0TJh6bmPbZgf5leWgzGMmDxhYzXFVTqOOqMLODY3T1K35M7KiVtLylyeOQ0LYQKqmaML+l05xscIymAjOdw3OjO+NlynqjqpfIBX7iXHWL6OOF73A3e3gUHic8witGldIclhL8gia8vYjE99+SpW2keDfnOZKa6AvB8T9znv6/FMRP2jjQzy11IVRPfghZkDI/cwR8izU1p5gs/um6qmzh1g2HsuQlJAN/lNgCvdM9UXSO/apTvTo2O9m8+mxP3QBTOcbHrGBHKgGZrWcHw0CT0cYUyJ1CqaEr7AkoEUn+XwUoBkmJPtYPcxe6slWnaD916B5OIswM2/bXB/LpWUTP+c9SeUAlhFY8/B7x2uo0vIki0YGpZAluBqJ544yL3cUb4QIplZpFu7VktJuNl1RE0PLEM0H7Z7jwzT46QGLAFyGmeUJwQesFlO8ye4B6gpTqmKx1r6kmYT4YErrfaLES9iTOV79nz9Y6HXHBzz1t8YunoYZ3tWujlMciAXIE2ElqZ0KDWLIP27t3NTXO+jWKN52rAdF/Zvk3GX7boHCFHtvtYym1w=="};
+const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+
+async function decrypt(password) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: unb64(DATA.salt), iterations: DATA.iter, hash: 'SHA-256' },
+    base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(DATA.iv) }, key, unb64(DATA.ct));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+function show(projects) {
+  const list = document.getElementById('list');
+  for (const p of projects) {
+    const a = document.createElement('a');
+    a.href = p.path;
+    const b = document.createElement('b'); b.textContent = p.name;
+    const s = document.createElement('span'); s.textContent = p.desc;
+    a.append(b, s);
+    const li = document.createElement('li'); li.append(a);
+    list.append(li);
+  }
+  document.getElementById('lock').hidden = true;
+  list.hidden = false;
+}
+
+const form = document.querySelector('form');
+const input = form.querySelector('input');
+const btn = form.querySelector('button');
+const err = document.getElementById('err');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  btn.disabled = true; err.textContent = '';
+  try {
+    show(await decrypt(input.value));
+  } catch {
+    err.textContent = 'Mauvais mot de passe.';
+    input.select();
+  }
+  btn.disabled = false;
+});
+</script>
+</body>
+</html>
