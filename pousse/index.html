@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pousse-Pièces">
+<meta name="theme-color" content="#1c0f3a">
+<title>Pousse-Pièces</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="flash"></div>
+<div id="fx"></div>
+
+<header id="hud">
+  <div id="stockBox">
+    <img id="stockIco" alt="">
+    <div class="nums"><span id="stock">0</span><small id="max">/50</small></div>
+    <div id="regen"><i></i></div>
+    <small id="regenTxt"></small>
+  </div>
+  <div id="lvlBox"><small>NIV</small><span id="lvl">1</span><div id="xp"><i></i></div></div>
+  <div id="btns">
+    <button id="bShop" aria-label="Boutique"><img alt=""></button>
+    <button id="bAlbum" aria-label="Album"><img alt=""></button>
+    <button id="bSound" aria-label="Son"><img alt=""></button>
+  </div>
+</header>
+<div id="chips"></div>
+<div id="banner"></div>
+<div id="combo"></div>
+<div id="hint">Touche pour lâcher une pièce<br><small>maintiens pour une rafale · vise l’anneau !</small></div>
+
+<div id="modal" hidden>
+  <div class="panel">
+    <header><h2 id="mTitle"></h2><button class="close" aria-label="Fermer">✕</button></header>
+    <div id="mBody"></div>
+  </div>
+</div>
+
+<div id="loading"><b>POUSSE-PIÈCES</b><small>chargement…</small></div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+</script>
+<script type="module" src="js/main.js?v=1"></script>
+<script>
+if ('serviceWorker' in navigator && location.hostname !== 'localhost') navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
