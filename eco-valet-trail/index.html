@@ -39,7 +39,9 @@ h2{font-size:28px;text-transform:uppercase}
 .eyebrow{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .num{font-variant-numeric:tabular-nums}
 .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:20px}
-header.bib{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center}
+header.bib{display:flex;align-items:center;gap:20px}
+header.bib>div:last-child{flex:1;min-width:0}
+.bibno{flex-shrink:0}
 .bibno{font:700 64px/0.9 var(--display);color:var(--paper);background:var(--pine);border-radius:8px;padding:14px 18px 10px;text-align:center}
 .bibno small{display:block;font:500 12px/1.4 var(--mono);letter-spacing:.12em}
 header h1{font-size:clamp(36px,6vw,58px);line-height:.95;text-transform:uppercase}
@@ -115,7 +117,7 @@ body.running{padding-block:8px;height:100dvh;overflow:hidden}
 .r-btns .btn{padding:clamp(10px,1.8vh,16px) 8px;font-size:15px}
 #rStart.primary{font:700 18px var(--display);letter-spacing:.04em;text-transform:uppercase}
 #rStatus{font:500 11px var(--mono);color:var(--muted);margin:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media (max-width:760px){.viz{grid-template-columns:1fr}.bibno{font-size:44px}header.bib{grid-template-columns:1fr}.bibno{justify-self:start}}
+@media (max-width:760px){.viz{grid-template-columns:1fr}.bibno{font-size:44px;padding:10px 12px 8px}header.bib{gap:14px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
   :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
   body{margin:0}
