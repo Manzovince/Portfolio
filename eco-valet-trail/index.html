@@ -158,7 +158,7 @@ body.running{padding-block:8px;height:100dvh;overflow:hidden}
       <div class="eyebrow">Profil · survole ou touche pour lire</div>
       <svg id="prof" viewBox="0 0 700 260" role="img" aria-label="Profil altimétrique du 25 km" style="width:100%;height:auto;display:block;touch-action:none"></svg>
       <div id="readout" class="num"></div>
-      <div class="legend"><span><i style="background:var(--climb)"></i>Montée</span><span><i style="background:var(--down)"></i>Descente</span><span><i style="background:var(--flat)"></i>Plat ou vallonné</span><span><i style="background:var(--sun)"></i>Gel</span></div>
+      <div class="legend"><span><i style="background:var(--climb)"></i>Montée</span><span><i style="background:var(--down)"></i>Descente</span><span><i style="background:var(--flat)"></i>Plat ou vallonné</span><span><i style="background:var(--sun)"></i>Ravito</span></div>
     </div>
     <div class="card">
       <div class="eyebrow">Tracé · boucle autour du Coudon</div>
@@ -227,7 +227,7 @@ body.running{padding-block:8px;height:100dvh;overflow:hidden}
     <p class="r-tip" id="rTip"></p>
   </div>
   <div class="r-grid num">
-    <div class="card r-gel"><div class="s">Prochain gel</div><div class="v" id="rGel">–</div><div class="s" id="rGelS"></div></div>
+    <div class="card r-gel"><div class="s">Prochain ravito</div><div class="v" id="rGel">–</div><div class="s" id="rGelS"></div></div>
     <div class="card"><div class="s">Portion suivante</div><div class="v" id="rNext">–</div><div class="s" id="rNextS"></div></div>
     <div class="card"><div class="s">Sommet (494 m)</div><div class="v" id="rTop">–</div><div class="s" id="rTopS"></div></div>
     <div class="card"><div class="s">Arrivée prévue</div><div class="v" id="rEnd">–</div><div class="s" id="rEndS"></div></div>
@@ -327,7 +327,7 @@ prof.addEventListener("pointermove",pick);prof.addEventListener("pointerdown",pi
 function renderSecs(){
   const gl=gels();
   $("#secs").innerHTML=SECS.map((s,i)=>{const ta=tAt(s.a),tb=tAt(s.b),dur=tb-ta;let up=0,dn=0;for(let j=1;j<N;j++)if(P[j][0]>s.a&&P[j][0]<=s.b){const dd=P[j][1]-P[j-1][1];dd>0?up+=dd:dn-=dd}
-    const g=gl.filter(t=>t>=ta-2&&t<tb-2).map(t=>`Gel à ${hm(t)}`).join(" · ");
+    const g=gl.filter(t=>t>=ta-2&&t<tb-2).map(t=>`Ravito à ${hm(t)}`).join(" · ");
     const lab={climb:"montée",down:"descente",flat:"plat",roll:"vallonné"}[s.t];
     return `<article class="sec" tabindex="0" data-i="${i}"><div class="top"><h3>${s.n}</h3><span class="tag ${s.t}">${lab}</span></div>
     <div class="km num">km ${fr(s.a)} → ${fr(s.b)} · ${s.d}</div>
@@ -382,7 +382,7 @@ function runTick(){
   const toKm=k=>tAt(k)-planNow;
   const nowRef=useGps?el_:planNow;
   const g=gels().find(t=>t>nowRef-3);
-  if(g!=null){$("#rGel").textContent=g-nowRef<0.5?"Maintenant":`${Math.round(g-nowRef)} min`;$("#rGelS").textContent=`prévu à ${hm(g)} de course`}else{$("#rGel").textContent="Fini";$("#rGelS").textContent="Plus de gel prévu"}
+  if(g!=null){$("#rGel").textContent=g-nowRef<0.5?"Maintenant":`${Math.round(g-nowRef)} min`;$("#rGelS").textContent=`prévu à ${hm(g)} de course`}else{$("#rGel").textContent="Fini";$("#rGelS").textContent="Plus de ravito prévu"}
   const nx=SECS[i+1];
   if(nx){$("#rNext").textContent=`${Math.max(0,Math.round(toKm(nx.a)))} min`;$("#rNextS").textContent=`${nx.n} · km ${fr(nx.a)}`}else{$("#rNext").textContent="Arrivée";$("#rNextS").textContent=`${fr(D-km)} km restants`}
   if(km<15.57){$("#rTop").textContent=`${fr(15.57-km)} km`;$("#rTopS").textContent=`encore +${Math.round(upTo(km,15.57))} m · ${Math.round(toKm(15.57))} min`}else{$("#rTop").textContent="Passé";$("#rTopS").textContent="Que de la descente ou presque"}
