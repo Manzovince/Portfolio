@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Salve</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#101417" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#eef0f1" media="(prefers-color-scheme: light)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Salve">
+  <script>try { const t = localStorage.getItem('dictee.theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}</script>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="style.css?v=21">
+</head>
+<body>
+<!-- DÉMARRAGE -->
+<div class="splash" id="splash" aria-hidden="true">
+  <svg class="splash-logo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="2" stroke-linecap="square"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg>
+  <div class="splash-name">SALVE</div>
+  <div class="splash-sub">Message de tir à la voix</div>
+</div>
+
+
+<!-- ACCUEIL -->
+<section id="home" class="screen active">
+  <header class="bar">
+    <div class="brand"><svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="2" stroke-linecap="square"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg>SALVE</div>
+    <div class="status">
+      <span class="st" data-st="mic" role="img" aria-label="Micro"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg></span>
+      <button class="icon-btn" id="btn-settings" aria-label="Réglages"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
+    </div>
+  </header>
+  <div class="home-center">
+    <button class="home-mic" id="btn-new" aria-label="Nouveau message">
+      <span class="home-mic-ring"></span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
+    </button>
+    <p class="warn-line" id="home-warn" hidden></p>
+  </div>
+  <div class="home-cta">
+    <button class="hist-btn" id="btn-all">
+      <span>Historique</span>
+      <span class="hist-count" id="hist-count"></span>
+    </button>
+  </div>
+</section>
+
+<!-- DICTÉE EN COURS -->
+<section id="dictate" class="screen">
+  <header class="bar">
+    <button class="icon-btn" id="btn-discard" aria-label="Abandonner"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="rec-state"><span class="rec-dot" id="rec-dot"></span><span id="rec-label">Écoute</span><span class="timer" id="timer">0:00</span></div>
+    <div class="status">
+      <span class="st" data-st="mic" role="img" aria-label="Micro"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg></span>
+    </div>
+  </header>
+
+  <div class="cadres" id="form"></div>
+
+  <div class="transcript" id="transcript"><span class="ph">Parlez, le formulaire se remplit tout seul…</span></div>
+
+  <form class="kbd" id="kbd" hidden>
+    <input id="kbd-input" type="text" autocomplete="off" autocapitalize="off" placeholder="Taper le texte dicté…" enterkeyhint="send">
+    <button type="submit">Ajouter</button>
+  </form>
+
+  <div class="controls">
+    <button class="ctl undo" id="btn-undo"><svg class="ctl-ico" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Annuler</span></button>
+    <button class="mic" id="btn-mic" aria-label="Terminer">
+      <span class="mic-ring"></span>
+      <span class="mic-ico" id="mic-ico"></span>
+    </button>
+    <button class="ctl primary" id="btn-review"><svg class="ctl-ico" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>Valider</span></button>
+  </div>
+  <p class="mic-caption" id="mic-caption">Dites « terminé » ou appuyez pour finir</p>
+</section>
+
+<!-- VALIDATION -->
+<section id="review" class="screen">
+  <header class="bar">
+    <button class="icon-btn" id="btn-review-back" aria-label="Reprendre la dictée"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="bar-title">Vérification</div>
+    <span class="icon-btn ghost"></span>
+  </header>
+  <div class="review-body">
+    <p class="rv-tip">Touchez un cadre pour le corriger.</p>
+    <div class="rv-list" id="rv-list"></div>
+  </div>
+  <div class="review-cta">
+    <p class="warn-line" id="rv-errors" hidden></p>
+    <button class="big-cta send" id="btn-send">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20.5 21 12 3 3.5v7l12 1.5-12 1.5v7Z"/></svg>
+      <span>Envoyer</span>
+    </button>
+  </div>
+</section>
+
+<!-- ENVOI -->
+<section id="sending" class="screen">
+  <div class="send-wrap">
+    <div class="send-anim" id="send-anim">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="sa-track" cx="60" cy="60" r="52"/>
+        <circle class="sa-prog" id="sa-prog" cx="60" cy="60" r="52"/>
+        <path class="sa-check" d="M38 62 53 77 83 45"/>
+      </svg>
+    </div>
+    <h1 id="send-title">Transmission…</h1>
+    <ol class="steps" id="steps">
+      <li>Liaison radio établie</li>
+      <li>Chiffrement du message</li>
+      <li>Transmission</li>
+      <li>Accusé de réception</li>
+    </ol>
+    <div class="sent-info" id="sent-info" hidden>
+      <div class="msg-preview small" id="sent-msg"></div>
+      <p class="sent-ref" id="sent-ref"></p>
+    </div>
+  </div>
+  <div class="review-cta">
+    <button class="big-cta" id="btn-done" hidden><span>Retour à l'accueil</span></button>
+  </div>
+</section>
+
+<!-- HISTORIQUE -->
+<section id="history" class="screen">
+  <header class="bar">
+    <button class="icon-btn" id="btn-hist-back" aria-label="Retour"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="bar-title">Historique</div>
+    <span class="icon-btn ghost"></span>
+  </header>
+  <div class="home-body">
+    <ul class="history" id="all"></ul>
+    <p class="empty" id="all-empty">Aucun message.</p>
+  </div>
+</section>
+
+<!-- DÉTAIL -->
+<section id="detail" class="screen">
+  <header class="bar">
+    <button class="icon-btn" id="btn-detail-back" aria-label="Retour"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="bar-title" id="detail-title">Message</div>
+    <button class="icon-btn danger" id="btn-detail-del" aria-label="Supprimer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>
+  </header>
+  <div class="review-body">
+    <div class="msg-preview" id="detail-msg"></div>
+    <p class="detail-meta" id="detail-meta"></p>
+    <div class="player" id="detail-audio" hidden>
+      <button class="pl-btn" id="pl-toggle" type="button" aria-label="Écouter"></button>
+      <input type="range" id="pl-seek" min="0" max="1000" value="0" aria-label="Position">
+      <span class="pl-time" id="pl-time">0:00 / 0:00</span>
+    </div>
+    <div class="detail-actions">
+      <button class="act-btn" id="btn-copy" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/></svg>Copier</button>
+      <button class="act-btn" id="btn-share" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6"/></svg>Partager</button>
+    </div>
+    <h3 class="detail-h">Transcription</h3>
+    <p class="detail-tr" id="detail-tr"></p>
+  </div>
+</section>
+
+<!-- RÉGLAGES -->
+<section id="settings" class="screen">
+  <header class="bar">
+    <button class="icon-btn" id="btn-settings-back" aria-label="Retour"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="bar-title">Réglages</div>
+    <span class="icon-btn ghost"></span>
+  </header>
+  <div class="review-body set-body">
+    <section class="set-group">
+      <h3>Apparence</h3>
+      <div class="set-card">
+        <div class="set-line"><span class="set-name">Thème</span></div>
+        <div class="seg" id="theme-seg" role="radiogroup" aria-label="Thème">
+          <button type="button" data-theme-opt="auto" role="radio">Auto</button>
+          <button type="button" data-theme-opt="light" role="radio">Clair</button>
+          <button type="button" data-theme-opt="dark" role="radio">Sombre</button>
+        </div>
+      </div>
+    </section>
+    <section class="set-group">
+      <h3>Données</h3>
+      <div class="set-card">
+        <label class="set-line set-switch">
+          <span>
+            <span class="set-name">Enregistrer l'audio des dictées</span>
+            <span class="set-desc">Pour réécouter un message depuis l'historique. L'audio reste sur cet appareil.</span>
+          </span>
+          <input type="checkbox" id="opt-audio" role="switch">
+          <span class="switch" aria-hidden="true"></span>
+        </label>
+        <label class="set-line set-switch">
+          <span>
+            <span class="set-name">Partager les enregistrements</span>
+            <span class="set-desc">Autorise la transmission des dictées (transcription et formulaire obtenu) pour améliorer la reconnaissance. Désactivé par défaut.</span>
+          </span>
+          <input type="checkbox" id="opt-share" role="switch">
+          <span class="switch" aria-hidden="true"></span>
+        </label>
+      </div>
+    </section>
+    <section class="set-group">
+      <h3>Aide</h3>
+      <div class="set-card">
+        <button class="set-line set-link" id="btn-help" type="button"><span class="set-name">Comment dicter</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+    </section>
+    <p class="set-version">Salve · version 0.11</p>
+  </div>
+</section>
+
+<!-- AIDE -->
+<section id="help" class="screen">
+  <header class="bar">
+    <button class="icon-btn" id="btn-help-back" aria-label="Retour"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="bar-title">Comment dicter</div>
+    <span class="icon-btn ghost"></span>
+  </header>
+  <div class="review-body set-body">
+    <p class="hp-intro">Annoncez les cadres dans l'ordre. Les choix se disent par leur mot, les nombres seuls, dans l'ordre du cadre.</p>
+    <section class="set-group">
+      <h3>Cadres</h3>
+      <ol class="set-card hp-list">
+        <li class="hp-row">
+          <span class="sec-num">1</span>
+          <div><div class="hp-title">Identification</div><div class="hp-what">2 nombres</div><div class="hp-ex">« douze, trente-quatre »</div></div>
+        </li>
+        <li class="hp-row">
+          <span class="sec-num">2</span>
+          <div><div class="hp-title">Type de mission</div><div class="hp-what">Lettre A–H, type, lettre</div><div class="hp-ex">« Alpha, mise en place, Alpha »</div></div>
+        </li>
+        <li class="hp-row">
+          <span class="sec-num">3</span>
+          <div><div class="hp-title">Effet</div><div class="hp-what">Effet, « panaché » + 2 nombres, munition</div><div class="hp-ex">« destruction, panaché 56 78, explo »</div></div>
+        </li>
+        <li class="hp-row">
+          <span class="sec-num">7</span>
+          <div><div class="hp-title">Localisation</div><div class="hp-what">Ligne A–H puis valeurs ; repère ou corrections</div><div class="hp-ex">« Alpha 1250 3400 moins 12 » · « Delta X … Y … Z … » · « pour moi plus à droite 50 » · « TLE 2 »</div></div>
+        </li>
+        <li class="hp-row">
+          <span class="sec-num">10</span>
+          <div><div class="hp-title">Amis les plus proches</div><div class="hp-what">Distance, gisement ou direction, posture</div><div class="hp-ex">« amis 500, 1200, abrité »</div></div>
+        </li>
+        <li class="hp-row">
+          <span class="sec-num">11</span>
+          <div><div class="hp-title">Déclenchement</div><div class="hp-what">Mode de déclenchement et heure</div><div class="hp-ex">« à mon commandement » · « heure sur objectif 14 h 30 »</div></div>
+        </li>
+      </ol>
+    </section>
+    <section class="set-group">
+      <h3>Commandes</h3>
+      <ul class="set-card hp-list">
+        <li class="hp-row"><div><div class="hp-title">« Terminé » ou « Fin »</div><div class="hp-what">Passe à la vérification.</div></div></li>
+        <li class="hp-row"><div><div class="hp-title">« Correction »</div><div class="hp-what">Efface le cadre en cours.</div></div></li>
+        <li class="hp-row"><div><div class="hp-title">Toucher un cadre</div><div class="hp-what">L'ouvre pour le modifier à la main. Le micro réenregistre alors ce cadre.</div></div></li>
+        <li class="hp-row"><div><div class="hp-title">Annuler</div><div class="hp-what">Retire le dernier morceau de phrase entendu.</div></div></li>
+      </ul>
+    </section>
+  </div>
+</section>
+
+
+
+<dialog id="editor">
+  <div class="dlg-head"><h2 id="ed-title">Cadre</h2><form method="dialog"><button class="icon-btn" aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></form></div>
+  <div class="ed-body" id="ed-body"></div>
+  <form method="dialog"><button class="big-cta">OK</button></form>
+</dialog>
+
+<dialog id="confirm">
+  <div class="cf-head">
+    <span class="cf-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4.5M12 17.2v.3"/></svg></span>
+    <h2 id="confirm-title"></h2>
+  </div>
+  <p id="confirm-text"></p>
+  <div class="dlg-row">
+    <button class="btn-sec" id="confirm-no">Annuler</button>
+    <button class="btn-danger" id="confirm-yes">Confirmer</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" hidden></div>
+
+<script type="module" src="js/app.js?v=21"></script>
+</body>
+</html>
