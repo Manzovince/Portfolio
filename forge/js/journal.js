@@ -1,7 +1,7 @@
 // Workout history list and session detail.
-import { db, save, uid, exById, sessionStats, computePRs, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=1';
-import { esc, icon, sheet, confirmDialog, toast, colorOf, FR_MONTHS, fmtDay } from './ui.js?v=1';
-import { startWorkout } from './active.js?v=1';
+import { db, save, uid, exById, sessionStats, computePRs, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=2';
+import { esc, icon, sheet, confirmDialog, toast, colorOf, FR_MONTHS, fmtDay } from './ui.js?v=2';
+import { startWorkout } from './active.js?v=2';
 
 export function renderJournal(el, refresh) {
   const list = db.sessions.slice().reverse();

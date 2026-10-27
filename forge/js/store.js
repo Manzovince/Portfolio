@@ -1,5 +1,5 @@
 // Persistent state (localStorage) + domain helpers shared by every view.
-import { LIBRARY, MODES } from './library.js?v=1';
+import { LIBRARY, MODES } from './library.js?v=2';
 
 const KEY = 'forge.v1';
 
@@ -60,12 +60,61 @@ function seedTemplates() {
       item('superman', S(2, { reps: 15 }), 30),
       item('mountain', S(2, { sec: 30 }), 30),
     ] },
+    ...mobilityTemplates(),
+  ];
+}
+
+// Mobility sessions, also added to existing saves by the v2 migration.
+function mobilityTemplates() {
+  return [
+    { id: uid(), name: 'Réveil mobilité 10’', color: 'lime', note: 'Le matin ou avant une séance. Mouvements lents, respiration ample.', items: [
+      item('cat-cow', [{ sec: 60 }], 10),
+      item('worlds-greatest', S(2, { sec: 30 }), 10),
+      item('thoracic-rot', [{ reps: 8 }], 10),
+      item('hip-circles', [{ reps: 10 }], 10),
+      item('deep-squat', [{ sec: 45 }], 10),
+      item('dog-down', [{ sec: 45 }], 0),
+    ] },
+    { id: uid(), name: 'Échauffement dynamique', color: 'amber', note: 'Avant la course ou le renfo jambes.', items: [
+      item('leg-swings', S(2, { reps: 10 }), 0),
+      item('hip-circles', [{ reps: 10 }], 0),
+      item('ankle-knee-wall', [{ reps: 10 }], 0),
+      item('worlds-greatest', [{ sec: 20 }], 0),
+      item('thoracic-rot', [{ reps: 6 }], 0),
+    ] },
+    { id: uid(), name: 'Étirements après course', color: 'sky', note: 'Tenir sans à-coups, 30 s par côté.', items: [
+      item('calf-stretch', [{ sec: 30 }], 5),
+      item('quad-stretch', [{ sec: 30 }], 5),
+      item('hamstring-stretch', [{ sec: 30 }], 5),
+      item('hip-flexor', [{ sec: 30 }], 5),
+      item('pigeon', [{ sec: 45 }], 5),
+      item('child-pose', [{ sec: 60 }], 0),
+    ] },
+    { id: uid(), name: 'Souplesse hanches & ischios', color: 'violet', note: 'Séance de souplesse ~25 min. Allonge les maintiens au fil des semaines.', items: [
+      item('hip-9090', S(2, { reps: 10 }), 15),
+      item('butterfly', S(2, { sec: 60 }), 15),
+      item('frog', [{ sec: 60 }], 15),
+      item('pigeon', S(2, { sec: 60 }), 15),
+      item('pancake', S(2, { sec: 60 }), 15),
+      item('front-split', [{ sec: 60 }], 15),
+      item('happy-baby', [{ sec: 60 }], 0),
+    ] },
+    { id: uid(), name: 'Épaules & haut du dos', color: 'rose', note: 'Idéal après une séance de poussée ou une journée assis.', items: [
+      item('band-dislocate', S(2, { reps: 12 }), 15),
+      item('wall-slides', S(2, { reps: 10 }), 15),
+      item('doorway-pec', [{ sec: 45 }], 10),
+      item('thread-needle', [{ sec: 30 }], 10),
+      item('shoulder-cross', [{ sec: 30 }], 10),
+      item('triceps-stretch', [{ sec: 30 }], 10),
+      item('neck-mob', [{ sec: 60 }], 10),
+      item('wrist-mob', [{ sec: 60 }], 0),
+    ] },
   ];
 }
 
 function defaults() {
   return {
-    v: 1,
+    v: 2,
     settings: { rest: 90, sound: true, vibrate: true, theme: 'dark', bodyweight: 0 },
     customEx: [],
     templates: seedTemplates(),
@@ -76,10 +125,19 @@ function defaults() {
   };
 }
 
+function migrate(d) {
+  if ((d.v || 1) < 2) {
+    for (const t of mobilityTemplates()) if (!d.templates.some(x => x.name === t.name)) d.templates.push(t);
+    d.v = 2;
+    d._migrated = true;
+  }
+  return d;
+}
+
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return { ...defaults(), ...JSON.parse(raw) };
+    if (raw) return migrate({ ...defaults(), ...JSON.parse(raw) });
   } catch { /* fall through */ }
   return defaults();
 }
@@ -93,8 +151,9 @@ export function save(now = false) {
   if (now) write(); else saveTimer = setTimeout(write, 120);
 }
 window.addEventListener('pagehide', () => save(true));
+if (db._migrated) { delete db._migrated; save(true); }
 
-export function replaceDb(next) { db = { ...defaults(), ...next }; save(true); }
+export function replaceDb(next) { db = migrate({ ...defaults(), v: 1, ...next }); save(true); }
 export function resetDb() { db = defaults(); save(true); }
 
 // ---------- exercises ----------
@@ -133,7 +192,7 @@ export function bestOf(mode, sets) {
 }
 
 export function sessionStats(sess) {
-  let tonnage = 0, sets = 0, dist = 0, runSec = 0, reps = 0;
+  let tonnage = 0, sets = 0, dist = 0, runSec = 0, reps = 0, mobSec = 0;
   for (const it of sess.items) {
     const ex = exById(it.exId);
     for (const s of it.sets) {
@@ -142,9 +201,10 @@ export function sessionStats(sess) {
       if (ex.mode === 'wr') { tonnage += (+s.kg || 0) * (+s.reps || 0); reps += +s.reps || 0; }
       if (ex.mode === 'bw') { tonnage += (+s.kg || 0) * (+s.reps || 0); reps += +s.reps || 0; }
       if (ex.mode === 'run') { dist += +s.dist || 0; runSec += +s.sec || 0; }
+      if (ex.cat === 'mobilite') mobSec += ex.mode === 'time' ? (+s.sec || 0) * (ex.side ? 2 : 1) : 30;
     }
   }
-  return { tonnage, sets, dist, runSec, reps, duration: sess.end && sess.start ? Math.round((sess.end - sess.start) / 1000) : 0 };
+  return { tonnage, sets, dist, runSec, reps, mobSec, duration: sess.end && sess.start ? Math.round((sess.end - sess.start) / 1000) : 0 };
 }
 
 export const better = (mode, a, b) => (mode === 'run' ? a < b : a > b);
@@ -170,9 +230,9 @@ export function computePRs(sess) {
 
 // What kind of session is this: 'course' if running dominates, else 'force'.
 export function sessionKind(sess) {
-  let run = 0, other = 0;
-  for (const it of sess.items) (exById(it.exId).mode === 'run' ? run++ : other++);
-  return run > other ? 'course' : 'force';
+  const n = { course: 0, mobilite: 0, force: 0 };
+  for (const it of sess.items) { const ex = exById(it.exId); n[ex.mode === 'run' ? 'course' : ex.cat === 'mobilite' ? 'mobilite' : 'force']++; }
+  return n.course > n.force && n.course >= n.mobilite ? 'course' : n.mobilite > n.force ? 'mobilite' : 'force';
 }
 
 // Estimated duration of a template, seconds.
@@ -182,7 +242,7 @@ export function estimateTpl(tpl) {
     const ex = exById(it.exId);
     it.sets.forEach((s, i) => {
       if (ex.mode === 'run') t += +s.sec || ((+s.dist || 0) / 1000) * (+s.pace || 360);
-      else if (ex.mode === 'time') t += +s.sec || 30;
+      else if (ex.mode === 'time') t += (+s.sec || 30) * (ex.side ? 2 : 1) + (ex.side ? 5 : 0);
       else t += 40;
       if (i < it.sets.length - 1 || it.rest) t += s.rest ?? it.rest ?? 0;
     });
@@ -292,8 +352,8 @@ export const fmtTonnage = kg => (kg >= 1000 ? `${fmtNum(Math.round(kg / 100) / 1
 export function setSummary(ex, s) {
   const m = ex.mode;
   if (m === 'wr') return `${s.kg ? fmtNum(+s.kg) + ' kg × ' : ''}${s.reps || '–'}`;
-  if (m === 'bw') return `${s.reps || '–'}${+s.kg ? ` (+${fmtNum(+s.kg)} kg)` : ''}`;
-  if (m === 'time') return `${fmtClock(s.sec)}${+s.kg ? ` (+${fmtNum(+s.kg)} kg)` : ''}`;
+  if (m === 'bw') return `${s.reps || '–'}${ex.side ? ' /côté' : ''}${+s.kg ? ` (+${fmtNum(+s.kg)} kg)` : ''}`;
+  if (m === 'time') return `${fmtClock(s.sec)}${ex.side ? ' /côté' : ''}${+s.kg ? ` (+${fmtNum(+s.kg)} kg)` : ''}`;
   const parts = [];
   if (+s.dist) parts.push(fmtKm(+s.dist));
   if (+s.sec) parts.push(fmtClock(+s.sec));

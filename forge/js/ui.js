@@ -39,6 +39,7 @@ const P = {
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
   warn: '<path d="M12 4 2.5 20h19z"/><path d="M12 10v4.5M12 17.2v.1"/>',
   down2: '<path d="M12 4v12M6.5 11 12 16.5 17.5 11M5 20h14"/>',
+  mob: '<circle cx="12" cy="4.5" r="2"/><path d="M4 9.5c3 1.2 5.5 1.5 8 1.5s5-.3 8-1.5M12 11v4.5M12 15.5 7.5 21M12 15.5l4.5 5.5"/>',
   bolt: '<path d="M13 3 5 13.5h6L10 21l8-10.5h-6z"/>',
 };
 export const icon = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || ''}</svg>`;

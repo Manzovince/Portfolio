@@ -1,10 +1,10 @@
 // Statistics, weak-point analysis, records and per-exercise progression.
-import { db, exById, bestOf, better, isWork, sessionStats, sessionKind, mondayOf, addDays, dayKey, plannedOn, isPlannedDone, fmtNum, fmtClock, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=1';
-import { MUSCLES, REGIONS, MODES } from './library.js?v=1';
-import { esc, icon, sheet, fmtDayShort, fmtDay } from './ui.js?v=1';
-import { bars, line, attachTips } from './charts.js?v=1';
+import { db, exById, bestOf, better, isWork, sessionStats, sessionKind, mondayOf, addDays, dayKey, plannedOn, isPlannedDone, fmtNum, fmtClock, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=2';
+import { MUSCLES, REGIONS, MODES } from './library.js?v=2';
+import { esc, icon, sheet, fmtDayShort, fmtDay } from './ui.js?v=2';
+import { bars, line, attachTips } from './charts.js?v=2';
 
-const C_FORCE = 'var(--c1)', C_RUN = 'var(--c2)';
+const C_FORCE = 'var(--c1)', C_RUN = 'var(--c2)', C_MOB = 'var(--c3)';
 const RANGES = [[28, '4 sem.'], [91, '3 mois'], [182, '6 mois'], [365, '1 an'], [0, 'Tout']];
 let range = 91;
 
@@ -38,8 +38,8 @@ export function renderStats(el) {
 
     <section class="card">
       <h2>Temps d’entraînement par semaine</h2>
-      <div class="legend"><span><i style="background:${C_FORCE}"></i>Renforcement</span><span><i style="background:${C_RUN}"></i>Course</span></div>
-      ${bars({ data: weeks.map(w => ({ label: w.label, values: [w.force / 60, w.run / 60], tip: `<b>Semaine du ${esc(w.label)}</b><br>Renfo ${fmtDur(w.force)} · Course ${fmtDur(w.run)}<br>${w.n} séance${w.n > 1 ? 's' : ''}` })), series: [{ color: C_FORCE }, { color: C_RUN }], fmt: v => `${Math.round(v)}′`, labelEvery: Math.ceil(nW / 7) })}
+      <div class="legend"><span><i style="background:${C_FORCE}"></i>Renforcement</span><span><i style="background:${C_RUN}"></i>Course</span><span><i style="background:${C_MOB}"></i>Mobilité</span></div>
+      ${bars({ data: weeks.map(w => ({ label: w.label, values: [w.force / 60, w.run / 60, w.mob / 60], tip: `<b>Semaine du ${esc(w.label)}</b><br>Renfo ${fmtDur(w.force)} · Course ${fmtDur(w.run)}<br>Mobilité ${fmtDur(w.mob)} · ${w.n} séance${w.n > 1 ? 's' : ''}` })), series: [{ color: C_FORCE }, { color: C_RUN }, { color: C_MOB }], fmt: v => `${Math.round(v)}′`, labelEvery: Math.ceil(nW / 7) })}
     </section>
 
     <section class="card">
@@ -58,13 +58,14 @@ export function renderStats(el) {
 
 function weekBuckets(sess, from, now) {
   const out = [];
-  for (let w = mondayOf(from); w <= now; w = addDays(w, 7)) out.push({ start: +w, end: +addDays(w, 7), label: fmtDayShort(w), force: 0, run: 0, km: 0, n: 0 });
+  for (let w = mondayOf(from); w <= now; w = addDays(w, 7)) out.push({ start: +w, end: +addDays(w, 7), label: fmtDayShort(w), force: 0, run: 0, mob: 0, km: 0, n: 0 });
   for (const s of sess) {
     const b = out.find(w => s.start >= w.start && s.start < w.end);
     if (!b) continue;
     const st = sessionStats(s);
     b.n++; b.km += st.dist;
-    sessionKind(s) === 'course' ? (b.run += st.duration) : (b.force += st.duration);
+    const k = sessionKind(s);
+    k === 'course' ? (b.run += st.duration) : k === 'mobilite' ? (b.mob += st.duration) : (b.force += st.duration);
   }
   return out;
 }
@@ -74,7 +75,7 @@ function muscleSets(sess) {
   const m = Object.fromEntries(Object.keys(MUSCLES).map(k => [k, 0]));
   for (const s of sess) for (const it of s.items) {
     const ex = exById(it.exId);
-    if (ex.mode === 'run') continue;
+    if (ex.mode === 'run' || ex.cat === 'mobilite') continue;
     const n = it.sets.filter(isWork).length;
     for (const k of ex.muscles) m[k] += n;
     for (const k of ex.secondary || []) m[k] += n * 0.5;
@@ -130,6 +131,7 @@ export function records() {
   const best = new Map();
   for (const s of db.sessions) for (const it of s.items) {
     const ex = exById(it.exId);
+    if (ex.cat === 'mobilite') continue;
     const b = bestOf(ex.mode, it.sets);
     if (!b || !b.value) continue;
     const cur = best.get(it.exId);
@@ -180,7 +182,7 @@ export function analyse(sess, from, now) {
   const byEx = new Map();
   for (const s of sess) for (const it of s.items) {
     const ex = exById(it.exId);
-    if (ex.mode === 'run') continue;
+    if (ex.mode === 'run' || ex.cat === 'mobilite') continue;
     const b = bestOf(ex.mode, it.sets);
     if (!b || !b.value) continue;
     if (!byEx.has(it.exId)) byEx.set(it.exId, []);
@@ -217,6 +219,11 @@ export function analyse(sess, from, now) {
     if (fast / runs.length > 0.5) out.push({ level: 'info', title: 'Beaucoup d’intensité', text: `${Math.round(fast / runs.length * 100)} % de tes sorties sont du fractionné/seuil. Vise ~80 % d’endurance fondamentale.` });
     if (!fast) out.push({ level: 'info', title: 'Que de l’endurance', text: 'Aucune séance de fractionné ou de seuil : une séance de qualité par semaine ferait progresser l’allure.' });
   }
+
+  // mobility: minutes per week vs training load
+  const mobMin = sess.reduce((a, s) => a + sessionStats(s).mobSec, 0) / 60 / wk;
+  if (sess.length / wk >= 2.5 && mobMin < 10) out.push({ level: 'info', title: 'Peu de mobilité', text: `${Math.round(mobMin)} min d’étirements/mobilité par semaine. 2 × 10 min (ex. « Étirements après course », « Réveil mobilité ») aident à récupérer et à garder l’amplitude.` });
+  else if (mobMin >= 30) out.push({ level: 'good', title: 'Mobilité régulière', text: `${Math.round(mobMin)} min de mobilité par semaine en moyenne. Continue !` });
 
   // adherence to planned sessions over the last 4 weeks
   let planned = 0, done = 0;

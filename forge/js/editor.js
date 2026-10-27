@@ -1,8 +1,8 @@
 // Template ("séance") editor, exercise picker and custom-exercise form.
-import { db, save, uid, exById, allExercises, invalidateEx, estimateTpl, fmtDur, fmtClock } from './store.js?v=1';
-import { MUSCLES, CATS, EQUIP, MODES } from './library.js?v=1';
-import { esc, icon, sheet, menu, confirmDialog, toast, COLORS, colorOf } from './ui.js?v=1';
-import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL, REST_CHOICES } from './fields.js?v=1';
+import { db, save, uid, exById, allExercises, invalidateEx, estimateTpl, fmtDur, fmtClock } from './store.js?v=2';
+import { MUSCLES, CATS, EQUIP, MODES } from './library.js?v=2';
+import { esc, icon, sheet, menu, confirmDialog, toast, COLORS, colorOf } from './ui.js?v=2';
+import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL, REST_CHOICES } from './fields.js?v=2';
 
 const clone = o => JSON.parse(JSON.stringify(o));
 
@@ -59,8 +59,8 @@ export function openTemplateEditor(tplId, onDone) {
     root.querySelector('[data-add]').onclick = () => openPicker(ids => {
       for (const id of ids) {
         const ex = exById(id);
-        const base = ex.mode === 'run' ? { dist: 1000 } : ex.mode === 'time' ? { sec: 30 } : ex.mode === 'bw' ? { reps: 10 } : { kg: '', reps: 8 };
-        tpl.items.push({ id: uid(), exId: id, rest: ex.rest ?? db.settings.rest, note: '', sets: ex.mode === 'run' ? [{ ...base }] : [{ ...base }, { ...base }, { ...base }] });
+        const base = ex.mode === 'run' ? { dist: 1000 } : ex.mode === 'time' ? { sec: ex.cat === 'mobilite' ? 45 : 30 } : ex.mode === 'bw' ? { reps: 10 } : { kg: '', reps: 8 };
+        tpl.items.push({ id: uid(), exId: id, rest: ex.rest ?? db.settings.rest, note: '', sets: ex.mode === 'run' || ex.cat === 'mobilite' ? [{ ...base }] : [{ ...base }, { ...base }, { ...base }] });
       }
       render(root);
     });
@@ -88,7 +88,7 @@ export function openTemplateEditor(tplId, onDone) {
         <button class="icon-btn" data-menu aria-label="Options">${icon('dots')}</button>
       </header>
       <div class="set-grid ed cols-${fields.length}">
-        <span class="h">Série</span>${fields.map(f => `<span class="h">${{ kg: ex.mode === 'wr' ? 'kg' : '+kg', reps: 'reps', sec: ex.mode === 'run' ? 'temps' : 'durée', dist: 'km', pace: 'allure' }[f]}</span>`).join('')}<span class="h"></span>
+        <span class="h">Série</span>${fields.map(f => `<span class="h">${{ kg: ex.mode === 'wr' ? 'kg' : '+kg', reps: 'reps', sec: ex.mode === 'run' ? 'temps' : ex.side ? 'durée/côté' : 'durée', dist: 'km', pace: 'allure' }[f]}</span>`).join('')}<span class="h"></span>
         ${it.sets.map((s, j) => `
           <button class="set-no kind-${s.kind || 'n'}" data-kind="${j}" title="${KIND_LABEL[s.kind || 'n']}">${labels[j]}</button>
           ${fields.map(f => `<input class="cell" data-set="${j}" data-f="${f}" inputmode="${inputMode(f)}" placeholder="${placeholderFor(f, ex.mode)}" value="${esc(fmtField(f, s[f]))}">`).join('')}
@@ -149,7 +149,7 @@ export function openPicker(done, { single = false } = {}) {
         const items = allExercises().filter(e => (!cat || e.cat === cat) && (!nq || norm(e.name).includes(nq) || e.muscles.some(m => norm(MUSCLES[m]).includes(nq))))
           .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
         list.innerHTML = items.map(e => `<button class="pick ${picked.includes(e.id) ? 'on' : ''}" data-id="${e.id}">
-            <span class="pick-ic cat-${e.cat}">${icon(e.mode === 'run' ? 'run' : e.cat === 'charges' ? 'dumbbell' : e.mode === 'time' ? 'timer' : 'bolt')}</span>
+            <span class="pick-ic cat-${e.cat}">${icon(e.mode === 'run' ? 'run' : e.cat === 'charges' ? 'dumbbell' : e.cat === 'mobilite' ? 'mob' : e.mode === 'time' ? 'timer' : 'bolt')}</span>
             <span class="pick-txt"><b>${esc(e.name)}</b><small>${esc(exMeta(e))}</small></span>
             <span class="pick-check">${picked.includes(e.id) ? picked.indexOf(e.id) + 1 : ''}</span></button>`).join('') || '<p class="empty">Aucun exercice. Crée-le !</p>';
         list.querySelectorAll('[data-id]').forEach(b => b.onclick = () => {
@@ -170,7 +170,7 @@ export function openPicker(done, { single = false } = {}) {
 }
 
 export const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-export const exMeta = e => [CATS[e.cat], e.muscles.map(m => MUSCLES[m]).join(', ') || null, e.equip && e.equip !== 'aucun' ? EQUIP[e.equip] : null].filter(Boolean).join(' · ');
+export const exMeta = e => [CATS[e.cat] + (e.side ? ' · par côté' : ''), e.muscles.map(m => MUSCLES[m]).join(', ') || null, e.equip && e.equip !== 'aucun' ? EQUIP[e.equip] : null].filter(Boolean).join(' · ');
 
 // ---------- custom exercise form ----------
 export function openExerciseForm(exId, done) {

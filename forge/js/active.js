@@ -1,9 +1,9 @@
 // Live workout: big touch targets, auto rest timer, guided timers for holds and runs.
-import { db, save, uid, exById, lastSetsFor, progressSets, isDeload, sessionStats, computePRs, fmtClock, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=1';
-import { MODES } from './library.js?v=1';
-import { esc, icon, sheet, menu, confirmDialog, toast, beep, buzz, unlockAudio, $ } from './ui.js?v=1';
-import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL } from './fields.js?v=1';
-import { openPicker, pickRest, restLabel } from './editor.js?v=1';
+import { db, save, uid, exById, lastSetsFor, progressSets, isDeload, sessionStats, computePRs, fmtClock, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=2';
+import { MODES } from './library.js?v=2';
+import { esc, icon, sheet, menu, confirmDialog, toast, beep, buzz, unlockAudio, $ } from './ui.js?v=2';
+import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL } from './fields.js?v=2';
+import { openPicker, pickRest, restLabel } from './editor.js?v=2';
 
 const clone = o => JSON.parse(JSON.stringify(o));
 let root = null, ticker = 0, wakeLock = null, onExit = () => {};
@@ -98,7 +98,7 @@ function itemHtml(it, i) {
   const timed = ex.mode === 'time' || ex.mode === 'run';
   const grouped = it.group && (a.items[i - 1]?.group === it.group || a.items[i + 1]?.group === it.group);
   const allDone = it.sets.length && it.sets.every(s => s.done);
-  const head = { kg: ex.mode === 'wr' ? 'kg' : '+kg', reps: 'reps', sec: ex.mode === 'run' ? 'temps' : 'durée', dist: 'km' };
+  const head = { kg: ex.mode === 'wr' ? 'kg' : '+kg', reps: 'reps', sec: ex.mode === 'run' ? 'temps' : ex.side ? '/côté' : 'durée', dist: 'km' };
   return `<article class="ex-card live ${grouped ? 'grouped' : ''} ${allDone ? 'complete' : ''}" data-i="${i}">
     <header class="ex-head">
       <div class="ex-title"><b>${esc(ex.name)}</b>${it.note ? `<small class="note">${esc(it.note)}</small>` : grouped ? '<small>superset</small>' : ''}</div>
@@ -255,7 +255,8 @@ function toggleClock(i, j) {
   // countdown for holds and time-based runs, stopwatch for distance runs
   const down = ex.mode === 'time' ? (+effective(it, j, 'sec') || 30) : (!(+target.dist) && +target.sec ? +target.sec : 0);
   a.rest = null;
-  a.clock = { item: i, set: j, start: Date.now(), down, beeped: 4 };
+  const sides = ex.mode === 'time' && ex.side ? 2 : 1; // per-side holds: left, then right
+  a.clock = { item: i, set: j, start: Date.now(), down: down * sides, sides, phase: 0, beeped: 4 };
   beep([[660, 0.08]]);
   save(); render();
 }
@@ -265,7 +266,7 @@ function stopClock(validate) {
   if (!c) return;
   const it = a.items[c.item], s = it.sets[c.set];
   const el = (Date.now() - c.start) / 1000;
-  s.sec = Math.round(c.down ? Math.min(el, c.down) : el);
+  s.sec = Math.round((c.down ? Math.min(el, c.down) : el) / (c.sides || 1));
   a.clock = null;
   if (validate) { s.done = false; toggleSet(c.item, c.set); } else { save(); render(); }
 }
@@ -323,10 +324,18 @@ function tick() {
     const v = q('[data-clockv]'), sub = q('[data-clocksub]');
     const it = a.items[a.clock.item], ex = exById(it.exId), tg = it.sets[a.clock.set].target || {};
     if (a.clock.down) {
-      const left = a.clock.down - t;
-      if (v) v.textContent = fmtClock(Math.ceil(Math.max(0, left)));
-      if (sub) sub.textContent = `objectif ${fmtClock(a.clock.down)}`;
-      const sl = Math.ceil(left);
+      const c = a.clock, sides = c.sides || 1, half = c.down / sides;
+      const left = c.down - t;
+      const phase = Math.min(sides - 1, Math.floor(t / half));
+      if (phase !== c.phase) { // switch side
+        c.phase = phase; c.beeped = 4;
+        if (db.settings.sound) beep([[880, 0.12], [880, 0.12]]);
+        if (db.settings.vibrate) buzz([120, 60, 120]);
+      }
+      const leftHere = (phase + 1) * half - t;
+      if (v) v.textContent = fmtClock(Math.ceil(Math.max(0, leftHere)));
+      if (sub) sub.textContent = sides > 1 ? `${phase ? 'côté droit' : 'côté gauche'} · ${fmtClock(half)} par côté` : `objectif ${fmtClock(c.down)}`;
+      const sl = Math.ceil(leftHere);
       if (sl <= 3 && sl >= 1 && sl < a.clock.beeped) { a.clock.beeped = sl; if (db.settings.sound) beep([[740, 0.07]]); }
       if (left <= 0) {
         if (db.settings.sound) beep([[988, 0.18], [1318, 0.32]]);

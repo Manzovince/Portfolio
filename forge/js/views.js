@@ -1,13 +1,13 @@
 // Home, templates/exercises tab and settings.
-import { db, save, replaceDb, resetDb, exById, allExercises, dayKey, addDays, mondayOf, plannedOn, sessionsOn, isPlannedDone, isDeload, sessionStats, estimateTpl, fmtDur, fmtKm, fmtTonnage } from './store.js?v=1';
-import { CATS } from './library.js?v=1';
-import { esc, icon, sheet, menu, confirmDialog, toast, colorOf, FR_DAYS, fmtDay } from './ui.js?v=1';
-import { openTemplateEditor, openExerciseForm, tplSummary, norm, exMeta } from './editor.js?v=1';
-import { startWorkout, openActive } from './active.js?v=1';
-import { pickTemplate } from './program.js?v=1';
-import { sessRow, openSessionDetail } from './journal.js?v=1';
-import { openExerciseDetail } from './stats.js?v=1';
-import { loadDemo } from './demo.js?v=1';
+import { db, save, replaceDb, resetDb, exById, allExercises, dayKey, addDays, mondayOf, plannedOn, sessionsOn, isPlannedDone, isDeload, sessionStats, estimateTpl, fmtDur, fmtKm, fmtTonnage } from './store.js?v=2';
+import { CATS } from './library.js?v=2';
+import { esc, icon, sheet, menu, confirmDialog, toast, colorOf, FR_DAYS, fmtDay } from './ui.js?v=2';
+import { openTemplateEditor, openExerciseForm, tplSummary, norm, exMeta } from './editor.js?v=2';
+import { startWorkout, openActive } from './active.js?v=2';
+import { pickTemplate } from './program.js?v=2';
+import { sessRow, openSessionDetail } from './journal.js?v=2';
+import { openExerciseDetail } from './stats.js?v=2';
+import { loadDemo } from './demo.js?v=2';
 
 const tplOf = id => db.templates.find(t => t.id === id);
 
@@ -107,6 +107,7 @@ export function renderWorkouts(el, refresh) {
   if (wtab === 'tpl') {
     body.innerHTML = db.templates.length ? db.templates.map(t => {
       const runs = t.items.some(i => exById(i.exId).mode === 'run');
+      const mob = t.items.length && t.items.every(i => exById(i.exId).cat === 'mobilite');
       const done = db.sessions.filter(s => s.tplId === t.id);
       return `<article class="tpl-card" style="--c:${colorOf(t.color)}">
         <button class="tpl-main" data-edit="${t.id}">
@@ -115,7 +116,7 @@ export function renderWorkouts(el, refresh) {
           <p>${esc(tplSummary(t))}</p>
         </button>
         <div class="tpl-side">
-          <button class="btn primary round" data-start="${t.id}" aria-label="Démarrer">${icon(runs ? 'run' : 'play')}</button>
+          <button class="btn primary round" data-start="${t.id}" aria-label="Démarrer">${icon(runs ? 'run' : mob ? 'mob' : 'play')}</button>
           <button class="icon-btn sm" data-more="${t.id}" aria-label="Options">${icon('dots')}</button>
         </div>
       </article>`;
@@ -148,7 +149,7 @@ export function renderWorkouts(el, refresh) {
       for (const s of db.sessions) for (const it of s.items) counts.set(it.exId, (counts.get(it.exId) || 0) + 1);
       lib.innerHTML = allExercises().filter(e => (!exCat || e.cat === exCat) && (!q || norm(e.name + ' ' + exMeta(e)).includes(q)))
         .sort((a, b) => (counts.get(b.id) || 0) - (counts.get(a.id) || 0) || a.name.localeCompare(b.name, 'fr'))
-        .map(e => `<button class="pick" data-ex="${e.id}"><span class="pick-ic cat-${e.cat}">${icon(e.mode === 'run' ? 'run' : e.cat === 'charges' ? 'dumbbell' : e.mode === 'time' ? 'timer' : 'bolt')}</span>
+        .map(e => `<button class="pick" data-ex="${e.id}"><span class="pick-ic cat-${e.cat}">${icon(e.mode === 'run' ? 'run' : e.cat === 'charges' ? 'dumbbell' : e.cat === 'mobilite' ? 'mob' : e.mode === 'time' ? 'timer' : 'bolt')}</span>
           <span class="pick-txt"><b>${esc(e.name)}${e.custom ? ' <em class="tag">perso</em>' : ''}</b><small>${esc(exMeta(e))}</small></span>
           <span class="muted sm">${counts.get(e.id) ? counts.get(e.id) + '×' : ''}</span></button>`).join('') || '<p class="empty">Aucun résultat.</p>';
       lib.querySelectorAll('[data-ex]').forEach(b => b.onclick = () => {

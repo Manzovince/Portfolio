@@ -1,17 +1,17 @@
 // Fake 12-week history to explore the app (Settings → Charger une démo).
-import { db, save, resetDb, uid, exById, addDays, mondayOf, dayKey, plannedOn, progressSets, estimateTpl, roundKg } from './store.js?v=1';
+import { db, save, resetDb, uid, exById, addDays, mondayOf, dayKey, plannedOn, progressSets, estimateTpl, roundKg } from './store.js?v=2';
 
 export function loadDemo() {
   resetDb();
   let seed = 7;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   const T = name => db.templates.find(t => t.name.startsWith(name));
-  const fb = T('Full body A'), haut = T('Haut du corps'), frac = T('Fractionné'), foot = T('Footing'), longue = T('Sortie longue'), gain = T('Gainage');
+  const fb = T('Full body A'), haut = T('Haut du corps'), frac = T('Fractionné'), foot = T('Footing'), longue = T('Sortie longue'), gain = T('Gainage'), reveil = T('Réveil mobilité'), etir = T('Étirements après course');
 
   const start = addDays(mondayOf(new Date()), -7 * 9);
   const prog = {
     id: uid(), name: 'Force + prépa 10 km', color: 'ember', start: dayKey(start), weeks: 12,
-    days: [[fb.id], [frac.id], [], [haut.id, gain.id], [foot.id], [], [longue.id]],
+    days: [[fb.id], [frac.id], [reveil.id], [haut.id, gain.id], [foot.id], [], [longue.id, etir.id]],
     rule: 'kg', value: 2.5, every: 1, deload: 4,
   };
   db.programs.push(prog);

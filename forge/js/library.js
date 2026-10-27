@@ -21,7 +21,7 @@ export const CATS = {
 
 export const EQUIP = {
   barre: 'Barre', halteres: 'Haltères', machine: 'Machine', poulie: 'Poulie', kettlebell: 'Kettlebell',
-  traction: 'Barre de traction', elastique: 'Élastique', aucun: 'Aucun', velo: 'Vélo', rameur: 'Rameur',
+  traction: 'Barre de traction', elastique: 'Élastique', aucun: 'Aucun', velo: 'Vélo', rameur: 'Rameur', rouleau: 'Rouleau de massage',
 };
 
 // Fields recorded per set for each mode. `opt` fields can stay empty.
@@ -106,6 +106,47 @@ export const LIBRARY = [
   E('rower', 'Rameur', 'cardio', 'rameur', 'run', [], ['dos'], 60),
   E('jump-rope', 'Corde à sauter', 'cardio', 'aucun', 'time', ['mollets'], [], 45),
   E('stretch', 'Mobilité / étirements', 'mobilite', 'aucun', 'time', [], [], 15),
+  // Mobilité, étirements, souplesse. `side`: timed per side, the chrono runs left then right.
+  M('cat-cow', 'Chat-vache', 'time', ['lombaires', 'dos']),
+  M('child-pose', 'Posture de l’enfant', 'time', ['dos', 'lombaires']),
+  M('dog-down', 'Chien tête en bas', 'time', ['ischios', 'mollets', 'epaules']),
+  M('cobra', 'Cobra', 'time', ['abdos', 'lombaires']),
+  M('worlds-greatest', 'World’s greatest stretch', 'time', ['quadriceps', 'fessiers', 'dos'], { side: true }),
+  M('hip-flexor', 'Fente basse (fléchisseurs de hanche)', 'time', ['quadriceps'], { side: true }),
+  M('couch', 'Couch stretch', 'time', ['quadriceps'], { side: true }),
+  M('pigeon', 'Pigeon', 'time', ['fessiers'], { side: true }),
+  M('hip-9090', 'Rotations de hanche 90/90', 'bw', ['fessiers', 'adducteurs']),
+  M('butterfly', 'Papillon', 'time', ['adducteurs']),
+  M('frog', 'Grenouille', 'time', ['adducteurs']),
+  M('happy-baby', 'Happy baby', 'time', ['fessiers', 'adducteurs']),
+  M('hamstring-stretch', 'Étirement ischios (jambe tendue)', 'time', ['ischios'], { side: true }),
+  M('forward-fold', 'Flexion avant debout', 'time', ['ischios', 'lombaires']),
+  M('pancake', 'Pancake (écart, buste en avant)', 'time', ['ischios', 'adducteurs']),
+  M('front-split', 'Grand écart facial', 'time', ['ischios', 'quadriceps'], { side: true }),
+  M('side-split', 'Grand écart latéral', 'time', ['adducteurs']),
+  M('deep-squat', 'Squat profond tenu', 'time', ['quadriceps', 'adducteurs', 'mollets']),
+  M('quad-stretch', 'Étirement quadriceps debout', 'time', ['quadriceps'], { side: true }),
+  M('calf-stretch', 'Étirement mollets au mur', 'time', ['mollets'], { side: true }),
+  M('ankle-knee-wall', 'Mobilité cheville genou-mur', 'bw', ['mollets'], { side: true }),
+  M('spinal-twist', 'Torsion allongée', 'time', ['lombaires', 'obliques'], { side: true }),
+  M('thoracic-rot', 'Rotations thoraciques', 'bw', ['dos'], { side: true }),
+  M('thread-needle', 'Thread the needle', 'time', ['dos', 'epaules'], { side: true }),
+  M('doorway-pec', 'Étirement pectoraux (cadre de porte)', 'time', ['pecs', 'epaules'], { side: true }),
+  M('shoulder-cross', 'Étirement épaule bras croisé', 'time', ['epaules'], { side: true }),
+  M('triceps-stretch', 'Étirement triceps', 'time', ['triceps'], { side: true }),
+  M('band-dislocate', 'Dislocations à l’élastique', 'bw', ['epaules'], { equip: 'elastique' }),
+  M('wall-slides', 'Wall slides', 'bw', ['epaules', 'trapezes']),
+  M('bridge-pose', 'Pont (ouverture d’épaules)', 'time', ['pecs', 'epaules', 'abdos']),
+  M('neck-mob', 'Mobilité cervicale', 'time', ['trapezes']),
+  M('wrist-mob', 'Mobilité poignets', 'time', ['avantbras']),
+  M('leg-swings', 'Balancés de jambe', 'bw', ['ischios', 'adducteurs'], { side: true }),
+  M('hip-circles', 'Cercles de hanches', 'bw', ['fessiers']),
+  M('foam-roll', 'Auto-massage au rouleau', 'time', [], { equip: 'rouleau', rest: 10 }),
+  M('breathing', 'Respiration diaphragmatique', 'time', ['abdos']),
 ];
+
+function M(id, name, mode, muscles, { side = false, equip = 'aucun', rest = 10 } = {}) {
+  return { ...E(id, name, 'mobilite', equip, mode, muscles, [], rest), side };
+}
 
 export const isRunLike = e => e.mode === 'run';
