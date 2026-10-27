@@ -1,5 +1,5 @@
 // Schéma du formulaire « Message de tir appuis feux sol/sol » (11 cadres).
-// Cadres facultatifs : 4, 5, 6, 8 et 9 ; les autres sont obligatoires.
+// Les cadres facultatifs (4, 5, 6, 8 et 9) ont été retirés : tous les cadres restants sont obligatoires.
 // Toutes les valeurs vivent dans un objet plat ; les lignes du cadre 7 ont des clés « A.g », « D.x », « G.fu »…
 
 export const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
@@ -18,20 +18,6 @@ export const OPT = {
   },
   spectre: { visible: 'Visible', ir: 'IR' },
   munition: { explo: 'Explo', fumigene: 'Fumigène', aced: 'ACED', ecl: 'ECL', semonce: 'Semonce' },
-  arme: { mo81: 'Mo 81 mm', mo120: 'Mo 120', c155: '155 mm', lru: 'LRU' },
-  traj: { plongeante: 'Plongeante', verticale: 'Verticale', nominale: 'Nominale' },
-  mode: { pi: 'Percutant instantané', pcr: 'Percutant court retard', fusant: 'Fusant', retard: 'Retard' },
-  cible: {
-    chars: 'Chars', blindes: 'Blindés légers', pickup: 'Pick-up', personnel: 'Personnel',
-    artillerie: 'Artillerie', batiment: 'Bâtiment',
-  },
-  etat: {
-    mouvement: 'En mouvement', arret: 'À l\'arrêt', decouvert: 'À découvert', abrite: 'Abrité',
-    observateur: 'Observateur', pieces: 'Pièces',
-  },
-  geom: { convergent: 'Convergent', lineaire: 'Linéaire', surfacique: 'Surfacique', circulaire: 'Circulaire' },
-  ouvert: { ouvert: 'Ouvert', ferme: 'Fermé' },
-  mep9: { grille: 'Grille', dpm: 'Déplacement du point moyen' },
   dir4: { N: 'N', O: 'O', E: 'E', S: 'S' },
   posture: { 1: 'À découvert', 2: 'Abrité', 3: 'Sous blindage' },
   tir: {
@@ -43,7 +29,7 @@ export const OPT = {
   tle: { 1: '1', 2: '2', 3: '3', 4: '4' },
 };
 
-export const DEFAULTS = { type: 'emblee', effect: 'neutralisation', mode1: 'pi', geom: 'convergent', mep9: 'dpm', tir: 'amc' };
+export const DEFAULTS = { type: 'emblee', effect: 'neutralisation', tir: 'amc' };
 
 // Lignes du cadre 7 : A–C polaires, D–F rectangulaires, G–H LRU.
 export const ROW_KIND = { A: 'pol', B: 'pol', C: 'pol', D: 'rect', E: 'rect', F: 'rect', G: 'lru', H: 'lru' };
@@ -67,17 +53,6 @@ export const CADRES = [
     f('panache', 'Panaché', 'bool'), f('p1', 'Panaché 1', 'pair'), f('p2', 'Panaché 2', 'pair'),
     f('munition', 'Munition', 'choice', { opt: 'munition' }),
   ] },
-  { n: 4, title: 'Coups', fields: [
-    f('coups', 'Nb de coups', 'num'), f('coups2', '/ coups', 'num'), f('duree', 'Durée (min)', 'num'),
-    f('duree2', '/ min', 'num'), f('interv', 'Intervalle (s)', 'num'), f('interv2', '/ s', 'num'),
-  ] },
-  { n: 5, title: 'Lanceurs', fields: [
-    f('lanceurs', 'Lanceurs', 'num'), f('arme', 'Arme', 'choice', { opt: 'arme' }),
-    f('traj1', 'Trajectoire', 'choice', { opt: 'traj' }), f('traj2', 'Trajectoire 2', 'choice', { opt: 'traj' }),
-    f('mode1', 'Mode', 'choice', { opt: 'mode' }), f('mode2', 'Mode 2', 'choice', { opt: 'mode' }),
-    f('crMs', 'Court retard (ms)', 'num'), f('fusM', 'Fusant (m)', 'num'), f('retMs', 'Retard (ms)', 'num'),
-  ] },
-  { n: 6, title: 'Objectif', fields: [f('cible', 'Objectif', 'choice', { opt: 'cible' }), f('etat', 'État', 'choice', { opt: 'etat' })] },
   { n: 7, title: 'Localisation', req: true, fields: [
     ...rowFields,
     f('repEO', 'Repère est/ouest (m)', 'num'), f('repEOdir', 'Est / ouest', 'choice', { opt: 'eo' }),
@@ -87,16 +62,7 @@ export const CADRES = [
     f('pmHB', 'Pour moi haut/bas (m)', 'num'), f('pmHBdir', 'Haut / bas', 'choice', { opt: 'hb' }),
     f('tle', 'TLE', 'choice', { opt: 'tle' }),
   ] },
-  { n: 8, title: 'Gerbe', fields: [
-    f('geom', 'Forme', 'choice', { opt: 'geom' }), f('pc', 'Point central', 'letter'),
-    f('gis8', 'Gisement (mils)', 'fixed', { digits: 4 }), f('front', 'Front (m)', 'num'), f('prof', 'Profondeur (m)', 'num'),
-    f('ouvert', 'Ouvert / fermé', 'choice', { opt: 'ouvert' }), f('centre', 'Centre', 'letter'), f('rayon', 'Rayon (m)', 'num'),
-  ] },
-  { n: 9, title: 'Mise en place', fields: [
-    f('mep9', 'Mise en place', 'choice', { opt: 'mep9' }), f('gisObs', 'Gisement d\'observ. (mils)', 'fixed', { digits: 4 }),
-    f('obsX', 'Observateur X', 'num'), f('obsY', 'Observateur Y', 'num'), f('obsZ', 'Observateur Z', 'snum'),
-  ] },
-  { n: 10, title: 'Amis', req: true, fields: [
+  { n: 10, title: 'Amis les plus proches', req: true, fields: [
     f('amisDist', 'Distance (m)', 'num'), f('amisGis', 'Gisement (mils)', 'fixed', { digits: 4 }),
     f('amisDir', 'ou N/O/E/S', 'choice', { opt: 'dir4' }), f('posture', 'Posture', 'choice', { opt: 'posture' }),
   ] },
@@ -106,7 +72,6 @@ export const CADRES = [
   ] },
 ];
 export const FIELD = Object.fromEntries(CADRES.flatMap((c, i) => c.fields.map((x) => [x.key, { ...x, cadre: i }])));
-export const OPTIONAL = new Set(CADRES.map((c, i) => (c.req ? -1 : i)).filter((i) => i >= 0));
 
 export const fmtTime = (t) => (t && t.length >= 3 ? `${t.slice(0, -2).padStart(2, '0')}H${t.slice(-2)}` : t ? `${t}H__` : '');
 const signed = (s) => (s && !s.startsWith('-') ? `+${s}` : s);
@@ -147,27 +112,6 @@ export function cadreText(i, raw) {
       return t;
     }
     case 3: {
-      const pair = (a, b, u) => (v[a] ? `${v[a]}${v[b] ? '/' + v[b] : ''} ${u}` : '');
-      return [pair('coups', 'coups2', 'CPS'), pair('duree', 'duree2', 'MIN'), pair('interv', 'interv2', 'S')].filter(Boolean).join(' · ');
-    }
-    case 4: {
-      const p = [];
-      if (v.lanceurs) p.push(`${v.lanceurs} LANCEURS`);
-      if (v.arme) p.push(label('arme', v.arme).toUpperCase());
-      const tr = [v.traj1, v.traj2].filter(Boolean).map((x) => label('traj', x).toUpperCase());
-      if (tr.length) p.push(tr.join('/'));
-      const modeTxt = (m) => {
-        let s = label('mode', m).toUpperCase();
-        if (m === 'pcr' && v.crMs) s += ` ${v.crMs} MS`;
-        if (m === 'fusant' && v.fusM) s += ` ${v.fusM} M`;
-        if (m === 'retard' && v.retMs) s += ` ${v.retMs} MS`;
-        return s;
-      };
-      p.push([v.mode1, v.mode2].filter(Boolean).map(modeTxt).join(' ET '));
-      return p.join(' · ');
-    }
-    case 5: return [label('cible', v.cible), label('etat', v.etat)].filter(Boolean).join(' ').toUpperCase();
-    case 6: {
       const p = rowsUsed(v).map((L) => rowText(v, L));
       const d = (n, dirKey, opt) => (v[n] ? `${label(opt, v[dirKey]).toUpperCase() || '?'} ${v[n]}` : '');
       const rep = [d('repEO', 'repEOdir', 'eo'), d('repNS', 'repNSdir', 'ns')].filter(Boolean);
@@ -177,28 +121,7 @@ export function cadreText(i, raw) {
       if (v.tle) p.push(`TLE ${v.tle}`);
       return p.join(' · ');
     }
-    case 7: {
-      let t = label('geom', v.geom).toUpperCase();
-      if (v.geom === 'lineaire' || v.geom === 'surfacique') {
-        if (v.pc) t += ` PC ${v.pc}`;
-        if (v.gis8) t += ` G${v.gis8}`;
-        if (v.front) t += ` FRONT ${v.front}`;
-        if (v.prof) t += ` PROF ${v.prof}`;
-        if (v.ouvert) t += ` ${label('ouvert', v.ouvert).toUpperCase()}`;
-      }
-      if (v.geom === 'circulaire') {
-        if (v.centre) t += ` CENTRE ${v.centre}`;
-        if (v.rayon) t += ` RAYON ${v.rayon}`;
-      }
-      return t;
-    }
-    case 8: {
-      let t = label('mep9', v.mep9).toUpperCase();
-      if (v.gisObs) t += ` · GIS. OBS ${v.gisObs}`;
-      if (v.obsX || v.obsY || v.obsZ) t += ` · OBS X${v.obsX || '–'} Y${v.obsY || '–'} Z${signed(v.obsZ) || '–'}`;
-      return t;
-    }
-    case 9: {
+    case 4: {
       const p = [];
       if (v.amisDist) p.push(`${v.amisDist} M`);
       if (v.amisGis) p.push(`G${v.amisGis}`);
@@ -206,7 +129,7 @@ export function cadreText(i, raw) {
       if (v.posture) p.push(label('posture', v.posture).toUpperCase());
       return p.join(' · ');
     }
-    case 10: {
+    case 5: {
       let t = label('tir', v.tir).toUpperCase();
       if (v.h1) t += ` ${v.tir === 'hsol' ? 'DÉBUT ' : ''}${fmtTime(v.h1)}`;
       if (v.h2) t += ` FIN ${fmtTime(v.h2)}`;
@@ -246,9 +169,9 @@ export function draftErrors(raw) {
   if (!two(v.id1) || !two(v.id2)) e[0] = 'identification';
   if (!LETTERS.includes(v.letter)) e[1] = 'lettre de mission';
   if (v.panache && (!two(v.p1) || !two(v.p2))) e[2] = 'nombres du panaché';
-  if (!locationOk(v)) e[6] = 'localisation';
-  if (!v.amisDist || !(v.amisGis || v.amisDir)) e[9] = 'amis (distance et gisement ou direction)';
-  if (['apl', 'synchro', 'hso', 'hdt'].includes(v.tir) && !v.h1) e[10] = 'heure';
-  if (v.tir === 'hsol' && (!v.h1 || !v.h2)) e[10] = 'heures début/fin';
+  if (!locationOk(v)) e[3] = 'localisation';
+  if (!v.amisDist || !(v.amisGis || v.amisDir)) e[4] = 'amis (distance et gisement ou direction)';
+  if (['apl', 'synchro', 'hso', 'hdt'].includes(v.tir) && !v.h1) e[5] = 'heure';
+  if (v.tir === 'hsol' && (!v.h1 || !v.h2)) e[5] = 'heures début/fin';
   return e;
 }

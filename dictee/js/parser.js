@@ -1,9 +1,9 @@
-// Parser : transcription → valeurs des 11 cadres.
+// Parser : transcription → valeurs des cadres.
 // Le texte complet est re-parsé à chaque mise à jour (résultats intermédiaires compris).
 // Les cadres se remplissent dans l'ordre : un mot propre à un cadre suivant fait avancer,
 // les nombres vont dans la case suivante du cadre en cours (ou sont aiguillés par un mot-clé).
 
-import { CADRES, FIELD, ROW_KIND, ROW_KEYS, OPT, locationOk } from './form.js?v=20';
+import { CADRES, FIELD, ROW_KIND, ROW_KEYS, OPT, locationOk } from './form.js?v=21';
 
 export const SECTION_NAMES = CADRES.map((c) => c.title);
 export const redoMarker = (k) => `⟦r${k}⟧`;
@@ -22,7 +22,7 @@ export function tokenize(text) {
 /* ---------- Lexique ---------- */
 
 const LEXICON = [];
-// c : index du cadre (0–10), -1 commande, -2 lettre (aiguillée selon le contexte).
+// c : index du cadre (0–5), -1 commande, -2 lettre (aiguillée selon le contexte).
 const add = (c, phrases, entry) => {
   for (const p of phrases) LEXICON.push({ c, words: p.split(' '), ...entry });
 };
@@ -72,96 +72,35 @@ setE(2, 'munition', {
   aced: ['aced', 'a c e d', 'a ced'],
   ecl: ['ecl', 'eclairant', 'eclairante', 'eclairants', 'eclairage'],
 });
-// Cadre 4
-add(3, ['nombre de coups', 'nb de coups', 'nombre coups'], { kind: 'cursor', cursor: 'coups' });
-add(3, ['duree'], { kind: 'cursor', cursor: 'duree' });
-add(3, ['intervalle', 'intervalle entre les coups', 'intervalles'], { kind: 'cursor', cursor: 'interv' });
-add(3, ['coups', 'coup', 'cps'], { kind: 'unit', key: 'coups' });
-add(3, ['minutes', 'minute', 'min', 'mn'], { kind: 'unit', key: 'duree' });
-add(3, ['secondes', 'seconde', 'sec'], { kind: 'unit', key: 'interv' });
-// Cadre 5
-add(4, ['lanceurs', 'lanceur'], { kind: 'unit', key: 'lanceurs' });
-setE(4, 'arme', {
-  mo81: ['mo 81', 'mortier 81', 'mortier de 81', 'mortiers de 81', '81 mm', '81 millimetres'],
-  mo120: ['mo 120', 'mortier 120', 'mortier de 120', 'mortiers de 120', '120 mm', '120 millimetres'],
-  c155: ['155 mm', '155 millimetres', 'canon', 'canons', 'caesar', 'cesar', 'canon de 155'],
-  lru: ['lru', 'l r u', 'elle r u', 'lance roquettes', 'lance roquette'],
-});
-add(4, ['mortier', 'mortiers', 'mo'], { kind: 'cursor', cursor: '_calibre' });
-add(4, ['trajectoire', 'trajectoires'], { kind: 'cursor', cursor: '_traj' });
-add(4, ['plongeante', 'plongeant'], { kind: 'traj', value: 'plongeante' });
-add(4, ['verticale', 'vertical'], { kind: 'traj', value: 'verticale' });
-add(4, ['nominale', 'nominal'], { kind: 'traj', value: 'nominale' });
-add(4, ['mode', 'modes'], { kind: 'cursor', cursor: '_mode' });
-add(4, ['percutant instantane', 'instantane', 'percutant', 'percutante'], { kind: 'mode', value: 'pi' });
-add(4, ['percutant court retard', 'court retard', 'courte retard'], { kind: 'mode', value: 'pcr', cursor: 'crMs' });
-add(4, ['fusant', 'fusants', 'fusante'], { kind: 'mode', value: 'fusant', cursor: 'fusM' });
-add(4, ['retard'], { kind: 'mode', value: 'retard', cursor: 'retMs' });
-// Cadre 6
-add(5, ['objectif'], { kind: 'goto' });
-setE(5, 'cible', {
-  chars: ['chars', 'char'], blindes: ['blindes legers', 'blindes', 'blinde leger', 'blinde'],
-  pickup: ['pick up', 'pickup', 'pick', 'pickups', 'pic up'], personnel: ['personnel', 'personnels', 'personnes'],
-  artillerie: ['artillerie'], batiment: ['batiment', 'batiments'],
-});
-setE(5, 'etat', {
-  mouvement: ['en mouvement', 'mouvement'], arret: ['a l arret', 'arret', 'arrete', 'a l arrete'],
-  decouvert: ['a decouvert', 'decouvert'], abrite: ['abrite', 'abrites', 'abri'],
-  observateur: ['observateur', 'observateurs'], pieces: ['pieces', 'piece'],
-});
 // Cadre 7
-add(6, ['localisation', 'polaires', 'polaire', 'rectangulaires', 'rectangulaire', 'pour moi'], { kind: 'goto' });
+add(3, ['localisation', 'polaires', 'polaire', 'rectangulaires', 'rectangulaire', 'pour moi'], { kind: 'goto' });
 for (const [k, ph] of Object.entries({
   g: ['gisement'], d: ['distance'], s: ['site'], x: ['x', 'ixe', 'iks'], y: ['y', 'igrec', 'i grec'],
   z: ['z', 'zed', 'zede'], fu: ['fuseau', 'fuseaux'], ba: ['bande', 'bandes'],
-})) add(6, ph, { kind: 'rowlabel', key: k });
-add(6, ['repere', 'repere tir', 'reperes'], { kind: 'goto' });
+})) add(3, ph, { kind: 'rowlabel', key: k });
+add(3, ['repere', 'repere tir', 'reperes'], { kind: 'goto' });
 const dir = (c, phrases, key, value, guard) => add(c, phrases, { kind: 'set', set: { [key + 'dir']: value }, cursor: key, guard });
-dir(6, ['plus a l est', 'a l est', 'l est'], 'repEO', 'E');
-dir(6, ['est'], 'repEO', 'E', 'num');
-dir(6, ['plus a l ouest', 'a l ouest', 'ouest'], 'repEO', 'O');
-dir(6, ['plus au nord', 'au nord', 'nord'], 'repNS', 'N');
-dir(6, ['plus au sud', 'au sud', 'sud'], 'repNS', 'S');
-dir(6, ['plus a droite', 'a droite', 'droite'], 'pmDG', 'D');
-dir(6, ['plus a gauche', 'a gauche', 'gauche'], 'pmDG', 'G');
-dir(6, ['plus pres', 'pres'], 'pmPL', 'P');
-dir(6, ['plus loin', 'loin'], 'pmPL', 'L');
-dir(6, ['plus haut', 'haut'], 'pmHB', 'H');
-dir(6, ['plus bas', 'bas'], 'pmHB', 'B');
-add(6, ['tle', 't l e', 'precision', 'precision de localisation'], { kind: 'cursor', cursor: 'tle' });
-// Cadre 8
-add(7, ['gerbe'], { kind: 'goto' });
-setE(7, 'geom', {
-  convergent: ['convergent', 'convergente', 'convergence'], lineaire: ['lineaire', 'lineaires'],
-  surfacique: ['surfacique', 'surfaciques'], circulaire: ['circulaire', 'circulaires'],
-});
-add(7, ['point central'], { kind: 'cursor', cursor: 'pc' });
-add(7, ['centre'], { kind: 'cursor', cursor: 'centre' });
-add(7, ['gisement'], { kind: 'cursor', cursor: 'gis8' });
-add(7, ['front'], { kind: 'cursor', cursor: 'front' });
-add(7, ['profondeur'], { kind: 'cursor', cursor: 'prof' });
-add(7, ['rayon'], { kind: 'cursor', cursor: 'rayon' });
-setE(7, 'ouvert', { ouvert: ['ouvert', 'ouverte'], ferme: ['ferme', 'fermee'] });
-// Cadre 9
-add(8, ['mise en place'], { kind: 'goto' });
-setE(8, 'mep9', {
-  grille: ['grille'],
-  dpm: ['deplacement du point moyen', 'deplacement point moyen', 'deplacement', 'point moyen', 'dpm', 'd p m'],
-});
-add(8, ['gisement d observation', 'gisement observation', 'gisement d observ', 'gisement de l observateur', 'gisement'], { kind: 'cursor', cursor: 'gisObs' });
-add(8, ['observateur'], { kind: 'cursor', cursor: 'obsX' });
-add(8, ['x', 'ixe', 'iks'], { kind: 'cursor', cursor: 'obsX' });
-add(8, ['y', 'igrec', 'i grec'], { kind: 'cursor', cursor: 'obsY' });
-add(8, ['z', 'zed', 'zede'], { kind: 'cursor', cursor: 'obsZ' });
+dir(3, ['plus a l est', 'a l est', 'l est'], 'repEO', 'E');
+dir(3, ['est'], 'repEO', 'E', 'num');
+dir(3, ['plus a l ouest', 'a l ouest', 'ouest'], 'repEO', 'O');
+dir(3, ['plus au nord', 'au nord', 'nord'], 'repNS', 'N');
+dir(3, ['plus au sud', 'au sud', 'sud'], 'repNS', 'S');
+dir(3, ['plus a droite', 'a droite', 'droite'], 'pmDG', 'D');
+dir(3, ['plus a gauche', 'a gauche', 'gauche'], 'pmDG', 'G');
+dir(3, ['plus pres', 'pres'], 'pmPL', 'P');
+dir(3, ['plus loin', 'loin'], 'pmPL', 'L');
+dir(3, ['plus haut', 'haut'], 'pmHB', 'H');
+dir(3, ['plus bas', 'bas'], 'pmHB', 'B');
+add(3, ['tle', 't l e', 'precision', 'precision de localisation'], { kind: 'cursor', cursor: 'tle' });
 // Cadre 10
-add(9, ['amis', 'amis les plus proches', 'amis plus proches', 'ami', 'amis proches'], { kind: 'cursor', cursor: 'amisDist' });
-add(9, ['distance'], { kind: 'cursor', cursor: 'amisDist' });
-add(9, ['gisement'], { kind: 'cursor', cursor: 'amisGis' });
-setE(9, 'amisDir', { N: ['nord'], S: ['sud'], E: ['est'], O: ['ouest'] });
-add(9, ['posture', 'posture de protection'], { kind: 'cursor', cursor: 'posture' });
-setE(9, 'posture', { 1: ['a decouvert', 'decouvert'], 2: ['abrite', 'abrites', 'abri'], 3: ['sous blindage', 'blindage', 'blinde'] });
+add(4, ['amis', 'amis les plus proches', 'amis plus proches', 'ami', 'amis proches'], { kind: 'cursor', cursor: 'amisDist' });
+add(4, ['distance'], { kind: 'cursor', cursor: 'amisDist' });
+add(4, ['gisement'], { kind: 'cursor', cursor: 'amisGis' });
+setE(4, 'amisDir', { N: ['nord'], S: ['sud'], E: ['est'], O: ['ouest'] });
+add(4, ['posture', 'posture de protection'], { kind: 'cursor', cursor: 'posture' });
+setE(4, 'posture', { 1: ['a decouvert', 'decouvert'], 2: ['abrite', 'abrites', 'abri'], 3: ['sous blindage', 'blindage', 'blinde'] });
 // Cadre 11
-setE(10, 'tir', {
+setE(5, 'tir', {
   amc: ['a mon commandement', 'mon commandement'],
   ap: ['aussitot pret', 'aussi tot pret'],
   apl: ['aussitot pret limite', 'aussi tot pret limite', 'pret limite', 'nlt'],
@@ -170,8 +109,8 @@ setE(10, 'tir', {
   hsol: ['hso limite', 'h s o limite', 'heure sur objectif limite'],
   hdt: ['heure de tir'],
 }, Object.fromEntries(['apl', 'synchro', 'hso', 'hsol', 'hdt'].map((k) => [k, { cursor: 'h1' }])));
-add(10, ['au commandement de', 'au commandement du', 'au commandement d'], { kind: 'acd' });
-add(10, ['debut'], { kind: 'cursor', cursor: 'h1' });
+add(5, ['au commandement de', 'au commandement du', 'au commandement d'], { kind: 'acd' });
+add(5, ['debut'], { kind: 'cursor', cursor: 'h1' });
 
 const UNITS = {
   zero: 0, un: 1, une: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8,
@@ -185,7 +124,7 @@ const TENS = {
 const SKIP_UNITS = new Set(['m', 'metre', 'metres', 'ms', 'millisecondes', 'milliseconde', 'mils', 'mil',
   'millieme', 'milliemes', 'h', 'heure', 'heures']);
 // Mots courants trop proches d'un mot-clé : pas de tolérance aux fautes.
-const EXACT = new Set(['centre', 'rayon', 'front', 'retard', 'canon', 'canons', 'bande', 'fusant', 'debut', 'grille']);
+const EXACT = new Set(['bande', 'debut']);
 
 function lev(a, b) {
   if (Math.abs(a.length - b.length) > 2) return 3;
@@ -307,14 +246,11 @@ function accFlush(acc) {
 
 /* ---------- Parse ---------- */
 
-const CODES = { _traj: ['plongeante', 'verticale', 'nominale'], _mode: ['pi', 'pcr', 'fusant', 'retard'] };
-const ARMES = { 81: 'mo81', 120: 'mo120', 155: 'c155' };
 // Cadre où vont les nombres quand le cadre en cours n'a plus de case libre.
-// Le cadre 9 (facultatif) ne reçoit des nombres qu'après un de ses mots ; après le cadre 7, on passe aux amis.
-const OVERFLOW = { 1: 3, 2: 3, 3: 4, 6: 9, 7: 9, 8: 9 };
-const COMPANION = { coups: 'coups2', duree: 'duree2', interv: 'interv2' };
+// Après la localisation (cadre 7), on passe aux amis.
+const OVERFLOW = { 3: 4 };
 // Cases où des chiffres annoncés un par un se mettent bout à bout (coordonnées, distances).
-const CONCAT = /\.(x|y|z|d)$|^obs[XYZ]$|^amisDist$|^front$|^prof$|^rayon$/;
+const CONCAT = /\.(x|y|z|d)$|^amisDist$/;
 
 // ignoreStops : nombre de « terminé » déjà traités (dictée reprise après la vérification).
 export function parse(text, { final = false, ignoreStops = 0 } = {}) {
@@ -346,7 +282,7 @@ export function parse(text, { final = false, ignoreStops = 0 } = {}) {
     if (c === 0) st.id = numAcc();
     if (c === 1) st.confirm = null;
     if (c === 2) st.pan = numAcc();
-    if (c === 6) st.row = null;
+    if (c === 3) st.row = null;
     st.cursor = null; st.last = null;
     syncAcc();
   };
@@ -357,13 +293,9 @@ export function parse(text, { final = false, ignoreStops = 0 } = {}) {
     switch (c) {
       case 1: return v.type === 'mettre_en_place' || v.type === 'mep_decentree' ? ['mepBox'] : v.type === 'renouveler' ? ['ren1', 'ren2'] : [];
       case 2: return v.panache ? ['p1', 'p2'] : [];
-      case 3: return ['coups', 'duree', 'interv'];
-      case 4: return ['lanceurs'];
-      case 6: return st.row ? ROW_KEYS[ROW_KIND[st.row]].map((k) => `${st.row}.${k}`) : [];
-      case 7: return v.geom === 'lineaire' || v.geom === 'surfacique' ? ['gis8', 'front', 'prof'] : v.geom === 'circulaire' ? ['rayon'] : [];
-      case 8: return ['gisObs', 'obsX', 'obsY', 'obsZ'];
-      case 9: return ['amisDist', 'amisGis'];
-      case 10: return v.tir === 'hsol' ? ['h1', 'h2'] : ['apl', 'synchro', 'hso', 'hdt'].includes(v.tir) ? ['h1'] : [];
+      case 3: return st.row ? ROW_KEYS[ROW_KIND[st.row]].map((k) => `${st.row}.${k}`) : [];
+      case 4: return ['amisDist', 'amisGis'];
+      case 5: return v.tir === 'hsol' ? ['h1', 'h2'] : ['apl', 'synchro', 'hso', 'hdt'].includes(v.tir) ? ['h1'] : [];
       default: return [];
     }
   };
@@ -411,18 +343,8 @@ export function parse(text, { final = false, ignoreStops = 0 } = {}) {
       v[st.last.key] += num.digits;
       return st.last.key;
     }
-    if (st.cursor === '_calibre' && ARMES[num.digits]) { v.arme = ARMES[num.digits]; st.cursor = null; return 'arme'; }
-    if (st.cursor === '_traj' || st.cursor === '_mode') {
-      const val = CODES[st.cursor][Number(num.digits) - 1];
-      if (val) {
-        const [a, b] = st.cursor === '_traj' ? ['traj1', 'traj2'] : ['mode1', 'mode2'];
-        if (v[a] === undefined) v[a] = val; else v[b] = val;
-        return a;
-      }
-    }
-    if (st.cur === 4 && ARMES[num.digits] && !v.arme) { v.arme = ARMES[num.digits]; return 'arme'; }
     if (st.cur === 0) { accPush(st.id, num.digits, true); syncAcc(); return 'id'; }
-    let key = st.cursor && !st.cursor.startsWith('_') ? st.cursor : null;
+    let key = st.cursor;
     if (!key) key = nextKey(st.cur);
     if (!key) {
       for (let c = OVERFLOW[st.cur]; c !== undefined; c = OVERFLOW[c]) {
@@ -448,8 +370,8 @@ export function parse(text, { final = false, ignoreStops = 0 } = {}) {
       i++; continue;
     }
     // « fin » après « HSO limité … début » est l'heure de fin, pas la fin du message.
-    if (t.n === 'fin' && st.cur === 10 && v.tir === 'hsol' && v.h1 && !v.h2) {
-      st.cursor = 'h2'; mark(i, 1, 10, 'label'); i++; continue;
+    if (t.n === 'fin' && st.cur === 5 && v.tir === 'hsol' && v.h1 && !v.h2) {
+      st.cursor = 'h2'; mark(i, 1, 5, 'label'); i++; continue;
     }
 
     const ms = matchesAt(toks, i);
@@ -463,24 +385,8 @@ export function parse(text, { final = false, ignoreStops = 0 } = {}) {
     const article = num && num.len === 1 && (toks[ni].n === 'un' || toks[ni].n === 'une')
       && !st.cursor && !matchNumber(toks, ni + 1) && !(st.last && st.last.end === ni);
     if (num && !article) {
-      const after = ni + num.len;
-      // Unité qui suit (« 6 coups », « 2 minutes », « 4 lanceurs ») : elle choisit la case.
-      const unit = toks[after] ? matchesAt(toks, after).find((m) => m.kind === 'unit') : null;
-      const gap = text.slice(toks[i - 1]?.end ?? 0, t.start);
-      const slash = st.last && COMPANION[st.last.key]
-        && (gap.includes('/') || ['sur', 'barre', 'slash'].includes(toks[i - 1]?.n));
-      let key = null, used = after;
-      if (unit && unit.c >= st.cur) {
-        moveTo(unit.c);
-        key = slash && st.last?.key === unit.key ? COMPANION[unit.key] : unit.key;
-        v[key] = num.digits; st.cursor = null;
-        used = after + unit.len;
-      } else if (slash && st.cur === 3) {
-        key = COMPANION[st.last.key];
-        v[key] = num.digits;
-      } else {
-        key = placeNumber(num, neg, ni);
-      }
+      const used = ni + num.len;
+      const key = placeNumber(num, neg, ni);
       if (key) {
         mark(i, used - i, st.cur, 'num');
         st.last = { key, single: num.single, end: used };
@@ -519,20 +425,15 @@ export function parse(text, { final = false, ignoreStops = 0 } = {}) {
         moveTo(1);
         if (!v.letter) v.letter = L; else st.confirm = L;
         mark(i, len, 1, 'letter');
-      } else if (st.cur === 7 && v.geom && v.geom !== 'convergent') {
-        const key = v.geom === 'circulaire' ? 'centre' : 'pc';
-        v[key] = L; st.cursor = nextKey(7);
-        mark(i, len, 7, 'letter');
-      } else if (st.cur <= 6) {
-        moveTo(6); st.row = L; st.cursor = null;
-        mark(i, len, 6, 'letter');
+      } else if (st.cur <= 3) {
+        moveTo(3); st.row = L; st.cursor = null;
+        mark(i, len, 3, 'letter');
       }
     } else {
       moveTo(m.c);
-      mark(i, len, m.c, ['goto', 'cursor', 'rowlabel', 'unit'].includes(m.kind) ? 'label' : 'word');
+      mark(i, len, m.c, ['goto', 'cursor', 'rowlabel'].includes(m.kind) ? 'label' : 'word');
       switch (m.kind) {
         case 'cursor': st.cursor = m.cursor; break;
-        case 'unit': st.cursor = m.key; break;
         case 'set': Object.assign(v, m.set); st.cursor = m.cursor ?? null; break;
         case 'semonce':
           if (v.effect === undefined) v.effect = 'semonce'; else v.munition = 'semonce';
@@ -540,13 +441,6 @@ export function parse(text, { final = false, ignoreStops = 0 } = {}) {
         case 'panache':
           if (st.pan.vals.length >= 2) st.pan = numAcc();
           v.panache = true; syncAcc(); st.cursor = 'p1';
-          break;
-        case 'traj':
-          if (v.traj1 === undefined) v.traj1 = m.value; else if (v.traj1 !== m.value) v.traj2 = m.value;
-          break;
-        case 'mode':
-          if (v.mode1 === undefined) v.mode1 = m.value; else if (v.mode1 !== m.value) v.mode2 = m.value;
-          st.cursor = m.cursor ?? null;
           break;
         case 'rowlabel': {
           const want = { g: 'pol', d: 'pol', s: 'pol', fu: 'lru', ba: 'lru' }[m.key];
@@ -563,7 +457,7 @@ export function parse(text, { final = false, ignoreStops = 0 } = {}) {
           while (j < toks.length && !['termine', 'terminer', 'fin'].includes(toks[j].n)) j++;
           if (j > i + len) {
             v.acd = text.slice(toks[i + len].start, toks[j - 1].end);
-            mark(i + len, j - i - len, 10, 'word');
+            mark(i + len, j - i - len, 5, 'word');
           }
           i = j;
           continue;
@@ -589,14 +483,9 @@ export function parse(text, { final = false, ignoreStops = 0 } = {}) {
     if (c === 0) return !!(v.id1 && v.id2);
     if (c === 1) return !!v.letter && st.confirm === v.letter;
     if (c === 2) return !v.panache || !!(v.p1 && v.p2);
-    if (c === 6) return locationOk(v);
-    if (c === 7) {
-      if (v.geom === 'lineaire' || v.geom === 'surfacique') return !!(v.gis8 && v.front);
-      return v.geom === 'circulaire' ? !!v.rayon : started(c);
-    }
-    if (c === 8) return started(c) && !st.partial.has('gisObs');
-    if (c === 9) return !!v.amisDist && !!(v.amisGis || v.amisDir) && !st.partial.has('amisGis');
-    if (c === 10) return order(10).every((k) => v[k] && !st.partial.has(k));
+    if (c === 3) return locationOk(v);
+    if (c === 4) return !!v.amisDist && !!(v.amisGis || v.amisDir) && !st.partial.has('amisGis');
+    if (c === 5) return order(5).every((k) => v[k] && !st.partial.has(k));
     return started(c) && !CADRES[c].fields.some((fd) => st.partial.has(fd.key));
   });
   // Le cadre suivant prend la main quand celui en cours est complet et n'attend plus de nombre.

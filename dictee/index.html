@@ -15,7 +15,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
-  <link rel="stylesheet" href="style.css?v=19">
+  <link rel="stylesheet" href="style.css?v=21">
 </head>
 <body>
 <!-- DÉMARRAGE -->
@@ -32,7 +32,6 @@
     <div class="brand"><svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="2" stroke-linecap="square"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg>SALVE</div>
     <div class="status">
       <span class="st" data-st="mic" role="img" aria-label="Micro"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg></span>
-      <span class="net-badge" data-st="net" role="status" aria-label="Réseau"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="15" width="3.5" height="6" rx="1"/><rect x="7.5" y="11" width="3.5" height="10" rx="1"/><rect x="13" y="7" width="3.5" height="14" rx="1"/><rect x="18.5" y="3" width="3.5" height="18" rx="1"/></svg><b>…</b></span>
       <button class="icon-btn" id="btn-settings" aria-label="Réglages"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
     </div>
   </header>
@@ -58,7 +57,6 @@
     <div class="rec-state"><span class="rec-dot" id="rec-dot"></span><span id="rec-label">Écoute</span><span class="timer" id="timer">0:00</span></div>
     <div class="status">
       <span class="st" data-st="mic" role="img" aria-label="Micro"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg></span>
-      <span class="net-badge" data-st="net" role="status" aria-label="Réseau"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="15" width="3.5" height="6" rx="1"/><rect x="7.5" y="11" width="3.5" height="10" rx="1"/><rect x="13" y="7" width="3.5" height="14" rx="1"/><rect x="18.5" y="3" width="3.5" height="18" rx="1"/></svg><b>…</b></span>
     </div>
   </header>
 
@@ -224,7 +222,7 @@
     <span class="icon-btn ghost"></span>
   </header>
   <div class="review-body set-body">
-    <p class="hp-intro">Annoncez les cadres dans l'ordre, de 1 à 11. Les cadres facultatifs peuvent être sautés. Les choix se disent par leur mot, les nombres seuls, dans l'ordre du cadre.</p>
+    <p class="hp-intro">Annoncez les cadres dans l'ordre. Les choix se disent par leur mot, les nombres seuls, dans l'ordre du cadre.</p>
     <section class="set-group">
       <h3>Cadres</h3>
       <ol class="set-card hp-list">
@@ -241,32 +239,12 @@
           <div><div class="hp-title">Effet</div><div class="hp-what">Effet, « panaché » + 2 nombres, munition</div><div class="hp-ex">« destruction, panaché 56 78, explo »</div></div>
         </li>
         <li class="hp-row">
-          <span class="sec-num">4</span>
-          <div><div class="hp-title">Coups <em>facultatif</em></div><div class="hp-what">Coups, durée, intervalle</div><div class="hp-ex">« 6, 2, 10 » · « 6 coups, 2 minutes »</div></div>
-        </li>
-        <li class="hp-row">
-          <span class="sec-num">5</span>
-          <div><div class="hp-title">Lanceurs <em>facultatif</em></div><div class="hp-what">Nombre, arme, trajectoire, mode</div><div class="hp-ex">« 4, mortier de 120, plongeante, fusant 10 »</div></div>
-        </li>
-        <li class="hp-row">
-          <span class="sec-num">6</span>
-          <div><div class="hp-title">Objectif <em>facultatif</em></div><div class="hp-what">Type d'objectif et état</div><div class="hp-ex">« chars en mouvement »</div></div>
-        </li>
-        <li class="hp-row">
           <span class="sec-num">7</span>
           <div><div class="hp-title">Localisation</div><div class="hp-what">Ligne A–H puis valeurs ; repère ou corrections</div><div class="hp-ex">« Alpha 1250 3400 moins 12 » · « Delta X … Y … Z … » · « pour moi plus à droite 50 » · « TLE 2 »</div></div>
         </li>
         <li class="hp-row">
-          <span class="sec-num">8</span>
-          <div><div class="hp-title">Gerbe <em>facultatif</em></div><div class="hp-what">Linéaire, surfacique ou circulaire</div><div class="hp-ex">« linéaire, Alpha, 1600, 200, 50, ouvert » · « circulaire, centre Bravo, rayon 150 »</div></div>
-        </li>
-        <li class="hp-row">
-          <span class="sec-num">9</span>
-          <div><div class="hp-title">Mise en place <em>facultatif</em></div><div class="hp-what">Grille ou déplacement, puis gisement d'observ., X Y Z</div><div class="hp-ex">« déplacement, 4800 »</div></div>
-        </li>
-        <li class="hp-row">
           <span class="sec-num">10</span>
-          <div><div class="hp-title">Amis</div><div class="hp-what">Distance, gisement ou direction, posture</div><div class="hp-ex">« amis 500, 1200, abrité »</div></div>
+          <div><div class="hp-title">Amis les plus proches</div><div class="hp-what">Distance, gisement ou direction, posture</div><div class="hp-ex">« amis 500, 1200, abrité »</div></div>
         </li>
         <li class="hp-row">
           <span class="sec-num">11</span>
@@ -308,6 +286,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script type="module" src="js/app.js?v=20"></script>
+<script type="module" src="js/app.js?v=21"></script>
 </body>
 </html>
