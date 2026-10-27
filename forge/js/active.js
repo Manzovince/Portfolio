@@ -1,9 +1,9 @@
 // Live workout: big touch targets, auto rest timer, guided timers for holds and runs.
-import { db, save, uid, exById, lastSetsFor, progressSets, isDeload, sessionStats, computePRs, fmtClock, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=2';
-import { MODES } from './library.js?v=2';
-import { esc, icon, sheet, menu, confirmDialog, toast, beep, buzz, unlockAudio, $ } from './ui.js?v=2';
-import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL } from './fields.js?v=2';
-import { openPicker, pickRest, restLabel } from './editor.js?v=2';
+import { db, save, uid, exById, lastSetsFor, progressSets, isDeload, sessionStats, computePRs, fmtClock, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=3';
+import { MODES } from './library.js?v=3';
+import { esc, icon, sheet, menu, confirmDialog, toast, beep, buzz, unlockAudio, $ } from './ui.js?v=3';
+import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL } from './fields.js?v=3';
+import { openPicker, pickRest, restLabel } from './editor.js?v=3';
 
 const clone = o => JSON.parse(JSON.stringify(o));
 let root = null, ticker = 0, wakeLock = null, onExit = () => {};
@@ -163,6 +163,7 @@ function bind() {
   root.querySelectorAll('.ex-card').forEach(card => {
     const i = +card.dataset.i, it = a.items[i], ex = exById(it.exId);
     card.querySelector('[data-rest]').onclick = () => pickRest(it.rest, r => { it.rest = r; save(); render(); });
+    card.querySelector('.note')?.addEventListener('click', e => e.currentTarget.classList.toggle('open'));
     card.querySelector('[data-addset]').onclick = () => {
       const last = it.sets[it.sets.length - 1];
       const nx = { done: false, kind: last?.kind === 'w' ? 'n' : (last?.kind || 'n'), target: last ? { ...(last.target || {}) } : {} };

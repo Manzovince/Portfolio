@@ -1,8 +1,8 @@
 // Template ("séance") editor, exercise picker and custom-exercise form.
-import { db, save, uid, exById, allExercises, invalidateEx, estimateTpl, fmtDur, fmtClock } from './store.js?v=2';
-import { MUSCLES, CATS, EQUIP, MODES } from './library.js?v=2';
-import { esc, icon, sheet, menu, confirmDialog, toast, COLORS, colorOf } from './ui.js?v=2';
-import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL, REST_CHOICES } from './fields.js?v=2';
+import { db, save, uid, exById, allExercises, invalidateEx, estimateTpl, fmtDur, fmtClock } from './store.js?v=3';
+import { MUSCLES, CATS, EQUIP, MODES } from './library.js?v=3';
+import { esc, icon, sheet, menu, confirmDialog, toast, COLORS, colorOf } from './ui.js?v=3';
+import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL, REST_CHOICES } from './fields.js?v=3';
 
 const clone = o => JSON.parse(JSON.stringify(o));
 
@@ -83,7 +83,7 @@ export function openTemplateEditor(tplId, onDone) {
     const linked = it.group && tpl.items[i + 1]?.group === it.group;
     return `<article class="ex-card ${it.group ? 'grouped' : ''}" data-i="${i}">
       <header class="ex-head">
-        <div class="ex-title"><b>${esc(ex.name)}</b><small>${esc(MODES[ex.mode].label)}${it.group ? ' · superset' : ''}</small></div>
+        <div class="ex-title"><b>${esc(ex.name)}</b><small>${esc(MODES[ex.mode].label)}${ex.side ? ' · par côté' : ''}${it.group ? ' · superset' : ''}</small>${it.note ? `<small class="note">${esc(it.note)}</small>` : ''}</div>
         <button class="chip sm" data-rest>${icon('timer')} ${restLabel(it.rest)}</button>
         <button class="icon-btn" data-menu aria-label="Options">${icon('dots')}</button>
       </header>
@@ -119,6 +119,10 @@ export function openTemplateEditor(tplId, onDone) {
         else { const g = it.group || uid(); it.group = g; nxt.group = g; }
         render(root);
       } },
+      { label: it.note ? 'Modifier la note' : 'Ajouter une note', icon: 'edit', run: () => sheet({
+        title: 'Note', body: `<textarea class="note-area" rows="4" placeholder="Consigne, niveau, réglage…">${esc(it.note || '')}</textarea><button class="btn primary block" data-ok>OK</button>`,
+        onMount(el, close) { const t = el.querySelector('textarea'); t.focus(); el.querySelector('[data-ok]').onclick = () => { it.note = t.value.trim(); close(); render(root); }; },
+      }) },
       { label: 'Remplacer l’exercice', icon: 'edit', run: () => openPicker(ids => { if (ids[0]) { it.exId = ids[0]; render(root); } }, { single: true }) },
       { label: 'Dupliquer', icon: 'copy', run: () => { tpl.items.splice(i + 1, 0, { ...clone(it), id: uid(), group: null }); render(root); } },
       { label: 'Supprimer', icon: 'trash', danger: true, run: () => { tpl.items.splice(i, 1); render(root); } },
