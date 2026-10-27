@@ -1,12 +1,12 @@
 // Boot + tab routing.
-import { db } from './store.js?v=3';
-import { icon, $, closeTopSheet } from './ui.js?v=3';
-import { renderHome, renderWorkouts, applyTheme } from './views.js?v=3';
-import { renderProgram } from './program.js?v=3';
-import { renderJournal } from './journal.js?v=3';
-import { renderStats } from './stats.js?v=3';
-import { openActive, ensureTicker, setActiveExitHandler } from './active.js?v=3';
-import { hideTip } from './charts.js?v=3';
+import { db } from './store.js?v=4';
+import { icon, $, closeTopSheet } from './ui.js?v=4';
+import { renderHome, renderWorkouts, applyTheme } from './views.js?v=4';
+import { renderProgram } from './program.js?v=4';
+import { renderJournal } from './journal.js?v=4';
+import { renderStats } from './stats.js?v=4';
+import { openActive, ensureTicker, setActiveExitHandler } from './active.js?v=4';
+import { hideTip } from './charts.js?v=4';
 
 const TABS = [
   ['home', 'Accueil', 'home'],

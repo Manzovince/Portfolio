@@ -1,13 +1,13 @@
 // Home, templates/exercises tab and settings.
-import { db, save, replaceDb, resetDb, exById, allExercises, dayKey, addDays, mondayOf, plannedOn, sessionsOn, isPlannedDone, isDeload, sessionStats, estimateTpl, fmtDur, fmtKm, fmtTonnage } from './store.js?v=3';
-import { CATS } from './library.js?v=3';
-import { esc, icon, sheet, menu, confirmDialog, toast, colorOf, FR_DAYS, fmtDay } from './ui.js?v=3';
-import { openTemplateEditor, openExerciseForm, tplSummary, norm, exMeta } from './editor.js?v=3';
-import { startWorkout, openActive } from './active.js?v=3';
-import { pickTemplate } from './program.js?v=3';
-import { sessRow, openSessionDetail } from './journal.js?v=3';
-import { openExerciseDetail } from './stats.js?v=3';
-import { loadDemo } from './demo.js?v=3';
+import { db, save, replaceDb, resetDb, exById, allExercises, dayKey, addDays, mondayOf, plannedOn, sessionsOn, isPlannedDone, isDeload, sessionStats, estimateTpl, fmtDur, fmtKm, fmtTonnage } from './store.js?v=4';
+import { CATS } from './library.js?v=4';
+import { esc, icon, sheet, menu, confirmDialog, toast, colorOf, FR_DAYS, fmtDay } from './ui.js?v=4';
+import { openTemplateEditor, openExerciseForm, tplSummary, norm, exMeta } from './editor.js?v=4';
+import { startWorkout, openActive } from './active.js?v=4';
+import { pickTemplate } from './program.js?v=4';
+import { sessRow, openSessionDetail } from './journal.js?v=4';
+import { openExerciseDetail } from './stats.js?v=4';
+import { loadDemo } from './demo.js?v=4';
 
 const tplOf = id => db.templates.find(t => t.id === id);
 

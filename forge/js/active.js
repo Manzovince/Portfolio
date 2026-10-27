@@ -1,9 +1,9 @@
 // Live workout: big touch targets, auto rest timer, guided timers for holds and runs.
-import { db, save, uid, exById, lastSetsFor, progressSets, isDeload, sessionStats, computePRs, fmtClock, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=3';
-import { MODES } from './library.js?v=3';
-import { esc, icon, sheet, menu, confirmDialog, toast, beep, buzz, unlockAudio, $ } from './ui.js?v=3';
-import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL } from './fields.js?v=3';
-import { openPicker, pickRest, restLabel } from './editor.js?v=3';
+import { db, save, uid, exById, lastSetsFor, progressSets, isDeload, sessionStats, computePRs, fmtClock, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=4';
+import { MODES } from './library.js?v=4';
+import { esc, icon, sheet, menu, confirmDialog, toast, beep, buzz, unlockAudio, $ } from './ui.js?v=4';
+import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL } from './fields.js?v=4';
+import { openPicker, pickRest, restLabel } from './editor.js?v=4';
 
 const clone = o => JSON.parse(JSON.stringify(o));
 let root = null, ticker = 0, wakeLock = null, onExit = () => {};

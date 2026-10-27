@@ -1,5 +1,5 @@
 // Persistent state (localStorage) + domain helpers shared by every view.
-import { LIBRARY, MODES } from './library.js?v=3';
+import { LIBRARY, MODES } from './library.js?v=4';
 
 const KEY = 'forge.v1';
 
@@ -176,10 +176,23 @@ function migrate(d) {
       d.templates.push(A, B, C, T);
       const start = '2026-11-02', weeks = 30;
       d.programs.push({ id: uid(), name: 'Renfo reprise A · B · C', color: 'ember', start, weeks,
-        days: [[A.id], [], [B.id], [], [C.id], [], []], rule: 'none', value: 0, every: 1, deload: 0 });
-      for (const w of [1, 6, 12, 18, 24, 30]) d.planned.push({ id: uid(), date: dayKey(addDays(parseDay(start), (w - 1) * 7 + 5)), tplId: T.id });
+        days: [[], [A.id], [], [B.id], [], [C.id], []], rule: 'none', value: 0, every: 1, deload: 0 });
+      for (const w of [1, 6, 12, 18, 24, 30]) d.planned.push({ id: uid(), date: dayKey(addDays(parseDay(start), (w - 1) * 7 + 6)), tplId: T.id });
     }
     d.v = 3;
+    d._migrated = true;
+  }
+  if (d.v < 4) {
+    // Monday is running: move A/B/C to Tue/Thu/Sat and tests to Sunday, unless already edited.
+    const p = d.programs.find(x => x.name === 'Renfo reprise A · B · C');
+    const flat = p && p.days.map(x => x.length).join('');
+    if (p && flat === '1010100') {
+      const [A, , B, , C] = p.days.map(x => x[0]);
+      p.days = [[], [A], [], [B], [], [C], []];
+      const T = d.templates.find(t => t.name === 'Tests (toutes les 6 semaines)');
+      for (const x of d.planned) if (T && x.tplId === T.id && parseDay(x.date).getDay() === 6) x.date = dayKey(addDays(parseDay(x.date), 1));
+    }
+    d.v = 4;
     d._migrated = true;
   }
   return d;

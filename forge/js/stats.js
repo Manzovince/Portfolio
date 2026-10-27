@@ -1,8 +1,8 @@
 // Statistics, weak-point analysis, records and per-exercise progression.
-import { db, exById, bestOf, better, isWork, sessionStats, sessionKind, mondayOf, addDays, dayKey, plannedOn, isPlannedDone, fmtNum, fmtClock, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=3';
-import { MUSCLES, REGIONS, MODES } from './library.js?v=3';
-import { esc, icon, sheet, fmtDayShort, fmtDay } from './ui.js?v=3';
-import { bars, line, attachTips } from './charts.js?v=3';
+import { db, exById, bestOf, better, isWork, sessionStats, sessionKind, mondayOf, addDays, dayKey, plannedOn, isPlannedDone, fmtNum, fmtClock, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=4';
+import { MUSCLES, REGIONS, MODES } from './library.js?v=4';
+import { esc, icon, sheet, fmtDayShort, fmtDay } from './ui.js?v=4';
+import { bars, line, attachTips } from './charts.js?v=4';
 
 const C_FORCE = 'var(--c1)', C_RUN = 'var(--c2)', C_MOB = 'var(--c3)';
 const RANGES = [[28, '4 sem.'], [91, '3 mois'], [182, '6 mois'], [365, '1 an'], [0, 'Tout']];

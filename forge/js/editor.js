@@ -1,8 +1,8 @@
 // Template ("séance") editor, exercise picker and custom-exercise form.
-import { db, save, uid, exById, allExercises, invalidateEx, estimateTpl, fmtDur, fmtClock } from './store.js?v=3';
-import { MUSCLES, CATS, EQUIP, MODES } from './library.js?v=3';
-import { esc, icon, sheet, menu, confirmDialog, toast, COLORS, colorOf } from './ui.js?v=3';
-import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL, REST_CHOICES } from './fields.js?v=3';
+import { db, save, uid, exById, allExercises, invalidateEx, estimateTpl, fmtDur, fmtClock } from './store.js?v=4';
+import { MUSCLES, CATS, EQUIP, MODES } from './library.js?v=4';
+import { esc, icon, sheet, menu, confirmDialog, toast, COLORS, colorOf } from './ui.js?v=4';
+import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL, REST_CHOICES } from './fields.js?v=4';
 
 const clone = o => JSON.parse(JSON.stringify(o));
 
