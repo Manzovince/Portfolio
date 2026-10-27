@@ -46,4 +46,11 @@ applyTheme();
 render();
 if (db.active) { ensureTicker(); }
 
+// Let the splash animation finish (~0.95 s after launch), then fade it out.
+const splash = $('#splash');
+if (splash) setTimeout(() => {
+  splash.classList.add('out');
+  setTimeout(() => splash.remove(), 400);
+}, Math.max(0, 950 - performance.now()));
+
 if ('serviceWorker' in navigator && location.hostname !== 'localhost') navigator.serviceWorker.register('sw.js').catch(() => {});

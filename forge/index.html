@@ -13,12 +13,45 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-180.png">
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1320x2868.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 420px) and (device-height: 912px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1260x2736.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1206x2622.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1290x2796.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1179x2556.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1284x2778.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1170x2532.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1242x2688.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/828x1792.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1125x2436.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/750x1334.png">
+  <style>
+    /* splash: inline so it paints before style.css; same geometry as the iOS launch images */
+    #splash { position: fixed; inset: 0; z-index: 200; background: #0e0f11; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; transition: opacity .35s ease, transform .35s ease; }
+    #splash svg { width: 112px; height: 112px; overflow: visible; }
+    #splash path { fill: none; stroke: #ff7a3d; stroke-width: 44; stroke-linecap: round; }
+    #splash b { font: 800 22px/1 system-ui, -apple-system, sans-serif; letter-spacing: .32em; margin-right: -.32em; color: #eceef1; }
+    #splash .bar { stroke-dasharray: 1; animation: sp-draw .45s .05s cubic-bezier(.3, .7, .2, 1) both; }
+    #splash .p1 { transform-origin: 256px 256px; animation: sp-pop .4s .3s cubic-bezier(.3, 1.6, .5, 1) both; }
+    #splash .p2 { transform-origin: 256px 256px; animation: sp-pop .4s .42s cubic-bezier(.3, 1.6, .5, 1) both; }
+    #splash b { animation: sp-up .45s .5s ease both; }
+    #splash.out { opacity: 0; transform: scale(1.06); pointer-events: none; }
+    @keyframes sp-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+    @keyframes sp-pop { from { transform: scaleY(0); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes sp-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    /* installed app: iOS already showed the static launch image, so continue from it instead of redrawing */
+    @media (display-mode: standalone) { #splash *, #splash b { animation: none !important; } }
+    @media (prefers-reduced-motion: reduce) { #splash *, #splash { animation: none !important; transition: opacity .2s !important; } }
+  </style>
 </head>
 <body>
+  <div id="splash" aria-hidden="true">
+    <svg viewBox="0 0 512 512"><path class="bar" pathLength="1" d="M150 256h212"/><g class="p1"><path d="M150 150v212M362 150v212"/></g><g class="p2"><path d="M88 204v104M424 204v104"/></g></svg>
+    <b>FORGE</b>
+  </div>
   <main id="view" class="view"></main>
   <button id="mini-active" hidden><span class="pulse"></span><span data-mini></span><b>Ouvrir</b></button>
   <nav class="tabbar" aria-label="Navigation"></nav>
-  <script type="module" src="js/app.js?v=1"></script>
+  <script type="module" src="js/app.js?v=2"></script>
 </body>
 </html>
