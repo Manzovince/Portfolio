@@ -21,7 +21,7 @@ export const CATS = {
 
 export const EQUIP = {
   barre: 'Barre', halteres: 'Haltères', machine: 'Machine', poulie: 'Poulie', kettlebell: 'Kettlebell',
-  traction: 'Barre de traction', elastique: 'Élastique', aucun: 'Aucun', velo: 'Vélo', rameur: 'Rameur', rouleau: 'Rouleau de massage',
+  traction: 'Barre de traction', dips: 'Barres de dips / rowing', elastique: 'Élastique', aucun: 'Aucun', velo: 'Vélo', rameur: 'Rameur', rouleau: 'Rouleau de massage', corde: 'Corde à sauter',
 };
 
 // Fields recorded per set for each mode. `opt` fields can stay empty.
@@ -44,7 +44,7 @@ export const LIBRARY = [
   E('lat-raise', 'Élévations latérales', 'charges', 'halteres', 'wr', ['epaules'], [], 60),
   E('squat', 'Squat (barre)', 'charges', 'barre', 'wr', ['quadriceps', 'fessiers'], ['lombaires', 'adducteurs'], 180),
   E('front-squat', 'Squat avant', 'charges', 'barre', 'wr', ['quadriceps'], ['fessiers', 'abdos'], 180),
-  E('goblet', 'Goblet squat', 'charges', 'kettlebell', 'wr', ['quadriceps'], ['fessiers', 'abdos'], 90),
+  E('goblet', 'Goblet squat', 'charges', 'halteres', 'wr', ['quadriceps'], ['fessiers', 'abdos'], 90),
   E('deadlift', 'Soulevé de terre', 'charges', 'barre', 'wr', ['ischios', 'fessiers', 'lombaires'], ['dos', 'trapezes', 'avantbras'], 180),
   E('rdl', 'Soulevé de terre roumain', 'charges', 'barre', 'wr', ['ischios'], ['fessiers', 'lombaires'], 120),
   E('hip-thrust', 'Hip thrust', 'charges', 'barre', 'wr', ['fessiers'], ['ischios'], 120),
@@ -72,10 +72,10 @@ export const LIBRARY = [
   E('pushup-diamond', 'Pompes diamant', 'pdc', 'aucun', 'bw', ['triceps'], ['pecs'], 90),
   E('pike', 'Pompes piquées', 'pdc', 'aucun', 'bw', ['epaules'], ['triceps'], 90),
   E('hspu', 'Pompes en équilibre', 'pdc', 'aucun', 'bw', ['epaules'], ['triceps', 'trapezes'], 120),
-  E('dips', 'Dips', 'pdc', 'aucun', 'bw', ['pecs', 'triceps'], ['epaules'], 120),
+  E('dips', 'Dips', 'pdc', 'dips', 'bw', ['pecs', 'triceps'], ['epaules'], 120),
   E('pullup', 'Tractions pronation', 'pdc', 'traction', 'bw', ['dos'], ['biceps', 'avantbras'], 120),
   E('chinup', 'Tractions supination', 'pdc', 'traction', 'bw', ['dos', 'biceps'], ['avantbras'], 120),
-  E('inv-row', 'Rowing inversé', 'pdc', 'aucun', 'bw', ['dos'], ['biceps', 'trapezes'], 90),
+  E('inv-row', 'Rowing inversé', 'pdc', 'dips', 'bw', ['dos'], ['biceps', 'trapezes'], 90),
   E('bw-squat', 'Squat poids du corps', 'pdc', 'aucun', 'bw', ['quadriceps'], ['fessiers'], 60),
   E('jump-squat', 'Squats sautés', 'pdc', 'aucun', 'bw', ['quadriceps'], ['fessiers', 'mollets'], 75),
   E('pistol', 'Pistol squat', 'pdc', 'aucun', 'bw', ['quadriceps', 'fessiers'], ['abdos'], 90),
@@ -94,12 +94,12 @@ export const LIBRARY = [
   E('mountain', 'Mountain climbers', 'pdc', 'aucun', 'time', ['abdos'], ['epaules', 'quadriceps'], 45),
   E('wall-sit', 'Chaise murale', 'pdc', 'aucun', 'time', ['quadriceps'], ['fessiers'], 60),
   E('dead-hang', 'Suspension à la barre', 'pdc', 'traction', 'time', ['avantbras'], ['dos'], 60),
-  E('l-sit', 'L-sit', 'pdc', 'aucun', 'time', ['abdos'], ['triceps'], 60),
+  E('l-sit', 'L-sit', 'pdc', 'dips', 'time', ['abdos'], ['triceps'], 60),
   // Progression variants (dips bars, 12 kg dumbbells, pull-up bar). `side`: reps/time are per leg or side.
-  E('dips-tempo', 'Dips descente lente (3 s)', 'pdc', 'aucun', 'bw', ['pecs', 'triceps'], ['epaules'], 90),
+  E('dips-tempo', 'Dips descente lente (3 s)', 'pdc', 'dips', 'bw', ['pecs', 'triceps'], ['epaules'], 90),
   E('pushup-decline', 'Pompes pieds surélevés', 'pdc', 'aucun', 'bw', ['pecs', 'epaules'], ['triceps', 'abdos'], 90),
   E('pushup-archer', 'Pompes archer', 'pdc', 'aucun', 'bw', ['pecs'], ['triceps', 'epaules', 'abdos'], 90),
-  E('pushup-bars', 'Pompes aux barres de dips (amplitude)', 'pdc', 'aucun', 'bw', ['pecs'], ['triceps', 'epaules'], 90),
+  E('pushup-bars', 'Pompes aux barres de dips (amplitude)', 'pdc', 'dips', 'bw', ['pecs'], ['triceps', 'epaules'], 90),
   { ...E('pistol-cw', 'Pistol squat avec contrepoids', 'charges', 'halteres', 'wr', ['quadriceps', 'fessiers'], ['abdos'], 90), side: true },
   { ...E('bulgarian-db', 'Split squat bulgare haltères', 'charges', 'halteres', 'wr', ['quadriceps', 'fessiers'], ['adducteurs'], 90), side: true },
   { ...E('reverse-lunge', 'Fente arrière haltères', 'charges', 'halteres', 'wr', ['quadriceps', 'fessiers'], ['ischios', 'adducteurs'], 60), side: true },
@@ -111,8 +111,8 @@ export const LIBRARY = [
   { ...E('sl-hip-thrust', 'Hip thrust 1 jambe', 'pdc', 'aucun', 'bw', ['fessiers'], ['ischios'], 60), side: true },
   E('pullover-db', 'Pullover haltère', 'charges', 'halteres', 'wr', ['dos', 'pecs'], ['triceps'], 60),
   E('ytw', 'Y-T-W', 'pdc', 'aucun', 'bw', ['epaules', 'trapezes'], [], 60),
-  E('dip-knee-raise', 'Relevés de genoux aux barres de dips', 'pdc', 'aucun', 'bw', ['abdos'], ['obliques'], 60),
-  E('dip-leg-raise', 'Relevés jambes tendues aux barres', 'pdc', 'aucun', 'bw', ['abdos'], ['obliques'], 60),
+  E('dip-knee-raise', 'Relevés de genoux aux barres de dips', 'pdc', 'dips', 'bw', ['abdos'], ['obliques'], 60),
+  E('dip-leg-raise', 'Relevés jambes tendues aux barres', 'pdc', 'dips', 'bw', ['abdos'], ['obliques'], 60),
   { ...E('copenhagen', 'Gainage Copenhague', 'pdc', 'aucun', 'time', ['adducteurs', 'obliques'], ['abdos'], 60), side: true },
   E('hollow-rocks', 'Hollow rocks', 'pdc', 'aucun', 'bw', ['abdos'], [], 60),
   { ...E('suitcase', 'Suitcase carry (1 côté)', 'charges', 'halteres', 'time', ['obliques', 'avantbras'], ['trapezes'], 60), side: true },
@@ -125,7 +125,7 @@ export const LIBRARY = [
   E('run-trail', 'Trail', 'course', 'aucun', 'run', [], [], 0),
   E('bike', 'Vélo', 'cardio', 'velo', 'run', [], [], 0),
   E('rower', 'Rameur', 'cardio', 'rameur', 'run', [], ['dos'], 60),
-  E('jump-rope', 'Corde à sauter', 'cardio', 'aucun', 'time', ['mollets'], [], 45),
+  E('jump-rope', 'Corde à sauter', 'cardio', 'corde', 'time', ['mollets'], [], 45),
   E('stretch', 'Mobilité / étirements', 'mobilite', 'aucun', 'time', [], [], 15),
   // Mobilité, étirements, souplesse. `side`: timed per side, the chrono runs left then right.
   M('cat-cow', 'Chat-vache', 'time', ['lombaires', 'dos']),
@@ -165,7 +165,7 @@ export const LIBRARY = [
   M('foam-roll', 'Auto-massage au rouleau', 'time', [], { equip: 'rouleau', rest: 10 }),
   M('breathing', 'Respiration diaphragmatique', 'time', ['abdos']),
   M('balance', 'Équilibre sur 1 pied', 'time', ['mollets'], { side: true }),
-  M('thoracic-roll', 'Ouverture thoracique sur rouleau', 'time', ['dos', 'pecs'], { equip: 'rouleau' }),
+  M('thoracic-roll', 'Ouverture thoracique (serviette roulée)', 'time', ['dos', 'pecs']),
   M('rib-stretch', 'Étirement latéral des côtes', 'time', ['obliques', 'dos'], { side: true }),
   // Apnea test: dry static, lying down, never alone. Not mobility, so it gets records.
   E('static-dry', 'Apnée statique à sec (allongé)', 'cardio', 'aucun', 'time', [], [], 120),

@@ -1,5 +1,5 @@
 // Parsing/formatting of set fields typed by the user.
-import { fmtNum, pad } from './store.js?v=4';
+import { fmtNum, pad } from './store.js?v=5';
 
 export const FIELD_LABEL = { kg: 'kg', reps: 'reps', sec: 'durée', dist: 'km', pace: 'allure' };
 

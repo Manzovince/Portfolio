@@ -1,5 +1,5 @@
 // Fake 12-week history to explore the app (Settings → Charger une démo).
-import { db, save, resetDb, uid, exById, addDays, mondayOf, dayKey, plannedOn, progressSets, estimateTpl, roundKg } from './store.js?v=4';
+import { db, save, resetDb, uid, exById, addDays, mondayOf, dayKey, plannedOn, progressSets, estimateTpl, roundKg } from './store.js?v=5';
 
 export function loadDemo() {
   resetDb();

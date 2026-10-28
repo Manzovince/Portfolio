@@ -1,8 +1,8 @@
 // Template ("séance") editor, exercise picker and custom-exercise form.
-import { db, save, uid, exById, allExercises, invalidateEx, estimateTpl, fmtDur, fmtClock } from './store.js?v=4';
-import { MUSCLES, CATS, EQUIP, MODES } from './library.js?v=4';
-import { esc, icon, sheet, menu, confirmDialog, toast, COLORS, colorOf } from './ui.js?v=4';
-import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL, REST_CHOICES } from './fields.js?v=4';
+import { db, save, uid, exById, allExercises, invalidateEx, estimateTpl, fmtDur, fmtClock } from './store.js?v=5';
+import { MUSCLES, CATS, EQUIP, MODES } from './library.js?v=5';
+import { esc, icon, sheet, menu, confirmDialog, toast, COLORS, colorOf } from './ui.js?v=5';
+import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL, REST_CHOICES } from './fields.js?v=5';
 
 const clone = o => JSON.parse(JSON.stringify(o));
 
@@ -134,14 +134,15 @@ export function openTemplateEditor(tplId, onDone) {
 // ---------- exercise picker ----------
 export function openPicker(done, { single = false } = {}) {
   const picked = [];
-  let q = '', cat = '';
+  let q = '', cat = '', mine = !!db.settings.equip;
+  const owned = e => !db.settings.equip || db.settings.equip.includes(e.equip || 'aucun');
   sheet({
     title: single ? 'Choisir un exercice' : 'Ajouter des exercices',
     full: true,
     actions: single ? '' : `<button class="btn primary sm" data-ok disabled>Ajouter</button>`,
     body: `<div class="picker">
       <div class="search">${icon('search')}<input type="search" placeholder="Rechercher…" data-q autocomplete="off"></div>
-      <div class="chips scroll" data-cats><button class="chip on" data-cat="">Tout</button>${Object.entries(CATS).map(([k, v]) => `<button class="chip" data-cat="${k}">${v}</button>`).join('')}</div>
+      <div class="chips scroll" data-cats>${db.settings.equip ? `<button class="chip ${mine ? 'on' : ''}" data-mine>Mon matériel</button>` : ''}<button class="chip on" data-cat="">Tout</button>${Object.entries(CATS).map(([k, v]) => `<button class="chip" data-cat="${k}">${v}</button>`).join('')}</div>
       <div class="pick-list"></div>
       <button class="btn ghost block" data-new>${icon('plus')} Créer un exercice</button>
     </div>`,
@@ -150,9 +151,9 @@ export function openPicker(done, { single = false } = {}) {
       const ok = el.querySelector('[data-ok]');
       const draw = () => {
         const nq = norm(q);
-        const items = allExercises().filter(e => (!cat || e.cat === cat) && (!nq || norm(e.name).includes(nq) || e.muscles.some(m => norm(MUSCLES[m]).includes(nq))))
+        const items = allExercises().filter(e => (!mine || owned(e)) && (!cat || e.cat === cat) && (!nq || norm(e.name).includes(nq) || e.muscles.some(m => norm(MUSCLES[m]).includes(nq))))
           .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
-        list.innerHTML = items.map(e => `<button class="pick ${picked.includes(e.id) ? 'on' : ''}" data-id="${e.id}">
+        list.innerHTML = (mine ? `<p class="muted sm">Filtré sur ton matériel (Réglages → Mon matériel).</p>` : '') + items.map(e => `<button class="pick ${picked.includes(e.id) ? 'on' : ''}" data-id="${e.id}">
             <span class="pick-ic cat-${e.cat}">${icon(e.mode === 'run' ? 'run' : e.cat === 'charges' ? 'dumbbell' : e.cat === 'mobilite' ? 'mob' : e.mode === 'time' ? 'timer' : 'bolt')}</span>
             <span class="pick-txt"><b>${esc(e.name)}</b><small>${esc(exMeta(e))}</small></span>
             <span class="pick-check">${picked.includes(e.id) ? picked.indexOf(e.id) + 1 : ''}</span></button>`).join('') || '<p class="empty">Aucun exercice. Crée-le !</p>';
@@ -166,6 +167,7 @@ export function openPicker(done, { single = false } = {}) {
       };
       el.querySelector('[data-q]').oninput = e => { q = e.target.value; draw(); };
       el.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { cat = b.dataset.cat; el.querySelectorAll('[data-cat]').forEach(x => x.classList.toggle('on', x === b)); draw(); });
+      el.querySelector('[data-mine]')?.addEventListener('click', e => { mine = !mine; e.currentTarget.classList.toggle('on', mine); draw(); });
       if (ok) ok.onclick = () => { close(); done(picked); };
       el.querySelector('[data-new]').onclick = () => openExerciseForm(null, e => { if (single) { close(); done([e.id]); } else { picked.push(e.id); ok.disabled = false; ok.textContent = `Ajouter (${picked.length})`; draw(); } });
       draw();

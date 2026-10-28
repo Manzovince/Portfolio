@@ -1,13 +1,13 @@
 // Home, templates/exercises tab and settings.
-import { db, save, replaceDb, resetDb, exById, allExercises, dayKey, addDays, mondayOf, plannedOn, sessionsOn, isPlannedDone, isDeload, sessionStats, estimateTpl, fmtDur, fmtKm, fmtTonnage } from './store.js?v=4';
-import { CATS } from './library.js?v=4';
-import { esc, icon, sheet, menu, confirmDialog, toast, colorOf, FR_DAYS, fmtDay } from './ui.js?v=4';
-import { openTemplateEditor, openExerciseForm, tplSummary, norm, exMeta } from './editor.js?v=4';
-import { startWorkout, openActive } from './active.js?v=4';
-import { pickTemplate } from './program.js?v=4';
-import { sessRow, openSessionDetail } from './journal.js?v=4';
-import { openExerciseDetail } from './stats.js?v=4';
-import { loadDemo } from './demo.js?v=4';
+import { db, save, replaceDb, resetDb, exById, allExercises, dayKey, addDays, mondayOf, plannedOn, sessionsOn, isPlannedDone, isDeload, sessionStats, estimateTpl, fmtDur, fmtKm, fmtTonnage } from './store.js?v=5';
+import { CATS, EQUIP } from './library.js?v=5';
+import { esc, icon, sheet, menu, confirmDialog, toast, colorOf, FR_DAYS, fmtDay } from './ui.js?v=5';
+import { openTemplateEditor, openExerciseForm, tplSummary, norm, exMeta } from './editor.js?v=5';
+import { startWorkout, openActive } from './active.js?v=5';
+import { pickTemplate } from './program.js?v=5';
+import { sessRow, openSessionDetail } from './journal.js?v=5';
+import { openExerciseDetail } from './stats.js?v=5';
+import { loadDemo } from './demo.js?v=5';
 
 const tplOf = id => db.templates.find(t => t.id === id);
 
@@ -172,6 +172,7 @@ export function openSettings(refresh) {
     body: `<div class="form">
       <div class="field"><span>Thème</span><div class="seg"><button data-theme="dark" class="${s.theme !== 'light' ? 'on' : ''}">Sombre</button><button data-theme="light" class="${s.theme === 'light' ? 'on' : ''}">Clair</button></div></div>
       <label class="field"><span>Repos par défaut (s) pour un nouvel exercice</span><input data-n="rest" inputmode="numeric" value="${s.rest}"></label>
+      <div class="field"><span>Mon matériel</span><div class="chips wrap">${Object.entries(EQUIP).map(([k, v]) => `<button class="chip ${(s.equip || Object.keys(EQUIP)).includes(k) ? 'on' : ''}" data-eq="${k}">${esc(v)}</button>`).join('')}</div><small class="muted">Utilisé par le filtre « Mon matériel » quand tu choisis un exercice.</small></div>
       <label class="check"><input type="checkbox" data-b="sound" ${s.sound ? 'checked' : ''}> Bips de fin de repos et de chrono</label>
       <label class="check"><input type="checkbox" data-b="vibrate" ${s.vibrate ? 'checked' : ''}> Vibration (Android)</label>
       <h3>Données</h3>
@@ -185,6 +186,11 @@ export function openSettings(refresh) {
       el.querySelectorAll('[data-theme]').forEach(b => b.onclick = () => { s.theme = b.dataset.theme; save(); applyTheme(); el.querySelectorAll('[data-theme]').forEach(x => x.classList.toggle('on', x === b)); });
       el.querySelector('[data-n]').onchange = e => { s.rest = Math.max(0, parseInt(e.target.value, 10) || 0); save(); };
       el.querySelectorAll('[data-b]').forEach(c => c.onchange = () => { s[c.dataset.b] = c.checked; save(); });
+      el.querySelectorAll('[data-eq]').forEach(b => b.onclick = () => {
+        const eq = s.equip || Object.keys(EQUIP), k = b.dataset.eq;
+        s.equip = eq.includes(k) ? eq.filter(x => x !== k) : [...eq, k];
+        b.classList.toggle('on', s.equip.includes(k)); save();
+      });
       el.querySelector('[data-export]').onclick = () => {
         const blob = new Blob([JSON.stringify({ ...db, active: null }, null, 1)], { type: 'application/json' });
         const a = document.createElement('a');
