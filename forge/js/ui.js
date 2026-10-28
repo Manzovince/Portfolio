@@ -39,6 +39,7 @@ const P = {
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
   warn: '<path d="M12 4 2.5 20h19z"/><path d="M12 10v4.5M12 17.2v.1"/>',
   down2: '<path d="M12 4v12M6.5 11 12 16.5 17.5 11M5 20h14"/>',
+  grip: '<circle cx="9" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.3" fill="currentColor" stroke="none"/>',
   mob: '<circle cx="12" cy="4.5" r="2"/><path d="M4 9.5c3 1.2 5.5 1.5 8 1.5s5-.3 8-1.5M12 11v4.5M12 15.5 7.5 21M12 15.5l4.5 5.5"/>',
   bolt: '<path d="M13 3 5 13.5h6L10 21l8-10.5h-6z"/>',
 };
@@ -145,3 +146,113 @@ export const FR_MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
 export const fmtDay = d => `${FR_DAYS_LONG[(d.getDay() + 6) % 7]} ${d.getDate()} ${FR_MONTHS[d.getMonth()]}`;
 const FR_MONTHS_SHORT = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 export const fmtDayShort = d => `${d.getDate()} ${FR_MONTHS_SHORT[d.getMonth()]}`;
+
+// ---------- gestures ----------
+// Drag a card by its handle to reorder. While dragging, cards collapse to their header
+// so long lists stay manageable; the scroller auto-scrolls near its edges.
+export function dragReorder({ list, items, handle, scroller, onDrop }) {
+  list.querySelectorAll(handle).forEach(h => h.addEventListener('pointerdown', e => start(e, h)));
+  function start(e, h) {
+    if (e.button) return;
+    e.preventDefault();
+    document.activeElement?.blur?.();
+    const els = [...list.querySelectorAll(items)];
+    const el = h.closest(items), from = els.indexOf(el);
+    if (from < 0) return;
+    list.classList.add('reordering');
+    buzz(15);
+    // keep the grabbed card under the finger once everything collapsed
+    const r = el.getBoundingClientRect();
+    scroller.scrollTop += r.top + r.height / 2 - e.clientY;
+    const sTop = () => scroller.scrollTop;
+    const rects = els.map(x => { const b = x.getBoundingClientRect(); return { top: b.top + sTop(), h: b.height }; });
+    const gap = rects.length > 1 ? rects[1].top - rects[0].top - rects[0].h : 10;
+    const shift = rects[from].h + gap;
+    const startY = e.clientY, startScroll = sTop();
+    let y = e.clientY, to = from, raf = 0;
+    el.classList.add('dragging');
+    try { h.setPointerCapture(e.pointerId); } catch { }
+    const update = () => {
+      const dy = y - startY + (sTop() - startScroll);
+      el.style.transform = `translateY(${dy}px)`;
+      const center = rects[from].top + rects[from].h / 2 + dy;
+      let t = 0;
+      rects.forEach((rc, k) => { if (k !== from && center > rc.top + rc.h / 2) t++; });
+      if (t !== to) { to = t; buzz(8); }
+      els.forEach((x, k) => {
+        if (k === from) return;
+        const s = from < to && k > from && k <= to ? -shift : from > to && k >= to && k < from ? shift : 0;
+        x.style.transform = s ? `translateY(${s}px)` : '';
+      });
+    };
+    const loop = () => {
+      const b = scroller.getBoundingClientRect(), edge = 70;
+      const v = y < b.top + edge ? -(b.top + edge - y) / 4 : y > b.bottom - edge ? (y - b.bottom + edge) / 4 : 0;
+      if (v) { scroller.scrollTop += v; update(); }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    const move = ev => { y = ev.clientY; update(); };
+    const up = () => {
+      cancelAnimationFrame(raf);
+      h.removeEventListener('pointermove', move);
+      h.removeEventListener('pointerup', up);
+      h.removeEventListener('pointercancel', up);
+      els.forEach(x => { x.style.transform = ''; });
+      el.classList.remove('dragging');
+      list.classList.remove('reordering');
+      if (to !== from) onDrop(from, to);
+    };
+    h.addEventListener('pointermove', move);
+    h.addEventListener('pointerup', up);
+    h.addEventListener('pointercancel', up);
+  }
+}
+
+// Swipe a row left to delete it. `row` sits inside a .swipe wrapper that shows the red background.
+export function swipeToDelete(row, onDelete) {
+  const wrap = row.parentElement;
+  let x0 = null, y0 = 0, dx = 0, id = 0, decided = false, active = false;
+  row.addEventListener('pointerdown', e => {
+    if (e.button || e.pointerType === 'mouse' && e.target.closest('input')) return;
+    x0 = e.clientX; y0 = e.clientY; dx = 0; id = e.pointerId; decided = false; active = false;
+  });
+  row.addEventListener('pointermove', e => {
+    if (x0 == null || e.pointerId !== id) return;
+    const mx = e.clientX - x0, my = e.clientY - y0;
+    if (!decided) {
+      if (Math.abs(mx) < 10 && Math.abs(my) < 10) return;
+      decided = true;
+      active = mx < 0 && Math.abs(mx) > Math.abs(my) * 1.3;
+      if (!active) { x0 = null; return; }
+      try { row.setPointerCapture(id); } catch { }
+      document.activeElement?.blur?.();
+      wrap.classList.add('swiping');
+    }
+    dx = Math.min(0, mx);
+    row.style.transform = `translateX(${dx}px)`;
+    const armed = -dx > wrap.offsetWidth * 0.35;
+    if (armed !== wrap.classList.contains('armed')) { wrap.classList.toggle('armed', armed); if (armed) buzz(10); }
+    e.preventDefault();
+  });
+  const end = () => {
+    if (x0 == null) return;
+    x0 = null;
+    if (!active) return;
+    active = false;
+    const w = wrap.offsetWidth;
+    if (-dx > w * 0.35) {
+      row.style.transform = `translateX(${-w}px)`;
+      wrap.style.height = wrap.offsetHeight + 'px';
+      requestAnimationFrame(() => wrap.classList.add('gone'));
+      setTimeout(onDelete, 230);
+    } else {
+      row.style.transform = '';
+      setTimeout(() => wrap.classList.remove('swiping', 'armed'), 200);
+    }
+  };
+  row.addEventListener('pointerup', end);
+  row.addEventListener('pointercancel', end);
+  // a swipe must not also trigger the button under the finger
+  row.addEventListener('click', e => { if (dx < -10) { e.stopPropagation(); e.preventDefault(); dx = 0; } }, true);
+}

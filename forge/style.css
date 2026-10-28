@@ -256,11 +256,12 @@ small { font-size: 12.5px; }
 .ss-link { display: flex; align-items: center; gap: 6px; color: var(--accent); font-size: 12.5px; position: absolute; left: 14px; bottom: -19px; z-index: 1; background: var(--bg); padding: 0 6px; }
 .ss-link .ic { width: 14px; height: 14px; }
 
-.set-grid { display: grid; gap: 6px 6px; align-items: center; }
+.set-grid { display: flex; flex-direction: column; gap: 6px; }
+.set-head, .set-row { display: grid; grid-template-columns: var(--cols); gap: 6px; align-items: center; }
 .set-grid .h { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; text-align: center; font-weight: 650; }
 .set-grid .h .ic { width: 14px; height: 14px; }
-.set-grid.ed.cols-2 { grid-template-columns: 44px 1fr 1fr 32px; }
-.set-grid.ed.cols-3 { grid-template-columns: 44px 1fr 1fr 1fr 32px; }
+.set-grid.ed.cols-2 { --cols: 44px 1fr 1fr 32px; }
+.set-grid.ed.cols-3 { --cols: 44px 1fr 1fr 1fr 32px; }
 .cell { text-align: center; height: 40px; padding: 0 4px; font-size: 16px; font-weight: 650; border-radius: 9px; min-width: 0; }
 .cell::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); font-weight: 500; }
 .set-no { height: 32px; border-radius: 8px; background: var(--surface2); font-weight: 700; font-size: 14px; color: var(--muted); }
@@ -269,11 +270,29 @@ small { font-size: 12.5px; }
 .set-no.kind-f { color: var(--bad); }
 
 /* live rows */
-.set-grid.live { grid-template-columns: 34px minmax(0, 1.2fr) repeat(var(--n), minmax(0, 1fr)) 46px; }
+.set-grid.live { --cols: 34px minmax(0, 1.2fr) repeat(var(--n), minmax(0, 1fr)) 46px; }
 .set-grid.live.cols-1 { --n: 1; }
 .set-grid.live.cols-2 { --n: 2; }
-.set-grid.live.timed { grid-template-columns: 34px minmax(0, 1.2fr) repeat(var(--n), minmax(0, 1fr)) 36px 46px; }
-.set-row { display: contents; }
+.set-grid.live.timed { --cols: 34px minmax(0, 1.2fr) repeat(var(--n), minmax(0, 1fr)) 36px 46px; }
+.set-row { position: relative; z-index: 1; background: var(--surface); touch-action: pan-y; transition: transform .2s ease; }
+
+/* swipe-to-delete */
+.swipe { position: relative; border-radius: 10px; transition: height .22s ease, margin .22s ease, opacity .22s; }
+.swipe-del { position: absolute; inset: 0; z-index: 0; border-radius: 10px; display: flex; align-items: center; justify-content: flex-end; gap: 6px; padding-right: 16px; background: color-mix(in srgb, var(--bad) 55%, var(--surface)); color: #fff; font-weight: 650; font-size: 14px; opacity: 0; transition: background .15s; }
+.swipe-del .ic { width: 18px; height: 18px; }
+.swipe.swiping .swipe-del { opacity: 1; }
+.swipe.armed .swipe-del { background: var(--bad); }
+.swipe.swiping .set-row { transition: none; }
+.swipe.gone { height: 0 !important; margin-top: -6px; opacity: 0; overflow: hidden; }
+
+/* drag-to-reorder: grip handle, cards collapse to their header while dragging */
+.grip { width: 28px; height: 40px; margin-left: -4px; display: grid; place-items: center; color: var(--muted); touch-action: none; cursor: grab; flex: none; }
+.grip .ic { width: 18px; height: 18px; }
+.reordering .ex-card > :not(.ex-head), .reordering .ex-title small { display: none !important; }
+.reordering .ex-card { padding-bottom: 2px; transition: transform .18s ease; }
+.reordering .ex-head { padding-bottom: 2px; }
+.ex-card.dragging { transition: none; z-index: 10; box-shadow: var(--shadow); border-color: var(--accent); cursor: grabbing; }
+.reordering { user-select: none; -webkit-user-select: none; }
 .prev { height: 40px; color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 2px; }
 .prev.tgt { white-space: normal; line-height: 1.15; font-size: 12px; }
 .tick { width: 46px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--surface2); color: var(--muted); border: 1px solid var(--line); }

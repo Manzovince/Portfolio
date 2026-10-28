@@ -1,8 +1,8 @@
 // Template ("séance") editor, exercise picker and custom-exercise form.
-import { db, save, uid, exById, allExercises, invalidateEx, estimateTpl, fmtDur, fmtClock } from './store.js?v=5';
-import { MUSCLES, CATS, EQUIP, MODES } from './library.js?v=5';
-import { esc, icon, sheet, menu, confirmDialog, toast, COLORS, colorOf } from './ui.js?v=5';
-import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL, REST_CHOICES } from './fields.js?v=5';
+import { db, save, uid, exById, allExercises, invalidateEx, estimateTpl, fmtDur, fmtClock } from './store.js?v=6';
+import { MUSCLES, CATS, EQUIP, MODES } from './library.js?v=6';
+import { esc, icon, sheet, menu, confirmDialog, toast, COLORS, colorOf, dragReorder, swipeToDelete } from './ui.js?v=6';
+import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL, REST_CHOICES } from './fields.js?v=6';
 
 const clone = o => JSON.parse(JSON.stringify(o));
 
@@ -74,6 +74,10 @@ export function openTemplateEditor(tplId, onDone) {
     };
 
     tpl.items.forEach((it, i) => bindItem(root, it, i));
+    dragReorder({
+      list: root.querySelector('.ed-items'), items: '.ex-card', handle: '[data-grip]', scroller: root.closest('.sheet-body'),
+      onDrop: (from, to) => { tpl.items.splice(to, 0, tpl.items.splice(from, 1)[0]); dirty = true; render(root); },
+    });
   }
 
   function itemCard(it, i) {
@@ -83,16 +87,18 @@ export function openTemplateEditor(tplId, onDone) {
     const linked = it.group && tpl.items[i + 1]?.group === it.group;
     return `<article class="ex-card ${it.group ? 'grouped' : ''}" data-i="${i}">
       <header class="ex-head">
+        <button class="grip" data-grip aria-label="Déplacer l’exercice">${icon('grip')}</button>
         <div class="ex-title"><b>${esc(ex.name)}</b><small>${esc(MODES[ex.mode].label)}${ex.side ? ' · par côté' : ''}${it.group ? ' · superset' : ''}</small>${it.note ? `<small class="note">${esc(it.note)}</small>` : ''}</div>
         <button class="chip sm" data-rest>${icon('timer')} ${restLabel(it.rest)}</button>
         <button class="icon-btn" data-menu aria-label="Options">${icon('dots')}</button>
       </header>
       <div class="set-grid ed cols-${fields.length}">
-        <span class="h">Série</span>${fields.map(f => `<span class="h">${{ kg: ex.mode === 'wr' ? 'kg' : '+kg', reps: 'reps', sec: ex.mode === 'run' ? 'temps' : ex.side ? 'durée/côté' : 'durée', dist: 'km', pace: 'allure' }[f]}</span>`).join('')}<span class="h"></span>
-        ${it.sets.map((s, j) => `
+        <div class="set-head"><span class="h">Série</span>${fields.map(f => `<span class="h">${{ kg: ex.mode === 'wr' ? 'kg' : '+kg', reps: 'reps', sec: ex.mode === 'run' ? 'temps' : ex.side ? 'durée/côté' : 'durée', dist: 'km', pace: 'allure' }[f]}</span>`).join('')}<span class="h"></span></div>
+        ${it.sets.map((s, j) => `<div class="swipe"><div class="set-row" data-j="${j}">
           <button class="set-no kind-${s.kind || 'n'}" data-kind="${j}" title="${KIND_LABEL[s.kind || 'n']}">${labels[j]}</button>
           ${fields.map(f => `<input class="cell" data-set="${j}" data-f="${f}" inputmode="${inputMode(f)}" placeholder="${placeholderFor(f, ex.mode)}" value="${esc(fmtField(f, s[f]))}">`).join('')}
-          <button class="icon-btn sm" data-rm="${j}" aria-label="Supprimer la série">${icon('x')}</button>`).join('')}
+          <button class="icon-btn sm" data-rm="${j}" aria-label="Supprimer la série">${icon('x')}</button>
+        </div><span class="swipe-del">${icon('trash')} Supprimer</span></div>`).join('')}
       </div>
       <button class="btn text sm" data-addset>${icon('plus')} Série</button>
       ${linked ? `<div class="ss-link">${icon('link')} enchaîné avec le suivant</div>` : ''}
@@ -107,7 +113,9 @@ export function openTemplateEditor(tplId, onDone) {
       inp.onfocus = () => inp.select();
     });
     card.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { const s = it.sets[+b.dataset.kind]; s.kind = nextKind(s.kind); render(root); });
-    card.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { it.sets.splice(+b.dataset.rm, 1); if (!it.sets.length) tpl.items.splice(i, 1); render(root); });
+    const removeSet = j => { it.sets.splice(j, 1); if (!it.sets.length) tpl.items.splice(i, 1); dirty = true; render(root); };
+    card.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => removeSet(+b.dataset.rm));
+    card.querySelectorAll('.set-row').forEach(row => swipeToDelete(row, () => removeSet(+row.dataset.j)));
     card.querySelector('[data-addset]').onclick = () => { const last = it.sets[it.sets.length - 1] || {}; it.sets.push({ ...last, kind: last.kind === 'w' ? 'n' : last.kind }); render(root); };
     card.querySelector('[data-rest]').onclick = () => pickRest(it.rest, r => { it.rest = r; render(root); });
     card.querySelector('[data-menu]').onclick = () => menu(ex.name, [

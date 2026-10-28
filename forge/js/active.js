@@ -1,9 +1,9 @@
 // Live workout: big touch targets, auto rest timer, guided timers for holds and runs.
-import { db, save, uid, exById, lastSetsFor, progressSets, isDeload, sessionStats, computePRs, fmtClock, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=5';
-import { MODES } from './library.js?v=5';
-import { esc, icon, sheet, menu, confirmDialog, toast, beep, buzz, unlockAudio, $ } from './ui.js?v=5';
-import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL } from './fields.js?v=5';
-import { openPicker, pickRest, restLabel } from './editor.js?v=5';
+import { db, save, uid, exById, lastSetsFor, progressSets, isDeload, sessionStats, computePRs, fmtClock, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=6';
+import { MODES } from './library.js?v=6';
+import { esc, icon, sheet, menu, confirmDialog, toast, beep, buzz, unlockAudio, $, dragReorder, swipeToDelete } from './ui.js?v=6';
+import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL } from './fields.js?v=6';
+import { openPicker, pickRest, restLabel } from './editor.js?v=6';
 
 const clone = o => JSON.parse(JSON.stringify(o));
 let root = null, ticker = 0, wakeLock = null, onExit = () => {};
@@ -101,23 +101,24 @@ function itemHtml(it, i) {
   const head = { kg: ex.mode === 'wr' ? 'kg' : '+kg', reps: 'reps', sec: ex.mode === 'run' ? 'temps' : ex.side ? '/côté' : 'durée', dist: 'km' };
   return `<article class="ex-card live ${grouped ? 'grouped' : ''} ${allDone ? 'complete' : ''}" data-i="${i}">
     <header class="ex-head">
+      <button class="grip" data-grip aria-label="Déplacer l’exercice">${icon('grip')}</button>
       <div class="ex-title"><b>${esc(ex.name)}</b>${it.note ? `<small class="note">${esc(it.note)}</small>` : grouped ? '<small>superset</small>' : ''}</div>
       <button class="chip sm" data-rest>${icon('timer')} ${restLabel(it.rest)}</button>
       <button class="icon-btn" data-menu aria-label="Options">${icon('dots')}</button>
     </header>
     <div class="set-grid live cols-${fields.length}${timed ? ' timed' : ''}">
-      <span class="h">#</span><span class="h">${ex.mode === 'run' ? 'Cible' : 'Préc.'}</span>${fields.map(f => `<span class="h">${head[f]}</span>`).join('')}${timed ? '<span class="h"></span>' : ''}<span class="h">${icon('check')}</span>
+      <div class="set-head"><span class="h">#</span><span class="h">${ex.mode === 'run' ? 'Cible' : 'Préc.'}</span>${fields.map(f => `<span class="h">${head[f]}</span>`).join('')}${timed ? '<span class="h"></span>' : ''}<span class="h">${icon('check')}</span></div>
       ${it.sets.map((s, j) => {
         const p = prev[j];
         const ref = ex.mode === 'run' ? targetLabel(s.target || {}) : p ? setSummary(ex, p) : '—';
         const running = a.clock && a.clock.item === i && a.clock.set === j;
-        return `<div class="set-row ${s.done ? 'done' : ''} ${running ? 'running' : ''}" data-j="${j}">
+        return `<div class="swipe"><div class="set-row ${s.done ? 'done' : ''} ${running ? 'running' : ''}" data-j="${j}">
           <button class="set-no kind-${s.kind || 'n'}" data-kind title="${KIND_LABEL[s.kind || 'n']}">${labels[j]}</button>
           <button class="prev ${ex.mode === 'run' ? 'tgt' : ''}" data-prev ${p || ex.mode === 'run' ? '' : 'disabled'}>${esc(ref).replace('\n', '<br>')}</button>
           ${fields.map(f => `<input class="cell" data-f="${f}" inputmode="${inputMode(f)}" enterkeyhint="done" placeholder="${esc(fmtField(f, (s.target || {})[f]) || (p ? fmtField(f, p[f]) : '') || placeholderFor(f, ex.mode))}" value="${esc(fmtField(f, s[f]))}">`).join('')}
           ${timed ? `<button class="icon-btn sm play" data-clock aria-label="Chrono">${icon(running ? 'stop' : 'play')}</button>` : ''}
           <button class="tick" data-tick aria-label="Valider la série">${icon('check')}</button>
-        </div>`;
+        </div><span class="swipe-del">${icon('trash')} Supprimer</span></div>`;
       }).join('')}
     </div>
     <button class="btn text sm" data-addset>${icon('plus')} Ajouter une série</button>
@@ -160,6 +161,16 @@ function bind() {
     db.active = null; save(true); close();
   };
 
+  dragReorder({
+    list: root.querySelector('.act-list'), items: '.ex-card', handle: '[data-grip]', scroller: root.querySelector('.act-list'),
+    onDrop: (from, to) => {
+      const running = a.clock && a.items[a.clock.item];
+      a.items.splice(to, 0, a.items.splice(from, 1)[0]);
+      if (running) a.clock.item = a.items.indexOf(running);
+      save(); render();
+    },
+  });
+
   root.querySelectorAll('.ex-card').forEach(card => {
     const i = +card.dataset.i, it = a.items[i], ex = exById(it.exId);
     card.querySelector('[data-rest]').onclick = () => pickRest(it.rest, r => { it.rest = r; save(); render(); });
@@ -181,6 +192,7 @@ function bind() {
 
     card.querySelectorAll('.set-row').forEach(row => {
       const j = +row.dataset.j, s = it.sets[j];
+      swipeToDelete(row, () => removeSet(i, j));
       row.querySelectorAll('input[data-f]').forEach(inp => {
         inp.onfocus = () => inp.select();
         inp.onchange = () => { s[inp.dataset.f] = parseField(inp.dataset.f, inp.value, ex.mode); save(); updatePace(row, it, j, ex); };
@@ -199,6 +211,18 @@ function bind() {
       if (clk) clk.onclick = () => toggleClock(i, j);
     });
   });
+}
+
+// Delete one set, keeping a running chrono pointed at the right set/exercise.
+function removeSet(i, j) {
+  const a = db.active, c = a.clock;
+  a.items[i].sets.splice(j, 1);
+  if (c && c.item === i) { if (c.set === j) a.clock = null; else if (c.set > j) c.set--; }
+  if (!a.items[i].sets.length) {
+    a.items.splice(i, 1);
+    if (a.clock && a.clock.item > i) a.clock.item--;
+  }
+  save(); render();
 }
 
 function updatePace(row, it, j, ex) {
