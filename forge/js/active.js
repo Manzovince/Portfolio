@@ -1,9 +1,9 @@
 // Live workout: big touch targets, auto rest timer, guided timers for holds and runs.
-import { db, save, uid, exById, lastSetsFor, progressSets, isDeload, sessionStats, computePRs, fmtClock, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=6';
-import { MODES } from './library.js?v=6';
-import { esc, icon, sheet, menu, confirmDialog, toast, beep, buzz, unlockAudio, $, dragReorder, swipeToDelete } from './ui.js?v=6';
-import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL } from './fields.js?v=6';
-import { openPicker, pickRest, restLabel } from './editor.js?v=6';
+import { db, save, uid, exById, lastSetsFor, progressSets, isDeload, sessionStats, computePRs, fmtClock, fmtDur, fmtKm, fmtPace, fmtTonnage, setSummary } from './store.js?v=7';
+import { MODES } from './library.js?v=7';
+import { esc, icon, sheet, menu, confirmDialog, toast, beep, buzz, unlockAudio, $, dragReorder, swipeToDelete } from './ui.js?v=7';
+import { fmtField, parseField, inputMode, placeholderFor, setLabels, nextKind, KIND_LABEL } from './fields.js?v=7';
+import { openPicker, pickRest, restLabel } from './editor.js?v=7';
 
 const clone = o => JSON.parse(JSON.stringify(o));
 let root = null, ticker = 0, wakeLock = null, onExit = () => {};

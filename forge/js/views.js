@@ -1,13 +1,13 @@
 // Home, templates/exercises tab and settings.
-import { db, save, replaceDb, resetDb, exById, allExercises, dayKey, addDays, mondayOf, plannedOn, sessionsOn, isPlannedDone, isDeload, sessionStats, estimateTpl, fmtDur, fmtKm, fmtTonnage } from './store.js?v=6';
-import { CATS, EQUIP } from './library.js?v=6';
-import { esc, icon, sheet, menu, confirmDialog, toast, colorOf, FR_DAYS, fmtDay } from './ui.js?v=6';
-import { openTemplateEditor, openExerciseForm, tplSummary, norm, exMeta } from './editor.js?v=6';
-import { startWorkout, openActive } from './active.js?v=6';
-import { pickTemplate } from './program.js?v=6';
-import { sessRow, openSessionDetail } from './journal.js?v=6';
-import { openExerciseDetail } from './stats.js?v=6';
-import { loadDemo } from './demo.js?v=6';
+import { db, save, replaceDb, resetDb, exById, allExercises, dayKey, addDays, mondayOf, plannedOn, sessionsOn, isPlannedDone, isDeload, sessionStats, estimateTpl, fmtDur, fmtKm, fmtTonnage } from './store.js?v=7';
+import { CATS, EQUIP } from './library.js?v=7';
+import { esc, icon, sheet, menu, confirmDialog, toast, colorOf, FR_DAYS, fmtDay } from './ui.js?v=7';
+import { openTemplateEditor, openExerciseForm, tplSummary, norm, exMeta } from './editor.js?v=7';
+import { startWorkout, openActive } from './active.js?v=7';
+import { pickTemplate } from './program.js?v=7';
+import { sessRow, openSessionDetail } from './journal.js?v=7';
+import { openExerciseDetail } from './stats.js?v=7';
+import { loadDemo } from './demo.js?v=7';
 
 const tplOf = id => db.templates.find(t => t.id === id);
 
@@ -170,7 +170,11 @@ export function openSettings(refresh) {
   sheet({
     title: 'Réglages', full: true,
     body: `<div class="form">
-      <div class="field"><span>Thème</span><div class="seg"><button data-theme="dark" class="${s.theme !== 'light' ? 'on' : ''}">Sombre</button><button data-theme="light" class="${s.theme === 'light' ? 'on' : ''}">Clair</button></div></div>
+      <h3>Apparence</h3>
+      <div class="field"><span>Thèmes</span><div class="presets">${PRESETS.map(p => `<button class="preset ${isPreset(s, p) ? 'on' : ''}" data-preset="${p.id}" style="--pb:${MODE_BG[p.theme]};--pc:${ACCENTS[p.accent][p.theme === 'light' ? 2 : 1]};--pt:${p.theme === 'light' ? '#16181b' : '#eceef1'};--pr:${RADIUS[p.radius][1]}px"><div class="pv"><i></i><i></i></div><b>${p.name}</b></button>`).join('')}</div></div>
+      <div class="field"><span>Fond</span><div class="seg" data-group="theme">${Object.entries({ dark: 'Sombre', oled: 'Noir OLED', light: 'Clair' }).map(([k, v]) => `<button data-set="theme" data-v="${k}" class="${(s.theme || 'dark') === k ? 'on' : ''}">${v}</button>`).join('')}</div></div>
+      <div class="field"><span>Couleur principale</span><div class="accents">${Object.entries(ACCENTS).map(([k, [name, dark]]) => `<button class="accent-b ${(s.accent || 'ember') === k ? 'on' : ''}" data-set="accent" data-v="${k}" style="--c:${dark}"><i></i>${name}</button>`).join('')}</div></div>
+      <div class="field"><span>Coins</span><div class="seg" data-group="radius">${Object.entries(RADIUS).map(([k, [name, r]]) => `<button data-set="radius" data-v="${k}" class="${(s.radius || 'round') === k ? 'on' : ''}"><i class="shape" style="--sr:${r / 1.6}px"></i>${name}</button>`).join('')}</div></div>
       <label class="field"><span>Repos par défaut (s) pour un nouvel exercice</span><input data-n="rest" inputmode="numeric" value="${s.rest}"></label>
       <div class="field"><span>Mon matériel</span><div class="chips wrap">${Object.entries(EQUIP).map(([k, v]) => `<button class="chip ${(s.equip || Object.keys(EQUIP)).includes(k) ? 'on' : ''}" data-eq="${k}">${esc(v)}</button>`).join('')}</div><small class="muted">Utilisé par le filtre « Mon matériel » quand tu choisis un exercice.</small></div>
       <label class="check"><input type="checkbox" data-b="sound" ${s.sound ? 'checked' : ''}> Bips de fin de repos et de chrono</label>
@@ -183,7 +187,12 @@ export function openSettings(refresh) {
       <p class="muted sm center">Forge · ${db.sessions.length} séances · ${db.templates.length} modèles</p>
     </div>`,
     onMount(el, close) {
-      el.querySelectorAll('[data-theme]').forEach(b => b.onclick = () => { s.theme = b.dataset.theme; save(); applyTheme(); el.querySelectorAll('[data-theme]').forEach(x => x.classList.toggle('on', x === b)); });
+      const syncLook = () => {
+        el.querySelectorAll('[data-set]').forEach(b => b.classList.toggle('on', (s[b.dataset.set] || { theme: 'dark', accent: 'ember', radius: 'round' }[b.dataset.set]) === b.dataset.v));
+        el.querySelectorAll('[data-preset]').forEach(b => b.classList.toggle('on', isPreset(s, PRESETS.find(p => p.id === b.dataset.preset))));
+      };
+      el.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { s[b.dataset.set] = b.dataset.v; save(); applyTheme(); syncLook(); });
+      el.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => { const p = PRESETS.find(x => x.id === b.dataset.preset); Object.assign(s, { theme: p.theme, accent: p.accent, radius: p.radius }); save(); applyTheme(); syncLook(); });
       el.querySelector('[data-n]').onchange = e => { s.rest = Math.max(0, parseInt(e.target.value, 10) || 0); save(); };
       el.querySelectorAll('[data-b]').forEach(c => c.onchange = () => { s[c.dataset.b] = c.checked; save(); });
       el.querySelectorAll('[data-eq]').forEach(b => b.onclick = () => {
@@ -218,7 +227,27 @@ export function openSettings(refresh) {
   });
 }
 
+// Appearance: background mode × accent × corner style. Keep in sync with the boot script in index.html.
+const ACCENTS = {
+  ember: ['Braise', '#ff7a3d', '#f0641f'], teal: ['Lagon', '#2ec4b0', '#0e8f80'], sky: ['Océan', '#4aa8f0', '#1c78c8'],
+  violet: ['Améthyste', '#9e80f4', '#6a4bd3'], lime: ['Lime', '#a8d84c', '#557f10'], rose: ['Corail', '#f2688f', '#cc3a66'], amber: ['Ambre', '#f5b638', '#a36f00'],
+};
+const RADIUS = { round: ['Arrondis', 16], soft: ['Doux', 9], sharp: ['Nets', 3] };
+const MODE_BG = { dark: '#17191c', oled: '#000000', light: '#ffffff' };
+const PRESETS = [
+  { id: 'forge', name: 'Forge', theme: 'dark', accent: 'ember', radius: 'round' },
+  { id: 'lagon', name: 'Lagon', theme: 'dark', accent: 'teal', radius: 'soft' },
+  { id: 'abysse', name: 'Abysse', theme: 'oled', accent: 'teal', radius: 'sharp' },
+  { id: 'minuit', name: 'Minuit', theme: 'oled', accent: 'sky', radius: 'round' },
+  { id: 'craie', name: 'Craie', theme: 'light', accent: 'teal', radius: 'soft' },
+  { id: 'atelier', name: 'Atelier', theme: 'light', accent: 'amber', radius: 'sharp' },
+];
+const isPreset = (s, p) => (s.theme || 'dark') === p.theme && (s.accent || 'ember') === p.accent && (s.radius || 'round') === p.radius;
+
 export function applyTheme() {
-  document.documentElement.dataset.theme = db.settings.theme === 'light' ? 'light' : 'dark';
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', db.settings.theme === 'light' ? '#f4f5f7' : '#0e0f11');
+  const s = db.settings, d = document.documentElement;
+  d.dataset.theme = ['light', 'oled'].includes(s.theme) ? s.theme : 'dark';
+  d.dataset.accent = s.accent || 'ember';
+  d.dataset.radius = s.radius || 'round';
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', { light: '#f4f5f7', oled: '#000000', dark: '#0e0f11' }[d.dataset.theme]);
 }

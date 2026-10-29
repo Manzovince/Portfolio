@@ -1,9 +1,9 @@
 // Calendar of planned/done sessions + multi-week program editor.
-import { db, save, uid, dayKey, parseDay, addDays, mondayOf, programWeek, isDeload, plannedOn, sessionsOn, isPlannedDone, progressSets, exById, estimateTpl, fmtDur, fmtNum, setSummary } from './store.js?v=6';
-import { esc, icon, sheet, confirmDialog, toast, COLORS, colorOf, FR_DAYS, FR_DAYS_LONG, FR_MONTHS, fmtDay, fmtDayShort } from './ui.js?v=6';
-import { startWorkout } from './active.js?v=6';
-import { openSessionDetail } from './journal.js?v=6';
-import { tplSummary } from './editor.js?v=6';
+import { db, save, uid, dayKey, parseDay, addDays, mondayOf, programWeek, isDeload, plannedOn, sessionsOn, isPlannedDone, progressSets, exById, estimateTpl, fmtDur, fmtNum, setSummary } from './store.js?v=7';
+import { esc, icon, sheet, confirmDialog, toast, COLORS, colorOf, FR_DAYS, FR_DAYS_LONG, FR_MONTHS, fmtDay, fmtDayShort } from './ui.js?v=7';
+import { startWorkout } from './active.js?v=7';
+import { openSessionDetail } from './journal.js?v=7';
+import { tplSummary } from './editor.js?v=7';
 
 let cursor = new Date(); cursor.setDate(1);
 const clone = o => JSON.parse(JSON.stringify(o));
