@@ -1,13 +1,13 @@
 // Home, templates/exercises tab and settings.
-import { db, save, replaceDb, resetDb, exById, allExercises, dayKey, addDays, mondayOf, plannedOn, sessionsOn, isPlannedDone, isDeload, sessionStats, estimateTpl, fmtDur, fmtKm, fmtTonnage } from './store.js?v=7';
-import { CATS, EQUIP } from './library.js?v=7';
-import { esc, icon, sheet, menu, confirmDialog, toast, colorOf, FR_DAYS, fmtDay } from './ui.js?v=7';
-import { openTemplateEditor, openExerciseForm, tplSummary, norm, exMeta } from './editor.js?v=7';
-import { startWorkout, openActive } from './active.js?v=7';
-import { pickTemplate } from './program.js?v=7';
-import { sessRow, openSessionDetail } from './journal.js?v=7';
-import { openExerciseDetail } from './stats.js?v=7';
-import { loadDemo } from './demo.js?v=7';
+import { db, save, replaceDb, resetDb, exById, allExercises, dayKey, addDays, mondayOf, plannedOn, sessionsOn, isPlannedDone, isDeload, sessionStats, estimateTpl, fmtDur, fmtKm, fmtTonnage } from './store.js?v=8';
+import { CATS, EQUIP } from './library.js?v=8';
+import { esc, icon, sheet, menu, confirmDialog, toast, colorOf, FR_DAYS, fmtDay } from './ui.js?v=8';
+import { openTemplateEditor, openExerciseForm, tplSummary, norm, exMeta } from './editor.js?v=8';
+import { startWorkout, openActive } from './active.js?v=8';
+import { pickTemplate } from './program.js?v=8';
+import { sessRow, openSessionDetail } from './journal.js?v=8';
+import { openExerciseDetail } from './stats.js?v=8';
+import { loadDemo } from './demo.js?v=8';
 
 const tplOf = id => db.templates.find(t => t.id === id);
 
@@ -170,11 +170,12 @@ export function openSettings(refresh) {
   sheet({
     title: 'Réglages', full: true,
     body: `<div class="form">
-      <h3>Apparence</h3>
+      <details class="fold"><summary><span>Apparence</span><small data-look>${esc(lookLabel(s))}</small>${icon('down')}</summary><div class="fold-body">
       <div class="field"><span>Thèmes</span><div class="presets">${PRESETS.map(p => `<button class="preset ${isPreset(s, p) ? 'on' : ''}" data-preset="${p.id}" style="--pb:${MODE_BG[p.theme]};--pc:${ACCENTS[p.accent][p.theme === 'light' ? 2 : 1]};--pt:${p.theme === 'light' ? '#16181b' : '#eceef1'};--pr:${RADIUS[p.radius][1]}px"><div class="pv"><i></i><i></i></div><b>${p.name}</b></button>`).join('')}</div></div>
       <div class="field"><span>Fond</span><div class="seg" data-group="theme">${Object.entries({ dark: 'Sombre', oled: 'Noir OLED', light: 'Clair' }).map(([k, v]) => `<button data-set="theme" data-v="${k}" class="${(s.theme || 'dark') === k ? 'on' : ''}">${v}</button>`).join('')}</div></div>
       <div class="field"><span>Couleur principale</span><div class="accents">${Object.entries(ACCENTS).map(([k, [name, dark]]) => `<button class="accent-b ${(s.accent || 'ember') === k ? 'on' : ''}" data-set="accent" data-v="${k}" style="--c:${dark}"><i></i>${name}</button>`).join('')}</div></div>
       <div class="field"><span>Coins</span><div class="seg" data-group="radius">${Object.entries(RADIUS).map(([k, [name, r]]) => `<button data-set="radius" data-v="${k}" class="${(s.radius || 'round') === k ? 'on' : ''}"><i class="shape" style="--sr:${r / 1.6}px"></i>${name}</button>`).join('')}</div></div>
+      </div></details>
       <label class="field"><span>Repos par défaut (s) pour un nouvel exercice</span><input data-n="rest" inputmode="numeric" value="${s.rest}"></label>
       <div class="field"><span>Mon matériel</span><div class="chips wrap">${Object.entries(EQUIP).map(([k, v]) => `<button class="chip ${(s.equip || Object.keys(EQUIP)).includes(k) ? 'on' : ''}" data-eq="${k}">${esc(v)}</button>`).join('')}</div><small class="muted">Utilisé par le filtre « Mon matériel » quand tu choisis un exercice.</small></div>
       <label class="check"><input type="checkbox" data-b="sound" ${s.sound ? 'checked' : ''}> Bips de fin de repos et de chrono</label>
@@ -190,6 +191,7 @@ export function openSettings(refresh) {
       const syncLook = () => {
         el.querySelectorAll('[data-set]').forEach(b => b.classList.toggle('on', (s[b.dataset.set] || { theme: 'dark', accent: 'ember', radius: 'round' }[b.dataset.set]) === b.dataset.v));
         el.querySelectorAll('[data-preset]').forEach(b => b.classList.toggle('on', isPreset(s, PRESETS.find(p => p.id === b.dataset.preset))));
+        el.querySelector('[data-look]').textContent = lookLabel(s);
       };
       el.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { s[b.dataset.set] = b.dataset.v; save(); applyTheme(); syncLook(); });
       el.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => { const p = PRESETS.find(x => x.id === b.dataset.preset); Object.assign(s, { theme: p.theme, accent: p.accent, radius: p.radius }); save(); applyTheme(); syncLook(); });
@@ -242,6 +244,10 @@ const PRESETS = [
   { id: 'craie', name: 'Craie', theme: 'light', accent: 'teal', radius: 'soft' },
   { id: 'atelier', name: 'Atelier', theme: 'light', accent: 'amber', radius: 'sharp' },
 ];
+const lookLabel = s => {
+  const p = PRESETS.find(x => isPreset(s, x));
+  return p ? `Thème ${p.name}` : [ACCENTS[s.accent || 'ember'][0], { dark: 'sombre', oled: 'noir OLED', light: 'clair' }[s.theme || 'dark'], RADIUS[s.radius || 'round'][0].toLowerCase()].join(' · ');
+};
 const isPreset = (s, p) => (s.theme || 'dark') === p.theme && (s.accent || 'ember') === p.accent && (s.radius || 'round') === p.radius;
 
 export function applyTheme() {

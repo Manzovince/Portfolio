@@ -1,5 +1,5 @@
 // Persistent state (localStorage) + domain helpers shared by every view.
-import { LIBRARY, MODES } from './library.js?v=7';
+import { LIBRARY, MODES } from './library.js?v=8';
 
 const KEY = 'forge.v1';
 

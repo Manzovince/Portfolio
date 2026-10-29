@@ -559,3 +559,13 @@ body.active-open .tabbar { visibility: hidden; }
 .accent-b.on { color: var(--text); }
 .accent-b.on i { outline-color: var(--c); border-color: var(--surface); }
 .seg .shape { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-top-left-radius: var(--sr); vertical-align: -2px; margin-right: 6px; border-right: 0; border-bottom: 0; }
+
+/* collapsible settings section */
+.fold { border: 1px solid var(--line); border-radius: calc(14px * var(--rf)); background: var(--surface); margin: 6px 0 18px; }
+.fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; padding: 14px; cursor: pointer; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary span { font-weight: 650; font-size: 15px; }
+.fold > summary small { flex: 1; text-align: right; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fold > summary .ic { width: 18px; height: 18px; color: var(--muted); transition: transform .2s; }
+.fold[open] > summary .ic { transform: rotate(180deg); }
+.fold-body { padding: 2px 14px 2px; }

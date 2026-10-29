@@ -1,5 +1,5 @@
 // Tiny SVG charts (bars, lines) with a shared tap/hover tooltip.
-import { esc } from './ui.js?v=7';
+import { esc } from './ui.js?v=8';
 
 const W = 340;
 
