@@ -484,6 +484,10 @@ html.table .log{max-height:none;font-size:13.5px;}
       <div id="seats"></div>
       <h3>Partie</h3>
       <div class="orow">
+        <span class="olab">Taille du plateau<small>37, 61, 91 ou 127 cases ; le nombre de tuiles par défaut suit</small></span>
+        <span class="seg" id="sizeSeg"></span>
+      </div>
+      <div class="orow">
         <span class="olab">Marée montante<small>l'anneau extérieur sombre à la manche 13, puis 21 et 29</small></span>
         <span class="seg" id="tideSeg"></span>
       </div>
@@ -531,19 +535,25 @@ html.table .log{max-height:none;font-size:13.5px;}
 (function(){
 "use strict";
 /* =================== rules =================== */
-var R=4;
+var R=4;   /* board radius: 3 to 6, from the "Taille du plateau" setting; setSize() rebuilds CELLS */
+var SIZES=[[3,"Petit"],[4,"Moyen"],[5,"Grand"],[6,"Géant"]];
+function cellsFor(r){return 3*r*(r+1)+1;}
 var DIRS=[[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
 var SEATS=[
   {name:"Corail",c:"#FF7A5C"},{name:"Soleil",c:"#FFD35C"},
   {name:"Mauve",c:"#C49BFF"},{name:"Varech",c:"#7EE08A"}
 ];
 var CORNERS={2:[1,4],3:[0,2,4],4:[1,2,4,5]};
-var FLOOD={4:13,3:21,2:29};          /* ring -> round it sinks at */
+/* ring -> round it sinks at. Three rings go, outermost first, rounds 13, 21, 29;
+   on the 3-ring board that leaves the centre alone, which ends any standoff */
 /* without pearls only the last Queen can win, and sims showed Queens dodging each
    other in the middle for ever: the tide then goes one ring further, which leaves
    a single cell - so at most one Queen. Switched off, it stays off (the settings warn) */
-var FLOOD_NOPEARL={4:13,3:21,2:29,1:35};
-function floods(S){return S.target?FLOOD:FLOOD_NOPEARL;}
+function floods(S){
+  var F={}, last=S.target?Math.max(1,R-2):1;   /* no pearls: down to ring 1, a single cell left */
+  for(var rg=R,k=0;rg>=last;rg--,k++)F[rg]=k<3?13+8*k:29+6*(k-2);
+  return F;
+}
 var MAX_JUV=4;
 var NEST_C="#FF8FB8";   /* anemones open to every Queen wear no player's colour */
 function nestColor(t,S){return t.color>=0&&S.players[t.color]?S.players[t.color].c:NEST_C;}
@@ -563,7 +573,11 @@ function key(q,r){return q+","+r;}
 function inBoard(q,r){return Math.abs(q)<=R&&Math.abs(r)<=R&&Math.abs(q+r)<=R;}
 function ring(q,r){return Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r));}
 var CELLS=[];
-for(var q=-R;q<=R;q++)for(var r=-R;r<=R;r++)if(inBoard(q,r))CELLS.push({q:q,r:r,k:key(q,r)});
+function setSize(n){
+  R=n; CELLS=[];
+  for(var q=-R;q<=R;q++)for(var r=-R;r<=R;r++)if(inBoard(q,r))CELLS.push({q:q,r:r,k:key(q,r)});
+}
+setSize(4);
 
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=(Math.random()*(i+1))|0,t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function clone(o){return JSON.parse(JSON.stringify(o));}
@@ -574,9 +588,16 @@ function tileCount(o,t){
   var c=o&&o.tiles&&o.tiles[t];
   if(t==="pearl"&&o&&o.goal===0)return 0;   /* "Sans" perles */
   if(c&&c.on===false)return 0;
-  return c&&c.n!=null?c.n:TYPES[t].n;
+  return c&&c.n!=null?c.n:defCount(t,o&&o.size);
+}
+/* TYPES[t].n is the mix for the 61-cell board; other sizes scale it with the cell count */
+function defCount(t,size){
+  var n=TYPES[t].n, r=size||4;
+  if(t==="anemone")return r<=3?1:2;
+  return Math.max(t==="whirl"?2:1,Math.round(n*cellsFor(r)/61));
 }
 function setup(seats,opts){
+  setSize(opts.size||4);
   var act=seats.map(function(v,i){return {seat:i,type:v};}).filter(function(s){return s.type!=="off";});
   var P=act.length, corners=CORNERS[P];
   var S={tiles:{},pieces:[],players:[],turn:0,extra:0,fed:false,round:1,winner:null,over:false,
@@ -1269,6 +1290,7 @@ function renderSetup(){
   $("goalSeg").innerHTML=seg("goal",0,opts.goal,[[0,"Sans"],[2,"2"],[3,"3"],[4,"4"],[5,"5"]]);
   $("artSeg").innerHTML=seg("art",0,opts.art,[[true,"Illustrées"],[false,"Simples"]]);
   renderBackPick();
+  $("sizeSeg").innerHTML=seg("size",0,opts.size||4,SIZES);
   $("eatSeg").innerHTML=seg("eat",0,!!opts.eat,[[false,"Pousser"],[true,"Manger"]]);
   $("nestSeg").innerHTML=seg("nest",0,!!opts.anyNest,[[false,"Sa couleur"],[true,"Toutes"]]);
   $("viewSeg").innerHTML=seg("view",0,opts.view,[["auto","Auto"],["on","Oui"],["off","Non"]]);
@@ -1283,7 +1305,7 @@ function tilesUsed(but){
 }
 function tileMin(t){return t==="whirl"?2:1;}   /* a lone whirlpool leads nowhere */
 function renderTileOpts(){
-  var P=seatCount(), free=CELLS.length-2*P, used=tilesUsed(null), demo={players:[{c:SEATS[0].c}]};
+  var P=seatCount(), free=cellsFor(opts.size||4)-2*P, used=tilesUsed(null), demo={players:[{c:SEATS[0].c}]};
   var want=[];
   function icon(t){
     var k=opts.art&&window.CrabesArt?(t==="anemone"?"anemone|"+(opts.anyNest?NEST_C:SEATS[0].c)+"|p":t+"||p"):null, u=k&&CrabesArt.url(k);
@@ -1291,7 +1313,7 @@ function renderTileOpts(){
     if(k)want.push(k);
     return '<svg viewBox="-24 -24 48 48"><polygon points="'+hexPts(22)+'" fill="#E4DAC0" stroke="#C9BC98" stroke-width="1.4"/><g transform="scale(.8)">'+ICON[t]({t:t,dir:0,color:opts.anyNest?-1:0},demo)+'</g></svg>';}
   var html=Object.keys(TYPES).filter(function(t){return t!=="sand";}).map(function(t){
-    var c=(opts.tiles||{})[t]||{}, on=c.on!==false&&!(t==="pearl"&&opts.goal===0), n=tileCount(opts,t)||(c.n!=null?c.n:TYPES[t].n);
+    var c=(opts.tiles||{})[t]||{}, on=c.on!==false&&!(t==="pearl"&&opts.goal===0), n=tileCount(opts,t)||(c.n!=null?c.n:defCount(t,opts.size));
     var room=Math.floor((free-tilesUsed(t))/tileCells(t));
     return '<div class="trow'+(on?"":" off")+'">'+icon(t)+
       '<span class="olab">'+TYPES[t].name+'<small>'+(t==="anemone"&&opts.anyNest?NEST_TXT:TYPES[t].txt)+(t==="anemone"?" Nombre par joueur.":"")+'</small></span>'+
@@ -1308,12 +1330,12 @@ function renderTileOpts(){
 }
 function tileOpt(t){
   opts.tiles=opts.tiles||{};
-  return opts.tiles[t]=opts.tiles[t]||{on:true,n:TYPES[t].n};
+  return opts.tiles[t]=opts.tiles[t]||{on:true,n:defCount(t,opts.size)};
 }
 $("tileOpts").addEventListener("click",function(e){
   var b=e.target.closest("button[data-tstep],button[data-tsw]"); if(!b)return;
   var t=b.getAttribute("data-tstep")||b.getAttribute("data-tsw"), c=tileOpt(t);
-  if(c.n==null)c.n=TYPES[t].n;
+  if(c.n==null)c.n=defCount(t,opts.size);
   if(b.hasAttribute("data-tsw")&&t==="pearl"){   /* the pearl switch is the "Sans" goal */
     if(opts.goal===0){opts.goal=opts.lastGoal||3;c.on=true;}
     else{opts.lastGoal=opts.goal;opts.goal=0;}
@@ -1322,7 +1344,7 @@ $("tileOpts").addEventListener("click",function(e){
   if(b.hasAttribute("data-tsw")){
     c.on=!(c.on!==false);
     if(c.on){   /* switching back on: keep the count, but not past what the board can take */
-      var room=Math.floor((CELLS.length-2*seatCount()-tilesUsed(t))/tileCells(t));
+      var room=Math.floor((cellsFor(opts.size||4)-2*seatCount()-tilesUsed(t))/tileCells(t));
       c.n=Math.max(tileMin(t),Math.min(c.n,room));
     }
   } else c.n=Math.max(tileMin(t),c.n+(+b.getAttribute("data-d")));
@@ -1366,6 +1388,10 @@ $("backPick").addEventListener("click",function(e){
   opts.back=b.getAttribute("data-back"); saveOpts(); renderBackPick(); render();
 });
 /* these change the view at once, no new game needed */
+$("sizeSeg").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-size]"); if(!b)return;
+  opts.size=+b.getAttribute("data-v"); saveOpts(); renderSetup();
+});
 $("eatSeg").addEventListener("click",function(e){
   var b=e.target.closest("button[data-eat]"); if(!b)return;
   opts.eat=b.getAttribute("data-v")==="true"; saveOpts(); renderSetup();
