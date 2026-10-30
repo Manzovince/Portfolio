@@ -464,7 +464,7 @@ html.table .log{max-height:none;font-size:13.5px;}
           <li><strong>Relève :</strong> si vous n'avez plus aucun petit au début de votre tour, un nouveau sort de votre port, à condition qu'il soit libre et pas encore englouti.</li>
           <li>Une Reine mangée, noyée ou emportée : son joueur est éliminé avec tous ses crabes.</li>
           <li><strong>Victoire :</strong> être le dernier à avoir une Reine, ou ramasser le nombre de <strong>perles</strong> choisi. Si toutes les perles ont été trouvées (ou englouties), celui qui en a le plus l'emporte ; en cas d'égalité, on continue.</li>
-          <li><strong>Marée</strong> (option) : à la manche 13 l'anneau extérieur est englouti, puis le suivant à la manche 21 et à la 29. Tout crabe qui s'y trouve est perdu, ports compris. Dans une partie sans perles, elle est toujours active et engloutit encore l'anneau suivant à la manche 35 : il ne reste que la case centrale.</li>
+          <li><strong>Marée</strong> (option) : à la manche 13 l'anneau extérieur est englouti, puis le suivant à la manche 21 et à la 29. Tout crabe qui s'y trouve est perdu, ports compris. Dans une partie sans perles, elle engloutit encore l'anneau suivant à la manche 35 : il ne reste que la case centrale.</li>
         </ol>
         <p>Inspiré de Croa! (plateau carré, grenouilles). Nouveautés de cette version : plateau hexagonal, poussée, courants, tourbillons jumeaux, perles et marée montante.</p>
       </details>
@@ -491,6 +491,7 @@ html.table .log{max-height:none;font-size:13.5px;}
         <span class="olab">Perles pour gagner<small>« Sans » : seule la dernière Reine gagne, et la marée monte alors jusqu'au centre</small></span>
         <span class="seg" id="goalSeg"></span>
       </div>
+      <p class="tnote warn" id="endlessNote" hidden>Sans perles ni marée, rien ne force la fin : seules les attaques départagent les Reines, et la partie peut durer indéfiniment.</p>
       <div class="orow">
         <span class="olab">Entrer sur un adversaire<small>le pousser d'une case, ou le manger (une Reine mange tout le monde, un petit seulement les petits)</small></span>
         <span class="seg" id="eatSeg"></span>
@@ -539,8 +540,8 @@ var SEATS=[
 var CORNERS={2:[1,4],3:[0,2,4],4:[1,2,4,5]};
 var FLOOD={4:13,3:21,2:29};          /* ring -> round it sinks at */
 /* without pearls only the last Queen can win, and sims showed Queens dodging each
-   other in the middle for ever: the tide then always runs, and goes one ring
-   further, which leaves a single cell - so at most one Queen */
+   other in the middle for ever: the tide then goes one ring further, which leaves
+   a single cell - so at most one Queen. Switched off, it stays off (the settings warn) */
 var FLOOD_NOPEARL={4:13,3:21,2:29,1:35};
 function floods(S){return S.target?FLOOD:FLOOD_NOPEARL;}
 var MAX_JUV=4;
@@ -579,7 +580,7 @@ function setup(seats,opts){
   var act=seats.map(function(v,i){return {seat:i,type:v};}).filter(function(s){return s.type!=="off";});
   var P=act.length, corners=CORNERS[P];
   var S={tiles:{},pieces:[],players:[],turn:0,extra:0,fed:false,round:1,winner:null,over:false,
-         nextId:1,eat:!!opts.eat,target:opts.goal,tide:opts.tide||opts.goal===0,frozen:[],log:[]};
+         nextId:1,eat:!!opts.eat,target:opts.goal,tide:opts.tide,frozen:[],log:[]};
   var fixed={};
   act.forEach(function(s,i){
     var d=DIRS[corners[i]], pq=d[0]*R, pr=d[1]*R, jq=d[0]*(R-1), jr=d[1]*(R-1);
@@ -1264,6 +1265,7 @@ function renderSetup(){
       '<span class="seg">'+seg("seat",i,v,SEAT_KINDS)+'</span></div>';
   }).join("");
   $("tideSeg").innerHTML=seg("tide",0,opts.tide,[[true,"Oui"],[false,"Non"]]);
+  $("endlessNote").hidden=!(opts.goal===0&&!opts.tide);
   $("goalSeg").innerHTML=seg("goal",0,opts.goal,[[0,"Sans"],[2,"2"],[3,"3"],[4,"4"],[5,"5"]]);
   $("artSeg").innerHTML=seg("art",0,opts.art,[[true,"Illustrées"],[false,"Simples"]]);
   renderBackPick();
