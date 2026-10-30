@@ -91,6 +91,23 @@ h1 small{margin-left:10px;font-size:13px;font-weight:500;letter-spacing:.04em;co
 .olab{display:flex;flex-direction:column;gap:2px;font-size:13px;}
 .olab small{font-weight:400;font-size:11px;line-height:1.3;color:var(--muted);}
 .srow.off .sname{color:var(--muted);font-weight:500;}
+/* tile mix: one row per kind, a stepper on the right */
+.trow{display:flex;align-items:center;gap:10px;padding:5px 0;}
+.trow+.trow{border-top:1px solid var(--line);}
+.trow svg{flex:0 0 auto;width:30px;height:30px;display:block;}
+.trow.zero svg{opacity:.35;}
+.trow.zero .olab{color:var(--muted);}
+.step{flex:0 0 auto;display:inline-flex;align-items:center;border:1px solid var(--line-2);border-radius:999px;padding:2px;}
+.step button{appearance:none;width:30px;height:30px;border:0;border-radius:50%;background:none;color:var(--ink);font:600 17px/1 system-ui,sans-serif;cursor:pointer;}
+.step button:disabled{color:var(--muted);opacity:.35;cursor:default;}
+.step button:not(:disabled):hover{background:rgba(255,255,255,.08);}
+.step button:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+.step output{min-width:24px;text-align:center;font-weight:650;font-variant-numeric:tabular-nums;}
+.tsum{display:flex;align-items:center;gap:10px;margin:8px 0 4px;font-size:12px;color:var(--muted);}
+.tsum b{color:var(--ink);}
+.tsum.full b{color:var(--accent);}
+.tsum .btn{margin-left:auto;padding:4px 11px;font-size:11.5px;}
+.sheetbody h3 small{font-weight:500;letter-spacing:0;text-transform:none;}
 .seg{flex:0 0 auto;display:inline-flex;border:1px solid var(--line-2);border-radius:999px;padding:2px;}
 .seg button{
   appearance:none;font:inherit;font-size:12px;cursor:pointer;
@@ -370,7 +387,8 @@ details p{margin:10px 0 0;font-size:12px;}
           <li><strong>Relève :</strong> si vous n'avez plus aucun petit au début de votre tour, un nouveau sort de votre port, à condition qu'il soit libre et pas encore englouti.</li>
           <li>Une Reine mangée, noyée ou emportée : son joueur est éliminé avec tous ses crabes.</li>
           <li><strong>Victoire :</strong> être le dernier à avoir une Reine, ou ramasser le nombre de <strong>perles</strong> choisi. Si toutes les perles ont été trouvées (ou englouties), celui qui en a le plus l'emporte ; en cas d'égalité, on continue.</li>
-          <li><strong>Marée</strong> (option) : à la manche 13 l'anneau extérieur est englouti, puis le suivant à la manche 21 et à la 29. Tout crabe qui s'y trouve est perdu, ports compris.</li>
+          <li><strong>Marée</strong> (option) : à la manche 13 l'anneau extérieur est englouti, puis le suivant à la manche 21, à la 29 et à la 37 (il ne reste alors que la case centrale). Tout crabe qui s'y trouve est perdu, ports compris. Même sans l'option, la marée se lève (4 manches plus tard, puis toutes les 8) dès qu'il n'y a plus de perle à trouver et personne en tête, ou après dix manches sans tuile retournée, crabe perdu ni perle trouvée.</li>
+          <li><strong>Tuiles :</strong> les réglages permettent de choisir combien de tuiles de chaque sorte sont cachées sous le plateau ; les cases restantes sont du sable.</li>
         </ol>
         <p>Inspiré de Croa! (plateau carré, grenouilles). Nouveautés de cette version : plateau hexagonal, poussée, courants, tourbillons jumeaux, perles et marée montante.</p>
       </details>
@@ -389,13 +407,16 @@ details p{margin:10px 0 0;font-size:12px;}
       <div id="seats"></div>
       <h3>Partie</h3>
       <div class="orow">
-        <span class="olab">Marée montante<small>l'anneau extérieur sombre à la manche 13, puis 21 et 29</small></span>
+        <span class="olab">Marée montante<small>l'anneau extérieur sombre à la manche 13, puis 21, 29 et 37</small></span>
         <span class="seg" id="tideSeg"></span>
       </div>
       <div class="orow">
         <span class="olab">Perles pour gagner<small>l'autre façon de l'emporter : rester la dernière Reine</small></span>
         <span class="seg" id="goalSeg"></span>
       </div>
+      <h3>Tuiles cachées</h3>
+      <div id="tileMix"></div>
+      <div class="tsum" id="tileSum"></div>
     </div>
     <div class="sheetfoot">
       <p class="note">Les réglages s'appliquent à la prochaine partie.</p>
@@ -415,7 +436,9 @@ var SEATS=[
   {name:"Mauve",c:"#C49BFF"},{name:"Varech",c:"#7EE08A"}
 ];
 var CORNERS={2:[1,4],3:[0,2,4],4:[1,2,4,5]};
-var FLOOD={4:13,3:21,2:29};          /* ring -> round it sinks at */
+/* ring -> round it sinks at. The last one leaves only the centre: three Queens on
+   the final seven cells could otherwise push each other round in a ring for ever */
+var FLOOD={4:13,3:21,2:29,1:37};
 var MAX_JUV=4;
 var TYPES={
   sand:  {name:"Sable",      n:0, txt:"Rien ne se passe."},
@@ -429,6 +452,19 @@ var TYPES={
   anemone:{name:"Anémone",   n:2, txt:"La Reine de sa couleur y pond un petit."}
 };
 
+/* how many of each kind go under the board; anemone counts per player */
+var MIX_RANGE={pearl:[0,12,1],shark:[0,10,1],rock:[0,10,1],jelly:[0,10,1],shrimp:[0,10,1],current:[0,14,1],whirl:[0,4,2],anemone:[0,3,1]};
+function tileMix(m){
+  var o={};
+  Object.keys(MIX_RANGE).forEach(function(t){
+    var r=MIX_RANGE[t], v=m&&typeof m[t]==="number"?m[t]:TYPES[t].n;
+    v=Math.max(r[0],Math.min(r[1],Math.round(v/r[2])*r[2]));
+    o[t]=v;
+  });
+  return o;
+}
+function freeCells(P){return CELLS.length-2*P;}
+function mixSize(m,P){var n=0;Object.keys(m).forEach(function(t){n+=t==="anemone"?m[t]*P:m[t];});return n;}
 function key(q,r){return q+","+r;}
 function inBoard(q,r){return Math.abs(q)<=R&&Math.abs(r)<=R&&Math.abs(q+r)<=R;}
 function ring(q,r){return Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r));}
@@ -454,11 +490,15 @@ function setup(seats,opts){
     S.pieces.push({id:S.nextId++,pid:i,queen:false,q:jq,r:jr,alive:true,stun:0});
   });
   var deck=[];
+  var mix=tileMix(opts.tiles);
   Object.keys(TYPES).forEach(function(t){
-    if(t==="anemone"){ for(var i=0;i<P;i++)for(var j=0;j<TYPES.anemone.n;j++)deck.push({t:t,color:i}); }
-    else for(var n=0;n<TYPES[t].n;n++)deck.push({t:t});
+    if(t==="anemone"){ for(var i=0;i<P;i++)for(var j=0;j<mix.anemone;j++)deck.push({t:t,color:i}); }
+    else for(var n=0;n<mix[t];n++)deck.push({t:t});
   });
   var free=CELLS.filter(function(c){return !fixed[c.k];});
+  /* the settings cap the mix to the free cells, but a saved mix can outgrow a
+     bigger table: drop the surplus at random rather than the last kinds listed */
+  shuffle(deck); deck.length=Math.min(deck.length,free.length);
   while(deck.length<free.length)deck.push({t:"sand"});
   shuffle(deck);
   free.forEach(function(c,i){
@@ -550,8 +590,8 @@ function enter(S,p,q,r,pushed,rec,depth){
       }
       break;
     case "whirl":
-      var o=null;
-      Object.keys(S.tiles).forEach(function(k2){if(k2!==k&&S.tiles[k2].t==="whirl"&&!S.tiles[k2].flood)o=k2;});
+      var outs=Object.keys(S.tiles).filter(function(k2){return k2!==k&&S.tiles[k2].t==="whirl"&&!S.tiles[k2].flood;});
+      var o=outs.length?outs[(Math.random()*outs.length)|0]:null;
       rec(S,who(S,p)+fem(p," est aspiré{e} par un tourbillon…"));
       if(o){
         S.tiles[o].open=true;
@@ -583,6 +623,19 @@ function hatch(S,rec){
   });
 }
 
+/* the sea rises late even without the option: first ring 4 rounds from now, the next ones 8 apart */
+function raiseTide(S,rec,why){
+  S.tide=true; S.tideShift=S.round+4-FLOOD[R];
+  rec(S,why+" : la marée montera dans <b>4 manches</b>.");
+}
+/* what changes when a game moves forward: tiles turned, crabs lost, pearls found */
+function progress(S){
+  var n=0;
+  Object.keys(S.tiles).forEach(function(k){if(S.tiles[k].open)n++;});
+  S.pieces.forEach(function(p){if(!p.alive)n+=100;});
+  S.players.forEach(function(p){n+=p.pearls*10000;});
+  return n;
+}
 function checkWin(S,rec){
   if(S.over)return;
   var alive=S.players.filter(function(p){return p.alive;});
@@ -593,6 +646,10 @@ function checkWin(S,rec){
     var top=Math.max.apply(null,alive.map(function(p){return p.pearls;}));
     var lead=alive.filter(function(p){return p.pearls===top;});
     if(top>0&&lead.length===1)rich=lead;
+    /* nothing left to dig for and no leader: without the tide the Queens could
+       circle for ever (bot sims with few or no pearls did), so the sea rises,
+       its first ring 4 rounds from now and the next ones 8 rounds apart */
+    else if(!S.tide) raiseTide(S,rec,"Plus aucune perle à trouver");
   }
   if(rich.length){S.winner=rich[0].id;S.over=true;rec(S,"<b>"+rich[0].name+"</b> gagne avec "+rich[0].pearls+" perle"+(rich[0].pearls>1?"s":"")+(rich[0].pearls<S.target?" (plus aucune perle en mer)":"")+" !");}
   else if(alive.length===1){S.winner=alive[0].id;S.over=true;rec(S,"<b>"+alive[0].name+"</b> est la dernière Reine du récif !");}
@@ -628,7 +685,12 @@ function endTurn(S,rec){
     S.frozen.forEach(function(id){var p=byId(S,id);if(p&&p.stun>0)p.stun--;});
     var n=S.players.length, nx=me;
     do{nx=(nx+1)%n;}while(!S.players[nx].alive&&nx!==me);
-    if(nx<=me){S.round++;tide(S,rec);if(S.over)return;
+    if(nx<=me){S.round++;
+      /* ten rounds of nothing new (bots shy of a shark-heavy sea did this): the tide breaks it */
+      var pg=progress(S);
+      if(pg!==S.lastProg){S.lastProg=pg;S.calm=0;}
+      else if(++S.calm>=10&&!S.tide&&!S.over)raiseTide(S,rec,"Dix manches sans rien de neuf");
+      tide(S,rec);if(S.over)return;
       if(!S.players[nx].alive){do{nx=(nx+1)%n;}while(!S.players[nx].alive);} }
     S.turn=nx;
     S.frozen=S.pieces.filter(function(p){return p.alive&&p.pid===nx&&p.stun>0;}).map(function(p){return p.id;});
@@ -645,7 +707,7 @@ function endTurn(S,rec){
 function tide(S,rec){
   if(!S.tide)return;
   Object.keys(FLOOD).forEach(function(rg){
-    if(FLOOD[rg]!==S.round)return;
+    if(FLOOD[rg]+(S.tideShift||0)!==S.round)return;
     rg=+rg;
     CELLS.forEach(function(c){if(ring(c.q,c.r)===rg){S.tiles[c.k].flood=true;S.tiles[c.k].egg=null;}});
     rec(S,"La marée monte : l'anneau "+(R-rg+1)+" est englouti !");
@@ -656,7 +718,7 @@ function tide(S,rec){
 function nextFlood(S){
   if(!S.tide)return null;
   var best=null;
-  Object.keys(FLOOD).forEach(function(rg){if(FLOOD[rg]>=S.round&&(!best||FLOOD[rg]<best.round))best={ring:+rg,round:FLOOD[rg]};});
+  Object.keys(FLOOD).forEach(function(rg){var at=FLOOD[rg]+(S.tideShift||0);if(at>=S.round&&(!best||at<best.round))best={ring:+rg,round:at};});
   return best;
 }
 
@@ -1122,7 +1184,41 @@ function renderSetup(){
   }).join("");
   $("tideSeg").innerHTML=seg("tide",0,opts.tide,[[true,"Oui"],[false,"Non"]]);
   $("goalSeg").innerHTML=seg("goal",0,opts.goal,[[2,"2"],[3,"3"],[4,"4"],[5,"5"]]);
+  renderMix();
 }
+/* each seat takes a port and the sand in front of it, so the room depends on who plays */
+function mixCap(){
+  var P=opts.seats.filter(function(s){return s!=="off";}).length;
+  return {P:P,free:freeCells(P)};
+}
+function renderMix(){
+  var m=tileMix(opts.tiles), cap=mixCap(), used=mixSize(m,cap.P), room=cap.free-used;
+  var fake={players:SEATS.map(function(s){return {c:s.c};})};
+  $("tileMix").innerHTML=Object.keys(MIX_RANGE).map(function(t){
+    var r=MIX_RANGE[t], v=m[t], cost=t==="anemone"?r[2]*cap.P:r[2];
+    var help=t==="anemone"?"par joueur · "+TYPES[t].txt:t==="whirl"?"par paires · "+TYPES[t].txt:TYPES[t].txt;
+    return '<div class="trow'+(v?"":" zero")+'"><svg viewBox="-24 -24 48 48" aria-hidden="true">'+tileArt({t:t,open:true,dir:0,color:0},fake,"mix"+t,22)+
+      '<polygon points="'+hexPts(21.4)+'" fill="none" stroke="#EADFC2" stroke-width="1.6"/></svg>'+
+      '<span class="olab">'+TYPES[t].name+'<small>'+help+'</small></span>'+
+      '<span class="step"><button type="button" data-mix="'+t+'" data-d="-1" aria-label="Moins de '+TYPES[t].name+'"'+(v<=r[0]?" disabled":"")+'>−</button>'+
+      '<output>'+v+'</output>'+
+      '<button type="button" data-mix="'+t+'" data-d="1" aria-label="Plus de '+TYPES[t].name+'"'+(v>=r[1]||cost>room?" disabled":"")+'>+</button></span></div>';
+  }).join("");
+  $("tileSum").className="tsum"+(room<=0?" full":"");
+  $("tileSum").innerHTML='<span><b>'+used+'</b> / '+cap.free+' cases · '+
+    (room>=0?'reste <b>'+room+'</b> de sable':'<b>'+(-room)+'</b> en trop, retirées au hasard')+'</span>'+
+    '<button class="btn" type="button" id="mixReset">Par défaut</button>';
+}
+$("tileMix").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-mix]"); if(!b||b.disabled)return;
+  var t=b.getAttribute("data-mix"), m=tileMix(opts.tiles);
+  m[t]+=+b.getAttribute("data-d")*MIX_RANGE[t][2];
+  opts.tiles=tileMix(m); saveOpts(); renderMix();
+});
+$("tileSum").addEventListener("click",function(e){
+  if(!e.target.closest("#mixReset"))return;
+  delete opts.tiles; saveOpts(); renderMix();
+});
 function openSheet(on){
   $("sheet").hidden=!on;
   if(on)$("sheetClose").focus();else $("gear").focus();
