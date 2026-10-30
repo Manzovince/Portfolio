@@ -252,6 +252,8 @@ html{touch-action:manipulation;-webkit-text-size-adjust:100%}
 .card svg{transition:transform .15s}
 .card[aria-pressed="true"]:active svg{transform:rotate(30deg)}
 /* Menu du jeu automatique (plein écran) */
+#autoNew{display:none}
+html.full #autoNew{display:block}
 .autopop{position:absolute;top:54px;right:8px;z-index:4;box-shadow:0 6px 20px var(--shadow)}
 .autopop .row{margin:0;flex-direction:column;align-items:stretch}
 .autopop .btn{min-height:40px}
@@ -306,6 +308,7 @@ html{touch-action:manipulation;-webkit-text-size-adjust:100%}
             <button class="btn" id="aione" type="button">Coup auto</button>
             <button class="btn" id="aiall" type="button">Finir la partie en auto</button>
             <select id="speed" class="btn" aria-label="Vitesse de l'IA"><option value="900">Lent</option><option value="450">Normal</option><option value="120">Rapide</option><option value="20" selected>Éclair</option></select>
+            <button class="btn" id="autoNew" type="button" title="Nouvelle partie jouée entièrement par l'IA, avec une nouvelle graine">↻ Nouvelle partie auto</button>
           </div>
         </section>
 
@@ -971,6 +974,7 @@ function renderSide(A){
   const hand=hands[cur]||[];const lab={reef:'Récif',elem:'Élément',fish:'Banc',empty:'Eau libre',mix:'Mixte',pollution:'Pollution'};
   const dis=over||isAI(cur)||autoAll;
   $('hand').innerHTML=hand.map((t,i)=>`<button type="button" class="card" data-i="${i}" aria-pressed="${i===sel}"${dis||!legal.includes(i)?' disabled':''}><svg viewBox="-46 -46 92 92" aria-hidden="true">${tileSVG(i===sel?orient(t,rot,flip):t,0,0,40)}</svg>${t.type==='pred'?PRED_N[t.pred]:lab[t.type]}</button>`).join('')||'<span class="hint">Plus de cartes.</span>';
+  {const an=$('autoNew');if(an&&an.classList)an.classList.toggle('primary',over)}
   $('aione').disabled=over;const allAI=O.ai==='all',running=allAI?!paused:autoAll;$('aiall').textContent=running?'❚❚ Pause':(allAI?'▶ Lecture':'▶ Finir la partie en auto');$('aiall').classList.toggle('primary',allAI);$('aiall').disabled=over;
   $('log').innerHTML=logs.length?logs.map(l=>`<li${l.bad?' class="bad"':''}><i class="sw" style="background:${PCOL[l.p]};border-radius:50%"></i><span>${l.t}</span><span class="pts">${l.pts>0?'+':''}${l.pts}</span></li>`).join(''):'<li class="empty">Aucun point marqué pour l’instant.</li>';
   let polluted=0,stacks=0;for(const c of board.values()){if(c.pol>0&&!isPollution(c))polluted++;stacks+=c.layers.length-1}
@@ -1170,6 +1174,7 @@ $('fullOff').onclick=()=>setFull(false);
 $('fullOpts').onclick=()=>{setAuto(false);setOpts($('sidebar').hidden)};
 function setAuto(open){$('autopop').hidden=!open;$('fullAuto').setAttribute('aria-expanded',String(open))}
 $('fullAuto').onclick=()=>setAuto($('autopop').hidden);
+$('autoNew').onclick=()=>{setAuto(false);$('autoGame').click()};
 boardEl.addEventListener('pointerdown',()=>setAuto(false));
 // Pas de zoom natif de la page (pincement Safari, double appui) : seul le plateau zoome
 for(const t of['gesturestart','gesturechange'])document.addEventListener(t,e=>e.preventDefault());
