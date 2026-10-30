@@ -91,23 +91,6 @@ h1 small{margin-left:10px;font-size:13px;font-weight:500;letter-spacing:.04em;co
 .olab{display:flex;flex-direction:column;gap:2px;font-size:13px;}
 .olab small{font-weight:400;font-size:11px;line-height:1.3;color:var(--muted);}
 .srow.off .sname{color:var(--muted);font-weight:500;}
-/* tile mix: one row per kind, a stepper on the right */
-.trow{display:flex;align-items:center;gap:10px;padding:5px 0;}
-.trow+.trow{border-top:1px solid var(--line);}
-.trow svg{flex:0 0 auto;width:30px;height:30px;display:block;}
-.trow.zero svg{opacity:.35;}
-.trow.zero .olab{color:var(--muted);}
-.step{flex:0 0 auto;display:inline-flex;align-items:center;border:1px solid var(--line-2);border-radius:999px;padding:2px;}
-.step button{appearance:none;width:30px;height:30px;border:0;border-radius:50%;background:none;color:var(--ink);font:600 17px/1 system-ui,sans-serif;cursor:pointer;}
-.step button:disabled{color:var(--muted);opacity:.35;cursor:default;}
-.step button:not(:disabled):hover{background:rgba(255,255,255,.08);}
-.step button:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
-.step output{min-width:24px;text-align:center;font-weight:650;font-variant-numeric:tabular-nums;}
-.tsum{display:flex;align-items:center;gap:10px;margin:8px 0 4px;font-size:12px;color:var(--muted);}
-.tsum b{color:var(--ink);}
-.tsum.full b{color:var(--accent);}
-.tsum .btn{margin-left:auto;padding:4px 11px;font-size:11.5px;}
-.sheetbody h3 small{font-weight:500;letter-spacing:0;text-transform:none;}
 .seg{flex:0 0 auto;display:inline-flex;border:1px solid var(--line-2);border-radius:999px;padding:2px;}
 .seg button{
   appearance:none;font:inherit;font-size:12px;cursor:pointer;
@@ -131,28 +114,28 @@ h1 small{margin-left:10px;font-size:13px;font-weight:500;letter-spacing:.04em;co
 svg#board{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none;touch-action:manipulation;}
 
 .hex{cursor:default;}
-.hex .face{fill:var(--hid);}
-.hex.open .face{fill:var(--sand);}
-/* the rim says what the art cannot at a glance: cream = turned over, dark = still hidden */
-.hex .rim{fill:none;stroke-width:1.6;stroke-linejoin:round;}
-.hex.hid .rim{stroke:#062832;}
-.hex.open .rim{stroke:#EADFC2;stroke-width:2.4;}
-.hex.port .rim{stroke:var(--c);stroke-width:3.4;}
-.hex.flood .face{fill:var(--flood);stroke:#0A2630;stroke-width:1.6;stroke-dasharray:3 4;}
-.hex.flood .ico,.hex.flood .rim{display:none;}
-.hex.tide .rim{stroke:var(--danger);stroke-width:2.8;animation:tide 1.4s ease-in-out infinite alternate;}
+.hex .face{stroke-width:1.6;transition:fill .3s ease,stroke .3s ease;}
+.hex.hid .face{fill:url(#waves);stroke:var(--hid-edge);}
+.hex.open .face{fill:var(--sand);stroke:var(--sand-edge);}
+.hex.open.t-shark .face{fill:#EBC3B8;stroke:#C98A7C;}
+.hex.open.t-rock .face{fill:#B9B5A8;stroke:#8F8B7E;}
+.hex.port .face{fill:var(--deep);stroke:var(--c);stroke-width:2.4;}
+.hex.flood .face{fill:var(--flood);stroke:#0A2630;stroke-dasharray:3 4;}
+.hex.flood .ico{display:none;}
+.hex.tide .face{stroke:var(--danger);stroke-width:2.2;animation:tide 1.4s ease-in-out infinite alternate;}
 @keyframes tide{to{stroke-opacity:.25;}}
 .hex .flip{transform-box:fill-box;transform-origin:center;}
 .hex.flipping .flip{animation:flip .42s ease;}
 @keyframes flip{0%{transform:scaleX(1);}45%{transform:scaleX(0);}100%{transform:scaleX(1);}}
 .hex.act{cursor:pointer;}
-@media (hover:hover){ .hex.act:hover .flip{filter:brightness(1.12);} }
+@media (hover:hover){ .hex.act:hover .face{filter:brightness(1.12);} }
 
 .mark{pointer-events:none;}
-.mark.dest{fill:#fff;stroke:#10262D;stroke-width:2.2;opacity:.92;}
+.mark.dest{fill:rgba(255,255,255,.85);}
+.hex.open .mark.dest,.hex.port .mark.dest{fill:rgba(18,56,67,.55);}
 .mark.push{fill:none;stroke:var(--danger);stroke-width:3;stroke-dasharray:5 4;}
 .mark.sel{fill:none;stroke:var(--accent);stroke-width:3;}
-.mark.can{fill:none;stroke:#fff;stroke-width:2;stroke-dasharray:2 4;stroke-linecap:round;opacity:.85;filter:drop-shadow(0 0 1.2px #000);}
+.mark.can{fill:none;stroke:rgba(255,255,255,.55);stroke-width:1.6;stroke-dasharray:2 4;}
 
 .piece{pointer-events:none;transition:transform .34s cubic-bezier(.3,.8,.25,1),opacity .35s ease;}
 .piece .crab{transition:transform .2s ease;}
@@ -276,12 +259,7 @@ details p{margin:10px 0 0;font-size:12px;}
 /* ---- desktop: keep the whole board on screen, whatever the window height ---- */
 @media (min-width:901px){
   svg#board{max-height:calc(100dvh - 190px);margin:0 auto;}
-  /* the side column folds away and the board gets the whole width */
-  .wrap.folded{grid-template-columns:minmax(0,1fr);}
-  .wrap.folded aside{display:none;}
-  #fold[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--abyss);}
 }
-@media (max-width:900px){ #fold{display:none;} }
 
 @media (prefers-reduced-motion:reduce){ *{transition-duration:.01ms !important;animation:none !important;} }
 </style>
@@ -291,7 +269,6 @@ details p{margin:10px 0 0;font-size:12px;}
   <header>
     <h1>Récif<small>un Croa! en nid d'abeille</small></h1>
     <span class="hgroup">
-      <button class="btn icon" id="fold" type="button" aria-pressed="true" aria-controls="side" aria-label="Panneau latéral" title="Masquer le panneau"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M14.5 4.5v15"/></svg></button>
       <button class="btn icon" id="gear" type="button" aria-label="Réglages" title="Réglages"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h8M17 7h3M4 17h3M12 17h8"/><circle cx="14.5" cy="7" r="2.3"/><circle cx="9.5" cy="17" r="2.3"/></svg></button>
       <button class="btn pri" id="reset" type="button">Nouvelle partie</button>
     </span>
@@ -312,38 +289,9 @@ details p{margin:10px 0 0;font-size:12px;}
             <rect width="22" height="12" fill="#17606D"/>
             <path d="M0 8 q5.5 -5 11 0 t11 0" fill="none" stroke="#2B8C9A" stroke-width="1.3" opacity=".7"/>
           </pattern>
-          <radialGradient id="pearlG" cx=".34" cy=".3" r=".75">
-            <stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#F6EFE2"/><stop offset=".8" stop-color="#DCCDB0"/><stop offset="1" stop-color="#A9977A"/>
+          <radialGradient id="pearlG" cx=".35" cy=".35" r=".7">
+            <stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#EEE6D2"/><stop offset="1" stop-color="#B9AB86"/>
           </radialGradient>
-          <!-- tile art: these live in the 92-radius scene space that tileArt() scales down -->
-          <clipPath id="aClipP"><polygon points="79.67,-46 79.67,46 0,92 -79.67,46 -79.67,-46 0,-92"/></clipPath>
-          <clipPath id="aClipF"><polygon points="92,0 46,79.67 -46,79.67 -92,0 -46,-79.67 46,-79.67"/></clipPath>
-          <radialGradient id="aSand" cx=".42" cy=".35" r=".75"><stop offset="0" stop-color="#F6EDD4"/><stop offset=".7" stop-color="#E4D3A8"/><stop offset="1" stop-color="#CDB98A"/></radialGradient>
-          <pattern id="aRip" width="52" height="19" patternUnits="userSpaceOnUse" x="-6" y="-3">
-            <path d="M0 12 q13 -7 26 0 t26 0" fill="none" stroke="#C9B482" stroke-width="3.2" opacity=".6"/>
-            <path d="M0 9.5 q13 -7 26 0 t26 0" fill="none" stroke="#FBF4DF" stroke-width="2" opacity=".8"/>
-          </pattern>
-          <radialGradient id="aWater" cx=".45" cy=".35" r=".8"><stop offset="0" stop-color="#3AAAB5"/><stop offset=".55" stop-color="#1D7787"/><stop offset="1" stop-color="#0D4A59"/></radialGradient>
-          <radialGradient id="aDark" cx=".45" cy=".35" r=".8"><stop offset="0" stop-color="#2A7E8D"/><stop offset=".6" stop-color="#145463"/><stop offset="1" stop-color="#0A3340"/></radialGradient>
-          <radialGradient id="aJellyW" cx=".5" cy=".3" r=".85"><stop offset="0" stop-color="#4A6CB0"/><stop offset=".55" stop-color="#26477A"/><stop offset="1" stop-color="#13284A"/></radialGradient>
-          <radialGradient id="aWhirl" cx=".5" cy=".5" r=".55"><stop offset="0" stop-color="#020E14"/><stop offset=".25" stop-color="#083443"/><stop offset=".7" stop-color="#1B7686"/><stop offset="1" stop-color="#2C98A6"/></radialGradient>
-          <pattern id="aCaus" width="64" height="44" patternUnits="userSpaceOnUse">
-            <path d="M0 12 q16 -7 32 0 t32 0 M-32 34 q16 -7 32 0 t32 0 t32 0" fill="none" stroke="#E9FFFC" stroke-width="2.4" stroke-linecap="round" opacity=".2"/>
-          </pattern>
-          <radialGradient id="aBack" cx=".5" cy=".4" r=".75"><stop offset="0" stop-color="#14596A"/><stop offset=".65" stop-color="#0D4351"/><stop offset="1" stop-color="#072E3A"/></radialGradient>
-          <pattern id="aScale" width="22" height="16" patternUnits="userSpaceOnUse">
-            <path d="M0 16 a11 11 0 0 1 22 0 M-11 8 a11 11 0 0 1 22 0 M11 8 a11 11 0 0 1 22 0" fill="none" stroke="#2E9AAA" stroke-width="2" opacity=".5"/>
-          </pattern>
-          <linearGradient id="aOyster" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8E7480"/><stop offset="1" stop-color="#4C3843"/></linearGradient>
-          <linearGradient id="aNacre" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4E9F3"/><stop offset=".3" stop-color="#CFE4F1"/><stop offset=".55" stop-color="#F7EBDD"/><stop offset=".8" stop-color="#E6D2EC"/><stop offset="1" stop-color="#C6DDE6"/></linearGradient>
-          <linearGradient id="aShark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6F8E9B"/><stop offset=".55" stop-color="#46616D"/><stop offset="1" stop-color="#2E4651"/></linearGradient>
-          <linearGradient id="aRock" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ABA698"/><stop offset=".5" stop-color="#7D786B"/><stop offset="1" stop-color="#4F4B42"/></linearGradient>
-          <radialGradient id="aWet"><stop offset=".55" stop-color="#9C8B62" stop-opacity=".55"/><stop offset="1" stop-color="#9C8B62" stop-opacity="0"/></radialGradient>
-          <radialGradient id="aBell" cx=".45" cy=".25" r=".8"><stop offset="0" stop-color="#FFE3F2"/><stop offset=".45" stop-color="#FF9ACD" stop-opacity=".95"/><stop offset="1" stop-color="#C2408A" stop-opacity=".85"/></radialGradient>
-          <linearGradient id="aShrimp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC08E"/><stop offset=".5" stop-color="#F7864A"/><stop offset="1" stop-color="#D45A25"/></linearGradient>
-          <linearGradient id="aArrow" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#D3F6F2" stop-opacity=".35"/><stop offset=".5" stop-color="#E9FFFC"/><stop offset="1" stop-color="#fff"/></linearGradient>
-          <linearGradient id="aWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C99A62"/><stop offset="1" stop-color="#8C6136"/></linearGradient>
-          <linearGradient id="aShade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".2"/><stop offset=".42" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></linearGradient>
         </defs>
         <g id="gTiles"></g>
         <g id="gEggs"></g>
@@ -361,7 +309,7 @@ details p{margin:10px 0 0;font-size:12px;}
     <button type="button" data-p="rules" aria-pressed="false">Règles</button>
   </nav>
 
-  <aside id="side">
+  <aside>
     <div class="card" data-card="players">
       <h2>Joueurs</h2>
       <div class="players" id="players"></div>
@@ -387,8 +335,7 @@ details p{margin:10px 0 0;font-size:12px;}
           <li><strong>Relève :</strong> si vous n'avez plus aucun petit au début de votre tour, un nouveau sort de votre port, à condition qu'il soit libre et pas encore englouti.</li>
           <li>Une Reine mangée, noyée ou emportée : son joueur est éliminé avec tous ses crabes.</li>
           <li><strong>Victoire :</strong> être le dernier à avoir une Reine, ou ramasser le nombre de <strong>perles</strong> choisi. Si toutes les perles ont été trouvées (ou englouties), celui qui en a le plus l'emporte ; en cas d'égalité, on continue.</li>
-          <li><strong>Marée</strong> (option) : à la manche 13 l'anneau extérieur est englouti, puis le suivant à la manche 21, à la 29 et à la 37 (il ne reste alors que la case centrale). Tout crabe qui s'y trouve est perdu, ports compris. Même sans l'option, la marée se lève (4 manches plus tard, puis toutes les 8) dès qu'il n'y a plus de perle à trouver et personne en tête, ou après dix manches sans tuile retournée, crabe perdu ni perle trouvée.</li>
-          <li><strong>Tuiles :</strong> les réglages permettent de choisir combien de tuiles de chaque sorte sont cachées sous le plateau ; les cases restantes sont du sable.</li>
+          <li><strong>Marée</strong> (option) : à la manche 13 l'anneau extérieur est englouti, puis le suivant à la manche 21 et à la 29. Tout crabe qui s'y trouve est perdu, ports compris.</li>
         </ol>
         <p>Inspiré de Croa! (plateau carré, grenouilles). Nouveautés de cette version : plateau hexagonal, poussée, courants, tourbillons jumeaux, perles et marée montante.</p>
       </details>
@@ -407,16 +354,13 @@ details p{margin:10px 0 0;font-size:12px;}
       <div id="seats"></div>
       <h3>Partie</h3>
       <div class="orow">
-        <span class="olab">Marée montante<small>l'anneau extérieur sombre à la manche 13, puis 21, 29 et 37</small></span>
+        <span class="olab">Marée montante<small>l'anneau extérieur sombre à la manche 13, puis 21 et 29</small></span>
         <span class="seg" id="tideSeg"></span>
       </div>
       <div class="orow">
         <span class="olab">Perles pour gagner<small>l'autre façon de l'emporter : rester la dernière Reine</small></span>
         <span class="seg" id="goalSeg"></span>
       </div>
-      <h3>Tuiles cachées</h3>
-      <div id="tileMix"></div>
-      <div class="tsum" id="tileSum"></div>
     </div>
     <div class="sheetfoot">
       <p class="note">Les réglages s'appliquent à la prochaine partie.</p>
@@ -436,9 +380,7 @@ var SEATS=[
   {name:"Mauve",c:"#C49BFF"},{name:"Varech",c:"#7EE08A"}
 ];
 var CORNERS={2:[1,4],3:[0,2,4],4:[1,2,4,5]};
-/* ring -> round it sinks at. The last one leaves only the centre: three Queens on
-   the final seven cells could otherwise push each other round in a ring for ever */
-var FLOOD={4:13,3:21,2:29,1:37};
+var FLOOD={4:13,3:21,2:29};          /* ring -> round it sinks at */
 var MAX_JUV=4;
 var TYPES={
   sand:  {name:"Sable",      n:0, txt:"Rien ne se passe."},
@@ -452,19 +394,6 @@ var TYPES={
   anemone:{name:"Anémone",   n:2, txt:"La Reine de sa couleur y pond un petit."}
 };
 
-/* how many of each kind go under the board; anemone counts per player */
-var MIX_RANGE={pearl:[0,12,1],shark:[0,10,1],rock:[0,10,1],jelly:[0,10,1],shrimp:[0,10,1],current:[0,14,1],whirl:[0,4,2],anemone:[0,3,1]};
-function tileMix(m){
-  var o={};
-  Object.keys(MIX_RANGE).forEach(function(t){
-    var r=MIX_RANGE[t], v=m&&typeof m[t]==="number"?m[t]:TYPES[t].n;
-    v=Math.max(r[0],Math.min(r[1],Math.round(v/r[2])*r[2]));
-    o[t]=v;
-  });
-  return o;
-}
-function freeCells(P){return CELLS.length-2*P;}
-function mixSize(m,P){var n=0;Object.keys(m).forEach(function(t){n+=t==="anemone"?m[t]*P:m[t];});return n;}
 function key(q,r){return q+","+r;}
 function inBoard(q,r){return Math.abs(q)<=R&&Math.abs(r)<=R&&Math.abs(q+r)<=R;}
 function ring(q,r){return Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r));}
@@ -490,15 +419,11 @@ function setup(seats,opts){
     S.pieces.push({id:S.nextId++,pid:i,queen:false,q:jq,r:jr,alive:true,stun:0});
   });
   var deck=[];
-  var mix=tileMix(opts.tiles);
   Object.keys(TYPES).forEach(function(t){
-    if(t==="anemone"){ for(var i=0;i<P;i++)for(var j=0;j<mix.anemone;j++)deck.push({t:t,color:i}); }
-    else for(var n=0;n<mix[t];n++)deck.push({t:t});
+    if(t==="anemone"){ for(var i=0;i<P;i++)for(var j=0;j<TYPES.anemone.n;j++)deck.push({t:t,color:i}); }
+    else for(var n=0;n<TYPES[t].n;n++)deck.push({t:t});
   });
   var free=CELLS.filter(function(c){return !fixed[c.k];});
-  /* the settings cap the mix to the free cells, but a saved mix can outgrow a
-     bigger table: drop the surplus at random rather than the last kinds listed */
-  shuffle(deck); deck.length=Math.min(deck.length,free.length);
   while(deck.length<free.length)deck.push({t:"sand"});
   shuffle(deck);
   free.forEach(function(c,i){
@@ -590,8 +515,8 @@ function enter(S,p,q,r,pushed,rec,depth){
       }
       break;
     case "whirl":
-      var outs=Object.keys(S.tiles).filter(function(k2){return k2!==k&&S.tiles[k2].t==="whirl"&&!S.tiles[k2].flood;});
-      var o=outs.length?outs[(Math.random()*outs.length)|0]:null;
+      var o=null;
+      Object.keys(S.tiles).forEach(function(k2){if(k2!==k&&S.tiles[k2].t==="whirl"&&!S.tiles[k2].flood)o=k2;});
       rec(S,who(S,p)+fem(p," est aspiré{e} par un tourbillon…"));
       if(o){
         S.tiles[o].open=true;
@@ -623,19 +548,6 @@ function hatch(S,rec){
   });
 }
 
-/* the sea rises late even without the option: first ring 4 rounds from now, the next ones 8 apart */
-function raiseTide(S,rec,why){
-  S.tide=true; S.tideShift=S.round+4-FLOOD[R];
-  rec(S,why+" : la marée montera dans <b>4 manches</b>.");
-}
-/* what changes when a game moves forward: tiles turned, crabs lost, pearls found */
-function progress(S){
-  var n=0;
-  Object.keys(S.tiles).forEach(function(k){if(S.tiles[k].open)n++;});
-  S.pieces.forEach(function(p){if(!p.alive)n+=100;});
-  S.players.forEach(function(p){n+=p.pearls*10000;});
-  return n;
-}
 function checkWin(S,rec){
   if(S.over)return;
   var alive=S.players.filter(function(p){return p.alive;});
@@ -646,10 +558,6 @@ function checkWin(S,rec){
     var top=Math.max.apply(null,alive.map(function(p){return p.pearls;}));
     var lead=alive.filter(function(p){return p.pearls===top;});
     if(top>0&&lead.length===1)rich=lead;
-    /* nothing left to dig for and no leader: without the tide the Queens could
-       circle for ever (bot sims with few or no pearls did), so the sea rises,
-       its first ring 4 rounds from now and the next ones 8 rounds apart */
-    else if(!S.tide) raiseTide(S,rec,"Plus aucune perle à trouver");
   }
   if(rich.length){S.winner=rich[0].id;S.over=true;rec(S,"<b>"+rich[0].name+"</b> gagne avec "+rich[0].pearls+" perle"+(rich[0].pearls>1?"s":"")+(rich[0].pearls<S.target?" (plus aucune perle en mer)":"")+" !");}
   else if(alive.length===1){S.winner=alive[0].id;S.over=true;rec(S,"<b>"+alive[0].name+"</b> est la dernière Reine du récif !");}
@@ -685,12 +593,7 @@ function endTurn(S,rec){
     S.frozen.forEach(function(id){var p=byId(S,id);if(p&&p.stun>0)p.stun--;});
     var n=S.players.length, nx=me;
     do{nx=(nx+1)%n;}while(!S.players[nx].alive&&nx!==me);
-    if(nx<=me){S.round++;
-      /* ten rounds of nothing new (bots shy of a shark-heavy sea did this): the tide breaks it */
-      var pg=progress(S);
-      if(pg!==S.lastProg){S.lastProg=pg;S.calm=0;}
-      else if(++S.calm>=10&&!S.tide&&!S.over)raiseTide(S,rec,"Dix manches sans rien de neuf");
-      tide(S,rec);if(S.over)return;
+    if(nx<=me){S.round++;tide(S,rec);if(S.over)return;
       if(!S.players[nx].alive){do{nx=(nx+1)%n;}while(!S.players[nx].alive);} }
     S.turn=nx;
     S.frozen=S.pieces.filter(function(p){return p.alive&&p.pid===nx&&p.stun>0;}).map(function(p){return p.id;});
@@ -707,7 +610,7 @@ function endTurn(S,rec){
 function tide(S,rec){
   if(!S.tide)return;
   Object.keys(FLOOD).forEach(function(rg){
-    if(FLOOD[rg]+(S.tideShift||0)!==S.round)return;
+    if(FLOOD[rg]!==S.round)return;
     rg=+rg;
     CELLS.forEach(function(c){if(ring(c.q,c.r)===rg){S.tiles[c.k].flood=true;S.tiles[c.k].egg=null;}});
     rec(S,"La marée monte : l'anneau "+(R-rg+1)+" est englouti !");
@@ -718,7 +621,7 @@ function tide(S,rec){
 function nextFlood(S){
   if(!S.tide)return null;
   var best=null;
-  Object.keys(FLOOD).forEach(function(rg){var at=FLOOD[rg]+(S.tideShift||0);if(at>=S.round&&(!best||at<best.round))best={ring:+rg,round:at};});
+  Object.keys(FLOOD).forEach(function(rg){if(FLOOD[rg]>=S.round&&(!best||FLOOD[rg]<best.round))best={ring:+rg,round:FLOOD[rg]};});
   return best;
 }
 
@@ -847,149 +750,34 @@ function $(id){return document.getElementById(id);}
 function hexPts(s){var a=[];for(var i=0;i<6;i++){var t=Math.PI/180*(60*i+(FLAT?0:-30));a.push((s*Math.cos(t)).toFixed(2)+","+(s*Math.sin(t)).toFixed(2));}return a.join(" ");}
 function el(tag,attrs){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);return e;}
 
-/* ---------- tile art ----------
-   Every tile is a small scene drawn in its own space: a hex of radius 92 (the
-   recif/tuiles.html plate), scaled down onto the board. These are the board cuts
-   of that plate: bigger subjects, thicker strokes, no tiny props, no filters and
-   no animation, so 61 of them stay legible and cheap on a phone. */
-var AR=92;
-function f1(n){return (+n).toFixed(1);}
-function rng(seed){seed=seed%2147483647;if(seed<=0)seed+=2147483646;return function(){seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};}
-function hashKey(k){var h=7;for(var i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))|0;return Math.abs(h)+1;}
-function artHex(s){var a=[];for(var i=0;i<6;i++){var t=Math.PI/180*(60*i+(FLAT?0:-30));a.push(f1(s*Math.cos(t))+","+f1(s*Math.sin(t)));}return a.join(" ");}
-var BG={
-  sand:'<rect x="-100" y="-100" width="200" height="200" fill="url(#aSand)"/><rect x="-100" y="-100" width="200" height="200" fill="url(#aRip)"/>',
-  water:function(g){return '<rect x="-100" y="-100" width="200" height="200" fill="url(#'+g+')"/><rect x="-100" y="-100" width="200" height="200" fill="url(#aCaus)"/>';}
+var ICON={
+  sand:function(){return '<g fill="#C4B48C"><circle cx="-9" cy="5" r="1.6"/><circle cx="4" cy="-8" r="1.3"/><circle cx="10" cy="7" r="1.8"/><circle cx="-2" cy="11" r="1.1"/><circle cx="-12" cy="-6" r="1.2"/></g>';},
+  pearl:function(){return '<path d="M-17 6 A17 17 0 0 1 17 6 Z" fill="#E9B7A6" stroke="#B9786A" stroke-width="1.4"/>'+
+    '<path d="M0 6 L-12 -5 M0 6 L-5 -10 M0 6 L5 -10 M0 6 L12 -5" stroke="#B9786A" stroke-width="1.2"/>'+
+    '<circle cx="0" cy="4" r="7.5" fill="url(#pearlG)" stroke="#9E9170" stroke-width=".8"/>';},
+  shark:function(){return '<path d="M-14 9 C-6 -2 2 -14 6 -18 C6 -8 9 3 14 9 Z" fill="#33434A"/>'+
+    '<path d="M-22 10 q5.5 -4 11 0 t11 0 t11 0 t11 0" fill="none" stroke="#2E6E7B" stroke-width="2"/>';},
+  rock:function(){return '<path d="M-16 10 L-11 -4 L-3 -9 L5 -6 L10 -12 L17 -1 L15 10 Z" fill="#6E6A5E" stroke="#4E4B42" stroke-width="1.4" stroke-linejoin="round"/>'+
+    '<path d="M-3 -9 L0 3 L15 10 M0 3 L-16 10" fill="none" stroke="#4E4B42" stroke-width="1"/>';},
+  jelly:function(){return '<path d="M-13 1 C-13 -16 13 -16 13 1 Z" fill="#F28BC0" stroke="#C35A91" stroke-width="1.4"/>'+
+    '<path d="M-9 2 q-3 6 0 10 t0 8 M-3 2 q3 6 0 11 M3 2 q-3 6 0 11 M9 2 q3 6 0 10 t0 8" fill="none" stroke="#C35A91" stroke-width="1.6" stroke-linecap="round"/>';},
+  shrimp:function(){return '<path d="M-8 -12 C8 -14 16 -2 10 8 C6 14 -4 14 -10 10" fill="none" stroke="#F08A4B" stroke-width="7" stroke-linecap="round"/>'+
+    '<path d="M-10 10 l-6 -2 M-10 10 l-4 5" stroke="#D56A2E" stroke-width="2" stroke-linecap="round"/>'+
+    '<path d="M-8 -12 C-14 -18 -18 -14 -22 -18 M-8 -12 C-12 -20 -8 -22 -12 -26" fill="none" stroke="#D56A2E" stroke-width="1.3"/>'+
+    '<circle cx="-5" cy="-11" r="1.6" fill="#222"/>';},
+  current:function(t){return '<g transform="rotate('+((FLAT?30:0)-60*t.dir)+')">'+
+    '<path d="M-18 -8 q4 -4 8 0 t8 0 M-18 8 q4 -4 8 0 t8 0" fill="none" stroke="#3E97A6" stroke-width="2" stroke-linecap="round"/>'+
+    '<path d="M-10 0 H12 M5 -8 L14 0 L5 8" fill="none" stroke="#1C5E6B" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></g>';},
+  whirl:function(){return '<path d="M0 0 C3 -1 3 -5 0 -5 C-5 -5 -7 1 -3 5 C2 9 10 5 10 -2 C10 -10 1 -14 -6 -12 C-14 -9 -17 1 -13 9 C-9 16 2 18 10 14" fill="none" stroke="#1C5E6B" stroke-width="2.6" stroke-linecap="round"/>';},
+  anemone:function(t,S){var c=S.players[t.color]?S.players[t.color].c:"#999",s='';
+    for(var i=0;i<7;i++){var a=-150+i*20,rad=Math.PI/180*a;s+='<path d="M0 8 Q'+(Math.cos(rad)*8).toFixed(1)+' '+(8+Math.sin(rad)*10).toFixed(1)+' '+(Math.cos(rad)*16).toFixed(1)+' '+(6+Math.sin(rad)*20).toFixed(1)+'" fill="none" stroke="'+c+'" stroke-width="3.2" stroke-linecap="round"/>';}
+    return s+'<ellipse cx="0" cy="10" rx="9" ry="4" fill="#8C5A4A"/>';},
+  port:function(t,S){var c=S.players[t.owner].c;return '<g fill="none" stroke="'+c+'" stroke-width="2.6" stroke-linecap="round">'+
+    '<circle cx="0" cy="-12" r="3.2"/><path d="M0 -9 V13 M-7 -4 H7 M-13 3 C-12 11 -6 14 0 14 C6 14 12 11 13 3"/></g>';}
 };
-function starfish(x,y,r,rot){
-  var p="";for(var i=0;i<10;i++){var a=Math.PI/180*(rot+i*36-90),rr=i%2?r*.44:r;p+=(i?"L":"M")+f1(x+Math.cos(a)*rr)+" "+f1(y+Math.sin(a)*rr);}
-  return '<path d="'+p+'Z" fill="#EE8550" stroke="#B85628" stroke-width="2.6" stroke-linejoin="round"/><circle cx="'+x+'" cy="'+y+'" r="'+f1(r*.14)+'" fill="#FFD9B8"/>';
-}
-function scallop(x,y,s,rot){
-  var g='<g transform="translate('+x+' '+y+') rotate('+rot+') scale('+s+')"><path d="M0 12 L-20 -6 C-16 -18 16 -18 20 -6 Z" fill="#F2D3C4" stroke="#B5846F" stroke-width="2" stroke-linejoin="round"/>';
-  for(var i=-2;i<=2;i++)g+='<path d="M0 12 L'+(i*8)+' -15" stroke="#B5846F" stroke-width="1.6"/>';
-  return g+'<path d="M-6 12 h12 l-2 5 h-8 z" fill="#B5846F"/></g>';
-}
-var ART={
-  back:function(){
-    return '<rect x="-100" y="-100" width="200" height="200" fill="url(#aBack)"/><rect x="-100" y="-100" width="200" height="200" fill="url(#aScale)"/>'+
-      '<polygon points="'+artHex(66)+'" fill="none" stroke="#D9A94A" stroke-width="3.2" opacity=".75"/>'+
-      '<polygon points="'+artHex(12)+'" fill="#D9A94A" opacity=".75"/>';
-  },
-  sand:function(t,seed){
-    var R=rng(seed),v=Math.floor(R()*4),x=(R()*2-1)*26,y=(R()*2-1)*22,s="";
-    if(v===0)s=starfish(x,y,30,R()*70);
-    else if(v===1)s=scallop(x,y,1.7,R()*60-30);
-    else if(v===2)s=starfish(x-18,y-8,22,R()*70)+scallop(x+26,y+20,1.15,R()*60-30);
-    else{for(var i=0;i<3;i++)s+='<ellipse cx="'+f1((R()*2-1)*40)+'" cy="'+f1((R()*2-1)*36)+'" rx="'+f1(7+R()*5)+'" ry="'+f1(5+R()*3)+'" fill="#B9A57A" stroke="#9A8659" stroke-width="1.6"/>';}
-    return BG.sand+'<g opacity=".7">'+s+'</g>';
-  },
-  pearl:function(){
-    return BG.sand+'<g transform="scale(1.18) translate(0 -2)">'+
-      '<path d="M-56 14 C-64 -44 62 -50 56 14 C30 4 -30 4 -56 14 Z" fill="url(#aOyster)"/>'+
-      '<path d="M-48 11 C-54 -35 53 -40 48 11 C28 3 -28 3 -48 11 Z" fill="url(#aNacre)"/>'+
-      '<path d="M-58 14 C-56 50 56 50 58 14 C40 22 -40 22 -58 14 Z" fill="url(#aOyster)" stroke="#3B2A33" stroke-width="2"/>'+
-      '<path d="M-50 15 C-30 26 30 26 50 15 C34 19 -34 19 -50 15 Z" fill="url(#aNacre)"/>'+
-      '<circle cx="0" cy="3" r="20" fill="url(#pearlG)" stroke="#8E7F60" stroke-width="1.2"/>'+
-      '<ellipse cx="-7" cy="-5" rx="7" ry="4.2" transform="rotate(-35 -7 -5)" fill="#fff"/>'+
-      '<path d="M34 -40 Q34 -30 44 -30 Q34 -30 34 -20 Q34 -30 24 -30 Q34 -30 34 -40Z" fill="#fff"/></g>';
-  },
-  shark:function(){
-    var body="M-66 2 C-58 -11 -38 -20 -10 -22 L-2 -52 C4 -38 9 -27 16 -22 C36 -20 50 -14 58 -8 L80 -36 C75 -17 73 -6 75 2 L86 24 C70 15 62 10 55 7 C40 15 20 19 0 19 L-8 36 C-11 27 -14 22 -20 19 C-40 19 -56 14 -66 2 Z";
-    var teeth="";for(var i=0;i<5;i++){var x=-60+i*4.2;teeth+='<path d="M'+f1(x)+' '+f1(6.5+i*.6)+' l2 4.2 l2 -4" fill="#fff"/>';}
-    return BG.water("aDark")+'<g transform="translate(-8 8) scale(.9) rotate(-6)">'+
-      '<path d="'+body+'" fill="url(#aShark)" stroke="#16242B" stroke-width="2.6" stroke-linejoin="round"/>'+
-      '<path d="M-64 4 C-50 14 -30 18 0 17 C20 17 40 13 54 7 C38 11 10 12 -10 10 C-30 9 -50 8 -64 4 Z" fill="#E2EBEA"/>'+
-      '<path d="M-30 -8 q-2 6 0 12 M-23 -9 q-2 6 0 12" fill="none" stroke="#16242B" stroke-width="2.2" stroke-linecap="round"/>'+
-      '<circle cx="-46" cy="-5" r="3.8" fill="#0B1418"/><circle cx="-47" cy="-6" r="1.3" fill="#fff"/>'+
-      '<path d="M-64 6 C-56 9 -48 11 -40 10" fill="none" stroke="#16242B" stroke-width="2.2" stroke-linecap="round"/>'+teeth+'</g>';
-  },
-  rock:function(){
-    return BG.sand+'<ellipse cx="0" cy="6" rx="80" ry="66" fill="url(#aWet)"/>'+
-      '<path d="M-66 30 C-74 0 -50 -50 0 -54 C50 -58 76 -10 68 26 C62 52 -56 58 -66 30 Z" fill="none" stroke="#fff" stroke-width="4.5" stroke-dasharray="3 9 14 7" stroke-linecap="round" opacity=".8"/>'+
-      '<path d="M2 -40 L30 -50 L56 -30 L58 6 L28 18 L4 0 Z" fill="url(#aRock)" stroke="#3E3B33" stroke-width="2.4" stroke-linejoin="round"/>'+
-      '<path d="M2 -40 L30 -50 L40 -26 L14 -20 Z" fill="#C6C0B0" opacity=".6"/>'+
-      '<path d="M-58 34 L-60 2 L-40 -32 L-12 -42 L14 -24 L22 8 L10 38 L-24 46 Z" fill="url(#aRock)" stroke="#3E3B33" stroke-width="2.6" stroke-linejoin="round"/>'+
-      '<path d="M-60 2 L-40 -32 L-12 -42 L-20 -10 L-46 4 Z" fill="#D2CCBC" opacity=".6"/>'+
-      '<path d="M-20 -10 L14 -24 M-20 -10 L-24 46" fill="none" stroke="#3E3B33" stroke-width="1.8" opacity=".7"/>'+
-      '<path d="M18 40 L22 18 L44 10 L62 24 L56 46 L34 52 Z" fill="url(#aRock)" stroke="#3E3B33" stroke-width="2.4" stroke-linejoin="round"/>'+
-      '<path d="M22 18 L44 10 L48 22 L28 28 Z" fill="#D2CCBC" opacity=".55"/>'+
-      '<path d="M-58 30 q8 -10 4 -22 M-50 36 q10 -6 10 -18" fill="none" stroke="#4F8A4E" stroke-width="5" stroke-linecap="round"/>';
-  },
-  jelly:function(){
-    var bell="M-40 -6 C-40 -60 40 -60 40 -6 C33 -1 27 -7 20 -2 C13 3 7 -3 0 1 C-7 -3 -13 3 -20 -2 C-27 -7 -33 -1 -40 -6 Z",tent="";
-    for(var i=0;i<6;i++){var x0=-28+i*11.2,d="M"+f1(x0)+" -2";for(var y=0;y<82;y+=5)d+=" L"+f1(x0+Math.sin(y/10+i*1.7)*(2+y/14))+" "+y;
-      tent+='<path d="'+d+'" fill="none" stroke="#FFB5DB" stroke-width="2.6" stroke-linecap="round" opacity=".85"/>';}
-    for(var j=0;j<2;j++){var x=-7+j*14,d2="M"+x+" 0";for(var y2=0;y2<60;y2+=4)d2+=" L"+f1(x+Math.sin(y2/7+j*2)*(3+y2/12))+" "+y2;
-      tent+='<path d="'+d2+'" fill="none" stroke="#E8519B" stroke-width="7" stroke-linecap="round"/>';}
-    var bolt=function(x,y,r){return '<path transform="translate('+x+' '+y+') rotate('+r+') scale(1.7)" d="M-2 -10 L4 -2 L-1 0 L3 10 L-5 0 L0 -2 Z" fill="#FFE45C" stroke="#7A5E00" stroke-width="1" stroke-linejoin="round"/>';};
-    return BG.water("aJellyW")+'<g transform="translate(0 -4) scale(1.1)">'+tent+
-      '<path d="'+bell+'" fill="url(#aBell)" stroke="#FFD6EC" stroke-width="2"/>'+
-      '<g fill="#E8519B" opacity=".6"><ellipse cx="-12" cy="-22" rx="7" ry="10" transform="rotate(-30 -12 -22)"/><ellipse cx="12" cy="-22" rx="7" ry="10" transform="rotate(30 12 -22)"/></g>'+
-      '<path d="M-28 -28 C-24 -44 -8 -52 6 -50" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity=".85"/></g>'+
-      bolt(-54,12,-20)+bolt(54,-8,25);
-  },
-  shrimp:function(){
-    var cx=4,cy=6,rad=30,seg="",n=6;
-    for(var i=0;i<n;i++){var tt=i/(n-1),a=Math.PI/180*(200-tt*190),w=8+tt*6,
-        x=cx+Math.cos(a)*rad,y=cy+Math.sin(a)*rad*.95,ang=a*180/Math.PI+90;
-      seg='<g transform="translate('+f1(x)+' '+f1(y)+') rotate('+f1(ang)+')"><ellipse rx="'+f1(w*1.15)+'" ry="'+f1(w)+'" fill="url(#aShrimp)" stroke="#A9441A" stroke-width="2"/></g>'+seg;}
-    var ha=Math.PI/180*10,hx=cx+Math.cos(ha)*rad,hy=cy+Math.sin(ha)*rad*.95;
-    var head='<g transform="translate('+f1(hx+2)+' '+f1(hy-4)+') rotate(-70)">'+
-      '<path d="M-14 -10 C-4 -18 14 -14 18 -2 C20 8 8 14 -6 12 C-14 10 -18 0 -14 -10 Z" fill="url(#aShrimp)" stroke="#A9441A" stroke-width="2"/>'+
-      '<path d="M18 -2 L34 -10 L20 2 Z" fill="#E86E36" stroke="#A9441A" stroke-width="1.4"/>'+
-      '<circle cx="10" cy="-10" r="4.4" fill="#141414"/><circle cx="9" cy="-11.4" r="1.4" fill="#fff"/></g>';
-    var ta=Math.PI/180*200,tx=cx+Math.cos(ta)*rad,ty=cy+Math.sin(ta)*rad*.95;
-    var tail='<g transform="translate('+f1(tx-2)+' '+f1(ty+6)+') rotate(150) scale(1.2)"><path d="M0 0 C-6 8 -14 12 -18 10 C-14 4 -6 0 0 0 Z M0 0 C-4 10 -6 18 -2 22 C2 16 2 8 0 0 Z M0 0 C6 8 12 14 16 12 C12 6 6 2 0 0 Z" fill="#F7864A" stroke="#A9441A" stroke-width="1.6" stroke-linejoin="round"/></g>';
-    var ant='<path d="M'+f1(hx+8)+' '+f1(hy-16)+' C40 -60 -10 -70 -60 -58 M'+f1(hx+6)+' '+f1(hy-14)+' C30 -50 -20 -50 -64 -36" fill="none" stroke="#C9531F" stroke-width="2.4" stroke-linecap="round"/>';
-    var grass=function(x,y,h,lean,c){var s="";for(var i=0;i<3;i++){var dx=(i-1)*7,l=h*(.75+i%2*.3);
-      s+='<path d="M'+(x+dx)+' '+y+' q'+f1(lean*.5+dx)+' '+f1(-l*.5)+' '+f1(lean+dx*1.4)+' '+f1(-l)+'" fill="none" stroke="'+c+'" stroke-width="6" stroke-linecap="round"/>';}return s;};
-    return BG.sand+grass(-56,72,56,-14,"#5E9A55")+grass(56,66,44,18,"#76AE62")+
-      '<g transform="translate(-4 2) scale(1.15)">'+ant+tail+seg+head+'</g>';
-  },
-  current:function(t){
-    var lines="";for(var i=0;i<6;i++){var y=-75+i*30,d="M-110 "+y;for(var x=-110;x<=110;x+=10)d+=" L"+x+" "+f1(y+Math.sin(x/16+i)*5);
-      lines+='<path d="'+d+'" fill="none" stroke="#DFFBF8" stroke-width="3" stroke-dasharray="26 18" stroke-linecap="round" opacity=".4"/>';}
-    return BG.water("aWater")+'<g transform="rotate('+((FLAT?30:0)-60*t.dir)+')">'+lines+
-      '<path d="M-58 -14 H8 V-34 L58 0 L8 34 V14 H-58 Z" fill="url(#aArrow)" stroke="#0E5664" stroke-width="3" stroke-linejoin="round"/></g>';
-  },
-  whirl:function(){
-    var s="";for(var k=0;k<4;k++){var d="",base=k*Math.PI/2;
-      for(var th=0;th<=11;th+=.18){var r=3.4*Math.exp(.3*th),a=base+th;if(r>110)break;d+=(d?" L":"M")+f1(Math.cos(a)*r)+" "+f1(Math.sin(a)*r);}
-      s+='<path d="'+d+'" fill="none" stroke="#7FD9DC" stroke-width="11" stroke-linecap="round" opacity=".2"/><path d="'+d+'" fill="none" stroke="#E6FFFD" stroke-width="4.5" stroke-linecap="round" opacity=".7"/>';}
-    return '<rect x="-100" y="-100" width="200" height="200" fill="url(#aWhirl)"/>'+s+'<circle r="11" fill="#01070A"/>';
-  },
-  anemone:function(t,seed,V){
-    var p=V.players[t.color],c=p?p.c:"#999",c2=p?shadeHex(c,.7):"#777",R=rng(seed),back="",front="";
-    for(var i=0;i<18;i++){var a=Math.PI/180*(-168+i*(156/17)),l=40+R()*12,
-        x1=Math.cos(a)*l*1.05,y1=8+Math.sin(a)*l,mx=Math.cos(a)*l*.5,my=8+Math.sin(a)*l*.55;
-      var tp='<path d="M0 12 Q'+f1(mx)+' '+f1(my)+' '+f1(x1)+' '+f1(y1)+'" fill="none" stroke="'+(i%2?c2:c)+'" stroke-width="8" stroke-linecap="round"/>';
-      if(i%2)back+=tp;else front+=tp+'<circle cx="'+f1(x1)+'" cy="'+f1(y1)+'" r="4.5" fill="#fff" opacity=".75"/>';}
-    return BG.sand+'<path d="M-62 42 C-64 20 -36 10 -10 14 C20 6 60 14 64 42 C52 62 -50 62 -62 42 Z" fill="url(#aRock)" stroke="#3E3B33" stroke-width="2.2"/>'+
-      back+'<path d="M-15 30 C-17 10 17 10 15 30 Z" fill="#8C4A3C" stroke="#5A2C22" stroke-width="2"/>'+front;
-  },
-  port:function(t,seed,V){
-    var c=V.players[t.owner].c,pl="";
-    for(var i=0;i<5;i++){var y=-42+i*17;pl+='<rect x="-50" y="'+y+'" width="100" height="15.5" rx="2" fill="url(#aWood)" stroke="#5D3D1E" stroke-width="1.6"/>';}
-    var post=function(x,y){return '<circle cx="'+x+'" cy="'+y+'" r="10" fill="#6B4724" stroke="#3B2612" stroke-width="2"/><circle cx="'+x+'" cy="'+y+'" r="12" fill="none" stroke="#E5D2A2" stroke-width="3" stroke-dasharray="4 2"/>';};
-    return BG.water("aWater")+pl+post(-52,-44)+post(52,-44)+post(-52,44)+post(52,44)+
-      '<g transform="translate(-6 2)" fill="none" stroke="#2A2F33" stroke-width="6" stroke-linecap="round"><circle cx="0" cy="-26" r="6"/><path d="M0 -20 V22 M-13 -10 H13 M-24 6 C-22 19 -11 24 0 24 C11 24 22 19 24 6"/></g>'+
-      '<path d="M26 30 V-60" stroke="#3B2612" stroke-width="4" stroke-linecap="round"/>'+
-      '<path d="M27 -60 L58 -50 L27 -38 Z" fill="'+c+'" stroke="#1E1209" stroke-width="2" stroke-linejoin="round"/>';
-  }
-};
-function shadeHex(hex,k){var n=parseInt(hex.slice(1),16),m=function(v){return Math.max(0,Math.min(255,Math.round(v*k)));};
-  return "#"+((1<<24)|(m(n>>16)<<16)|(m(n>>8&255)<<8)|m(n&255)).toString(16).slice(1);}
-/* r = radius on screen; the scene is clipped to the hex and lit with a soft sheen */
-function tileArt(t,V,k,r){
-  var scene=t.open||t.t==="port"?ART[t.t](t,hashKey(k||"x"),V):ART.back();
-  return '<g transform="scale('+(r/AR).toFixed(4)+')"><g clip-path="url(#'+(FLAT?"aClipF":"aClipP")+')">'+scene+
-    '<rect x="-100" y="-100" width="200" height="200" fill="url(#aShade)"/></g></g>';
-}
 function crabSvg(c,queen){
   var s=queen?1.18:.84;
-  return '<ellipse cx="0" cy="'+(queen?9:6)+'" rx="'+(queen?19:14)+'" ry="'+(queen?7:5)+'" fill="#03131A" opacity=".38"/>'+
-    '<g class="crab"><g transform="scale('+s+')">'+
+  return '<g class="crab"><g transform="scale('+s+')">'+
     '<g stroke="#10262D" stroke-width="2.2" stroke-linecap="round">'+
       '<path d="M-10 2 L-19 -1 M-10 5 L-19 6 M-9 8 L-17 12 M10 2 L19 -1 M10 5 L19 6 M9 8 L17 12"/></g>'+
     '<path d="M-8 -6 L-12 -13 M8 -6 L12 -13" stroke="#10262D" stroke-width="2.4"/>'+
@@ -1021,7 +809,7 @@ function buildBoard(){
   var g=$("gTiles"); g.innerHTML=""; hexEls={}; sigs={};
   CELLS.forEach(function(c){
     var p=px(c.q,c.r), hg=el("g",{"class":"hex",transform:"translate("+p[0].toFixed(2)+","+p[1].toFixed(2)+")","data-k":c.k});
-    hg.innerHTML='<g class="flip"><polygon class="face" points="'+hexPts(HS-1.8)+'"/><g class="ico"></g><polygon class="rim" points="'+hexPts(HS-2.4)+'"/></g><g class="mk"></g>';
+    hg.innerHTML='<g class="flip"><polygon class="face" points="'+hexPts(HS-1.8)+'"/><g class="ico"></g></g><g class="mk"></g>';
     g.appendChild(hg); hexEls[c.k]=hg;
   });
   $("gPieces").innerHTML=""; pieceEls={};
@@ -1039,7 +827,7 @@ function renderTiles(V,moves){
     var ico=hg.querySelector(".ico");
     if(sigs[c.k]!==sig){
       var wasHid=sigs[c.k]&&sigs[c.k].split("|")[1]==="false";
-      ico.innerHTML=tileArt(t,V,c.k,HS-1.8);
+      ico.innerHTML=t.open||t.t==="port"?ICON[t.t](t,V):"";
       sigs[c.k]=sig;
       if(wasHid&&t.open){hg.classList.remove("flipping");void hg.getBBox();cls+=" flipping";}
     } else if(hg.classList.contains("flipping")) cls+=" flipping";
@@ -1097,8 +885,8 @@ function renderSide(V){
   var cnt={};Object.keys(TYPES).forEach(function(t){cnt[t]=0;});
   Object.keys(V.tiles).forEach(function(k){var t=V.tiles[k];if(!t.open&&!t.flood)cnt[t.t]++;});
   $("legend").innerHTML=Object.keys(TYPES).map(function(t){
-    var sample={t:t,open:true,dir:0,color:0};
-    return '<div class="lg"><svg viewBox="-24 -24 48 48">'+tileArt(sample,V,"lg"+t,22)+'<polygon points="'+hexPts(21.4)+'" fill="none" stroke="#EADFC2" stroke-width="1.6"/></svg>'+
+    var sample={t:t,dir:0,color:0};
+    return '<div class="lg"><svg viewBox="-24 -24 48 48"><polygon points="'+hexPts(22)+'" fill="#E4DAC0" stroke="#C9BC98" stroke-width="1.4"/><g transform="scale(.8)">'+ICON[t](sample,V)+'</g></svg>'+
       '<span><b>'+TYPES[t].name+'</b> — '+TYPES[t].txt+'</span><span class="cnt'+(cnt[t]?"":" zero")+'">×'+cnt[t]+'</span></div>';
   }).join("");
 }
@@ -1184,41 +972,7 @@ function renderSetup(){
   }).join("");
   $("tideSeg").innerHTML=seg("tide",0,opts.tide,[[true,"Oui"],[false,"Non"]]);
   $("goalSeg").innerHTML=seg("goal",0,opts.goal,[[2,"2"],[3,"3"],[4,"4"],[5,"5"]]);
-  renderMix();
 }
-/* each seat takes a port and the sand in front of it, so the room depends on who plays */
-function mixCap(){
-  var P=opts.seats.filter(function(s){return s!=="off";}).length;
-  return {P:P,free:freeCells(P)};
-}
-function renderMix(){
-  var m=tileMix(opts.tiles), cap=mixCap(), used=mixSize(m,cap.P), room=cap.free-used;
-  var fake={players:SEATS.map(function(s){return {c:s.c};})};
-  $("tileMix").innerHTML=Object.keys(MIX_RANGE).map(function(t){
-    var r=MIX_RANGE[t], v=m[t], cost=t==="anemone"?r[2]*cap.P:r[2];
-    var help=t==="anemone"?"par joueur · "+TYPES[t].txt:t==="whirl"?"par paires · "+TYPES[t].txt:TYPES[t].txt;
-    return '<div class="trow'+(v?"":" zero")+'"><svg viewBox="-24 -24 48 48" aria-hidden="true">'+tileArt({t:t,open:true,dir:0,color:0},fake,"mix"+t,22)+
-      '<polygon points="'+hexPts(21.4)+'" fill="none" stroke="#EADFC2" stroke-width="1.6"/></svg>'+
-      '<span class="olab">'+TYPES[t].name+'<small>'+help+'</small></span>'+
-      '<span class="step"><button type="button" data-mix="'+t+'" data-d="-1" aria-label="Moins de '+TYPES[t].name+'"'+(v<=r[0]?" disabled":"")+'>−</button>'+
-      '<output>'+v+'</output>'+
-      '<button type="button" data-mix="'+t+'" data-d="1" aria-label="Plus de '+TYPES[t].name+'"'+(v>=r[1]||cost>room?" disabled":"")+'>+</button></span></div>';
-  }).join("");
-  $("tileSum").className="tsum"+(room<=0?" full":"");
-  $("tileSum").innerHTML='<span><b>'+used+'</b> / '+cap.free+' cases · '+
-    (room>=0?'reste <b>'+room+'</b> de sable':'<b>'+(-room)+'</b> en trop, retirées au hasard')+'</span>'+
-    '<button class="btn" type="button" id="mixReset">Par défaut</button>';
-}
-$("tileMix").addEventListener("click",function(e){
-  var b=e.target.closest("button[data-mix]"); if(!b||b.disabled)return;
-  var t=b.getAttribute("data-mix"), m=tileMix(opts.tiles);
-  m[t]+=+b.getAttribute("data-d")*MIX_RANGE[t][2];
-  opts.tiles=tileMix(m); saveOpts(); renderMix();
-});
-$("tileSum").addEventListener("click",function(e){
-  if(!e.target.closest("#mixReset"))return;
-  delete opts.tiles; saveOpts(); renderMix();
-});
 function openSheet(on){
   $("sheet").hidden=!on;
   if(on)$("sheetClose").focus();else $("gear").focus();
@@ -1244,15 +998,6 @@ $("sheetNew").addEventListener("click",function(){openSheet(false);newGame();});
 $("sheet").addEventListener("click",function(e){if(e.target===this)openSheet(false);});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("sheet").hidden)openSheet(false);});
 $("reset").addEventListener("click",newGame);
-/* desktop side panel: open or folded, remembered between visits */
-function setFold(folded){
-  document.querySelector(".wrap").classList.toggle("folded",folded);
-  $("fold").setAttribute("aria-pressed",String(!folded));
-  $("fold").title=folded?"Afficher le panneau":"Masquer le panneau";
-  try{localStorage.setItem("recif.fold",folded?"1":"0");}catch(e){}
-}
-setFold((function(){try{return localStorage.getItem("recif.fold")==="1";}catch(e){return false;}})());
-$("fold").addEventListener("click",function(){setFold(!document.querySelector(".wrap").classList.contains("folded"));});
 window.addEventListener("resize",function(){
   if(wantsFlat()===FLAT)return;
   buildBoard(); render();   /* buildBoard drops the cached tiles and pieces */
