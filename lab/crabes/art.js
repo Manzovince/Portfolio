@@ -380,47 +380,31 @@ BACKS.vagues=function(v){var R=rng(211+v*13),s="",r=17,cols=["#0B4F5E","#1C7E8E"
   return s;
 };
 
-/* Fond marin: a bathymetric chart - nested depth contours round a shoal, each band
-   tinted by depth, index contours labelled, a dashed graticule, scattered soundings.
-   The shoal's centre, shape and scale change per variant, so tiles do not repeat */
+/* Fond marin: a quiet depth chart - nested contours round a shoal, deep blue
+   bands that only lighten a little towards the top, no lettering. The shoal's
+   centre, shape and scale change per variant, so tiles do not repeat */
 BACKS.fond=function(v){var R=rng(307+v*19),s="";
   var cx=[-38,46,-10,30][v]+(R()*2-1)*10, cy=[30,-36,-48,42][v]+(R()*2-1)*10;
   var harm=[0,1,2].map(function(k){return {a:[.10,.06,.035][k]*(.6+R()*.8),p:R()*6.28,n:k+2};});
-  var bands=["#3F6F8A","#4E809A","#6293AB","#7AA7BC","#95BDCB","#B4D3D8","#D3E4DD","#E9E6CF"];
-  var depth=[120,100,80,60,40,30,20,10], scale=1.05+R()*.35;
+  var bands=["#0B2735","#0E2D3D","#113445","#143B4C","#184254","#1C4A5C","#215264","#275B6C"];
+  var scale=1.05+R()*.35;
   function contour(r){var d="";
     for(var a=0;a<=72;a++){var th=a/72*Math.PI*2, rr=r;
       harm.forEach(function(h){rr+=r*h.a*Math.sin(h.n*th+h.p);});
       d+=(a?" L":"M")+f(cx+Math.cos(th)*rr)+" "+f(cy+Math.sin(th)*rr*.86);}
     return d+" Z";}
-  s+='<rect x="-100" y="-100" width="200" height="200" fill="#335F79"/>';
-  var lines="", labels="";
+  s+='<rect x="-100" y="-100" width="200" height="200" fill="#09212D"/>';
+  var lines="";
   for(var L=0;L<8;L++){var r=(150-L*18)*scale, d=contour(r), idx=L%2===0;
     s+='<path d="'+d+'" fill="'+bands[L]+'"/>';
-    lines+='<path d="'+d+'" fill="none" stroke="#1F3F52" stroke-width="'+(idx?1.4:.7)+'" opacity="'+(idx?.75:.5)+'"/>';
-    lines+='<path d="'+contour(r-9*scale)+'" fill="none" stroke="#1F3F52" stroke-width=".45" opacity=".35"/>';   /* intermediate contour */
-    if(idx&&L<7){var th=-.6+L*.5, lx=cx+Math.cos(th)*r, ly=cy+Math.sin(th)*r*.86;
-      if(Math.abs(lx)<70&&Math.abs(ly)<70)
-        labels+='<g transform="translate('+f(lx)+' '+f(ly)+') rotate('+f(th*57.3+90)+')"><rect x="-7" y="-4.6" width="14" height="8" fill="'+bands[L]+'"/>'+
-          '<text y="2.4" text-anchor="middle" font-family="Georgia,serif" font-size="6.6" font-style="italic" fill="#1F3F52">'+depth[L]+'</text></g>';}
+    lines+='<path d="'+d+'" fill="none" stroke="#8FBCC8" stroke-width="'+(idx?.9:.5)+'" opacity="'+(idx?.28:.16)+'"/>';
+    lines+='<path d="'+contour(r-9*scale)+'" fill="none" stroke="#8FBCC8" stroke-width=".4" opacity=".1"/>';
   }
-  /* graticule */
-  var grat='<g stroke="#F4F0E2" stroke-width=".7" stroke-dasharray="2 3" opacity=".55">';
+  var grat='<g stroke="#8FBCC8" stroke-width=".5" stroke-dasharray="2 4" opacity=".14">';
   [-60,0,60].forEach(function(x){grat+='<path d="M'+(x+v*7)+' -100 V100"/><path d="M-100 '+(x-v*5)+' H100"/>';});
   grat+='</g>';
-  /* soundings and survey marks */
-  var snd="";
-  for(var k=0;k<7;k++){var x=(R()*2-1)*66, y=(R()*2-1)*60, dd=Math.hypot(x-cx,(y-cy)/.86)/scale;
-    var z=Math.max(4,Math.round(dd*.75+R()*6));
-    snd+='<text x="'+f(x)+'" y="'+f(y)+'" font-family="Georgia,serif" font-size="6" font-style="italic" fill="#1F3F52" opacity=".7">'+z+'</text>';}
-  for(var m=0;m<3;m++){var mx=(R()*2-1)*60, my=(R()*2-1)*60;
-    snd+='<path d="M'+f(mx-3)+' '+f(my)+' h6 M'+f(mx)+' '+f(my-3)+' v6" stroke="#8A2F2F" stroke-width="1" opacity=".7"/>';}
-  /* the shoal top, hatched like a chart's drying rock */
-  var top=contour(14*scale), hatch="";
-  for(var h=-20;h<=20;h+=4)hatch+='<path d="M'+f(cx+h-10)+' '+f(cy+12)+' L'+f(cx+h+10)+' '+f(cy-12)+'" stroke="#9C8A5A" stroke-width=".8"/>';
-  return s+lines+'<path d="'+top+'" fill="#E2D3A6" stroke="#6E5C30" stroke-width="1"/>'+
-    '<defs><clipPath id="shoal'+v+'"><path d="'+top+'"/></clipPath></defs><g clip-path="url(#shoal'+v+')" opacity=".7">'+hatch+'</g>'+grat+labels+snd+
-    '<rect x="-100" y="-100" width="200" height="200" filter="url(#grain)" opacity=".12"/>';
+  return s+lines+'<path d="'+contour(14*scale)+'" fill="#2E6474" stroke="#8FBCC8" stroke-width=".6" stroke-opacity=".3"/>'+grat+
+    '<rect x="-100" y="-100" width="200" height="200" filter="url(#grain)" opacity=".1"/>';
 };
 
 /* Varech: kelp ribbons floating at the surface, gas bladders, bubbles */
