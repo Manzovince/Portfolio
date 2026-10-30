@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="m" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2D6F8B"/><stop offset="1" stop-color="#123A4A"/></linearGradient>
+    <clipPath id="h"><polygon points="256,86 403,171 403,341 256,426 109,341 109,171"/></clipPath>
+  </defs>
+  <rect width="512" height="512" fill="url(#m)"/>
+  <polygon points="256,86 403,171 403,341 256,426 109,341 109,171" fill="#3B86A3" stroke="#F4F7F2" stroke-width="10" stroke-linejoin="round"/>
+  <g clip-path="url(#h)">
+    <circle cx="256" cy="86" r="62" fill="#E46A3D"/><circle cx="256" cy="86" r="34" fill="#FFA27A"/>
+    <circle cx="109" cy="341" r="62" fill="#3F9B5A"/><circle cx="109" cy="341" r="34" fill="#86D394"/>
+    <circle cx="403" cy="341" r="46" fill="#F2C14E"/>
+    <path d="M182 213 Q256 250 300 300 T330 383" fill="none" stroke="#F4F7F2" stroke-width="16" stroke-linecap="round" stroke-dasharray="1 30"/>
+  </g>
+  <g fill="#F4F7F2">
+    <path d="M222 236 q22-16 44 0 q-22 16-44 0z M266 236 l14-10 v20z"/>
+    <path d="M262 288 q22-16 44 0 q-22 16-44 0z M306 288 l14-10 v20z"/>
+    <path d="M212 318 q18-13 36 0 q-18 13-36 0z M248 318 l12-8 v16z"/>
+  </g>
+</svg>
