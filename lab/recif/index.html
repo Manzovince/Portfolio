@@ -182,7 +182,56 @@ kbd{font-family:var(--mono);font-size:.72rem;border:1px solid var(--line);border
   h1{font-size:1.1rem}
   .tabs button{padding:6px 10px}
 }
-@media (prefers-reduced-motion: reduce){#sim-bar{transition:none}}
+/* Mode plein écran : le plateau d'abord, la main du joueur en cours dessous, le score en pastille sur la mer */
+.fulltools{display:none;position:absolute;top:8px;right:8px;gap:6px;z-index:3}
+.fulltools .btn,.zoombar .btn{background:color-mix(in srgb,var(--panel) 88%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+html.full body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;
+  padding:max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px))}
+html.full .top,html.full #view-sim,html.full .statsbox,html.full .logbox,html.full .side details{display:none}
+html.full .shell{display:flex;flex:1;min-height:0}
+html.full .game{display:flex;flex-direction:column;gap:6px;height:100%;position:relative}
+html.full .boardwrap{order:-1;flex:1;min-height:0;height:auto}
+html.full .fulltools{display:flex}
+html.full .side{flex:none;height:auto;display:block;overflow:visible}
+html.full .scorebox{position:absolute;top:8px;left:8px;z-index:3;padding:6px 12px;max-width:calc(100% - 120px);
+  background:color-mix(in srgb,var(--panel) 90%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 2px 10px var(--shadow)}
+html.full #players{flex-wrap:nowrap;align-items:center;gap:10px}
+html.full .team{width:auto;gap:8px;align-items:center}
+html.full .team span{display:none}
+html.full #rotl,html.full #rotr{min-width:52px;min-height:44px;font-size:1.3rem;border-radius:12px}
+html.full .pl:not(.cur){display:none}
+html.full .status{display:none}
+html.full .status.over{display:block;max-width:340px}
+html.full .meta{margin-top:2px;font-size:.7rem;justify-content:flex-start;gap:12px}
+html.full .handbox{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center;gap:6px 14px;padding:8px 10px}
+html.full .hand{grid-row:1/3;flex-wrap:nowrap;overflow-x:auto;justify-content:center;gap:8px;padding:3px;scrollbar-width:none}
+html.full .handbox .row{margin:0;justify-content:flex-end;flex-wrap:nowrap}
+html.full .handbox .row .btn{white-space:nowrap}
+html.full .card{flex:0 1 auto;width:clamp(64px,15vmin,140px);min-width:58px;font-size:.74rem}
+html.full .card svg{width:100%;height:auto;aspect-ratio:1}
+html.full .sidebar{position:fixed;top:0;right:0;bottom:0;width:min(380px,100%);z-index:20;border-radius:0;box-shadow:-8px 0 24px var(--shadow);
+  padding-top:max(12px, env(safe-area-inset-top, 0px));padding-bottom:env(safe-area-inset-bottom, 0px);padding-right:max(14px, env(safe-area-inset-right, 0px))}
+@media (max-width:640px){
+  html.full .handbox{grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto}
+  html.full .hand{grid-row:1;grid-column:1/-1;justify-content:flex-start}
+  html.full .card{width:clamp(58px,20vw,84px)}
+  html.full #speed{display:none}
+  html.full .handbox .row .btn{white-space:nowrap;font-size:.78rem}
+}
+/* Retours visuels */
+.withicon{display:inline-flex;align-items:center;gap:6px}
+.card{transition:transform .12s, box-shadow .12s, border-color .12s}
+.card:not(:disabled):hover{transform:translateY(-2px)}
+.card[aria-pressed="true"]{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent);transform:translateY(-2px)}
+.pend{fill:none;stroke:var(--fish-done);stroke-width:3;animation:pend 1s ease-in-out infinite alternate}
+@keyframes pend{from{stroke-opacity:1}to{stroke-opacity:.35}}
+.team b{position:relative}
+.team b.bump{animation:bump .5s ease-out}
+.team b.bump::after{content:attr(data-gain);position:absolute;left:100%;top:-.2em;margin-left:6px;font-size:.55em;color:var(--fish-done);white-space:nowrap;animation:gain 1.1s ease-out forwards;pointer-events:none}
+@keyframes bump{40%{transform:scale(1.18)}}
+@keyframes gain{from{opacity:1;transform:translateY(4px)}to{opacity:0;transform:translateY(-14px)}}
+@media (any-pointer:coarse){.cand{stroke-opacity:.6;stroke-width:1.6}}
+@media (prefers-reduced-motion: reduce){#sim-bar,.card{transition:none}.pend,.team b.bump,.team b.bump::after{animation:none}}
 </style>
 
 <svg id="artdefs" width="0" height="0" style="position:absolute" aria-hidden="true"></svg>
@@ -196,6 +245,7 @@ kbd{font-family:var(--mono);font-size:.72rem;border:1px solid var(--line);border
   <button class="btn" type="button" id="autoGame" title="Nouvelle partie jouée entièrement par l'IA, avec une nouvelle graine">↻ Partie auto</button>
   <select id="artstyle" class="btn" aria-label="Style des cartes" title="Style des cartes"><option value="aq">Aquarelle</option><option value="gr">Gravure</option></select>
   <button class="btn" type="button" id="optToggle" aria-expanded="false" aria-controls="sidebar">⚙ Options</button>
+  <button class="btn primary withicon" type="button" id="fullOn" title="Plateau plein écran, main en dessous"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Plein écran</button>
 </header>
 
 <div class="shell">
@@ -249,6 +299,7 @@ kbd{font-family:var(--mono);font-size:.72rem;border:1px solid var(--line);border
       </div>
 
       <div class="boardwrap"><svg id="board" role="img" aria-label="Plateau de tuiles hexagonales"></svg>
+        <div class="fulltools"><button class="btn icon" type="button" id="fullOpts" aria-label="Options" title="Options"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h8M17 7h3M4 17h3M12 17h8"/><circle cx="14.5" cy="7" r="2.3"/><circle cx="9.5" cy="17" r="2.3"/></svg></button><button class="btn icon" type="button" id="fullOff" aria-label="Quitter le plein écran" title="Quitter le plein écran"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button></div>
         <div class="zoombar"><button class="btn icon" id="zin" type="button" title="Zoomer (+)" aria-label="Zoomer">+</button><button class="btn icon" id="zout" type="button" title="Dézoomer (−)" aria-label="Dézoomer">−</button><button class="btn" id="zreset" type="button" title="Recadrer sur toute la mer (0)" disabled>Recadrer</button></div></div>
     </section>
 
@@ -342,6 +393,7 @@ const vertexKey=(q,r,i)=>(2*q+r+VDX[i])*100000+(3*r+VDY[i]);
 const edgeKey=(q,r,i)=>{const j=(i+1)%6;return(4*q+2*r+VDX[i]+VDX[j])*100000+(6*r+VDY[i]+VDY[j])};
 function regionKeys(q,r,n){const out=[];for(let dq=-n;dq<=n;dq++)for(let dr=Math.max(-n,-dq-n);dr<=Math.min(n,-dq+n);dr++)out.push(K(q+dq,r+dr));return out}
 
+let touchPend=false,lastTotal=null; // au toucher : aperçu posé sur une case, en attente d'un second appui
 let O,rng,airng,deck,board,hands,cur,sel,rot,flip=false,logs,lastKey,over,hoverKey,turn,autoAll,gen=0,paused=false,speed=20;
 
 function readOpts(){
@@ -417,6 +469,7 @@ function setupGame(seed){
   cur=0;
 }
 function newGame(){
+  touchPend=false;hoverKey=null;lastTotal=null;
   gen++;O=readOpts();setupGame(O.seed);view=null;
   sel=0;rot=0;flip=false;full=false;logs=[];lastKey=K(0,0);over=false;hoverKey=null;turn=1;autoAll=false;paused=O.ai==='all';
   render();schedule();
@@ -862,17 +915,20 @@ function drawGhost(){
   const g=document.getElementById('ghost');if(!g)return;
   if(!hoverKey||over||!hands[cur]||!hands[cur][sel]||isAI(cur)||autoAll){g.innerHTML='';return}
   const[q,r]=hoverKey.split(',').map(Number);const[cx,cy]=hexToPix(q,r);
-  g.innerHTML=`<g opacity="${board.has(hoverKey)?.9:.72}">${tileSVG(orient(hands[cur][sel],rot,flip),cx,cy,S,{noBase:board.has(hoverKey)})}</g>`;
+  g.innerHTML=`<g opacity="${board.has(hoverKey)?.9:touchPend?.92:.72}">${tileSVG(orient(hands[cur][sel],rot,flip),cx,cy,S,{noBase:board.has(hoverKey)})}</g>`+
+    (touchPend?`<polygon class="pend" points="${pts([0,1,2,3,4,5].map(i=>corner(cx,cy,i,S*.97)))}"/>`:'');
 }
 
 function renderSide(A){
+  const gain=lastTotal!=null&&A.total!==lastTotal?A.total-lastTotal:0;lastTotal=A.total;
   $('players').innerHTML=`<div class="team"><span>Score de l'équipe</span><b>${A.total}</b></div>`+hands.map((h,p)=>`<div class="pl${p===cur&&!over?' cur':''}" title="Joueur ${p+1}, ${isAI(p)?'IA':'humain'}, ${h.length} carte${h.length>1?'s':''} en main"><i class="dot" style="background:${PCOL[p]}"></i><span>J${p+1}</span><span class="tag">${isAI(p)?'IA · ':''}${h.length}</span></div>`).join('');
+  if(gain){const b=$('players').querySelector('.team b');b.dataset.gain=(gain>0?'+':'')+(+gain.toFixed(2));b.classList.add('bump');setTimeout(()=>b.classList.remove('bump'),1100)}
   $('deckinfo').textContent=`Pioche : ${deck.length}`;
   $('turninfo').textContent=`Tour ${turn} · ${board.size} cases`;
   const legal=legalCards(),forced=O.pollForced&&legal.length===1&&hands[cur]&&hands[cur][legal[0]]&&hands[cur][legal[0]].type==='pollution';
   const st=$('status');
   if(over){st.className='status over';st.textContent=`${full?'La mer est pleine, plus aucune carte ne peut être posée. ':''}Partie terminée : la mer de l'équipe vaut ${A.total} points.`}
-  else{st.className='status';st.textContent=paused&&O.ai==='all'?'Partie entre IA en pause : appuyez sur Lecture, ou avancez coup par coup.':autoAll?'Lecture automatique en cours…':isAI(cur)?`Joueur ${cur+1} (IA) réfléchit…`:forced?`Joueur ${cur+1} : la pollution piochée doit être posée maintenant, sur une case vide du bord. Elle neutralise toutes les cartes qu'elle touche.`:`À vous, joueur ${cur+1} : choisissez une carte, tournez-la${O.transparent?', retournez-la si besoin':''}, puis posez-la${O.transparent?' sur une case vide ou par-dessus une tuile':''}.`}
+  else{st.className='status';st.textContent=paused&&O.ai==='all'?'Partie entre IA en pause : appuyez sur Lecture, ou avancez coup par coup.':autoAll?'Lecture automatique en cours…':isAI(cur)?`Joueur ${cur+1} (IA) réfléchit…`:touchPend?`Aperçu posé : touchez de nouveau la case pour valider, ou tournez la carte (⟲ ⟳, ou touchez-la).`:forced?`Joueur ${cur+1} : la pollution piochée doit être posée maintenant, sur une case vide du bord. Elle neutralise toutes les cartes qu'elle touche.`:`À vous, joueur ${cur+1} : choisissez une carte, tournez-la${O.transparent?', retournez-la si besoin':''}, puis posez-la${O.transparent?' sur une case vide ou par-dessus une tuile':''}.`}
   $('flipb').hidden=!O.transparent;$('flipb').setAttribute('aria-pressed',flip);
   const hand=hands[cur]||[];const lab={reef:'Récif',elem:'Élément',fish:'Banc',empty:'Eau libre',mix:'Mixte',pollution:'Pollution'};
   const dis=over||isAI(cur)||autoAll;
@@ -889,11 +945,15 @@ function renderSide(A){
   $('rules').textContent=`Score en direct de la mer : 3 coins de récif réunis = ${O.pPure} pts si identiques, ${O.pMixed} si mélangés. Deux demi-éléments de même couleur bord à bord = ${O.pPair} pts. Chaque banc rapporte selon sa longueur (${O.fishScale==='tri'?'progressif : 1, 3, 6, 10… × '+O.pFish:O.pFish+' pt par tronçon'}), ×${O.loopMult} s'il se referme en boucle sur lui-même. Un banc qui passe sur ou à côté d'un rocher à mouettes ou d'un pêcheur ne rapporte rien. La pollution se pose seulement sur une case vide${O.pollForced?', dès qu’elle est piochée':''}, et neutralise toutes les cartes qu'elle touche (y compris les prédateurs).${O.radius?` La mer est limitée à un rayon de ${O.radius} cases autour de la première tuile ; la partie s'arrête si plus aucune carte ne peut être posée.`:''}${O.transparent?` Cartes transparentes : retourner une carte donne son miroir, et on peut en empiler jusqu'à ${O.maxLayers} par case ; l'encre du dessus couvre celle du dessous, les bancs s'additionnent.`:''}`;
 }
 
-$('board').addEventListener('pointermove',e=>{if(dragMoved||pinch)return;const t=e.target.closest('[data-k]');const k=t?t.dataset.k:null;if(k!==hoverKey){hoverKey=k;drawGhost()}});
-$('board').addEventListener('pointerleave',()=>{hoverKey=null;drawGhost()});
-$('board').addEventListener('click',e=>{if(dragMoved){dragMoved=false;return}const t=e.target.closest('[data-k]');if(!t||over||isAI(cur)||autoAll)return;place(t.dataset.k,sel,rot,flip)});
+$('board').addEventListener('pointermove',e=>{if(e.pointerType!=='mouse'||dragMoved||pinch)return;const t=e.target.closest('[data-k]');const k=t?t.dataset.k:null;if(k!==hoverKey){hoverKey=k;drawGhost()}});
+$('board').addEventListener('pointerleave',e=>{if(e.pointerType!=='mouse')return;hoverKey=null;drawGhost()});
+$('board').addEventListener('click',e=>{if(dragMoved){dragMoved=false;return}const t=e.target.closest('[data-k]');
+  if(!t||over||isAI(cur)||autoAll){if(touchPend){touchPend=false;hoverKey=null;drawGhost()}return}
+  const k=t.dataset.k;
+  if(lastPtr!=='mouse'&&!(touchPend&&hoverKey===k)){hoverKey=k;touchPend=true;render();return}
+  touchPend=false;hoverKey=null;place(k,sel,rot,flip)});
 // Zoom (molette, pincement, boutons, touches + et -) et déplacement (cliquer-glisser) sur la mer
-const boardEl=$('board'),ptrs=new Map();let drag=null,dragMoved=false,pinch=null;
+const boardEl=$('board'),ptrs=new Map();let lastPtr='mouse';let drag=null,dragMoved=false,pinch=null;
 function toUser(x,y){const m=boardEl.getScreenCTM().inverse();return[m.a*x+m.c*y+m.e,m.b*x+m.d*y+m.f]}
 function zoomAt(f,px,py){
   const v=view||fitBox;if(!v)return;const[ux,uy]=toUser(px,py);
@@ -902,7 +962,7 @@ function zoomAt(f,px,py){
 }
 function zoomCenter(f){const b=boardEl.getBoundingClientRect();zoomAt(f,b.left+b.width/2,b.top+b.height/2)}
 boardEl.addEventListener('wheel',e=>{e.preventDefault();zoomAt(Math.exp(e.deltaY*(e.ctrlKey?.01:.0015)),e.clientX,e.clientY)},{passive:false});
-boardEl.addEventListener('pointerdown',e=>{
+boardEl.addEventListener('pointerdown',e=>{lastPtr=e.pointerType;
   if(e.pointerType==='mouse'&&e.button!==0)return;
   ptrs.set(e.pointerId,[e.clientX,e.clientY]);dragMoved=false;
   if(ptrs.size===1)drag={x:e.clientX,y:e.clientY,v:{...(view||fitBox)},k:boardEl.getScreenCTM().a};
@@ -1042,6 +1102,23 @@ $('optToggle').onclick=()=>setOpts($('sidebar').hidden);
 $('optClose').onclick=()=>setOpts(false);
 try{if(localStorage.getItem('recif-opts')==='1')setOpts(true)}catch(e){}
 showTab(location.hash.slice(1));
+// Mode plein écran : plateau + main du joueur en cours + score compact (html.full). Plein écran natif quand le navigateur le permet.
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;let fsNative=false;
+function setFull(on,native){
+  document.documentElement.classList.toggle('full',on);
+  try{localStorage.setItem('recif-full',on?'1':'0')}catch(e){}
+  if(on){if(location.hash==='#simulation'){location.hash='partie';showTab('partie')}
+    const d=document.documentElement,f=d.requestFullscreen||d.webkitRequestFullscreen;
+    if(native&&f&&!fsEl())try{const r=f.call(d);if(r&&r.catch)r.catch(()=>{})}catch(e){}}
+  else{const x=document.exitFullscreen||document.webkitExitFullscreen;if(fsEl()&&x)try{x.call(document)}catch(e){}}
+  view=null;if(O)render();
+}
+for(const t of['fullscreenchange','webkitfullscreenchange'])document.addEventListener(t,()=>{
+  if(fsEl())fsNative=true;else if(fsNative){fsNative=false;if(document.documentElement.classList.contains('full'))setFull(false)}});
+$('fullOn').onclick=()=>setFull(true,true);
+$('fullOff').onclick=()=>setFull(false);
+$('fullOpts').onclick=()=>setOpts($('sidebar').hidden);
+{const q=new URLSearchParams(location.search).get('full');let on=q==='1';if(q==null)try{on=localStorage.getItem('recif-full')==='1'}catch(e){}if(on)setFull(true)}
 $('sim-clear').onclick=()=>{if(simBusy)return;simRuns=[];renderSim()};
 renderSim();
 newGame();
