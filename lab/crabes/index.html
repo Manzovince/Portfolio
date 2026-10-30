@@ -414,7 +414,7 @@ html.table .log{max-height:none;font-size:13.5px;}
         <g id="gPieces"></g>
       </svg>
     </div>
-    <p class="hint">Touchez un de vos crabes, puis une case voisine. Un contour rouge pointillé signale une poussée.</p>
+    <p class="hint">Touchez un de vos crabes, puis une case voisine. Un contour rouge pointillé signale une attaque.</p>
     <p class="ticker" id="ticker"></p>
   </div>
 
@@ -450,9 +450,9 @@ html.table .log{max-height:none;font-size:13.5px;}
         <ol>
           <li>Chaque joueur commence avec sa <strong>Reine</strong> sur son port et un <strong>petit crabe</strong> juste devant. Toutes les autres tuiles sont face cachée.</li>
           <li>À votre tour, déplacez <strong>un</strong> de vos crabes d'<strong>une case</strong> dans l'une des 6 directions. S'il arrive sur une tuile cachée, elle se retourne et son effet s'applique.</li>
-          <li><strong>Pousser :</strong> entrer sur un crabe adverse le repousse d'une case dans le même sens. La Reine pousse tout le monde, un petit crabe ne pousse que les petits. Poussé hors du plateau, on est emporté au large ; poussé sur une tuile cachée, on la retourne (et on en subit l'effet, perle comprise). Impossible si la case derrière est occupée ou un rocher, ou si la victime est sur son propre port.</li>
+          <li><strong>Pousser :</strong> entrer sur un crabe adverse le repousse d'une case dans le même sens. La Reine pousse tout le monde, un petit crabe ne pousse que les petits. Poussé hors du plateau, on est emporté au large ; poussé sur une tuile cachée, on la retourne (et on en subit l'effet, perle comprise). Impossible si la case derrière est occupée ou un rocher, ou si la victime est sur son propre port. Avec l'option « Manger », la victime est mangée au lieu d'être poussée (mêmes règles de force, port toujours à l'abri).</li>
           <li><strong>Crevette :</strong> un banc de crevettes ne s'épuise pas. Y arriver vous offre un coup supplémentaire, une seule fois par tour.</li>
-          <li><strong>Anémone :</strong> quand votre Reine atteint une anémone de sa couleur, elle y pond. Un petit crabe éclot dès qu'elle repart (4 petits au maximum).</li>
+          <li><strong>Anémone :</strong> quand votre Reine atteint une anémone de sa couleur, elle y pond (avec l'option « Ponte : toutes », n'importe quelle anémone convient). Un petit crabe éclot dès qu'elle repart (4 petits au maximum).</li>
           <li><strong>Relève :</strong> si vous n'avez plus aucun petit au début de votre tour, un nouveau sort de votre port, à condition qu'il soit libre et pas encore englouti.</li>
           <li>Une Reine mangée, noyée ou emportée : son joueur est éliminé avec tous ses crabes.</li>
           <li><strong>Victoire :</strong> être le dernier à avoir une Reine, ou ramasser le nombre de <strong>perles</strong> choisi. Si toutes les perles ont été trouvées (ou englouties), celui qui en a le plus l'emporte ; en cas d'égalité, on continue.</li>
@@ -482,6 +482,14 @@ html.table .log{max-height:none;font-size:13.5px;}
       <div class="orow">
         <span class="olab">Perles pour gagner<small>« Sans » : seule la dernière Reine gagne, et la marée monte alors jusqu'au centre</small></span>
         <span class="seg" id="goalSeg"></span>
+      </div>
+      <div class="orow">
+        <span class="olab">Entrer sur un adversaire<small>le pousser d'une case, ou le manger (une Reine mange tout le monde, un petit seulement les petits)</small></span>
+        <span class="seg" id="eatSeg"></span>
+      </div>
+      <div class="orow">
+        <span class="olab">Ponte<small>dans quelles anémones une Reine peut pondre un petit</small></span>
+        <span class="seg" id="nestSeg"></span>
       </div>
       <div class="orow">
         <span class="olab">Style des tuiles<small>illustrées, ou de simples pictogrammes</small></span>
@@ -528,6 +536,8 @@ var FLOOD={4:13,3:21,2:29};          /* ring -> round it sinks at */
 var FLOOD_NOPEARL={4:13,3:21,2:29,1:35};
 function floods(S){return S.target?FLOOD:FLOOD_NOPEARL;}
 var MAX_JUV=4;
+var NEST_C="#FF8FB8";   /* anemones open to every Queen wear no player's colour */
+function nestColor(t,S){return t.color>=0&&S.players[t.color]?S.players[t.color].c:NEST_C;}
 var TYPES={
   sand:  {name:"Sable",      n:0, txt:"Rien ne se passe."},
   pearl: {name:"Perle",      n:7, txt:"Le crabe la ramasse pour son joueur."},
@@ -561,7 +571,7 @@ function setup(seats,opts){
   var act=seats.map(function(v,i){return {seat:i,type:v};}).filter(function(s){return s.type!=="off";});
   var P=act.length, corners=CORNERS[P];
   var S={tiles:{},pieces:[],players:[],turn:0,extra:0,fed:false,round:1,winner:null,over:false,
-         nextId:1,target:opts.goal,tide:opts.tide||opts.goal===0,frozen:[],log:[]};
+         nextId:1,eat:!!opts.eat,target:opts.goal,tide:opts.tide||opts.goal===0,frozen:[],log:[]};
   var fixed={};
   act.forEach(function(s,i){
     var d=DIRS[corners[i]], pq=d[0]*R, pr=d[1]*R, jq=d[0]*(R-1), jr=d[1]*(R-1);
@@ -575,7 +585,7 @@ function setup(seats,opts){
   var deck=[];
   Object.keys(TYPES).forEach(function(t){
     var n=tileCount(opts,t);
-    if(t==="anemone"){ for(var i=0;i<P;i++)for(var j=0;j<n;j++)deck.push({t:t,color:i}); }
+    if(t==="anemone"){ for(var i=0;i<P;i++)for(var j=0;j<n;j++)deck.push({t:t,color:opts.anyNest?-1:i}); }
     else if(t!=="sand")for(var m=0;m<n;m++)deck.push({t:t});
   });
   var free=CELLS.filter(function(c){return !fixed[c.k];});
@@ -605,6 +615,7 @@ function canPush(S,m,o,d){
   if(!m.queen&&o.queen)return false;
   var ot=S.tiles[key(o.q,o.r)];
   if(ot.t==="port"&&ot.owner===o.pid)return false;
+  if(S.eat)return true;   /* "Manger": same pecking order, but nothing behind matters */
   var cq=o.q+DIRS[d][0], cr=o.r+DIRS[d][1];
   if(gone(S,cq,cr))return true;
   if(pieceAt(S,cq,cr))return false;
@@ -683,8 +694,8 @@ function enter(S,p,q,r,pushed,rec,depth){
       }
       break;
     case "anemone":
-      if(p.queen&&t.color===p.pid){t.t="sand";t.egg=p.pid;rec(S,"La Reine <b>"+S.players[p.pid].name+"</b> pond dans l'anémone.");}
-      else if(fresh) rec(S,who(S,p)+" découvre une anémone "+S.players[t.color].name+".");
+      if(p.queen&&(t.color===p.pid||t.color<0)){t.t="sand";t.egg=p.pid;rec(S,"La Reine <b>"+S.players[p.pid].name+"</b> pond dans l'anémone.");}
+      else if(fresh) rec(S,who(S,p)+" découvre une anémone"+(t.color>=0?" "+S.players[t.color].name:"")+".");
       break;
     default: if(fresh) rec(S,"");
   }
@@ -723,7 +734,8 @@ function checkWin(S,rec){
 
 function doMove(S,mv,rec){
   var p=byId(S,mv.id), d=mv.d, o=pieceAt(S,mv.q,mv.r);
-  if(o){
+  if(o&&S.eat){ rec(S,who(S,p)+" attrape "+who(S,o)+"."); kill(S,o,"est mangé{e}",rec); }
+  else if(o){
     var cq=mv.q+DIRS[d][0], cr=mv.r+DIRS[d][1];
     rec(S,who(S,p)+" pousse "+who(S,o)+".");
     if(gone(S,cq,cr)){o.q=cq;o.r=cr;kill(S,o,"est emporté{e} au large",rec);}
@@ -880,7 +892,7 @@ function botPick(S){
     /* the first hidden hex this move reveals: sampling it would miss rare sharks */
     var fk=null, dk=key(mv.q,mv.r);
     if(!S.tiles[dk].open)fk=dk;
-    else if(mv.push){var cq=mv.q+DIRS[mv.d][0],cr=mv.r+DIRS[mv.d][1];if(!gone(S,cq,cr)&&!S.tiles[key(cq,cr)].open)fk=key(cq,cr);}
+    else if(mv.push&&!S.eat){var cq=mv.q+DIRS[mv.d][0],cr=mv.r+DIRS[mv.d][1];if(!gone(S,cq,cr)&&!S.tiles[key(cq,cr)].open)fk=key(cq,cr);}
     var sc=0;
     if(!fk){worlds.forEach(function(W){sc+=score(W,mv);});sc/=K;}
     else groups.forEach(function(g,gi){
@@ -939,7 +951,7 @@ var ICON={
     '<path d="M-18 -8 q4 -4 8 0 t8 0 M-18 8 q4 -4 8 0 t8 0" fill="none" stroke="#3E97A6" stroke-width="2" stroke-linecap="round"/>'+
     '<path d="M-10 0 H12 M5 -8 L14 0 L5 8" fill="none" stroke="#1C5E6B" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></g>';},
   whirl:function(){return '<path d="M0 0 C3 -1 3 -5 0 -5 C-5 -5 -7 1 -3 5 C2 9 10 5 10 -2 C10 -10 1 -14 -6 -12 C-14 -9 -17 1 -13 9 C-9 16 2 18 10 14" fill="none" stroke="#1C5E6B" stroke-width="2.6" stroke-linecap="round"/>';},
-  anemone:function(t,S){var c=S.players[t.color]?S.players[t.color].c:"#999",s='';
+  anemone:function(t,S){var c=nestColor(t,S),s='';
     for(var i=0;i<7;i++){var a=-150+i*20,rad=Math.PI/180*a;s+='<path d="M0 8 Q'+(Math.cos(rad)*8).toFixed(1)+' '+(8+Math.sin(rad)*10).toFixed(1)+' '+(Math.cos(rad)*16).toFixed(1)+' '+(6+Math.sin(rad)*20).toFixed(1)+'" fill="none" stroke="'+c+'" stroke-width="3.2" stroke-linecap="round"/>';}
     return s+'<ellipse cx="0" cy="10" rx="9" ry="4" fill="#8C5A4A"/>';},
   port:function(t,S){var c=S.players[t.owner].c;return '<g fill="none" stroke="'+c+'" stroke-width="2.6" stroke-linecap="round">'+
@@ -1009,7 +1021,7 @@ function artKey(t,V,c){
   var o=FLAT?"f":"p";
   if(t.t==="port")return "port|"+V.players[t.owner].c+"|"+o;
   if(!t.open)return "back|"+opts.back+":"+(Math.abs(c.q*7+c.r*13)%4)+"|"+o;   /* four water variants, spread by position */
-  if(t.t==="anemone")return "anemone|"+V.players[t.color].c+"|"+o;
+  if(t.t==="anemone")return "anemone|"+nestColor(t,V)+"|"+o;
   if(t.t==="current")return "current||p";   /* turned by its direction instead, see below */
   return t.t+"||"+o;
 }
@@ -1075,6 +1087,8 @@ function renderPieces(V){
   });
 }
 
+var NEST_TXT="N'importe quelle Reine y pond un petit.";
+function anyNestIn(V){return Object.keys(V.tiles).some(function(k){var t=V.tiles[k];return t.t==="anemone"&&t.color<0;});}   /* this game, not the next one's settings */
 function renderSide(V){
   var me=V.over?null:cur(V);
   $("players").innerHTML=V.players.map(function(p){
@@ -1095,12 +1109,12 @@ function renderSide(V){
   var want=[];
   $("legend").innerHTML=Object.keys(TYPES).map(function(t){
     var sample={t:t,dir:0,color:0}, me=V.over?null:cur(V);
-    var k=opts.art&&window.CrabesArt?(t==="anemone"?"anemone|"+(me?me.c:V.players[0].c)+"|p":t+"||p"):null, u=k&&CrabesArt.url(k);
+    var k=opts.art&&window.CrabesArt?(t==="anemone"?"anemone|"+(anyNestIn(V)?NEST_C:me?me.c:V.players[0].c)+"|p":t+"||p"):null, u=k&&CrabesArt.url(k);
     if(k&&!u)want.push(k);
     var pic=u?'<svg viewBox="-24 -24 48 48"><image href="'+u+'" x="-26" y="-26" width="52" height="52"/></svg>':
       '<svg viewBox="-24 -24 48 48"><polygon points="'+hexPts(22)+'" fill="#E4DAC0" stroke="#C9BC98" stroke-width="1.4"/><g transform="scale(.8)">'+ICON[t](sample,V)+'</g></svg>';
     return '<div class="lg'+(cnt[t]?"":" gone")+'">'+pic+
-      '<span><b>'+TYPES[t].name+'</b><small>'+TYPES[t].txt+'</small></span><span class="cnt'+(cnt[t]?"":" zero")+'">×'+cnt[t]+'</span></div>';
+      '<span><b>'+TYPES[t].name+'</b><small>'+(t==="anemone"&&anyNestIn(V)?NEST_TXT:TYPES[t].txt)+'</small></span><span class="cnt'+(cnt[t]?"":" zero")+'">×'+cnt[t]+'</span></div>';
   }).join("");
   if(want.length)CrabesArt.ensure(want,render);
 }
@@ -1190,7 +1204,7 @@ function render(){
 function later(t,ms,fn){setTimeout(function(){if(t===token)fn();},ms);}
 function play(mv){
   var snaps=[], t=token, mp=byId(S,mv.id);
-  if(cur(S).type==="bot")LOG.unshift("<b>"+cur(S).name+"</b> avance "+(mp.queen?"sa Reine":"un petit")+(mv.push?" et pousse":"")+".");
+  if(cur(S).type==="bot")LOG.unshift("<b>"+cur(S).name+"</b> avance "+(mp.queen?"sa Reine":"un petit")+(mv.push?(S.eat?" et mange":" et pousse"):"")+".");
   doMove(S,mv,function(T,msg){snaps.push({st:clone(T),msg:msg});});
   snaps.push({st:clone(S),msg:""});
   busy=true; sel=null;
@@ -1245,6 +1259,8 @@ function renderSetup(){
   $("goalSeg").innerHTML=seg("goal",0,opts.goal,[[0,"Sans"],[2,"2"],[3,"3"],[4,"4"],[5,"5"]]);
   $("artSeg").innerHTML=seg("art",0,opts.art,[[true,"Illustrées"],[false,"Simples"]]);
   renderBackPick();
+  $("eatSeg").innerHTML=seg("eat",0,!!opts.eat,[[false,"Pousser"],[true,"Manger"]]);
+  $("nestSeg").innerHTML=seg("nest",0,!!opts.anyNest,[[false,"Sa couleur"],[true,"Toutes"]]);
   $("viewSeg").innerHTML=seg("view",0,opts.view,[["auto","Auto"],["on","Oui"],["off","Non"]]);
   $("badgeSeg").innerHTML=seg("badges",0,opts.badges,[["face","Face à chacun"],["coin","Dans un coin"]]);
   renderTileOpts();
@@ -1260,15 +1276,15 @@ function renderTileOpts(){
   var P=seatCount(), free=CELLS.length-2*P, used=tilesUsed(null), demo={players:[{c:SEATS[0].c}]};
   var want=[];
   function icon(t){
-    var k=opts.art&&window.CrabesArt?(t==="anemone"?"anemone|"+SEATS[0].c+"|p":t+"||p"):null, u=k&&CrabesArt.url(k);
+    var k=opts.art&&window.CrabesArt?(t==="anemone"?"anemone|"+(opts.anyNest?NEST_C:SEATS[0].c)+"|p":t+"||p"):null, u=k&&CrabesArt.url(k);
     if(u)return '<svg viewBox="-24 -24 48 48"><image href="'+u+'" x="-26" y="-26" width="52" height="52"/></svg>';
     if(k)want.push(k);
-    return '<svg viewBox="-24 -24 48 48"><polygon points="'+hexPts(22)+'" fill="#E4DAC0" stroke="#C9BC98" stroke-width="1.4"/><g transform="scale(.8)">'+ICON[t]({t:t,dir:0,color:0},demo)+'</g></svg>';}
+    return '<svg viewBox="-24 -24 48 48"><polygon points="'+hexPts(22)+'" fill="#E4DAC0" stroke="#C9BC98" stroke-width="1.4"/><g transform="scale(.8)">'+ICON[t]({t:t,dir:0,color:opts.anyNest?-1:0},demo)+'</g></svg>';}
   var html=Object.keys(TYPES).filter(function(t){return t!=="sand";}).map(function(t){
     var c=(opts.tiles||{})[t]||{}, on=c.on!==false&&!(t==="pearl"&&opts.goal===0), n=tileCount(opts,t)||(c.n!=null?c.n:TYPES[t].n);
     var room=Math.floor((free-tilesUsed(t))/tileCells(t));
     return '<div class="trow'+(on?"":" off")+'">'+icon(t)+
-      '<span class="olab">'+TYPES[t].name+'<small>'+TYPES[t].txt+(t==="anemone"?" Nombre par joueur.":"")+'</small></span>'+
+      '<span class="olab">'+TYPES[t].name+'<small>'+(t==="anemone"&&opts.anyNest?NEST_TXT:TYPES[t].txt)+(t==="anemone"?" Nombre par joueur.":"")+'</small></span>'+
       '<span class="step"><button type="button" data-tstep="'+t+'" data-d="-1" aria-label="Moins"'+(n<=tileMin(t)?" disabled":"")+'>−</button>'+
       '<b>'+n+'</b><button type="button" data-tstep="'+t+'" data-d="1" aria-label="Plus"'+(n>=room?" disabled":"")+'>+</button></span>'+
       '<button class="sw" type="button" data-tsw="'+t+'" aria-pressed="'+on+'" aria-label="'+TYPES[t].name+'"></button></div>';
@@ -1340,6 +1356,14 @@ $("backPick").addEventListener("click",function(e){
   opts.back=b.getAttribute("data-back"); saveOpts(); renderBackPick(); render();
 });
 /* these change the view at once, no new game needed */
+$("eatSeg").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-eat]"); if(!b)return;
+  opts.eat=b.getAttribute("data-v")==="true"; saveOpts(); renderSetup();
+});
+$("nestSeg").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-nest]"); if(!b)return;
+  opts.anyNest=b.getAttribute("data-v")==="true"; saveOpts(); renderSetup();
+});
 $("viewSeg").addEventListener("click",function(e){
   var b=e.target.closest("button[data-view]"); if(!b)return;
   opts.view=b.getAttribute("data-v"); saveOpts(); renderSetup();
