@@ -153,6 +153,11 @@ svg#board{display:block;width:100%;height:auto;user-select:none;-webkit-user-sel
 .hex.open.t-current .face{fill:#A7D6EE;}
 .hex.open.t-whirl .face{fill:#2A4677;}
 .hex.open.t-anemone .face{fill:#E8D8F2;}
+.hex.open.t-octopus .face{fill:#F2B9B4;}
+.hex.open.t-bottle .face{fill:#BFE6D4;}
+.hex.open.t-sardine .face{fill:#C7D5E4;}
+.hex.open.t-wreck .face{fill:#CDB79B;}
+.hex.open.t-net .face{fill:#D5E3B8;}
 .hex.port .face{fill:var(--deep);stroke:var(--c);stroke-width:2.4;}
 .hex.flood .face{fill:var(--flood);stroke:#0A2630;stroke-dasharray:3 4;}
 .hex.flood .ico{display:none;}
@@ -461,6 +466,7 @@ html.table .log{max-height:none;font-size:13.5px;}
           <li><strong>Pousser :</strong> entrer sur un crabe adverse le repousse d'une case dans le même sens. La Reine pousse tout le monde, un petit crabe ne pousse que les petits. Poussé hors du plateau, on est emporté au large ; poussé sur une tuile cachée, on la retourne (et on en subit l'effet, perle comprise). Impossible si la case derrière est occupée ou un rocher, ou si la victime est sur son propre port. Avec l'option « Manger », la victime est mangée au lieu d'être poussée (mêmes règles de force, port toujours à l'abri).</li>
           <li><strong>Crevette :</strong> un banc de crevettes ne s'épuise pas. Y arriver vous offre un coup supplémentaire, une seule fois par tour.</li>
           <li><strong>Anémone :</strong> quand votre Reine atteint une anémone de sa couleur, elle y pond (avec l'option « Ponte : toutes », n'importe quelle anémone convient). Un petit crabe éclot dès qu'elle repart (4 petits au maximum).</li>
+          <li><strong>Pieuvre</strong> (reste en place) : elle échange le crabe avec le crabe adverse le plus proche ; un crabe sur son port est hors d'atteinte. <strong>Bouteille à la mer :</strong> les deux tuiles cachées les plus proches se retournent. <strong>Épave :</strong> une chance sur deux d'y trouver une perle (sans perles : un œuf). <strong>Sardines</strong> (restent) : un crabe dans le banc ne peut être ni poussé ni mangé. <strong>Filet :</strong> le crabe passe ses deux prochains tours, puis le filet est déchiré.</li>
           <li><strong>Relève :</strong> si vous n'avez plus aucun petit au début de votre tour, un nouveau sort de votre port, à condition qu'il soit libre et pas encore englouti.</li>
           <li>Une Reine mangée, noyée ou emportée : son joueur est éliminé avec tous ses crabes.</li>
           <li><strong>Victoire :</strong> être le dernier à avoir une Reine, ou ramasser le nombre de <strong>perles</strong> choisi. Si toutes les perles ont été trouvées (ou englouties), celui qui en a le plus l'emporte ; en cas d'égalité, on continue.</li>
@@ -530,7 +536,7 @@ html.table .log{max-height:none;font-size:13.5px;}
   </div>
 </div>
 
-<script src="art.js?v=6"></script>
+<script src="art.js?v=7"></script>
 <script>
 (function(){
 "use strict";
@@ -561,12 +567,18 @@ var TYPES={
   sand:  {name:"Sable",      n:0, txt:"Rien ne se passe."},
   pearl: {name:"Perle",      n:7, txt:"Le crabe la ramasse pour son joueur."},
   shark: {name:"Requin",     n:5, txt:"Le crabe est dévoré. Reste dangereux."},
-  rock:  {name:"Rocher",     n:5, txt:"Infranchissable : on reste où l'on était."},
-  jelly: {name:"Méduse",     n:5, txt:"Piqué : ce crabe passe son prochain tour."},
-  shrimp:{name:"Crevette",   n:6, txt:"Festin : rejouez un coup. Elle reste sur place."},
-  current:{name:"Courant",   n:8, txt:"Emporte d'une case dans le sens de la flèche."},
+  rock:  {name:"Rocher",     n:4, txt:"Infranchissable : on reste où l'on était."},
+  jelly: {name:"Méduse",     n:4, txt:"Piqué : ce crabe passe son prochain tour."},
+  shrimp:{name:"Crevette",   n:5, txt:"Festin : rejouez un coup. Elle reste sur place."},
+  current:{name:"Courant",   n:6, txt:"Emporte d'une case dans le sens de la flèche."},
   whirl: {name:"Tourbillon", n:2, txt:"Aspire vers un autre tourbillon."},
-  anemone:{name:"Anémone",   n:2, txt:"La Reine de sa couleur y pond un petit."}
+  anemone:{name:"Anémone",   n:2, txt:"La Reine de sa couleur y pond un petit."},
+  /* added 2026-10-30; the counts above were trimmed to leave them room on 61 cells */
+  octopus:{name:"Pieuvre",   n:2, txt:"Échange le crabe avec le crabe adverse le plus proche. Reste en place."},
+  bottle:{name:"Bouteille",  n:2, txt:"Un message à la mer : retourne les deux tuiles cachées les plus proches."},
+  wreck: {name:"Épave",      n:2, txt:"Un coffre : une perle, ou rien (sans perles : un œuf)."},
+  sardine:{name:"Sardines",  n:2, txt:"Le banc protège : on ne peut ni y pousser ni y manger un crabe."},
+  net:   {name:"Filet",      n:2, txt:"Pris au filet : ce crabe passe ses deux prochains tours, puis le déchire."}
 };
 
 function key(q,r){return q+","+r;}
@@ -645,6 +657,7 @@ function canPush(S,m,o,d){
   if(!m.queen&&o.queen)return false;
   var ot=S.tiles[key(o.q,o.r)];
   if(ot.t==="port"&&ot.owner===o.pid)return false;
+  if(ot.t==="sardine")return false;   /* hidden in the shoal */
   if(S.eat)return true;   /* "Manger": same pecking order, but nothing behind matters */
   var cq=o.q+DIRS[d][0], cr=o.r+DIRS[d][1];
   if(gone(S,cq,cr))return true;
@@ -712,6 +725,39 @@ function enter(S,p,q,r,pushed,rec,depth){
         if(!gone(S,nq,nr)&&!pieceAt(S,nq,nr)) return enter(S,p,nq,nr,true,rec,(depth||0)+1)==="dead"?"dead":"ok";
       }
       break;
+    case "octopus":
+      /* swaps the crab with the closest enemy crab; one on its own port is out of reach */
+      var best=null, bd=99;
+      S.pieces.forEach(function(x){
+        if(!x.alive||x.pid===p.pid)return;
+        var xt=S.tiles[key(x.q,x.r)]; if(xt.t==="port"&&xt.owner===x.pid)return;
+        var dd=ring(x.q-q,x.r-r)+Math.random()*.5;
+        if(dd<bd){bd=dd;best=x;}
+      });
+      if(best){
+        var bq=best.q, br=best.r; best.q=q; best.r=r; p.q=bq; p.r=br;
+        rec(S,"Une pieuvre attrape "+who(S,p)+" et l'échange avec "+who(S,best)+".");
+      } else rec(S,who(S,p)+" échappe à une pieuvre.");
+      break;
+    case "bottle":   /* also when another bottle revealed it: it is used up on the first visit */
+      {
+        var near=Object.keys(S.tiles).filter(function(k2){var x=S.tiles[k2];return !x.open&&!x.flood;})
+          .map(function(k2){var xy=k2.split(",").map(Number);return {k:k2,d:ring(xy[0]-q,xy[1]-r)+Math.random()*.5};})
+          .sort(function(a,b){return a.d-b.d;}).slice(0,2);
+        near.forEach(function(n){S.tiles[n.k].open=true;});
+        rec(S,who(S,p)+" trouve une bouteille à la mer : "+(near.length?"deux tuiles se dévoilent.":"plus rien à dévoiler."));
+      }
+      t.t="sand"; break;
+    case "wreck":
+      {
+        var luck=Math.random()<.5;
+        if(luck&&S.target){S.players[p.pid].pearls++;rec(S,who(S,p)+" fouille une épave : une perle !");}
+        else if(luck){t.egg=p.pid;rec(S,who(S,p)+" fouille une épave : un œuf y attend.");}
+        else rec(S,who(S,p)+" fouille une épave : le coffre est vide.");
+      }
+      t.t="sand"; break;
+    case "sardine": if(fresh)rec(S,who(S,p)+" se cache dans un banc de sardines."); break;
+    case "net": p.stun=2; t.t="sand"; rec(S,who(S,p)+fem(p," est pris{e} dans un filet de pêche.")); break;
     case "whirl":
       var outs=Object.keys(S.tiles).filter(function(k2){return k2!==k&&S.tiles[k2].t==="whirl"&&!S.tiles[k2].flood;});
       var o=outs.length?outs[(Math.random()*outs.length)|0]:null;
@@ -981,6 +1027,19 @@ var ICON={
     '<path d="M-18 -8 q4 -4 8 0 t8 0 M-18 8 q4 -4 8 0 t8 0" fill="none" stroke="#3E97A6" stroke-width="2" stroke-linecap="round"/>'+
     '<path d="M-10 0 H12 M5 -8 L14 0 L5 8" fill="none" stroke="#1C5E6B" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></g>';},
   whirl:function(){return '<path d="M0 0 C3 -1 3 -5 0 -5 C-5 -5 -7 1 -3 5 C2 9 10 5 10 -2 C10 -10 1 -14 -6 -12 C-14 -9 -17 1 -13 9 C-9 16 2 18 10 14" fill="none" stroke="#5FB8C8" stroke-width="2.6" stroke-linecap="round"/>';},
+  octopus:function(){return '<g stroke="#8E2B3E" stroke-width="1.3" fill="#D9566B">'+
+      '<path d="M-14 4 C-18 12 -12 16 -8 12 M-6 6 C-8 16 -2 18 0 12 M6 6 C8 16 2 18 0 12 M14 4 C18 12 12 16 8 12" fill="none" stroke="#D9566B" stroke-width="4" stroke-linecap="round"/>'+
+      '<ellipse cx="0" cy="-4" rx="13" ry="12"/></g><circle cx="-5" cy="-3" r="2.6" fill="#fff"/><circle cx="5" cy="-3" r="2.6" fill="#fff"/><circle cx="-5" cy="-3" r="1.2" fill="#222"/><circle cx="5" cy="-3" r="1.2" fill="#222"/>';},
+  bottle:function(){return '<g transform="rotate(-35)"><path d="M-6 -6 L-6 14 Q-6 18 -2 18 L2 18 Q6 18 6 14 L6 -6 Q6 -10 2 -12 L2 -18 L-2 -18 L-2 -12 Q-6 -10 -6 -6 Z" fill="#7FC8A9" stroke="#2F7A5C" stroke-width="1.4"/>'+
+      '<rect x="-2.6" y="-21" width="5.2" height="4" rx="1" fill="#A87B4F"/><rect x="-3.5" y="-2" width="7" height="12" rx="1" fill="#F5ECD6" stroke="#B9A57A" stroke-width=".8"/></g>';},
+  wreck:function(){return '<rect x="-15" y="-4" width="30" height="16" rx="2" fill="#9C6B3C" stroke="#5A3A1C" stroke-width="1.4"/>'+
+      '<path d="M-15 -4 Q0 -18 15 -4 Z" fill="#B47E48" stroke="#5A3A1C" stroke-width="1.4"/>'+
+      '<path d="M-15 2 H15" stroke="#5A3A1C" stroke-width="1"/><rect x="-3" y="-2" width="6" height="7" rx="1" fill="#F2C14E" stroke="#7A5512" stroke-width="1"/>';},
+  sardine:function(){var f=function(x,y){return '<g transform="translate('+x+' '+y+')"><path d="M-9 0 C-4 -4 4 -4 8 0 C4 4 -4 4 -9 0 Z M8 0 L13 -4 L13 4 Z" fill="#9FB4C8" stroke="#4E6478" stroke-width="1"/><circle cx="-5" cy="-.8" r="1" fill="#222"/></g>';};
+    return f(-6,-9)+f(6,-1)+f(-5,9);},
+  net:function(){var s='<g stroke="#7A6A3A" stroke-width="1.4" fill="none">';
+    for(var i=-3;i<=3;i++)s+='<path d="M'+(i*7-14)+' -16 L'+(i*7+14)+' 16 M'+(i*7+14)+' -16 L'+(i*7-14)+' 16"/>';
+    return s+'</g><circle cx="12" cy="-12" r="4.5" fill="#E2453C" stroke="#7A2A22" stroke-width="1"/>';},
   anemone:function(t,S){var c=nestColor(t,S),s='';
     for(var i=0;i<7;i++){var a=-150+i*20,rad=Math.PI/180*a;s+='<path d="M0 8 Q'+(Math.cos(rad)*8).toFixed(1)+' '+(8+Math.sin(rad)*10).toFixed(1)+' '+(Math.cos(rad)*16).toFixed(1)+' '+(6+Math.sin(rad)*20).toFixed(1)+'" fill="none" stroke="'+c+'" stroke-width="3.2" stroke-linecap="round"/>';}
     return s+'<ellipse cx="0" cy="10" rx="9" ry="4" fill="#8C5A4A"/>';},
@@ -1164,7 +1223,7 @@ function renderStatus(V){
   $("swho").textContent=p.name;
   $("swhat").textContent=busy?"…":p.type==="bot"?"réfléchit…":sel?"choisissez une case":"choisissez un crabe";
   tag.hidden=!(V.extra>0||V.frozen.length);
-  tag.textContent=V.extra>0?"Rejoue":"Méduse";
+  tag.textContent=V.extra>0?"Rejoue":"Bloqué";
 }
 
 /* table view: one badge per player, carrying what the status bar and ticker say elsewhere */
@@ -1176,7 +1235,7 @@ function renderBadges(V){
     var j=juvCount(V,p.id), on=me&&me.id===p.id, win=V.over&&V.winner===p.id, say="";
     if(win)say="gagne !";
     else if(on)say=(busy?"…":p.type==="bot"?"réfléchit…":sel?"choisissez une case":"à vous : choisissez un crabe")+
-      (V.extra>0?"<em>Rejoue</em>":V.frozen.length?"<em>Méduse</em>":"");
+      (V.extra>0?"<em>Rejoue</em>":V.frozen.length?"<em>Bloqué</em>":"");
     return '<div class="badge'+(on?" on":"")+(win?" on win":"")+(p.alive?"":" out")+'" data-pid="'+p.id+'" style="--c:'+p.c+'">'+
       '<div class="bh"><i></i><span class="bn">'+p.name+'</span><span class="bp">'+pe+'</span></div>'+
       '<div class="bm">'+(p.type==="bot"?"IA":"humain")+' · '+j+' petit'+(j>1?"s":"")+'</div>'+

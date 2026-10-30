@@ -54,7 +54,8 @@ function seagrass(x,y,h,lean,c){
 /* ---------- backgrounds ---------- */
 /* each tile type sits on its own colour, so it still reads with a crab on top of it */
 var PASTEL={sand:"#EFE3C6",pearl:"#F4EFE8",shark:"#25292E",rock:"#CFCDC8",jelly:"#D2BDEF",
-  shrimp:"#F8C6A9",current:"#A7D6EE",whirl:"#1D3560",anemone:"#E8D8F2"};
+  shrimp:"#F8C6A9",current:"#A7D6EE",whirl:"#1D3560",anemone:"#E8D8F2",
+  octopus:"#F2B9B4",bottle:"#BFE6D4",wreck:"#CDB79B",sardine:"#C7D5E4",net:"#D5E3B8"};
 var BG=null, BGTYPE="";   /* set by svgFor while one scene is painted */
 function lum(hex){var n=parseInt(hex.slice(1),16);return (.299*(n>>16)+.587*(n>>8&255)+.114*(n&255))/255;}
 function pastelBg(seed){var R=rng(seed),c=BG,dark=lum(c)<.35;
@@ -275,6 +276,72 @@ SCENE.port=function(c){var R=rng(101),planks="";
     '<g transform="translate(-66 22)"><circle r="12" fill="none" stroke="#fff" stroke-width="7"/>'+
       '<circle r="12" fill="none" stroke="#E2453C" stroke-width="7" stroke-dasharray="9.4 9.4"/>'+
       '<circle r="15.5" fill="none" stroke="#7A2A22" stroke-width=".8" opacity=".6"/></g>';
+};
+
+/* ---------- tiles added after the showcase ---------- */
+SCENE.octopus=function(){var R=rng(601),arms="",suck="";
+  for(var i=0;i<8;i++){var a=Math.PI/180*(200+i*(140/7)), sx=Math.cos(a), sy=Math.sin(a),
+      x0=sx*14, y0=8+sy*4, x1=sx*58, y1=26+Math.abs(sy)*30+R()*10, cx=x1+(i<4?-1:1)*18, cy=y1+16;
+    var d="M"+f(x0)+" "+f(y0)+" Q"+f(sx*40)+" "+f(y0+30)+" "+f(x1)+" "+f(y1)+" q"+f((i<4?-1:1)*14)+" 14 "+f((i<4?-1:1)*4)+" 22";
+    arms+='<path d="'+d+'" fill="none" stroke="#9E2F45" stroke-width="13" stroke-linecap="round"/><path d="'+d+'" fill="none" stroke="#E0607A" stroke-width="9" stroke-linecap="round"/>';
+    for(var k=1;k<4;k++)suck+='<circle cx="'+f(x0+(x1-x0)*k/4)+'" cy="'+f(y0+(y1-y0)*k/4+8)+'" r="2.2" fill="#FBD3DB" stroke="#B9475E" stroke-width=".7"/>';}
+  return waterBg("waterG",61)+bubbles(R,5,70)+
+    '<ellipse cx="0" cy="44" rx="56" ry="12" fill="#000" opacity=".18" filter="url(#soft)"/>'+arms+suck+
+    '<path d="M-34 6 C-40 -40 -20 -66 0 -66 C20 -66 40 -40 34 6 C24 18 -24 18 -34 6 Z" fill="#E0607A" stroke="#9E2F45" stroke-width="2.4"/>'+
+    '<path d="M-22 -40 C-16 -56 4 -60 14 -52" fill="none" stroke="#FFC2CE" stroke-width="4" stroke-linecap="round" opacity=".8"/>'+
+    '<g fill="#C24760" opacity=".6"><circle cx="-14" cy="-30" r="3"/><circle cx="12" cy="-38" r="2.4"/><circle cx="18" cy="-20" r="2"/></g>'+
+    '<ellipse cx="-12" cy="-6" rx="8" ry="9" fill="#fff" stroke="#9E2F45" stroke-width="1.6"/><ellipse cx="12" cy="-6" rx="8" ry="9" fill="#fff" stroke="#9E2F45" stroke-width="1.6"/>'+
+    '<rect x="-16" y="-7" width="8" height="4" rx="2" fill="#1A1210"/><rect x="8" y="-7" width="8" height="4" rx="2" fill="#1A1210"/>';
+};
+SCENE.bottle=function(){var R=rng(613);
+  var glass="M-58 -6 C-58 -18 -48 -24 -36 -24 L22 -24 C30 -24 36 -20 42 -14 L52 -12 L52 12 L42 14 C36 20 30 24 22 24 L-36 24 C-48 24 -58 18 -58 6 Z";
+  return sandBg(19)+pebbles(R,8,70,["#B9A57A","#E8DDC4"])+
+    '<g transform="rotate(-24)">'+
+    '<ellipse cx="0" cy="34" rx="64" ry="10" fill="#4C3A18" opacity=".25" filter="url(#soft)"/>'+
+    '<path d="'+glass+'" fill="#6FC3A2" opacity=".55" stroke="#2F7A5C" stroke-width="2.2"/>'+
+    '<g transform="translate(-14 0)"><rect x="-30" y="-13" width="56" height="26" rx="13" fill="#F6EDD4" stroke="#B9A57A" stroke-width="1.4"/>'+
+      '<path d="M-22 -4 H16 M-22 3 H8" stroke="#8A7650" stroke-width="1.6" stroke-linecap="round" opacity=".7"/>'+
+      '<path d="M-4 -13 V13" stroke="#D9443A" stroke-width="4"/></g>'+
+    '<path d="M-50 -14 C-40 -20 0 -20 30 -18" fill="none" stroke="#EFFFF8" stroke-width="4" stroke-linecap="round" opacity=".8"/>'+
+    '<rect x="52" y="-9" width="16" height="18" rx="3" fill="#B0814F" stroke="#5D3D1E" stroke-width="1.6"/>'+
+    '</g>';
+};
+SCENE.wreck=function(){var R=rng(631),coins="";
+  for(var i=0;i<9;i++){var x=-30+R()*60,y=26+R()*16;coins+='<ellipse cx="'+f(x)+'" cy="'+f(y)+'" rx="5" ry="3.4" fill="#F2C14E" stroke="#8A6214" stroke-width="1"/>';}
+  return waterBg("waterG",63)+
+    '<g opacity=".55"><path d="M-80 -30 L-20 -60 L-14 -50 L-74 -18 Z" fill="#7A5634"/><path d="M40 -70 L80 -40 L72 -32 L34 -62 Z" fill="#6B4A2C"/></g>'+
+    '<ellipse cx="0" cy="46" rx="58" ry="12" fill="#000" opacity=".22" filter="url(#soft)"/>'+
+    '<circle cx="0" cy="-2" r="40" fill="url(#glowG)" opacity=".8"/>'+
+    '<path d="M-44 -6 L44 -6 L40 40 L-40 40 Z" fill="#9C6B3C" stroke="#4A2E14" stroke-width="2.2" stroke-linejoin="round"/>'+
+    '<path d="M-44 8 H44 M-42 24 H42" stroke="#5A3A1C" stroke-width="1.6"/>'+
+    '<path d="M-46 -6 C-44 -40 44 -40 46 -6 L40 -14 C36 -30 -36 -30 -40 -14 Z" fill="#B47E48" stroke="#4A2E14" stroke-width="2.2" transform="rotate(-14 -46 -6)"/>'+
+    '<path d="M-30 -8 Q0 -26 30 -8" fill="#F2C14E" stroke="#8A6214" stroke-width="1.4"/>'+
+    '<circle cx="0" cy="-12" r="7" fill="url(#pearlG)"/>'+
+    '<rect x="-7" y="2" width="14" height="14" rx="2" fill="#F2C14E" stroke="#7A5512" stroke-width="1.4"/><circle cx="0" cy="8" r="2" fill="#4A2E14"/>'+
+    coins+bubbles(R,5,70);
+};
+SCENE.sardine=function(){var R=rng(641),fish="";
+  var one=function(x,y,s,a){return '<g transform="translate('+f(x)+' '+f(y)+') rotate('+f(a)+') scale('+f(s)+')">'+
+    '<path d="M-16 0 C-8 -7 8 -7 14 0 C8 7 -8 7 -16 0 Z" fill="#A9BED2" stroke="#4E6478" stroke-width="1.2"/>'+
+    '<path d="M-12 -1 C-4 -4 6 -4 12 -1" fill="none" stroke="#3D5A78" stroke-width="2.2" opacity=".55"/>'+
+    '<path d="M-10 2 C-2 4 6 4 10 2" fill="none" stroke="#fff" stroke-width="1.4" opacity=".7"/>'+
+    '<path d="M14 0 L22 -6 L20 0 L22 6 Z" fill="#8FA6BC" stroke="#4E6478" stroke-width="1"/>'+
+    '<circle cx="-10" cy="-1" r="1.6" fill="#1A1A1A"/></g>';};
+  var pts=[];for(var i=0;i<16;i++){var a=i*2.4, r=10+i*3.6;pts.push([Math.cos(a)*r*.95,Math.sin(a)*r*.7]);}
+  pts.sort(function(a,b){return a[1]-b[1];}).forEach(function(p){fish+=one(p[0],p[1],.95+R()*.35,-12+R()*10);});
+  return waterBg("waterG",64)+bubbles(R,6,72)+'<g opacity=".95">'+fish+'</g>';
+};
+SCENE.net=function(){var R=rng(653),mesh="",knots="";
+  for(var i=-6;i<=6;i++){var x=i*18;
+    mesh+='<path d="M'+(x-90)+' -100 Q'+(x-40)+' 0 '+(x+20)+' 100" fill="none" stroke="#7A6A3A" stroke-width="2.6"/>'+
+          '<path d="M'+(x+90)+' -100 Q'+(x+40)+' 0 '+(x-20)+' 100" fill="none" stroke="#8E7E4A" stroke-width="2.6"/>';}
+  for(var k=0;k<24;k++)knots+='<circle cx="'+f((R()*2-1)*80)+'" cy="'+f((R()*2-1)*80)+'" r="2.2" fill="#5E4F28"/>';
+  var buoy=function(x,y){return '<g transform="translate('+x+' '+y+')"><ellipse rx="13" ry="10" fill="#E2453C" stroke="#7A2A22" stroke-width="1.8"/>'+
+    '<path d="M-13 0 H13" stroke="#fff" stroke-width="4"/><ellipse cx="-4" cy="-4" rx="4" ry="2.4" fill="#fff" opacity=".6"/></g>';};
+  return sandBg(23)+'<g opacity=".9">'+mesh+'</g>'+knots+
+    '<path d="M-70 -50 C-30 -70 30 -64 70 -44" fill="none" stroke="#B89A5A" stroke-width="6" stroke-linecap="round"/>'+
+    '<path d="M-70 -50 C-30 -70 30 -64 70 -44" fill="none" stroke="#E2CB8E" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 5"/>'+
+    buoy(-44,-58)+buoy(26,-58)+buoy(60,30);
 };
 
 /* the back of a hidden tile: sunlit water seen from above, with the light
