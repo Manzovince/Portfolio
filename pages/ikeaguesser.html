@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Vincent Manzoni">
+    <meta name="description"
+        content="IKEA guesser by Vincent Manzoni: a small quiz on IKEA product names, vibe-coded just for fun.">
+    <meta name="keywords" content="IKEA quiz, IKEA product names, Swedish, vibe coding, PWA, Vincent Manzoni">
+    <meta property="og:title" content="Vincent Manzoni / IKEA guesser">
+    <meta property="og:description"
+        content="A small quiz on IKEA product names, vibe-coded just for fun.">
+    <meta property="og:image" content="https://manzovince.com/assets/img/og-ikeaguesser.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://manzovince.com/ikeaguesser.html">
+    <meta property="og:site_name" content="Vincent Manzoni Portfolio">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Vincent Manzoni / IKEA guesser">
+    <meta name="twitter:description" content="A small quiz on IKEA product names, vibe-coded just for fun.">
+    <meta name="twitter:image" content="https://manzovince.com/assets/img/og-ikeaguesser.png">
+    <link rel="canonical" href="https://manzovince.com/ikeaguesser.html">
+    <!-- Styles -->
+    <link rel="icon" href="/assets/icons/favicon.png">
+    <link rel="stylesheet" href="/assets/css/styles.css?v=20261016d">
+    <meta name="theme-color" content="#041e2a">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <!-- Title -->
+    <title>Vincent Manzoni / IKEA guesser</title>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <site-nav page-name="IKEA guesser"></site-nav>
+
+    <main id="project-page">
+        <div class="project-header">
+            <div class="project-infos">
+                <h4>IKEA guesser</h4>
+                <p data-i18n="ikeaIntro"></p>
+                <ul class="tag-list">
+                    <div class="tag">Vibe coding</div>
+                    <div class="tag">PWA</div>
+                </ul>
+            </div>
+            <picture>
+                <source media="(max-width: 600px)" srcset="/assets/img/ikeaguesser-app-mobile.webp">
+                <img src="/assets/img/ikeaguesser-app.webp" data-i18n-alt="ikeaAppAlt"
+                alt="Three screens of IKEA guesser: the menu of game modes, a question asking what DUKTIG is, and a real-or-invented question">
+            </picture>
+            <a href="./ikeaguesser/" class="project-button" data-i18n="ikeaOpen"></a>
+        </div>
+
+        <p data-i18n="ikeaStory"></p>
+
+        <div>
+            <h6 data-i18n="ikeaModesTitle"></h6>
+            <p data-i18n="ikeaModes"></p>
+        </div>
+
+        <picture>
+            <source media="(max-width: 600px)" srcset="/assets/img/ikeaguesser-modes-mobile.webp">
+            <img src="/assets/img/ikeaguesser-modes.webp" data-i18n-alt="ikeaModesAlt" loading="lazy"
+            alt="Two screens of the quiz: the Swedish dictionary asking what LURVIG means, and the naming code asking which products get which names">
+        </picture>
+
+        <div>
+            <h6 data-i18n="ikeaNoteTitle"></h6>
+            <p data-i18n="ikeaNote"></p>
+        </div>
+        <a href="./ikeaguesser/" class="project-button" data-i18n="ikeaOpen"></a>
+    </main>
+
+    <!-- Footer -->
+    <div class="intro-line">
+        <svg class="water-line" width="100%" height="100" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path d="M 0 50 L 100 50" fill="none" stroke-width="1" vector-effect="non-scaling-stroke" />
+        </svg>
+    </div>
+    <site-footer></site-footer>
+</body>
+<script src="/assets/js/script.js?v=20261016b"></script>
+<script src="/assets/js/line-animation.js?v=20261016b"></script>
+
+</html>

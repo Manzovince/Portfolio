@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#041e2a">
+<title>Coulisses · Lab</title>
+<link rel="icon" href="/assets/icons/favicon-32x32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600&family=IBM+Plex+Serif:ital,wght@0,400;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #041e2a; --panel: #072a39; --panel-hi: #0a3447;
+    --line: rgba(231, 215, 192, .12); --line-hi: rgba(231, 215, 192, .28);
+    --text: #e7d7c0; --muted: rgba(231, 215, 192, .58); --faint: rgba(231, 215, 192, .36);
+    --accent: hsl(175, 43%, 47%); --accent-soft: hsla(175, 43%, 47%, .14);
+    --warn: hsl(22, 100%, 58%);
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --display: 'Unbounded', system-ui, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text); font: 16px/1.5 'IBM Plex Serif', serif;
+    min-height: 100dvh; -webkit-font-smoothing: antialiased;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 48px 48px; background-position: -1px -1px;
+  }
+  body::before { content: ''; position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 0%, transparent 0%, var(--bg) 70%); }
+  .wrap { position: relative; max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+  [hidden] { display: none !important; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Top bar */
+  .bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 0; font: 500 .72rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .bar a { text-decoration: none; }
+  .bar a:hover { color: var(--text); }
+  .chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line-hi); border-radius: 999px; padding: 4px 10px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 0 3px hsla(22, 100%, 58%, .18); }
+  .unlocked .dot { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+  /* Lock screen */
+  #lock { min-height: calc(100dvh - 140px); display: grid; place-items: center; padding: 24px 0 48px; }
+  .card { width: 100%; max-width: 440px; background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line-hi); border-radius: 14px; padding: 32px 28px 24px; backdrop-filter: blur(6px); }
+  .glyph { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); margin-bottom: 20px; }
+  .eyebrow { font: 500 .72rem var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+  h1 { font: 600 clamp(1.7rem, 5vw, 2.2rem)/1.15 var(--display); letter-spacing: -.01em; margin: 6px 0 10px; }
+  .lede { color: var(--muted); margin-bottom: 24px; }
+  label { display: block; font: 500 .72rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .field { display: flex; gap: 8px; }
+  input { flex: 1; min-width: 0; font: 1rem var(--mono); color: var(--text); background: var(--bg); border: 1px solid var(--line-hi); border-radius: 8px; padding: 11px 12px; }
+  input::placeholder { color: var(--faint); }
+  input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .btn { font: 600 .8rem var(--display); color: var(--bg); background: var(--accent); border: 0; border-radius: 8px; padding: 0 18px; cursor: pointer; white-space: nowrap; }
+  .btn:hover { filter: brightness(1.08); }
+  .btn:disabled { opacity: .6; cursor: progress; }
+  .status { min-height: 1.5em; margin-top: 10px; font: .8rem var(--mono); color: var(--muted); }
+  .status.err { color: var(--warn); }
+  .shake { animation: shake .35s; }
+  @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+  .fine { margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--line-hi); font: .7rem/1.6 var(--mono); color: var(--faint); }
+
+  /* Lab */
+  #lab { padding: 16px 0 64px; }
+  .head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px 32px; margin-bottom: 28px; }
+  .stats { display: flex; gap: 28px; }
+  .stat b { display: block; font: 600 1.5rem var(--display); }
+  .stat span { font: 500 .68rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--line-hi); border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; }
+  .filter { font: 500 .75rem var(--mono); color: var(--muted); background: transparent; border: 1px solid var(--line-hi); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+  .filter:hover { color: var(--text); }
+  .filter[aria-pressed="true"] { color: var(--bg); background: var(--text); border-color: var(--text); }
+  .filter small { opacity: .6; margin-left: 4px; }
+  .search { position: relative; flex: 0 1 260px; }
+  .search input { width: 100%; padding: 7px 34px 7px 12px; font-size: .85rem; }
+  .search kbd { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font: .7rem var(--mono); color: var(--faint); border: 1px solid var(--line-hi); border-radius: 4px; padding: 0 5px; }
+  .ghost { font: 500 .72rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: none; border: 0; cursor: pointer; }
+  .ghost:hover { color: var(--warn); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  .exp { display: flex; flex-direction: column; gap: 10px; min-height: 172px; padding: 18px 18px 14px; background: color-mix(in srgb, var(--panel) 90%, transparent); border: 1px solid var(--line); border-radius: 12px; text-decoration: none; transition: border-color .15s, background .15s, transform .15s; }
+  .exp:hover { border-color: var(--accent); background: var(--panel-hi); transform: translateY(-2px); }
+  .exp-top { display: flex; justify-content: space-between; gap: 8px; font: 500 .7rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .exp-top .cat { color: var(--accent); }
+  .exp h2 { font: 600 1.15rem/1.25 var(--display); }
+  .exp:hover h2 { color: var(--warn); }
+  .exp p { color: var(--muted); font-style: italic; flex: 1; }
+  .exp-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; padding-top: 10px; border-top: 1px dashed var(--line); font: .72rem var(--mono); color: var(--faint); }
+  .exp-meta .path { color: var(--muted); margin-right: auto; }
+  .tag { border: 1px solid var(--line-hi); border-radius: 4px; padding: 0 5px; }
+  .tag.new { color: var(--accent); border-color: var(--accent); }
+  .empty { padding: 48px 0; text-align: center; font: .85rem var(--mono); color: var(--muted); }
+
+  @media (max-width: 560px) {
+    .card { padding: 24px 18px 18px; }
+    .stats { gap: 20px; }
+    .search { flex-basis: 100%; }
+    .grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <a href="/">manzovince<span style="color:var(--faint)"> / </span>lab</a>
+    <span class="chip"><span class="dot"></span><span id="state">Accès restreint</span></span>
+  </header>
+
+  <section id="lock">
+    <form class="card" autocomplete="on">
+      <div class="glyph" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v6.5L4.5 18A2.5 2.5 0 0 0 6.7 21.5h10.6a2.5 2.5 0 0 0 2.2-3.5L14 8.5V2"/><path d="M8.5 2h7"/><path d="M7 15h10"/></svg>
+      </div>
+      <p class="eyebrow">Coulisses</p>
+      <h1>Le labo</h1>
+      <p class="lede">Prototypes, jeux et outils en cours, accessibles seulement par leur URL.</p>
+      <label for="pw">Mot de passe</label>
+      <div class="field">
+        <input id="pw" type="password" placeholder="••••••••" autocomplete="current-password" autofocus required>
+        <button class="btn">Entrer</button>
+      </div>
+      <p class="status" id="status" role="status"></p>
+      <p class="fine">Liste chiffrée AES-256-GCM · clé PBKDF2-SHA-256, <span id="iter"></span> itérations. Rien ne quitte ce navigateur.</p>
+    </form>
+  </section>
+
+  <section id="lab" hidden>
+    <div class="head">
+      <div>
+        <p class="eyebrow">Coulisses</p>
+        <h1>Le labo</h1>
+      </div>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="tools">
+      <div class="filters" id="filters"></div>
+      <div class="search"><input id="q" type="search" placeholder="Chercher…" aria-label="Chercher un projet"><kbd>/</kbd></div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <p class="empty" id="empty" hidden>Aucune expérience ne correspond.</p>
+    <p style="margin-top:32px;text-align:center"><button class="ghost" id="lockBtn">Verrouiller</button></p>
+  </section>
+</div>
+<script>
+const DATA = {"iter":600000,"salt":"lB1ypN4zXN559IKYfdaiZQ==","iv":"zgqoNp3d5UkVTkRL","ct":"d/+fIDRZEUBPUy6Rc5vTuxEuE9aZ/a8Gq3ejonOXBGb+/et9FoC3CAN803MZHMBJEJfn9UobAAKPhpLvyce5Rni+rP7PomVw/qX8MtcK5pR2VtMEhHoyFghcHvWZZV4tnvazcgBzC8I0S7P5Yp2SQ3arPInZ1T/fSgccV1ykpBDiJr3RoDAQ3wjrFhh9g49gKJcR2/QPTrC9BZCjmJVRA2bocs7yKsc4NKZNSIkmPyymam9yMU0EDR0fqZCRPJbrQu+0t48mAR3Gwhb+jDH14Y6/cqqJLDbOWOY4ZAjLrIS13gDw/rSO7TH49s2qwFvAXKMiVgKNYzONvYSOx/D/kcg9fIUD7tithDe7ot9celfZYWGG/qni8j0VYvmdN7+o61znIqJe/wU1D2WpnNVYR871x3yH9YMJJn+XxEFeD1rvf1Gnc4VKZBpMgtto8qiSpdkhtuI5z2W2kwyV+4AOUjumGMbA1yb4V7/BOA0xt1LtbLvLGbH52DFE8HEvjzySI0ifQjZiUwu+b8i3oOzqJcsxsy6jGlYokeWLxoOgdiLAeHsUymUzHytSszJb6slepmvfkWMxtZQjqM0WIWj9jxq+d+EcEQZ8MqHYaoT7qmv1zxygiudxHbyLl79gMq4SwVVPpz/e5TFqCZmqMmkTHnzMJHmnhkdbVstCPwnQwMuj/O+tlKAKXf2q6GyShK87Iy2qpoMBIkVZ2oTFQEqQp6sqTC6EmiQznhpUUnn2tCzyrLaDVGqGw2gMGgyyw3srCyyC8NLldD438Ce6tCh8383F+/6JTRCgmfk9HeCL3zvQa4SZvRi8LJoe3vt/WO9RkTfjlgpjmQyiEKMhJhQhcgRjpX1tGIkY6XYPjvBL39wbRyywCYvrr74tz4w3Wm8AuWOnm+zePRR07/RIB+ix5rhBYWOGkM44t+TsNB5DMZGaXvOSxuxikZV3sHCEICas0WInzQ1po5aZouGQJgt8umkTDrp5YSP/C8LVPuHoNpmM7dm+rDPaGDhmlXRc9lHnvsEod51/g0cmPgJSputy/YhxQb92belXm8AFccQ/cbEkaMo7w10OUEJsBrmHE0/6K3mUtKV8bTmcBY5WrElPJOS3DvNzxIvTg34eUy53mR9oPyRhPzbJDxz4hl81SVtoMERg3s4Fy7ta/lZhjJ/BLhDdnVXimZldsQEPAA61cijrHje1L7XYdXtajLn6YQFwCRLvpM4ER4MQaCXWMiqxhFndxsJt7DOZ9PUY8nUhZtUpFNk0U3Mi72+vquh7JYB24x9Of1j9t21zElX2yCUoyMGe/RNWlVtcTqeh/3SsuK5O2kOfEAhVe9X31lMycAlHqTKQY2VezhkrvjKTxMdZk/4luiLILkhN0LJb084EL7ZzAypWGG6tTR/cSJYsp+cYa531SvO4WTf0/GJ6LunFxciWqnFdJhwPeHCkOzHnp8QoI6+49MskiYCT5ifPJKIyql2IXNcP/6/v+BBx18q+EX4oEe0c1yrXpR0PadoZsvWZkWhVXca95OOJOFfQRr6lEwsK9+aldK61Eeu1kg4e4rbVlEtQIWvkOJs9KkZbeS9RVtcnfSSZRb8MIBnIPrJDZHr9i3cZ9dpBA492yRPF9cTZ5+xC8R/u1BBkninfmYem+/WZT4uPez8JPHt7Xmu6+lVS+uP0u9oo5ilCZ9tDIfW0rOBTfbIFbsEKmvgJ7kMmT97miaryxAFRRxU8TJjHw3CKVVvODoL3fL3lKi2MRIw233Zw9f6VXhm+hqLNZWaAqCaqVVYpqcjuz6mXRyREGBv6DBgCPUYhjMNCAF444KfiqRv2UPIdJhzwbMyhtgGAhVFdVFYcp9eb5A6tDX5o7jrv1XNSl2OWwgTYkBGQ66Ty94t0+qTlbq1GUK6+ql9QuuX47d+AGS/eqIiafW9kR0CnIe7H9TYA3L6BIOW1j1SFYoHtzOWqVsqHUalguDuiG1qyiCQynovTlFlG6Ew0TB+oK9WlQoXk+cgn2K6feqhDHKCAUVZQ6ujZVhJKErbRjsbpQH8IjWJkZpwvNTekKUQMJ/Zp34faiTwUuWqYzqEhWkmYqdJ+dQC8zFXmMJqVc/uL5OjnQWbG1L5jXQ6V/FizmfdFNt8pNthBq/LIMcurHXReRhkeBVkWNUXuF/5N77EnlmVGJHyUsZqj31P+qF1g+oX1WLf4Ctf47pKfe9JLL/jC3ONWMwKOd9ondNdwpUWSQ31DDsilVrrwMh9HPIFLjvJN0UDnTP+1BwNuRuf5IbY5remEX3ul1smRXzBp6nKSwab4AJxgbckdXIvpMiV+zS5gRw7rNitjLzXkY7jhTolO7Wbf/Glu8hzqtbPKSeos/Gthfpt73EeqWfIpzipZOPOCK6VQbKVjZhKtItHw7YYFOkmihfMh08pto1ZHk2UTlPHhdZu3uWDOJ9SR40CfmxUWitbdXsByMUy1q5CwYAHbOyh36v1Ivj+fF1+5BgfBPEtMsZH0kgtyQkLIgJXUCvn9e0/xqVX/9mmh/HTJlADglhQzqxpnrG28kDFKjOVJVmc2GzFN7Ft+M1r9V9uW0zm3x5qc/GvGVQFrBkXKh8z3t+oUh2rQ6vsa8qegLUI+ygeCdOErfnhjaQ5YXCNq7ppoRgiZxcNXU1YVAYZo9c2VIQzi9mgFscGxrqTW9Ha/DXa9xk5EFa9iHZpcm1DTQRNxWaAYn9jD2thSzzxNeivnNhh2b0nYOmn8bYlKlhBbg3oPdr9EEB0m9jEE1CJnoN2f8aU0YEn9Y2v1vnqsFp+tt2DE9BAMeIlR9ZVvWve4A/SEGDu3Cg7HVJjwlfP7zpqireTq7WWaA6XyE6bRl0smChX46FJY/wM6cvvt1aY7DzaHR2PbW1u1twVPYmuIvoZibH8sBeKocgBIk7QcfdifrhUKDpouw6HahhI7GixvtKy2WmKBWtdcIkSQnslGZkabHVwJA5+jef1xZBggWmFreWwP3h96wWJ+5GwgytNDburye5IB3MkjxFgM5reMRpJ842dPvseM5wC9QSXubcZU+RU6Z6+93//IlKycQ+U1JZjjuN6HXqii0FzREFwG4JEhSpkp2Wd5cYprwjTWXIdRNjp3KjKHNja7SDIKBaGGYjYu5YSQVCSsQx6P4nx0CucATa9ifYiZWXVYi+Eo7ZUNpjSs4TMyrDjjVlKPjD9+q0LS5XQJ5Z/Dgtfdg413LrnWvmZqwVcpmQlJDXAffqohQwwp557EPyWye+rbQqxMcOGNuSwj+DiE2sewHS04e2K5L8fzN7JiMnqymI65PC8jTGg8+FAEiPh51yZOPzcLu4P9CrJe1Cjz9pi+EbGAmBrM8Mi9idUYw3nOab2ryBSbluhJRvM3+tIcrxwD8kP7b+EBsO4ZBWvLEPk++8o285hTu7JBIPVbjkDcjMnjnDwCbvT6pCqeUqhq8M99SsmHIyjiwdaP2ULjpZzpcLS2Cseu+nolHqELOWdCsSHV1yrJPslnLvr9fnwazCE0IBLS9lC7sEn4gWkHgK2qRWeeDdw7Or2FeRf7dBc1024rmSpBjpCiMofgSIKpRql24T3G8NnfVVh7+11OZKQk74u4W7dXDU7l9wTSlh9pdvFkBK9udhkBaOGWTZSsP7c0Zi7J9+6uaUD1068ypAkqtmEsN7lhoDy5rkMXI58tEGw5qfngtBY40TrHvOBwdYXP9xSqw+UbjSNdlFAT3cudgFeoFVrHmq9S66FSdg6ol2/4Tg69Mp+/PZo77ciMKn48wvScs6Ntmw041zYTt35avJRC/+aORE0zTNe8SY8uRSf5kgJXTCf4F6Nua7WoU2ztdFzePOaw3MsbshRFrZVkUbTkFyebQRw2dac8Xq2YbKd8Axepes9Bedx4vr5lCD7Q0PS1H3GdCOwH7hgxCJMV0WfW2uO3ZmM="};
+const CACHE = 'coulisses:list';
+const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+const $ = (id) => document.getElementById(id);
+document.getElementById('iter').textContent = DATA.iter.toLocaleString('fr-FR');
+
+async function decrypt(password) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: unb64(DATA.salt), iterations: DATA.iter, hash: 'SHA-256' },
+    base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(DATA.iv) }, key, unb64(DATA.ct));
+  return new TextDecoder().decode(plain);
+}
+
+const fmt = (d) => new Date(d + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+const daysAgo = (d) => (Date.now() - new Date(d + 'T12:00')) / 864e5;
+const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+
+let projects = [];
+let cat = 'Tous';
+
+function render() {
+  const q = $('q').value.trim().toLowerCase();
+  const grid = $('grid');
+  grid.replaceChildren();
+  const shown = projects.filter((p) => (cat === 'Tous' || p.cat === cat) &&
+    (!q || `${p.name} ${p.desc} ${p.path} ${p.cat || ''}`.toLowerCase().includes(q)));
+  for (const p of shown) {
+    const a = el('a', 'exp'); a.href = p.path;
+    const top = el('div', 'exp-top');
+    top.append(el('span', null, p.id), el('span', 'cat', p.cat || ''));
+    const meta = el('div', 'exp-meta');
+    meta.append(el('span', 'path', p.path));
+    if (p.updated && daysAgo(p.updated) < 7) meta.append(el('span', 'tag new', 'récent'));
+    if (p.pwa) meta.append(el('span', 'tag', 'PWA'));
+    if (p.updated) meta.append(el('span', null, 'màj ' + fmt(p.updated)));
+    a.append(top, el('h2', null, p.name), el('p', null, p.desc), meta);
+    grid.append(a);
+  }
+  $('empty').hidden = shown.length > 0;
+}
+
+function show(json) {
+  projects = JSON.parse(json);
+  // EXP numbers follow creation order; the grid lists the latest work first
+  [...projects].sort((a, b) => (a.created || '').localeCompare(b.created || ''))
+    .forEach((p, i) => { p.id = 'EXP-' + String(i + 1).padStart(3, '0'); });
+  projects.sort((a, b) => (b.updated || '').localeCompare(a.updated || '') || a.name.localeCompare(b.name, 'fr'));
+
+  const stats = [[projects.length, 'expériences']];
+  const pwa = projects.filter((p) => p.pwa).length;
+  if (pwa) stats.push([pwa, 'installables']);
+  const last = projects.map((p) => p.updated).filter(Boolean).sort().pop();
+  if (last) stats.push([fmt(last).replace(/ \d{4}$/, ''), 'dernière màj']);
+  $('stats').replaceChildren(...stats.map(([v, l]) => { const s = el('div', 'stat'); s.append(el('b', null, v), el('span', null, l)); return s; }));
+
+  const counts = {};
+  for (const p of projects) if (p.cat) counts[p.cat] = (counts[p.cat] || 0) + 1;
+  const cats = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  $('filters').replaceChildren(...(cats.length > 1 ? ['Tous', ...cats] : []).map((c) => {
+    const b = el('button', 'filter', c);
+    b.append(el('small', null, c === 'Tous' ? projects.length : counts[c]));
+    b.setAttribute('aria-pressed', c === cat);
+    b.onclick = () => { cat = c; document.querySelectorAll('.filter').forEach((f) => f.setAttribute('aria-pressed', f === b)); render(); };
+    return b;
+  }));
+
+  render();
+  $('lock').hidden = true;
+  $('lab').hidden = false;
+  $('state').textContent = 'Session ouverte';
+  document.body.classList.add('unlocked');
+}
+
+const form = document.querySelector('form');
+const input = $('pw');
+const btn = form.querySelector('.btn');
+const status = $('status');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  btn.disabled = true;
+  status.className = 'status';
+  status.textContent = 'Dérivation de la clé…';
+  try {
+    const json = await decrypt(input.value);
+    try { sessionStorage.setItem(CACHE, json); } catch {}
+    status.textContent = '';
+    show(json);
+  } catch {
+    status.className = 'status err';
+    status.textContent = 'Mot de passe incorrect.';
+    form.classList.remove('shake'); void form.offsetWidth; form.classList.add('shake');
+    input.select();
+  }
+  btn.disabled = false;
+});
+
+$('q').addEventListener('input', render);
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && !$('lab').hidden && document.activeElement !== $('q')) { e.preventDefault(); $('q').focus(); }
+});
+$('lockBtn').onclick = () => {
+  try { sessionStorage.removeItem(CACHE); } catch {}
+  location.reload();
+};
+
+// Coming back from an app in the same tab should not ask for the password again
+try { const cached = sessionStorage.getItem(CACHE); if (cached) show(cached); } catch {}
+</script>
+</body>
+</html>

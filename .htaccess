@@ -1,0 +1,49 @@
+# manzovince.com — URL routing
+#
+# The repo is organised by role (pages/, apps/, lab/), but public URLs stay flat:
+#   /apnea.html  -> pages/apnea.html
+#   /apnea/      -> apps/apnea/      (projects shown on the home page)
+#   /crabes/     -> lab/crabes/      (URL-only projects)
+# tools/serve.mjs mirrors these rules for local preview: keep both in sync.
+
+Options -Indexes
+DirectorySlash Off
+ErrorDocument 404 /pages/404.html
+
+RewriteEngine On
+RewriteBase /
+
+# Renamed projects
+RewriteRule ^dictee(/.*)?$ /salve/ [R=301,L]
+RewriteRule ^recif-hexagonal(/.*)?$ /recif/ [R=301,L]
+
+# Direct hits on the internal folders go back to the public URL
+RewriteCond %{THE_REQUEST} \s/+(?:pages|apps|lab)/([^\s?]*)
+RewriteRule ^ /%1 [R=301,L]
+
+# Repo files that are not part of the site
+RewriteRule ^(?:tools/|README\.md$|package\.json$|\.git) - [R=404,L]
+
+# Already routed: stop here
+RewriteRule ^(?:pages|apps|lab)/ - [L]
+
+# Asset URLs from before the assets/ split (og:image cached by social networks)
+RewriteCond %{DOCUMENT_ROOT}/assets/img/$1 -f
+RewriteRule ^assets/([^/]+)$ /assets/img/$1 [R=301,L]
+RewriteCond %{DOCUMENT_ROOT}/assets/icons/$1 -f
+RewriteRule ^assets/([^/]+)$ /assets/icons/$1 [R=301,L]
+
+# Project write-ups
+RewriteCond %{DOCUMENT_ROOT}/pages/$1.html -f
+RewriteRule ^([\w-]+)\.html$ pages/$1.html [L]
+
+# Apps: add the trailing slash ourselves (DirectorySlash is off so Apache
+# never redirects to the internal /apps/x/ path)
+RewriteCond %{DOCUMENT_ROOT}/apps/$1 -d [OR]
+RewriteCond %{DOCUMENT_ROOT}/lab/$1 -d
+RewriteRule ^([\w-]+)$ /$1/ [R=301,L]
+
+RewriteCond %{DOCUMENT_ROOT}/apps/$1 -d
+RewriteRule ^([\w-]+)/(.*)$ apps/$1/$2 [L]
+RewriteCond %{DOCUMENT_ROOT}/lab/$1 -d
+RewriteRule ^([\w-]+)/(.*)$ lab/$1/$2 [L]

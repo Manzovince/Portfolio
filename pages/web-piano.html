@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Vincent Manzoni">
+    <meta name="description"
+        content="Web Piano by Vincent Manzoni: a browser piano that names your chords, writes them on a staff and lights up an LED strip above the keys through an ESP32.">
+    <meta name="keywords" content="web piano, Web MIDI, ESP32, Arduino, LED strip, chord recognition, music learning, piano, Vincent Manzoni">
+    <meta property="og:title" content="Vincent Manzoni / Web Piano">
+    <meta property="og:description"
+        content="A browser piano that names your chords, writes them on a staff and lights up an LED strip above the keys.">
+    <meta property="og:image" content="https://manzovince.com/assets/img/og-web-piano.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://manzovince.com/web-piano.html">
+    <meta property="og:site_name" content="Vincent Manzoni Portfolio">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Vincent Manzoni / Web Piano">
+    <meta name="twitter:description" content="A browser piano that names your chords, writes them on a staff and lights up an LED strip above the keys.">
+    <meta name="twitter:image" content="https://manzovince.com/assets/img/og-web-piano.png">
+    <link rel="canonical" href="https://manzovince.com/web-piano.html">
+    <!-- Styles -->
+    <link rel="icon" href="/assets/icons/favicon.png">
+    <link rel="stylesheet" href="/assets/css/styles.css?v=20261016d">
+    <meta name="theme-color" content="#041e2a">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <!-- Title -->
+    <title>Vincent Manzoni / Web Piano</title>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <site-nav page-name="Web Piano"></site-nav>
+
+    <main id="project-page">
+        <div class="project-header">
+            <div class="project-infos">
+                <h4>Web Piano</h4>
+                <p data-i18n="webPianoIntro"></p>
+                <ul class="tag-list">
+                    <div class="tag">Arduino</div>
+                    <div class="tag" data-i18n="tagDesign"></div>
+                    <div class="tag" data-i18n="tagDev"></div>
+                </ul>
+            </div>
+            <img src="/assets/img/web-piano-app.webp" data-i18n-alt="webPianoAppAlt"
+                alt="The web piano naming a chord above the keyboard, with the notes written on a grand staff">
+            <a href="./web-piano/" class="project-button" data-i18n="webPianoOpen"></a>
+        </div>
+
+        <p data-i18n="webPianoStory"></p>
+        <img src="/assets/img/keyboard-project.png" data-i18n-alt="webPianoPrototypeAlt" loading="lazy"
+            alt="First prototype: a sine wave drawn above a one-octave keyboard">
+
+        <div>
+            <h6 data-i18n="webPianoLightsTitle"></h6>
+            <p data-i18n="webPianoLights"></p>
+        </div>
+
+        <div>
+            <h6 data-i18n="webPianoLearnTitle"></h6>
+            <p data-i18n="webPianoLearn"></p>
+        </div>
+        <img src="/assets/img/web-piano-scale.webp" data-i18n-alt="webPianoScaleAlt" loading="lazy"
+            alt="Settings panel of the web piano, with the scale guide marking the notes of a scale on the keys">
+
+        <div>
+            <h6 data-i18n="webPianoLearnedTitle"></h6>
+            <p data-i18n="webPianoLearned"></p>
+        </div>
+        <a href="./web-piano/" class="project-button" data-i18n="webPianoOpen"></a>
+    </main>
+
+    <!-- Footer -->
+    <div class="intro-line">
+        <svg class="water-line" width="100%" height="100" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path d="M 0 50 L 100 50" fill="none" stroke-width="1" vector-effect="non-scaling-stroke" />
+        </svg>
+    </div>
+    <site-footer></site-footer>
+</body>
+<script src="/assets/js/script.js?v=20261016b"></script>
+<script src="/assets/js/line-animation.js?v=20261016b"></script>
+
+</html>

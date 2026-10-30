@@ -1,0 +1,9 @@
+{
+  "name": "manzovince.com",
+  "private": true,
+  "description": "Vincent Manzoni's portfolio and web experiments, deployed by Hostinger from main.",
+  "type": "module",
+  "scripts": {
+    "dev": "node tools/serve.mjs"
+  }
+}
