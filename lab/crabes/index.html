@@ -491,6 +491,10 @@ html.table .log{max-height:none;font-size:13.5px;}
         <span class="olab">Dos des tuiles<small>ce que montrent les tuiles encore cachées</small></span>
         <div class="backs" id="backPick"></div>
       </div>
+      <div class="orow">
+        <span class="olab">Vue tablette<small>plateau plein écran pour une tablette posée à plat ; « Auto » l'active sur les écrans tactiles</small></span>
+        <span class="seg" id="viewSeg"></span>
+      </div>
       <div class="orow tabonly">
         <span class="olab">Fiches des joueurs<small>vue tablette : tournées vers chacun, ou toutes dans un coin</small></span>
         <span class="seg" id="badgeSeg"></span>
@@ -899,9 +903,12 @@ function wantsFlat(){
   return window.matchMedia(TABLE?"(orientation:portrait)":"(max-width:900px) and (orientation:portrait)").matches;
 }
 /* a touch screen too big to be a phone, in either orientation: a tablet, most
-   likely lying on the table between the players. ?table=1 / ?table=0 forces it */
+   likely lying on the table between the players. ?table=1 / ?table=0 forces it,
+   and so does the "Vue tablette" setting */
 var TABLE=false;
 function wantsTable(){
+  if(opts.view==="on")return true;    /* an explicit choice in the settings wins */
+  if(opts.view==="off")return false;
   var f=/[?&]table=([01])/.exec(location.search);
   if(f)return f[1]==="1";
   return window.matchMedia("(any-pointer:coarse) and (min-width:600px) and (min-height:600px)").matches;
@@ -971,9 +978,9 @@ function crabSvg(c,queen){
 }
 
 var opts=(function(){
-  var d={seats:["human","bot","off","off"],tide:true,goal:3,art:true,badges:"face",back:"eau"};
+  var d={seats:["human","bot","off","off"],tide:true,goal:3,art:true,badges:"face",back:"eau",view:"auto"};
   try{var o=JSON.parse(localStorage.getItem(KEY_OPTS));if(o&&o.seats&&o.seats.length===4){
-    if(o.art==null)o.art=true; if(!o.badges)o.badges="face"; if(!o.back)o.back="eau"; d=o;}}catch(e){}
+    if(o.art==null)o.art=true; if(!o.badges)o.badges="face"; if(!o.back)o.back="eau"; if(!o.view)o.view="auto"; d=o;}}catch(e){}
   return d;
 })();
 function saveOpts(){try{localStorage.setItem(KEY_OPTS,JSON.stringify(opts));}catch(e){}}
@@ -1238,6 +1245,7 @@ function renderSetup(){
   $("goalSeg").innerHTML=seg("goal",0,opts.goal,[[0,"Sans"],[2,"2"],[3,"3"],[4,"4"],[5,"5"]]);
   $("artSeg").innerHTML=seg("art",0,opts.art,[[true,"Illustrées"],[false,"Simples"]]);
   renderBackPick();
+  $("viewSeg").innerHTML=seg("view",0,opts.view,[["auto","Auto"],["on","Oui"],["off","Non"]]);
   $("badgeSeg").innerHTML=seg("badges",0,opts.badges,[["face","Face à chacun"],["coin","Dans un coin"]]);
   renderTileOpts();
 }
@@ -1332,6 +1340,11 @@ $("backPick").addEventListener("click",function(e){
   opts.back=b.getAttribute("data-back"); saveOpts(); renderBackPick(); render();
 });
 /* these change the view at once, no new game needed */
+$("viewSeg").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-view]"); if(!b)return;
+  opts.view=b.getAttribute("data-v"); saveOpts(); renderSetup();
+  setTable(); buildBoard(); render();   /* the grid may turn flat-top, so rebuild */
+});
 $("artSeg").addEventListener("click",function(e){
   var b=e.target.closest("button[data-art]"); if(!b)return;
   opts.art=b.getAttribute("data-v")==="true"; saveOpts(); renderSetup(); render();
