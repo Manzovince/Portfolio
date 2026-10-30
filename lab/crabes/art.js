@@ -53,8 +53,8 @@ function seagrass(x,y,h,lean,c){
 
 /* ---------- backgrounds ---------- */
 /* each tile type sits on its own colour, so it still reads with a crab on top of it */
-var PASTEL={sand:"#EFE3C6",pearl:"#F4EFE8",shark:"#25292E",rock:"#CFCDC8",jelly:"#D2BDEF",
-  shrimp:"#F8C6A9",current:"#A7D6EE",whirl:"#1D3560",anemone:"#E8D8F2",
+var PASTEL={sand:"#EFE3C6",pearl:"#F4EFE8",shark:"#76838E",rock:"#CFCDC8",jelly:"#D2BDEF",
+  shrimp:"#F8C6A9",current:"#A7D6EE",whirl:"#3D63A0",anemone:"#E8D8F2",
   octopus:"#F2B9B4",bottle:"#BFE6D4",wreck:"#CDB79B",sardine:"#C7D5E4",net:"#D5E3B8"};
 var BG=null, BGTYPE="";   /* set by svgFor while one scene is painted */
 function lum(hex){var n=parseInt(hex.slice(1),16);return (.299*(n>>16)+.587*(n>>8&255)+.114*(n&255))/255;}
@@ -467,13 +467,15 @@ var DEFS='<radialGradient id="sandG" cx=".42" cy=".35" r=".75"><stop offset="0" 
 function svgFor(type,c,flat){
   FLATCLIP=!!flat;
   BG=PASTEL[type]||null; BGTYPE=type;
+  /* tiles on a darker colour get a pale inner rim, or on the dark board they read as holes */
+  var rim=BG&&lum(BG)<.55?'<polygon points="'+hexPts(HR-6)+'" fill="none" stroke="#F2FAFA" stroke-width="2.4" opacity=".45"/>':'';
   var scene=type==="anemone"?SCENE.anemone(c,shade(c,.72)):type==="port"?SCENE.port(c):SCENE[type](c);
   BG=null;
   return '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="-100 -100 200 200"><defs>'+DEFS+
     '<clipPath id="hexClip"><polygon points="'+hexPts(HR)+'"/></clipPath></defs>'+
     '<g clip-path="url(#hexClip)">'+scene+
       '<rect x="-100" y="-100" width="200" height="200" fill="url(#vignetteG)"/>'+
-      '<rect x="-100" y="-100" width="200" height="200" fill="url(#sheenG)"/></g>'+
+      '<rect x="-100" y="-100" width="200" height="200" fill="url(#sheenG)"/></g>'+rim+
     '<polygon points="'+hexPts(HR-1.5)+'" fill="none" stroke="url(#edgeG)" stroke-width="3"/></svg>';
 }
 var cache={}, pending={};
