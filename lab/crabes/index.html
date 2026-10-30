@@ -171,6 +171,9 @@ svg#board{display:block;width:100%;height:auto;user-select:none;-webkit-user-sel
 .hex.art .face{fill:none !important;stroke:rgba(3,22,28,.85);stroke-width:1.4;}  /* beats the .t-shark / .t-rock fills */
 .hex.art.port .face{stroke:var(--c);stroke-width:2.6;}
 .hex.art.tide .face{stroke:var(--danger);stroke-width:2.4;}
+/* Abysses: the deep backs, darker whatever back style is picked */
+.hex.hid.deep .face{fill:#06222C;stroke:#0A3442;}
+.hex.art.hid.deep .face{fill:rgba(2,10,18,.58) !important;stroke:rgba(3,22,28,.85);}
 .hex.art .mark.dest{fill:rgba(255,255,255,.92);stroke:#0A2C38;stroke-width:1.6;}
 @media (hover:hover){ .hex.act:hover .face{filter:brightness(1.12);} }
 
@@ -467,6 +470,7 @@ html.table .log{max-height:none;font-size:13.5px;}
           <li><strong>Crevette :</strong> un banc de crevettes ne s'épuise pas. Y arriver vous offre un coup supplémentaire, une seule fois par tour.</li>
           <li><strong>Anémone :</strong> quand votre Reine atteint une anémone de sa couleur, elle y pond (avec l'option « Ponte : toutes », n'importe quelle anémone convient). Un petit crabe éclot dès qu'elle repart (4 petits au maximum).</li>
           <li><strong>Pieuvre</strong> (reste en place) : elle échange le crabe avec le crabe adverse le plus proche ; un crabe sur son port est hors d'atteinte. <strong>Bouteille à la mer :</strong> les deux tuiles cachées les plus proches se retournent. <strong>Épave :</strong> une chance sur deux d'y trouver une perle (sans perles : un œuf). <strong>Sardines</strong> (restent) : un crabe dans le banc ne peut être ni poussé ni mangé. <strong>Filet :</strong> le crabe passe ses deux prochains tours, puis le filet est déchiré.</li>
+          <li><strong>Abysses</strong> (option) : la moitié des tuiles spéciales, tirées au hasard, ont un dos plus sombre. Une tuile sombre cache forcément quelque chose, bon ou mauvais ; une tuile claire peut être du sable ou une autre tuile spéciale.</li>
           <li><strong>Relève :</strong> si vous n'avez plus aucun petit au début de votre tour, un nouveau sort de votre port, à condition qu'il soit libre et pas encore englouti.</li>
           <li>Une Reine mangée, noyée ou emportée : son joueur est éliminé avec tous ses crabes.</li>
           <li><strong>Victoire :</strong> être le dernier à avoir une Reine, ou ramasser le nombre de <strong>perles</strong> choisi. Si toutes les perles ont été trouvées (ou englouties), celui qui en a le plus l'emporte ; en cas d'égalité, on continue.</li>
@@ -507,6 +511,10 @@ html.table .log{max-height:none;font-size:13.5px;}
         <span class="seg" id="eatSeg"></span>
       </div>
       <div class="orow">
+        <span class="olab">Abysses<small>la moitié des tuiles spéciales ont un dos plus sombre : on sait qu'il s'y cache quelque chose, perle ou requin</small></span>
+        <span class="seg" id="deepSeg"></span>
+      </div>
+      <div class="orow">
         <span class="olab">Ponte<small>dans quelles anémones une Reine peut pondre un petit</small></span>
         <span class="seg" id="nestSeg"></span>
       </div>
@@ -536,7 +544,7 @@ html.table .log{max-height:none;font-size:13.5px;}
   </div>
 </div>
 
-<script src="art.js?v=7"></script>
+<script src="art.js?v=9"></script>
 <script>
 (function(){
 "use strict";
@@ -635,6 +643,12 @@ function setup(seats,opts){
   deck.length=Math.min(deck.length,free.length);   /* the settings cap this already; belt and braces */
   while(deck.length<free.length)deck.push({t:"sand"});
   shuffle(deck);
+  /* "Abysses": half the special tiles, drawn at random, show a deeper back - a
+     dark tile is surely special (pearl or shark alike), a light one may be anything */
+  if(opts.deep){
+    var spec=deck.slice(0,free.length).filter(function(t){return t.t!=="sand";});
+    shuffle(spec).slice(0,Math.floor(spec.length/2)).forEach(function(t){t.deep=true;});
+  }
   free.forEach(function(c,i){
     var t=deck[i]; t.open=false;
     if(t.t==="current")t.dir=(Math.random()*6)|0;
@@ -1121,8 +1135,8 @@ function renderTiles(V,moves){
   moves.forEach(function(m){dest[key(m.q,m.r)]=m;});
   var me=V.over?null:cur(V);
   CELLS.forEach(function(c){
-    var t=V.tiles[c.k], hg=hexEls[c.k], sig=[t.t,t.open,t.dir,t.color,t.owner,t.flood].join("|");
-    var cls="hex "+(t.flood?"flood":t.t==="port"?"port open":t.open?"open t-"+t.t:"hid")+(ring(c.q,c.r)===warn&&!t.flood?" tide":"");
+    var t=V.tiles[c.k], hg=hexEls[c.k], sig=[t.t,t.open,t.dir,t.color,t.owner,t.flood,t.deep].join("|");
+    var cls="hex "+(t.flood?"flood":t.t==="port"?"port open":t.open?"open t-"+t.t:"hid"+(t.deep?" deep":""))+(ring(c.q,c.r)===warn&&!t.flood?" tide":"");
     if(t.t==="port")hg.style.setProperty("--c",V.players[t.owner].c);
     var ico=hg.querySelector(".ico"), ak=artKey(t,V,c), au=ak&&CrabesArt.url(ak);
     if(ak&&!au)missing.push(ak);
@@ -1350,6 +1364,7 @@ function renderSetup(){
   $("artSeg").innerHTML=seg("art",0,opts.art,[[true,"Illustrées"],[false,"Simples"]]);
   renderBackPick();
   $("sizeSeg").innerHTML=seg("size",0,opts.size||4,SIZES);
+  $("deepSeg").innerHTML=seg("deep",0,!!opts.deep,[[false,"Non"],[true,"Oui"]]);
   $("eatSeg").innerHTML=seg("eat",0,!!opts.eat,[[false,"Pousser"],[true,"Manger"]]);
   $("nestSeg").innerHTML=seg("nest",0,!!opts.anyNest,[[false,"Sa couleur"],[true,"Toutes"]]);
   $("viewSeg").innerHTML=seg("view",0,opts.view,[["auto","Auto"],["on","Oui"],["off","Non"]]);
@@ -1450,6 +1465,10 @@ $("backPick").addEventListener("click",function(e){
 $("sizeSeg").addEventListener("click",function(e){
   var b=e.target.closest("button[data-size]"); if(!b)return;
   opts.size=+b.getAttribute("data-v"); saveOpts(); renderSetup();
+});
+$("deepSeg").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-deep]"); if(!b)return;
+  opts.deep=b.getAttribute("data-v")==="true"; saveOpts(); renderSetup();
 });
 $("eatSeg").addEventListener("click",function(e){
   var b=e.target.closest("button[data-eat]"); if(!b)return;
