@@ -143,8 +143,16 @@ svg#board{display:block;width:100%;height:auto;user-select:none;-webkit-user-sel
 .hex .face{stroke-width:1.6;transition:fill .3s ease,stroke .3s ease;}
 .hex.hid .face{fill:url(#waves);stroke:var(--hid-edge);}
 .hex.open .face{fill:var(--sand);stroke:var(--sand-edge);}
-.hex.open.t-shark .face{fill:#EBC3B8;stroke:#C98A7C;}
-.hex.open.t-rock .face{fill:#B9B5A8;stroke:#8F8B7E;}
+/* simple style: the same colour per type as the illustrated tiles */
+.hex.open.t-sand .face{fill:#EFE3C6;}
+.hex.open.t-pearl .face{fill:#F4EFE8;}
+.hex.open.t-shark .face{fill:#3A3F45;stroke:#1C1F23;}
+.hex.open.t-rock .face{fill:#CFCDC8;stroke:#8F8B7E;}
+.hex.open.t-jelly .face{fill:#D2BDEF;}
+.hex.open.t-shrimp .face{fill:#F8C6A9;}
+.hex.open.t-current .face{fill:#A7D6EE;}
+.hex.open.t-whirl .face{fill:#2A4677;}
+.hex.open.t-anemone .face{fill:#E8D8F2;}
 .hex.port .face{fill:var(--deep);stroke:var(--c);stroke-width:2.4;}
 .hex.flood .face{fill:var(--flood);stroke:#0A2630;stroke-dasharray:3 4;}
 .hex.flood .ico{display:none;}
@@ -517,7 +525,7 @@ html.table .log{max-height:none;font-size:13.5px;}
   </div>
 </div>
 
-<script src="art.js?v=5"></script>
+<script src="art.js?v=6"></script>
 <script>
 (function(){
 "use strict";
@@ -937,7 +945,7 @@ var ICON={
   pearl:function(){return '<path d="M-17 6 A17 17 0 0 1 17 6 Z" fill="#E9B7A6" stroke="#B9786A" stroke-width="1.4"/>'+
     '<path d="M0 6 L-12 -5 M0 6 L-5 -10 M0 6 L5 -10 M0 6 L12 -5" stroke="#B9786A" stroke-width="1.2"/>'+
     '<circle cx="0" cy="4" r="7.5" fill="url(#pearlG)" stroke="#9E9170" stroke-width=".8"/>';},
-  shark:function(){return '<path d="M-14 9 C-6 -2 2 -14 6 -18 C6 -8 9 3 14 9 Z" fill="#33434A"/>'+
+  shark:function(){return '<path d="M-14 9 C-6 -2 2 -14 6 -18 C6 -8 9 3 14 9 Z" fill="#8FA4AE"/>'+
     '<path d="M-22 10 q5.5 -4 11 0 t11 0 t11 0 t11 0" fill="none" stroke="#2E6E7B" stroke-width="2"/>';},
   rock:function(){return '<path d="M-16 10 L-11 -4 L-3 -9 L5 -6 L10 -12 L17 -1 L15 10 Z" fill="#6E6A5E" stroke="#4E4B42" stroke-width="1.4" stroke-linejoin="round"/>'+
     '<path d="M-3 -9 L0 3 L15 10 M0 3 L-16 10" fill="none" stroke="#4E4B42" stroke-width="1"/>';},
@@ -950,7 +958,7 @@ var ICON={
   current:function(t){return '<g transform="rotate('+((FLAT?30:0)-60*t.dir)+')">'+
     '<path d="M-18 -8 q4 -4 8 0 t8 0 M-18 8 q4 -4 8 0 t8 0" fill="none" stroke="#3E97A6" stroke-width="2" stroke-linecap="round"/>'+
     '<path d="M-10 0 H12 M5 -8 L14 0 L5 8" fill="none" stroke="#1C5E6B" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></g>';},
-  whirl:function(){return '<path d="M0 0 C3 -1 3 -5 0 -5 C-5 -5 -7 1 -3 5 C2 9 10 5 10 -2 C10 -10 1 -14 -6 -12 C-14 -9 -17 1 -13 9 C-9 16 2 18 10 14" fill="none" stroke="#1C5E6B" stroke-width="2.6" stroke-linecap="round"/>';},
+  whirl:function(){return '<path d="M0 0 C3 -1 3 -5 0 -5 C-5 -5 -7 1 -3 5 C2 9 10 5 10 -2 C10 -10 1 -14 -6 -12 C-14 -9 -17 1 -13 9 C-9 16 2 18 10 14" fill="none" stroke="#5FB8C8" stroke-width="2.6" stroke-linecap="round"/>';},
   anemone:function(t,S){var c=nestColor(t,S),s='';
     for(var i=0;i<7;i++){var a=-150+i*20,rad=Math.PI/180*a;s+='<path d="M0 8 Q'+(Math.cos(rad)*8).toFixed(1)+' '+(8+Math.sin(rad)*10).toFixed(1)+' '+(Math.cos(rad)*16).toFixed(1)+' '+(6+Math.sin(rad)*20).toFixed(1)+'" fill="none" stroke="'+c+'" stroke-width="3.2" stroke-linecap="round"/>';}
     return s+'<ellipse cx="0" cy="10" rx="9" ry="4" fill="#8C5A4A"/>';},

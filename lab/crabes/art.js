@@ -52,10 +52,23 @@ function seagrass(x,y,h,lean,c){
 }
 
 /* ---------- backgrounds ---------- */
-function sandBg(seed){var R=rng(seed);
+/* each tile type sits on its own colour, so it still reads with a crab on top of it */
+var PASTEL={sand:"#EFE3C6",pearl:"#F4EFE8",shark:"#25292E",rock:"#CFCDC8",jelly:"#D2BDEF",
+  shrimp:"#F8C6A9",current:"#A7D6EE",whirl:"#1D3560",anemone:"#E8D8F2"};
+var BG=null, BGTYPE="";   /* set by svgFor while one scene is painted */
+function lum(hex){var n=parseInt(hex.slice(1),16);return (.299*(n>>16)+.587*(n>>8&255)+.114*(n&255))/255;}
+function pastelBg(seed){var R=rng(seed),c=BG,dark=lum(c)<.35;
+  return '<defs><radialGradient id="pbG" cx=".42" cy=".35" r=".8"><stop offset="0" stop-color="'+shade(c,dark?1.45:1.05)+'"/>'+
+      '<stop offset=".7" stop-color="'+c+'"/><stop offset="1" stop-color="'+shade(c,dark?.75:.9)+'"/></radialGradient></defs>'+
+    '<rect x="-100" y="-100" width="200" height="200" fill="url(#pbG)"/>'+
+    '<g opacity="'+(dark?.5:.6)+'">'+ripples(R,shade(c,dark?1.6:.85),dark?shade(c,2.2):"#FFFFFF")+'</g>'+
+    (BGTYPE==="pearl"?'<rect x="-100" y="-100" width="200" height="200" fill="url(#nacreG)" opacity=".45"/>':'')+
+    (dark?'':'<rect x="-100" y="-100" width="200" height="200" filter="url(#grain)" opacity=".18"/>');}
+function sandBg(seed){if(BG)return pastelBg(seed);var R=rng(seed);
   return '<rect x="-100" y="-100" width="200" height="200" fill="url(#sandG)"/>'+ripples(R,"#C9B482","#FBF4DF")+
     '<rect x="-100" y="-100" width="200" height="200" filter="url(#grain)" opacity=".5"/>';}
 function waterBg(grad,seed){
+  if(BG)return pastelBg(seed||7);
   return '<rect x="-100" y="-100" width="200" height="200" fill="url(#'+grad+')"/>'+
     '<rect x="-100" y="-100" width="200" height="200" filter="url(#caustic)" opacity=".28" style="mix-blend-mode:screen"/>';}
 
@@ -206,7 +219,7 @@ SCENE.whirl=function(){var R=rng(83),arms="",foam="";
     arms+='<path d="'+d+'" fill="none" stroke="#7FD9DC" stroke-width="7" stroke-linecap="round" opacity=".18"/>';}
   for(var i=0;i<40;i++){var th2=R()*10+2,r2=3*Math.exp(.3*th2),a2=Math.floor(R()*5)*Math.PI*2/5+th2+.2;if(r2>95)continue;
     foam+='<circle cx="'+f(Math.cos(a2)*r2)+'" cy="'+f(Math.sin(a2)*r2)+'" r="'+f(.8+r2/50)+'" fill="#fff" opacity=".6"/>';}
-  return '<rect x="-100" y="-100" width="200" height="200" fill="url(#whirlG)"/>'+
+  return (BG?pastelBg(83)+'<circle r="70" fill="url(#whirlG)" opacity=".55"/>':'<rect x="-100" y="-100" width="200" height="200" fill="url(#whirlG)"/>')+
     '<rect x="-100" y="-100" width="200" height="200" filter="url(#caustic)" opacity=".18" style="mix-blend-mode:screen"/>'+
     '<g class="spin">'+arms+foam+
       '<g transform="translate(46 -30) rotate(40)"><path d="M-8 0 C-3 -5 4 -5 9 0 C4 5 -3 5 -8 0 Z" fill="#7AB86A" stroke="#3F7A3E" stroke-width=".8"/></g>'+
@@ -378,7 +391,9 @@ var DEFS='<radialGradient id="sandG" cx=".42" cy=".35" r=".75"><stop offset="0" 
 
 function svgFor(type,c,flat){
   FLATCLIP=!!flat;
+  BG=PASTEL[type]||null; BGTYPE=type;
   var scene=type==="anemone"?SCENE.anemone(c,shade(c,.72)):type==="port"?SCENE.port(c):SCENE[type](c);
+  BG=null;
   return '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="-100 -100 200 200"><defs>'+DEFS+
     '<clipPath id="hexClip"><polygon points="'+hexPts(HR)+'"/></clipPath></defs>'+
     '<g clip-path="url(#hexClip)">'+scene+
