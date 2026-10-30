@@ -259,6 +259,18 @@ html.full #autoNew{display:block}
 .autopop{position:absolute;top:54px;right:8px;z-index:4;box-shadow:0 6px 20px var(--shadow)}
 .autopop .row{margin:0;flex-direction:column;align-items:stretch}
 .autopop .btn{min-height:40px}
+/* Fin de partie : carte posée sur la mer, avec les deux suites possibles */
+.endcard{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);z-index:4;text-align:center;padding:16px 22px 14px;min-width:min(320px,calc(100% - 24px));
+  box-shadow:0 10px 30px var(--shadow);animation:endin .3s ease-out}
+.endcard .endlab{margin:0;font-family:var(--display);font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.endcard .endpts{margin:2px 0 12px;color:var(--muted)}
+.endcard .endpts b{display:block;font-family:var(--mono);font-weight:500;font-size:2.6rem;line-height:1.1;color:var(--accent)}
+.endcard .row{justify-content:center;margin:0}
+.endcard .row .btn{min-height:44px;padding:8px 16px;font-size:.92rem}
+.endcard .endx{position:absolute;top:6px;right:6px;min-width:36px;border:0;background:transparent;color:var(--muted)}
+@keyframes endin{from{opacity:0;transform:translate(-50%,12px)}}
+html.full .status.tip{display:block;max-width:300px;font-size:.78rem;color:var(--muted)}
+html.full .status.over{display:none}
 /* Retours visuels */
 .withicon{display:inline-flex;align-items:center;gap:6px}
 .card{transition:transform .12s, box-shadow .12s, border-color .12s}
@@ -272,7 +284,7 @@ html.full #autoNew{display:block}
 @keyframes bump{40%{transform:scale(1.18)}}
 @keyframes gain{from{opacity:1;transform:translateY(4px)}to{opacity:0;transform:translateY(-14px)}}
 @media (any-pointer:coarse){.cand{stroke-opacity:.6;stroke-width:1.6}}
-@media (prefers-reduced-motion: reduce){#sim-bar,.card{transition:none}.pend,.team b.bump,.team b.bump::after{animation:none}}
+@media (prefers-reduced-motion: reduce){#sim-bar,.card{transition:none}.pend,.team b.bump,.team b.bump::after,.endcard{animation:none}}
 </style>
 
 <svg id="artdefs" width="0" height="0" style="position:absolute" aria-hidden="true"></svg>
@@ -280,11 +292,10 @@ html.full #autoNew{display:block}
   <h1>Récif hexagonal</h1>
   <nav class="tabs" role="tablist" aria-label="Vues">
     <button type="button" role="tab" id="tab-partie" aria-selected="true" aria-controls="view-partie">Partie</button>
-    <button type="button" role="tab" id="tab-sim" aria-selected="false" aria-controls="view-sim">Simulation de masse</button>
+    <button type="button" role="tab" id="tab-sim" aria-selected="false" aria-controls="view-sim">Simulation</button>
   </nav>
   <span class="spacer"></span>
   <button class="btn" type="button" id="autoGame" title="Nouvelle partie jouée entièrement par l'IA, avec une nouvelle graine">↻ Partie auto</button>
-  <select id="artstyle" class="btn" aria-label="Style des cartes" title="Style des cartes"><option value="aq">Aquarelle</option><option value="gr">Gravure</option></select>
   <button class="btn" type="button" id="optToggle" aria-expanded="false" aria-controls="sidebar">⚙ Options</button>
   <button class="btn primary withicon" type="button" id="fullOn" title="Plateau plein écran, main en dessous"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Plein écran</button>
 </header>
@@ -343,6 +354,12 @@ html.full #autoNew{display:block}
       <div class="boardwrap"><svg id="board" role="img" aria-label="Plateau de tuiles hexagonales"></svg>
         <div class="fulltools"><button class="btn icon" type="button" id="fullAuto" aria-expanded="false" aria-controls="autopop" aria-label="Jeu automatique" title="Jeu automatique"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M7 5v14l11-7z"/></svg></button><button class="btn icon" type="button" id="fullOpts" aria-label="Options" title="Options"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h8M17 7h3M4 17h3M12 17h8"/><circle cx="14.5" cy="7" r="2.3"/><circle cx="9.5" cy="17" r="2.3"/></svg></button><button class="btn icon" type="button" id="fullOff" aria-label="Quitter le plein écran" title="Quitter le plein écran"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button></div>
         <div class="autopop panel" id="autopop" hidden></div>
+        <div class="endcard panel" id="endcard" role="status" hidden>
+          <button class="btn icon endx" type="button" id="endClose" aria-label="Masquer pour regarder la mer">✕</button>
+          <p class="endlab">Partie terminée</p>
+          <p class="endpts"><b id="endscore">0</b> points pour l'équipe</p>
+          <div class="row"><button class="btn primary" type="button" id="endAgain">Jouer une partie</button><button class="btn" type="button" id="endAuto">↻ Partie auto</button></div>
+        </div>
         <div class="zoombar"><button class="btn icon" id="zin" type="button" title="Zoomer (+)" aria-label="Zoomer">+</button><button class="btn icon" id="zout" type="button" title="Dézoomer (−)" aria-label="Dézoomer">−</button><button class="btn" id="zreset" type="button" title="Recadrer sur toute la mer (0)" disabled>Recadrer</button></div></div>
     </section>
 
@@ -366,6 +383,9 @@ html.full #autoNew{display:block}
   <aside class="sidebar" id="sidebar" aria-label="Options" hidden>
     <div class="shead"><h2>Options</h2><button class="btn icon" type="button" id="optClose" aria-label="Fermer les options">✕</button></div>
     <form class="opts" id="opts">
+      <div class="sub">Affichage</div>
+      <label>Style des cartes<select id="artstyle"><option value="aq">Aquarelle</option><option value="gr">Gravure</option></select></label>
+
       <div class="sub">Partie</div>
       <label>Joueurs<input id="o-players" type="number" min="1" max="6" value="3"></label>
       <label>Cartes en main<input id="o-hand" type="number" min="1" max="6" value="4"></label>
@@ -436,7 +456,7 @@ const vertexKey=(q,r,i)=>(2*q+r+VDX[i])*100000+(3*r+VDY[i]);
 const edgeKey=(q,r,i)=>{const j=(i+1)%6;return(4*q+2*r+VDX[i]+VDX[j])*100000+(6*r+VDY[i]+VDY[j])};
 function regionKeys(q,r,n){const out=[];for(let dq=-n;dq<=n;dq++)for(let dr=Math.max(-n,-dq-n);dr<=Math.min(n,-dq+n);dr++)out.push(K(q+dq,r+dr));return out}
 
-let touchPend=false,lastTotal=null; // au toucher : aperçu posé sur une case, en attente d'un second appui
+let touchPend=false,lastTotal=null,endHidden=false; // au toucher : aperçu posé sur une case, en attente d'un second appui
 let O,rng,airng,deck,board,hands,cur,sel,rot,flip=false,logs,lastKey,over,hoverKey,turn,autoAll,gen=0,paused=false,speed=20;
 
 function readOpts(){
@@ -512,7 +532,7 @@ function setupGame(seed){
   cur=0;
 }
 function newGame(){
-  touchPend=false;hoverKey=null;lastTotal=null;
+  touchPend=false;hoverKey=null;lastTotal=null;endHidden=false;
   gen++;O=readOpts();setupGame(O.seed);view=null;
   sel=0;rot=0;flip=false;full=false;logs=[];lastKey=K(0,0);over=false;hoverKey=null;turn=1;autoAll=false;paused=O.ai==='all';
   render();schedule();
@@ -971,12 +991,13 @@ function renderSide(A){
   const legal=legalCards(),forced=O.pollForced&&legal.length===1&&hands[cur]&&hands[cur][legal[0]]&&hands[cur][legal[0]].type==='pollution';
   const st=$('status');
   if(over){st.className='status over';st.textContent=`${full?'La mer est pleine, plus aucune carte ne peut être posée. ':''}Partie terminée : la mer de l'équipe vaut ${A.total} points.`}
-  else{st.className='status';st.textContent=paused&&O.ai==='all'?'Partie entre IA en pause : appuyez sur Lecture, ou avancez coup par coup.':autoAll?'Lecture automatique en cours…':isAI(cur)?`Joueur ${cur+1} (IA) réfléchit…`:touchPend?`Aperçu posé : touchez de nouveau la case pour valider, ou tournez la carte (⟲ ⟳, ou touchez-la).`:forced?`Joueur ${cur+1} : la pollution piochée doit être posée maintenant, sur une case vide du bord. Elle neutralise toutes les cartes qu'elle touche.`:`À vous, joueur ${cur+1} : choisissez une carte, tournez-la${O.transparent?', retournez-la si besoin':''}, puis posez-la${O.transparent?' sur une case vide ou par-dessus une tuile':''}.`}
+  else{st.className='status';st.textContent=paused&&O.ai==='all'?'Partie entre IA en pause : appuyez sur Lecture, ou avancez coup par coup.':autoAll?'Lecture automatique en cours…':isAI(cur)?`Joueur ${cur+1} (IA) réfléchit…`:touchPend?`Aperçu posé : touchez de nouveau la case pour valider, ou tournez la carte (⟲ ⟳, ou touchez-la).`:forced?`Joueur ${cur+1} : la pollution piochée doit être posée maintenant, sur une case vide du bord. Elle neutralise toutes les cartes qu'elle touche.`:`À vous, joueur ${cur+1} : choisissez une carte (touchez-la de nouveau pour la tourner${O.transparent?', ⇋ pour la retourner':''}), puis posez-la${O.transparent?' sur une case vide ou par-dessus une tuile':''}.`;st.classList.toggle('tip',!isAI(cur)&&!autoAll&&(touchPend||turn<=1))}
   $('flipb').hidden=!O.transparent;$('flipb').setAttribute('aria-pressed',flip);
   const hand=hands[cur]||[];const lab={reef:'Récif',elem:'Élément',fish:'Banc',empty:'Eau libre',mix:'Mixte',pollution:'Pollution'};
   const dis=over||isAI(cur)||autoAll;
   $('hand').innerHTML=hand.map((t,i)=>`<button type="button" class="card" data-i="${i}" aria-pressed="${i===sel}"${dis||!legal.includes(i)?' disabled':''}><svg viewBox="-46 -46 92 92" aria-hidden="true">${tileSVG(i===sel?orient(t,rot,flip):t,0,0,40)}</svg>${t.type==='pred'?PRED_N[t.pred]:lab[t.type]}</button>`).join('')||'<span class="hint">Plus de cartes.</span>';
   {const an=$('autoNew');if(an&&an.classList)an.classList.toggle('primary',over)}
+  {const ec=$('endcard');if(ec&&ec.classList){ec.hidden=!over||endHidden;if(over)$('endscore').textContent=A.total}}
   $('aione').disabled=over;const allAI=O.ai==='all',running=allAI?!paused:autoAll;$('aiall').textContent=running?'❚❚ Pause':(allAI?'▶ Lecture':'▶ Finir la partie en auto');$('aiall').classList.toggle('primary',allAI);$('aiall').disabled=over;
   $('log').innerHTML=logs.length?logs.map(l=>`<li${l.bad?' class="bad"':''}><i class="sw" style="background:${PCOL[l.p]};border-radius:50%"></i><span>${l.t}</span><span class="pts">${l.pts>0?'+':''}${l.pts}</span></li>`).join(''):'<li class="empty">Aucun point marqué pour l’instant.</li>';
   let polluted=0,stacks=0;for(const c of board.values()){if(c.pol>0&&!isPollution(c))polluted++;stacks+=c.layers.length-1}
@@ -1155,7 +1176,7 @@ for(const inp of $('opts').querySelectorAll('input[type=number]')){
 document.addEventListener('pointerdown',e=>{if($('sidebar').hidden||!isDrawer()||e.target.closest('#sidebar,#optToggle,#fullOpts'))return;setOpts(false)});
 $('optToggle').onclick=()=>setOpts($('sidebar').hidden);
 $('optClose').onclick=()=>setOpts(false);
-try{if(localStorage.getItem('recif-opts')==='1')setOpts(true)}catch(e){}
+try{if(localStorage.getItem('recif-opts')==='1'){setOpts(true);if(isDrawer())setOpts(false)}}catch(e){} // en tiroir, il ne se rouvre pas tout seul
 showTab(location.hash.slice(1));
 // Mode plein écran : plateau + main du joueur en cours + score compact (html.full). Plein écran natif quand le navigateur le permet.
 const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;let fsNative=false;
@@ -1176,6 +1197,9 @@ $('fullOff').onclick=()=>setFull(false);
 $('fullOpts').onclick=()=>{setAuto(false);setOpts($('sidebar').hidden)};
 function setAuto(open){$('autopop').hidden=!open;$('fullAuto').setAttribute('aria-expanded',String(open))}
 $('fullAuto').onclick=()=>setAuto($('autopop').hidden);
+$('endClose').onclick=()=>{endHidden=true;$('endcard').hidden=true};
+$('endAgain').onclick=()=>{if($('o-ai').value==='all')$('o-ai').value='others';$('reseed').click()};
+$('endAuto').onclick=()=>$('autoGame').click();
 $('autoNew').onclick=()=>{setAuto(false);$('autoGame').click()};
 boardEl.addEventListener('pointerdown',()=>setAuto(false));
 // Pas de zoom natif de la page (pincement Safari, double appui) : seul le plateau zoome
