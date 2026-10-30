@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="70%">
+      <stop offset="0" stop-color="#0f1a26"/>
+      <stop offset="1" stop-color="#06080d"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- grille du monde -->
+  <g stroke="#5ef0e0" stroke-opacity=".07" stroke-width="2">
+    <path d="M96 0V512M176 0V512M256 0V512M336 0V512M416 0V512M0 96H512M0 176H512M0 256H512M0 336H512M0 416H512"/>
+  </g>
+  <!-- planeur : cellules de la plus jeune (claire) à la plus vieille (bleue) -->
+  <g transform="translate(-4 -4)">
+    <rect x="180" y="100" width="72" height="72" rx="6" fill="#9ffcef"/>
+    <rect x="260" y="180" width="72" height="72" rx="6" fill="#5ef0e0"/>
+    <rect x="100" y="260" width="72" height="72" rx="6" fill="#3496c8"/>
+    <rect x="180" y="260" width="72" height="72" rx="6" fill="#3fd8d6"/>
+    <rect x="260" y="260" width="72" height="72" rx="6" fill="#33b8d0"/>
+  </g>
+  <!-- le joueur : le pixel blanc -->
+  <rect x="340" y="340" width="72" height="72" rx="6" fill="#5ef0e0" opacity=".55" filter="url(#glow)"/>
+  <rect x="336" y="336" width="80" height="80" rx="8" fill="none" stroke="#5ef0e0" stroke-opacity=".5" stroke-width="4"/>
+  <rect x="348" y="348" width="56" height="56" rx="4" fill="#ffffff"/>
+</svg>
