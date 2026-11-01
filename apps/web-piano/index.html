@@ -22,7 +22,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css?v=20261101a">
+    <link rel="stylesheet" href="./styles.css?v=20261101b">
 </head>
 
 <body>
@@ -39,6 +39,9 @@
         <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></symbol>
         <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15a.8.8 0 0 0 1.2.7l12-7.5a.8.8 0 0 0 0-1.4l-12-7.5A.8.8 0 0 0 7 4.5z" /></symbol>
         <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></symbol>
+        <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></symbol>
+        <symbol id="i-piano" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M8 4v9M12 4v9M16 4v9M8 13v7M12 13v7M16 13v7" /></symbol>
+        <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z" /></symbol>
         <symbol id="i-clear" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></symbol>
     </svg>
 
@@ -184,189 +187,241 @@
             </button>
         </div>
 
-        <div class="row">
-            <span data-t="language"></span>
-            <div class="segmented">
-                <button type="button" data-lang="en">EN</button>
-                <button type="button" data-lang="fr">FR</button>
+        <div class="tabs" role="tablist" data-t-label="settings">
+            <button type="button" role="tab" id="tab-sound" aria-controls="panel-sound" data-tab="sound">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-speaker" /></svg><span data-t="tabSound"></span>
+            </button>
+            <button type="button" role="tab" id="tab-display" aria-controls="panel-display" data-tab="display">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-eye" /></svg><span data-t="tabDisplay"></span>
+            </button>
+            <button type="button" role="tab" id="tab-keyboard" aria-controls="panel-keyboard" data-tab="keyboard">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-piano" /></svg><span data-t="tabKeyboard"></span>
+            </button>
+            <button type="button" role="tab" id="tab-lights" aria-controls="panel-lights" data-tab="lights">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-bulb" /></svg><span data-t="tabLights"></span>
+            </button>
+        </div>
+
+        <div class="panels">
+            <!-- Sound -->
+            <div class="panel" role="tabpanel" id="panel-sound" aria-labelledby="tab-sound" data-panel="sound">
+                <div class="card">
+                    <label class="row"><span data-t="sound"></span><input type="checkbox" class="switch" data-setting="sound"></label>
+                    <label class="row"><span data-t="instrument"></span>
+                        <select id="instrument" data-setting="instrument">
+                            <option value="piano" data-t="instPiano"></option>
+                            <option value="sine" data-t="instSine"></option>
+                            <option value="triangle" data-t="instTriangle"></option>
+                            <option value="square" data-t="instSquare"></option>
+                            <option value="sawtooth" data-t="instSawtooth"></option>
+                        </select>
+                    </label>
+                    <label class="row slider"><span data-t="volume"></span><output id="volumeValue"></output>
+                        <input type="range" min="0" max="1" step="0.01" data-setting="volume">
+                    </label>
+                </div>
+                <div id="synthOptions" class="group">
+                    <div class="group-head">
+                        <h3 data-t="envelope"></h3>
+                        <button id="resetSynth" class="text-button" type="button" data-t="reset"></button>
+                    </div>
+                    <div class="card">
+                        <label class="row slider"><span data-t="attack"></span><output data-out="synthAttack"></output>
+                            <input type="range" min="0" max="1.5" step="0.005" data-setting="synthAttack">
+                        </label>
+                        <label class="row slider"><span data-t="decay"></span><output data-out="synthDecay"></output>
+                            <input type="range" min="0.02" max="2" step="0.01" data-setting="synthDecay">
+                        </label>
+                        <label class="row slider"><span data-t="sustain"></span><output data-out="synthSustain"></output>
+                            <input type="range" min="0" max="1" step="0.01" data-setting="synthSustain">
+                        </label>
+                        <label class="row slider"><span data-t="release"></span><output data-out="synthRelease"></output>
+                            <input type="range" min="0.02" max="3" step="0.01" data-setting="synthRelease">
+                        </label>
+                    </div>
+                    <h3 data-t="delay"></h3>
+                    <div class="card">
+                        <label class="row slider"><span data-t="delayMix"></span><output data-out="delayMix"></output>
+                            <input type="range" min="0" max="0.8" step="0.01" data-setting="delayMix">
+                        </label>
+                        <label class="row slider"><span data-t="delayTime"></span><output data-out="delayTime"></output>
+                            <input type="range" min="0.05" max="1" step="0.01" data-setting="delayTime">
+                        </label>
+                        <label class="row slider"><span data-t="delayFeedback"></span><output data-out="delayFeedback"></output>
+                            <input type="range" min="0" max="0.85" step="0.01" data-setting="delayFeedback">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Display -->
+            <div class="panel" role="tabpanel" id="panel-display" aria-labelledby="tab-display" data-panel="display" hidden>
+                <div class="card">
+                    <div class="row">
+                        <span data-t="notation"></span>
+                        <div class="segmented" data-setting="notation">
+                            <button type="button" data-value="english">C D E</button>
+                            <button type="button" data-value="solfege">Do Ré Mi</button>
+                        </div>
+                    </div>
+                    <label class="row"><span data-t="colors"></span>
+                        <select data-setting="colorMode">
+                            <option value="rainbow" data-t="colorRainbow"></option>
+                            <option value="octave" data-t="colorOctave"></option>
+                            <option value="mono" data-t="colorMono"></option>
+                        </select>
+                    </label>
+                </div>
+                <div class="group">
+                    <h3 data-t="groupScreen"></h3>
+                    <div class="card">
+                        <label class="row"><span data-t="staff"></span><input type="checkbox" class="switch" data-setting="showStaff"></label>
+                        <label id="tempoRow" class="row slider nested"><span data-t="tempo"></span><output id="tempoValue"></output>
+                            <input type="range" min="40" max="180" step="1" data-setting="tempo">
+                        </label>
+                        <label class="row"><span data-t="wave"></span><input type="checkbox" class="switch" data-setting="showWave"></label>
+                        <label class="row"><span data-t="roll"></span><input type="checkbox" class="switch" data-setting="showRoll"></label>
+                        <div class="row">
+                            <label for="showUsage" data-t="usage"></label>
+                            <div class="inline">
+                                <button id="resetUsage" class="text-button" type="button" data-t="reset"></button>
+                                <input id="showUsage" type="checkbox" class="switch" data-setting="showUsage">
+                            </div>
+                        </div>
+                    </div>
+                    <p id="tempoHelp" class="help" data-t="tempoHelp"></p>
+                </div>
+            </div>
+
+            <!-- Keyboard -->
+            <div class="panel" role="tabpanel" id="panel-keyboard" aria-labelledby="tab-keyboard" data-panel="keyboard" hidden>
+                <div class="card">
+                    <label class="row"><span data-t="showKeyboard"></span><input type="checkbox" class="switch" data-setting="showKeyboard"></label>
+                    <label class="row"><span data-t="keyboardSize"></span>
+                        <select data-setting="keyboardSize">
+                            <option value="auto" data-t="sizeAuto"></option>
+                            <option value="lumi">LUMI</option>
+                            <option value="88">88</option>
+                            <option value="61">61</option>
+                            <option value="49">49</option>
+                            <option value="37">37</option>
+                            <option value="25">25</option>
+                        </select>
+                    </label>
+                    <label class="row"><span data-t="labels"></span><input type="checkbox" class="switch" data-setting="showLabels"></label>
+                </div>
+                <div class="group">
+                    <h3 data-t="sectionLearn"></h3>
+                    <div class="card">
+                        <label class="row"><span data-t="scaleType"></span><select id="scaleType" data-setting="scaleType"></select></label>
+                        <label class="row"><span data-t="scaleKey"></span><select id="scaleRoot" data-setting="scaleRoot" data-type="number"></select></label>
+                        <p id="scaleNotes" class="row scale-notes" hidden></p>
+                    </div>
+                    <p class="help" data-t="scaleHelp"></p>
+                </div>
+                <div class="group shortcuts">
+                    <h3 data-t="sectionShortcuts"></h3>
+                    <dl class="card">
+                        <div class="row"><dt id="shortKeys"></dt><dd data-t="shortPlay"></dd></div>
+                        <div class="row"><dt>← →</dt><dd data-t="shortOctave"></dd></div>
+                        <div class="row"><dt data-t="spaceKey"></dt><dd data-t="shortSustain"></dd></div>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Lights -->
+            <div class="panel" role="tabpanel" id="panel-lights" aria-labelledby="tab-lights" data-panel="lights" hidden>
+                <div class="group">
+                    <div class="card">
+                        <label class="row"><span data-t="ledEffect"></span>
+                            <select data-setting="ledEffect">
+                                <option value="key" data-t="effectKey"></option>
+                                <option value="ripple" data-t="effectRipple"></option>
+                            </select>
+                        </label>
+                    </div>
+                    <p class="help" data-t="lightsHelp"></p>
+                </div>
+
+                <div class="group">
+                    <h3>ROLI LUMI</h3>
+                    <div class="card">
+                        <label class="row"><span data-t="lumiEnabled"></span><input type="checkbox" class="switch" data-setting="lumiEnabled"></label>
+                        <div id="lumiStatusRow" class="row">
+                            <span id="lumiStatus" class="conn-status"></span>
+                            <button id="lumiRetry" class="text-button" type="button" data-t="retry" hidden></button>
+                        </div>
+                    </div>
+                    <div id="lumiOptions" class="group">
+                        <div class="card">
+                            <label class="row"><span data-t="lumiKeyLights"></span><input type="checkbox" class="switch" data-setting="lumiKeyLights"></label>
+                            <label class="row"><span data-t="lumiScaleSync"></span><input type="checkbox" class="switch" data-setting="lumiScaleSync"></label>
+                            <label class="row slider"><span data-t="ledIntensity"></span><output id="lumiBrightnessValue"></output>
+                                <input type="range" min="0" max="1" step="0.01" data-setting="lumiBrightness">
+                            </label>
+                        </div>
+                        <div class="card">
+                            <label class="row"><span data-t="lumiMode"></span>
+                                <select data-setting="lumiMode">
+                                    <option value="rainbow" data-t="lumiRainbow"></option>
+                                    <option value="single" data-t="lumiSingle"></option>
+                                    <option value="piano" data-t="lumiPiano"></option>
+                                    <option value="night" data-t="lumiNight"></option>
+                                </select>
+                            </label>
+                            <label class="row"><span data-t="lumiColor"></span><input type="color" class="color-input" data-setting="lumiColor"></label>
+                            <label class="row"><span data-t="lumiRootColor"></span><input type="color" class="color-input" data-setting="lumiRootColor"></label>
+                        </div>
+                        <div class="card">
+                            <label class="row"><span data-t="lumiOctave"></span>
+                                <select data-setting="lumiOctave" data-type="number">
+                                    <option value="-4">−4</option><option value="-3">−3</option><option value="-2">−2</option><option value="-1">−1</option>
+                                    <option value="0">0</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option>
+                                    <option value="4">+4</option><option value="5">+5</option>
+                                </select>
+                            </label>
+                            <label class="row"><span data-t="lumiBlocks"></span>
+                                <select data-setting="lumiBlocks">
+                                    <option value="auto" data-t="sizeAuto"></option>
+                                    <option value="1" data-t="lumiOne"></option>
+                                    <option value="2" data-t="lumiTwo"></option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                    <p class="help" data-t="lumiHelp"></p>
+                </div>
+
+                <div class="group">
+                    <h3 data-t="sectionLed"></h3>
+                    <div class="card">
+                        <label class="row"><span data-t="ledEnabled"></span><input type="checkbox" class="switch" data-setting="ledEnabled"></label>
+                        <div id="ledStatusRow" class="row">
+                            <span id="ledStatus" class="conn-status"></span>
+                            <button id="ledRetry" class="text-button" type="button" data-t="retry" hidden></button>
+                        </div>
+                    </div>
+                    <div id="ledOptions" class="card">
+                        <label class="row"><span data-t="ledHost"></span><input type="text" class="text-input" data-setting="ledHost" spellcheck="false" autocomplete="off"></label>
+                        <label class="row slider"><span data-t="ledIntensity"></span><output id="intensityValue"></output>
+                            <input type="range" min="0" max="1" step="0.01" data-setting="ledIntensity">
+                        </label>
+                    </div>
+                    <p id="ledHint" class="help" data-t="ledHttpsHint" hidden></p>
+                </div>
             </div>
         </div>
 
-        <section>
-            <h3 data-t="sectionSound"></h3>
-            <label class="row"><span data-t="sound"></span><input type="checkbox" class="switch" data-setting="sound"></label>
-            <label class="row"><span data-t="instrument"></span>
-                <select id="instrument" data-setting="instrument">
-                    <option value="piano" data-t="instPiano"></option>
-                    <option value="sine" data-t="instSine"></option>
-                    <option value="triangle" data-t="instTriangle"></option>
-                    <option value="square" data-t="instSquare"></option>
-                    <option value="sawtooth" data-t="instSawtooth"></option>
-                </select>
-            </label>
-            <label class="row slider"><span data-t="volume"></span><output id="volumeValue"></output>
-                <input type="range" min="0" max="1" step="0.01" data-setting="volume">
-            </label>
-            <div id="synthOptions" class="synth-options">
-                <div class="row">
-                    <span class="subhead" data-t="envelope"></span>
-                    <button id="resetSynth" class="text-button" type="button" data-t="reset"></button>
-                </div>
-                <label class="row slider"><span data-t="attack"></span><output data-out="synthAttack"></output>
-                    <input type="range" min="0" max="1.5" step="0.005" data-setting="synthAttack">
-                </label>
-                <label class="row slider"><span data-t="decay"></span><output data-out="synthDecay"></output>
-                    <input type="range" min="0.02" max="2" step="0.01" data-setting="synthDecay">
-                </label>
-                <label class="row slider"><span data-t="sustain"></span><output data-out="synthSustain"></output>
-                    <input type="range" min="0" max="1" step="0.01" data-setting="synthSustain">
-                </label>
-                <label class="row slider"><span data-t="release"></span><output data-out="synthRelease"></output>
-                    <input type="range" min="0.02" max="3" step="0.01" data-setting="synthRelease">
-                </label>
-                <span class="subhead" data-t="delay"></span>
-                <label class="row slider"><span data-t="delayMix"></span><output data-out="delayMix"></output>
-                    <input type="range" min="0" max="0.8" step="0.01" data-setting="delayMix">
-                </label>
-                <label class="row slider"><span data-t="delayTime"></span><output data-out="delayTime"></output>
-                    <input type="range" min="0.05" max="1" step="0.01" data-setting="delayTime">
-                </label>
-                <label class="row slider"><span data-t="delayFeedback"></span><output data-out="delayFeedback"></output>
-                    <input type="range" min="0" max="0.85" step="0.01" data-setting="delayFeedback">
-                </label>
+        <div class="drawer-foot">
+            <div class="segmented" role="group" data-t-label="language">
+                <button type="button" data-lang="en">EN</button>
+                <button type="button" data-lang="fr">FR</button>
             </div>
-        </section>
-
-        <section>
-            <h3 data-t="sectionDisplay"></h3>
-            <div class="row">
-                <span data-t="notation"></span>
-                <div class="segmented" data-setting="notation">
-                    <button type="button" data-value="english">C D E</button>
-                    <button type="button" data-value="solfege">Do Ré Mi</button>
-                </div>
-            </div>
-            <label class="row"><span data-t="colors"></span>
-                <select data-setting="colorMode">
-                    <option value="rainbow" data-t="colorRainbow"></option>
-                    <option value="octave" data-t="colorOctave"></option>
-                    <option value="mono" data-t="colorMono"></option>
-                </select>
-            </label>
-            <label class="row"><span data-t="staff"></span><input type="checkbox" class="switch" data-setting="showStaff"></label>
-            <div id="tempoRow">
-                <label class="row slider"><span data-t="tempo"></span><output id="tempoValue"></output>
-                    <input type="range" min="40" max="180" step="1" data-setting="tempo">
-                </label>
-                <p class="help" data-t="tempoHelp"></p>
-            </div>
-            <label class="row"><span data-t="wave"></span><input type="checkbox" class="switch" data-setting="showWave"></label>
-            <label class="row"><span data-t="roll"></span><input type="checkbox" class="switch" data-setting="showRoll"></label>
-            <div class="row">
-                <label for="showUsage" data-t="usage"></label>
-                <div class="inline">
-                    <button id="resetUsage" class="text-button" type="button" data-t="reset"></button>
-                    <input id="showUsage" type="checkbox" class="switch" data-setting="showUsage">
-                </div>
-            </div>
-            <label class="row"><span data-t="labels"></span><input type="checkbox" class="switch" data-setting="showLabels"></label>
-            <label class="row"><span data-t="showKeyboard"></span><input type="checkbox" class="switch" data-setting="showKeyboard"></label>
-            <label class="row"><span data-t="keyboardSize"></span>
-                <select data-setting="keyboardSize">
-                    <option value="auto" data-t="sizeAuto"></option>
-                    <option value="lumi">LUMI</option>
-                    <option value="88">88</option>
-                    <option value="61">61</option>
-                    <option value="49">49</option>
-                    <option value="37">37</option>
-                    <option value="25">25</option>
-                </select>
-            </label>
-        </section>
-
-        <section>
-            <h3 data-t="sectionLearn"></h3>
-            <label class="row"><span data-t="scaleType"></span><select id="scaleType" data-setting="scaleType"></select></label>
-            <label class="row"><span data-t="scaleKey"></span><select id="scaleRoot" data-setting="scaleRoot" data-type="number"></select></label>
-            <p id="scaleNotes" class="scale-notes" hidden></p>
-            <p class="help" data-t="scaleHelp"></p>
-        </section>
-
-        <section>
-            <h3>ROLI LUMI</h3>
-            <label class="row"><span data-t="lumiEnabled"></span><input type="checkbox" class="switch" data-setting="lumiEnabled"></label>
-            <div id="lumiOptions">
-                <div class="row">
-                    <span id="lumiStatus" class="led-status"></span>
-                    <button id="lumiRetry" class="text-button" type="button" data-t="retry" hidden></button>
-                </div>
-                <label class="row slider"><span data-t="ledIntensity"></span><output id="lumiBrightnessValue"></output>
-                    <input type="range" min="0" max="1" step="0.01" data-setting="lumiBrightness">
-                </label>
-                <label class="row"><span data-t="lumiMode"></span>
-                    <select data-setting="lumiMode">
-                        <option value="rainbow" data-t="lumiRainbow"></option>
-                        <option value="single" data-t="lumiSingle"></option>
-                        <option value="piano" data-t="lumiPiano"></option>
-                        <option value="night" data-t="lumiNight"></option>
-                    </select>
-                </label>
-                <label class="row"><span data-t="lumiColor"></span><input type="color" class="color-input" data-setting="lumiColor"></label>
-                <label class="row"><span data-t="lumiRootColor"></span><input type="color" class="color-input" data-setting="lumiRootColor"></label>
-                <label class="row"><span data-t="lumiOctave"></span>
-                    <select data-setting="lumiOctave" data-type="number">
-                        <option value="-4">−4</option><option value="-3">−3</option><option value="-2">−2</option><option value="-1">−1</option>
-                        <option value="0">0</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option>
-                        <option value="4">+4</option><option value="5">+5</option>
-                    </select>
-                </label>
-                <label class="row"><span data-t="lumiBlocks"></span>
-                    <select data-setting="lumiBlocks">
-                        <option value="auto" data-t="sizeAuto"></option>
-                        <option value="1" data-t="lumiOne"></option>
-                        <option value="2" data-t="lumiTwo"></option>
-                    </select>
-                </label>
-                <label class="row"><span data-t="lumiScaleSync"></span><input type="checkbox" class="switch" data-setting="lumiScaleSync"></label>
-                <p class="help" data-t="lumiHelp"></p>
-            </div>
-        </section>
-
-        <section>
-            <h3 data-t="sectionLed"></h3>
-            <label class="row"><span data-t="ledEnabled"></span><input type="checkbox" class="switch" data-setting="ledEnabled"></label>
-            <div id="ledOptions">
-                <div class="row">
-                    <span id="ledStatus" class="led-status"></span>
-                    <button id="ledRetry" class="text-button" type="button" data-t="retry" hidden></button>
-                </div>
-                <p id="ledHint" class="help" data-t="ledHttpsHint" hidden></p>
-                <label class="row"><span data-t="ledHost"></span><input type="text" class="text-input" data-setting="ledHost" spellcheck="false" autocomplete="off"></label>
-                <label class="row slider"><span data-t="ledIntensity"></span><output id="intensityValue"></output>
-                    <input type="range" min="0" max="1" step="0.01" data-setting="ledIntensity">
-                </label>
-                <label class="row"><span data-t="ledEffect"></span>
-                    <select data-setting="ledEffect">
-                        <option value="key" data-t="effectKey"></option>
-                        <option value="ripple" data-t="effectRipple"></option>
-                    </select>
-                </label>
-            </div>
-        </section>
-
-        <section class="shortcuts">
-            <h3 data-t="sectionShortcuts"></h3>
-            <dl>
-                <dt id="shortKeys"></dt><dd data-t="shortPlay"></dd>
-                <dt>← →</dt><dd data-t="shortOctave"></dd>
-                <dt data-t="spaceKey"></dt><dd data-t="shortSustain"></dd>
-            </dl>
-        </section>
-
-        <a class="about" href="../web-piano.html" data-t="about"></a>
+            <a class="about" href="../web-piano.html" data-t="about"></a>
+        </div>
     </aside>
 
-    <script type="module" src="./js/main.js?v=20261101a"></script>
+    <script type="module" src="./js/main.js?v=20261101b"></script>
 </body>
 
 </html>

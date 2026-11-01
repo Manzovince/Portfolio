@@ -680,14 +680,9 @@ body.keyboard-partial .shift {
     right: 0;
     bottom: 0;
     z-index: 21;
-    width: min(380px, 100vw);
+    width: min(400px, 100vw);
     display: flex;
     flex-direction: column;
-    gap: 24px;
-    padding: 12px 20px 28px;
-    padding-bottom: max(28px, env(safe-area-inset-bottom));
-    overflow-y: auto;
-    overscroll-behavior: contain;
     background: var(--bg-raised);
     border-left: 1px solid var(--line);
     box-shadow: -16px 0 48px rgb(0 0 0 / 0.3);
@@ -702,11 +697,15 @@ body.keyboard-partial .shift {
     transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+.drawer [hidden] {
+    display: none !important;
+}
+
 .drawer-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-right: -8px;
+    padding: 12px 12px 4px 20px;
 }
 
 .drawer h2 {
@@ -715,14 +714,74 @@ body.keyboard-partial .shift {
     font-size: 18px;
 }
 
-.drawer section {
+/* Tabs: one per kind of setting, so each screen stays short */
+.tabs {
     display: grid;
-    gap: 12px;
-    padding-top: 20px;
-    border-top: 1px solid var(--line);
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin: 8px 16px 0;
+    padding: 4px;
+    border-radius: 12px;
+    background: var(--bg-sunken);
+    border: 1px solid var(--line);
+}
+
+.tabs button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 2px 7px;
+    border-radius: 9px;
+    color: var(--ink-3);
+    font-size: 12px;
+    transition: color 0.15s, background-color 0.15s;
+}
+
+.tabs button .icon {
+    width: 18px;
+    height: 18px;
+}
+
+.tabs button:hover {
+    color: var(--ink);
+}
+
+.tabs button[aria-selected="true"] {
+    background: rgb(233 219 199 / 0.09);
+    color: var(--ink);
+}
+
+.tabs button[aria-selected="true"] .icon {
+    color: var(--accent);
+}
+
+.panels {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 20px 16px 24px;
+}
+
+.panel,
+.group {
+    display: grid;
+    gap: 10px;
+}
+
+.panel {
+    gap: 24px;
+}
+
+.group-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
 }
 
 .drawer h3 {
+    padding: 0 4px;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.12em;
@@ -730,23 +789,62 @@ body.keyboard-partial .shift {
     color: var(--ink-3);
 }
 
+.group .group h3 {
+    margin-top: 6px;
+}
+
+/* A card is a list of rows separated by hairlines */
+.card {
+    padding: 0 14px;
+    border-radius: 12px;
+    background: rgb(233 219 199 / 0.035);
+    border: 1px solid var(--line);
+}
+
+.card > .row + .row {
+    border-top: 1px solid var(--line);
+}
+
+.drawer .help {
+    padding: 0 4px;
+}
+
+.drawer-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line);
+}
+
 .row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    min-height: 34px;
+    min-height: 48px;
+    padding: 7px 0;
     color: var(--ink);
 }
 
 .row > span,
 .row > label {
+    color: var(--ink);
+    font-size: 14px;
+}
+
+/* A setting that only applies while the one above is on */
+.row.nested > span {
+    padding-left: 14px;
     color: var(--ink-2);
 }
 
 .row.slider {
     flex-wrap: wrap;
-    row-gap: 4px;
+    row-gap: 2px;
+    padding: 10px 0 6px;
 }
 
 .row.slider output {
@@ -913,38 +1011,33 @@ input[type="range"] {
 }
 
 .scale-notes {
+    justify-content: flex-start;
     font-family: var(--font-serif);
     color: var(--accent);
     word-spacing: 0.3em;
 }
 
-#ledOptions,
-#tempoRow,
-.synth-options {
-    display: grid;
-    gap: 12px;
-}
-
-.led-status {
+.conn-status {
     font-size: 13px;
+    color: var(--ink-3) !important;
 }
 
-.led-status[data-state="connected"] {
+.conn-status[data-state="connected"] {
     color: var(--accent) !important;
 }
 
-.led-status[data-state="failed"] {
+.conn-status[data-state="failed"] {
     color: var(--coral) !important;
 }
 
-.shortcuts dl {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 8px 16px;
+.shortcuts .row {
+    min-height: 40px;
+    justify-content: flex-start;
     font-size: 13px;
 }
 
 .shortcuts dt {
+    min-width: 92px;
     font-family: ui-monospace, monospace;
     color: var(--ink);
 }
@@ -1272,20 +1365,4 @@ body.practicing .readout {
     }
 }
 
-/* === Synth envelope and echo (hidden for the piano) === */
 
-.synth-options {
-    padding: 4px 0 2px 12px;
-    border-left: 1px solid var(--line);
-}
-
-.synth-options[hidden] {
-    display: none;
-}
-
-.subhead {
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-3) !important;
-}

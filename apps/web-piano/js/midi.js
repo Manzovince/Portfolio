@@ -1,7 +1,7 @@
 // === MIDI input (Web MIDI API) ===
 
-import { press, lift, setPedal, allOff } from "./piano.js?v=20261101a";
-import { settings } from "./settings.js?v=20261101a";
+import { press, lift, setPedal, allOff } from "./piano.js?v=20261101b";
+import { settings } from "./settings.js?v=20261101b";
 
 let status = { state: "idle", names: [] };
 const listeners = new Set();

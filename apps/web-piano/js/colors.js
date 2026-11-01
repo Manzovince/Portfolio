@@ -1,6 +1,6 @@
 // === Note colours, shared by the keys, the piano roll and the LED strip ===
 
-import { LOWEST, HIGHEST } from "./piano.js?v=20261101a";
+import { LOWEST, HIGHEST } from "./piano.js?v=20261101b";
 
 const ACCENT = { r: 68, g: 172, b: 163 }; // the site's teal, hsl(175 43% 47%)
 

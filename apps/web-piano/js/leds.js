@@ -1,16 +1,11 @@
 // === ESP32 LED strip, driven over a WebSocket ===
 //
 // Protocol understood by the ESP32 firmware: "SET <led> <r> <g> <b>" and "OFF <led>".
-// Instead of sending commands note by note (which let one note's "OFF" wipe a
-// neighbour still lit by a ripple), every frame computes the colour each LED
-// should have and only sends the LEDs that changed.
+// Frames come from lights.js; only the LEDs that changed are sent.
 
-import { subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261101a";
-import { settings, onSettingChange } from "./settings.js?v=20261101a";
-import { noteColor, hsvToRgb, scaleColor } from "./colors.js?v=20261101a";
-import { scaleNotes, pitchClass } from "./theory.js?v=20261101a";
-import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261101a";
-import { songGuide, onSongGuide } from "./song.js?v=20261101a";
+import { settings, onSettingChange } from "./settings.js?v=20261101b";
+import { computeFrame, lightsAnimating, onLightsChange } from "./lights.js?v=20261101b";
+import { LOWEST, HIGHEST } from "./piano.js?v=20261101b";
 
 // LED index under each key, A0 to C8, measured on the strip (two LEDs per key)
 const NOTE_TO_LED = [
@@ -24,15 +19,10 @@ const NOTE_TO_LED = [
     9, 7, 5, 3,
 ];
 
-const RIPPLE = { reach: 10, msPerKey: 30, decay: 0.6, life: 700 };
-const SCALE_GLOW = 0.12; // share of the brightness used for the scale guide
-const GUIDE_GLOW = 0.4;  // notes to play now, during an exercise
-
 let socket = null;
 let state = "off"; // off | connecting | connected | failed
 const stateListeners = new Set();
 let sent = new Map();    // led -> "r g b" last sent
-let ripples = [];        // { midi, start, velocity }
 let flashUntil = 0;      // hello sweep when the strip connects
 let frameRequested = false;
 
@@ -44,55 +34,11 @@ function setState(next) {
     stateListeners.forEach(fn => fn(state));
 }
 
-const maxChannel = (a, b) => ({ r: Math.max(a.r, b.r), g: Math.max(a.g, b.g), b: Math.max(a.b, b.b) });
-
-function computeFrame(now) {
-    const frame = new Map(); // midi -> {r,g,b}
-    const add = (midi, color) => {
-        if (midi < LOWEST || midi > HIGHEST) return;
-        frame.set(midi, frame.has(midi) ? maxChannel(frame.get(midi), color) : color);
-    };
-    const intensity = settings.ledIntensity;
-
-    if (now < flashUntil) {
-        for (let m = LOWEST; m <= HIGHEST; m++) add(m, hsvToRgb((m - LOWEST) / 88, 1, 0.1));
-        return frame;
-    }
-
-    // Scale guide: every note of the scale glows softly. During an exercise,
-    // its hints take over: the notes to play now glow brighter.
-    const guide = isPracticing() ? practiceGuide() : songGuide();
-    const scale = guide ? guide.soft ?? new Set() : new Set(scaleNotes(settings.scaleRoot, settings.scaleType).map(n => n.pc));
-    for (let m = LOWEST; m <= HIGHEST; m++) {
-        const pc = pitchClass(m);
-        const glow = guide?.strong?.has(pc) || guide?.midis?.has(m) ? GUIDE_GLOW : scale.has(pc) ? SCALE_GLOW : 0;
-        if (glow) add(m, scaleColor(noteColor(m, settings.colorMode), intensity * glow));
-    }
-
-    for (const midi of soundingNotes()) {
-        const velocity = noteInfo(midi)?.velocity ?? 100;
-        add(midi, scaleColor(noteColor(midi, settings.colorMode), intensity * velocity / 127));
-    }
-
-    // Ripples spread a key at a time and fade out
-    ripples = ripples.filter(r => now - r.start < RIPPLE.life);
-    for (const r of ripples) {
-        const age = now - r.start;
-        const radius = Math.min(RIPPLE.reach, Math.floor(age / RIPPLE.msPerKey));
-        const fade = 1 - age / RIPPLE.life;
-        for (let d = 1; d <= radius; d++) {
-            const level = intensity * (r.velocity / 127) * Math.pow(RIPPLE.decay, d) * fade;
-            for (const m of [r.midi - d, r.midi + d]) add(m, scaleColor(noteColor(m, settings.colorMode), level));
-        }
-    }
-    return frame;
-}
-
 function render() {
     frameRequested = false;
     if (state !== "connected") return;
     const now = performance.now();
-    const frame = computeFrame(now);
+    const frame = computeFrame(now, { intensity: settings.ledIntensity, hello: now < flashUntil });
     for (let midi = LOWEST; midi <= HIGHEST; midi++) {
         const led = NOTE_TO_LED[midi - LOWEST];
         const c = frame.get(midi);
@@ -102,7 +48,7 @@ function render() {
         if (value) sent.set(led, value);
         else sent.delete(led);
     }
-    if (ripples.length || now < flashUntil + 50) requestFrame();
+    if (lightsAnimating(now) || now < flashUntil + 50) requestFrame();
 }
 
 function requestFrame() {
@@ -161,19 +107,10 @@ export function initLeds() {
     if (settings.ledEnabled) connectLeds();
 }
 
-subscribe(event => {
-    if (state !== "connected") return;
-    if (event.type === "on" && settings.ledEffect === "ripple") {
-        ripples.push({ midi: event.midi, start: performance.now(), velocity: event.velocity });
-    }
-    requestFrame();
-});
+onLightsChange(requestFrame);
 
 onSettingChange((key, value) => {
     if (key === "ledEnabled") value ? connectLeds() : disconnectLeds();
     if (key === "ledHost" && settings.ledEnabled) connectLeds();
-    if (["ledIntensity", "colorMode", "scaleRoot", "scaleType"].includes(key)) requestFrame();
+    if (key === "ledIntensity") requestFrame();
 });
-
-onPracticeChange(requestFrame);
-onSongGuide(requestFrame);

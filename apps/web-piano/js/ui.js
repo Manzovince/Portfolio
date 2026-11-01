@@ -1,30 +1,30 @@
 // === Interface: chord readout, top bar, settings drawer ===
 
-import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261101a";
-import { settings, setSetting, onSettingChange, resetSynth } from "./settings.js?v=20261101a";
+import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261101b";
+import { settings, setSetting, onSettingChange, resetSynth } from "./settings.js?v=20261101b";
 import {
     t, chordQuality, inversionName, intervalName, scaleName, currentNotation,
     getLanguage, setLanguage, onLanguageChange, applyStaticText,
-} from "./i18n.js?v=20261101a";
+} from "./i18n.js?v=20261101b";
 import {
     detectChord, chordSymbol, noteName, spellPc, spelledOctave, pitchClass,
     intervalBetween, scaleContext, scaleNotes, SCALES,
-} from "./theory.js?v=20261101a";
-import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261101a";
-import { ledState, onLedState, connectLeds } from "./leds.js?v=20261101a";
-import { lumiState, onLumiState, lumiCount, lumiKeyCount, retryLumi } from "./lumi.js?v=20261101a";
-import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261101a";
-import { keysHint, shiftView } from "./keyboard.js?v=20261101a";
+} from "./theory.js?v=20261101b";
+import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261101b";
+import { ledState, onLedState, connectLeds } from "./leds.js?v=20261101b";
+import { lumiState, onLumiState, lumiCount, lumiKeyCount, retryLumi } from "./lumi.js?v=20261101b";
+import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261101b";
+import { keysHint, shiftView } from "./keyboard.js?v=20261101b";
 import {
     clearScore, hasScore, onScoreChange, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi,
-} from "./score.js?v=20261101a";
-import { resetUsage } from "./roll.js?v=20261101a";
+} from "./score.js?v=20261101b";
+import { resetUsage } from "./roll.js?v=20261101b";
 import {
     currentSong, openSongFile, closeSong, playSong, pauseSong, seekSong, setSongSpeed,
     isSongPlaying, songPosition, songSpeed, onSongChange, onSongPosition,
     songPart, setSongPart, isWaitingForPlayer,
-} from "./song.js?v=20261101a";
-import { setPracticing, isPracticing, onPracticeChange } from "./practice.js?v=20261101a";
+} from "./song.js?v=20261101b";
+import { setPracticing, isPracticing, onPracticeChange } from "./practice.js?v=20261101b";
 
 const $ = selector => document.querySelector(selector);
 const finePointer = matchMedia("(hover: hover) and (pointer: fine)");
@@ -158,6 +158,7 @@ function renderLed() {
     pill.dataset.state = state;
     const text = { off: t("ledOff"), connecting: t("ledConnecting"), connected: t("ledConnected"), failed: t("ledFailed") }[state];
     pill.querySelector("span").textContent = `LED · ${text}`;
+    $("#ledStatusRow").hidden = !settings.ledEnabled;
     $("#ledStatus").textContent = text;
     $("#ledStatus").dataset.state = state;
     $("#ledRetry").hidden = state !== "failed" || !settings.ledEnabled;
@@ -167,12 +168,13 @@ function renderLed() {
 function renderLumi() {
     const state = settings.lumiEnabled ? lumiState() : "off";
     const text = {
-        off: "", unsupported: t("lumiUnsupported"), denied: t("lumiDenied"), none: t("lumiNone"),
+        off: t("lumiWaiting"), unsupported: t("lumiUnsupported"), denied: t("lumiDenied"), none: t("lumiNone"),
         connected: t("lumiConnected", { n: lumiCount(), keys: lumiKeyCount() }),
     }[state];
+    $("#lumiStatusRow").hidden = !settings.lumiEnabled;
     $("#lumiStatus").textContent = text;
     $("#lumiStatus").dataset.state = state === "connected" ? "connected" : state === "none" ? "off" : "failed";
-    $("#lumiRetry").hidden = state !== "denied";
+    $("#lumiRetry").hidden = state !== "denied" && state !== "off";
 }
 
 // === Settings drawer ===
@@ -184,8 +186,40 @@ function openDrawer(open) {
     drawer.inert = !open;
     $("#scrim").classList.toggle("visible", open);
     $("#settingsBtn").setAttribute("aria-expanded", open);
-    if (open) drawer.querySelector("button, input, select")?.focus();
+    if (open) drawer.querySelector('[role="tab"][aria-selected="true"]')?.focus();
     else $("#settingsBtn").focus();
+}
+
+const TABS = ["sound", "display", "keyboard", "lights"];
+
+function showTab(name) {
+    if (!TABS.includes(name)) name = TABS[0];
+    document.querySelectorAll("[data-tab]").forEach(tab => {
+        const selected = tab.dataset.tab === name;
+        tab.setAttribute("aria-selected", selected);
+        tab.tabIndex = selected ? 0 : -1;
+    });
+    document.querySelectorAll("[data-panel]").forEach(panel => (panel.hidden = panel.dataset.panel !== name));
+    $(".panels").scrollTop = 0;
+}
+
+function bindTabs() {
+    showTab(settings.settingsTab);
+    const tabs = $(".tabs");
+    tabs.addEventListener("click", e => {
+        const tab = e.target.closest("[data-tab]");
+        if (tab) setSetting("settingsTab", tab.dataset.tab);
+    });
+    // Arrow keys move between tabs, as in any tab list
+    tabs.addEventListener("keydown", e => {
+        const step = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
+        if (!step) return;
+        e.preventDefault();
+        e.stopPropagation(); // not an octave change
+        const next = TABS[(TABS.indexOf(settings.settingsTab) + step + TABS.length) % TABS.length];
+        setSetting("settingsTab", next);
+        tabs.querySelector(`[data-tab="${next}"]`).focus();
+    });
 }
 
 function fillScaleOptions() {
@@ -226,7 +260,7 @@ function syncControls() {
     $("#volumeValue").textContent = `${Math.round(settings.volume * 100)}%`;
     $("#intensityValue").textContent = `${Math.round(settings.ledIntensity * 100)}%`;
     $("#tempoValue").textContent = `${settings.tempo} BPM`;
-    $("#tempoRow").hidden = !settings.showStaff;
+    $("#tempoRow").hidden = $("#tempoHelp").hidden = !settings.showStaff;
     $("#ledOptions").hidden = !settings.ledEnabled;
     $("#lumiOptions").hidden = !settings.lumiEnabled;
     $("#lumiBrightnessValue").textContent = `${Math.round(settings.lumiBrightness * 100)}%`;
@@ -418,6 +452,7 @@ export function initUI() {
         if (e.key === "Escape" && $("#settings").classList.contains("open")) openDrawer(false);
     });
     $("#settings").inert = true;
+    bindTabs();
     $("#midiStatus").addEventListener("click", connectMidi);
     $("#ledRetry").addEventListener("click", connectLeds);
     $("#lumiRetry").addEventListener("click", retryLumi);
@@ -439,6 +474,7 @@ export function initUI() {
     onSettingChange(key => {
         syncControls();
         if (key === "sound") renderSound();
+        if (key === "settingsTab") showTab(settings.settingsTab);
         if (key === "ledEnabled") renderLed();
         if (key === "lumiEnabled" || key === "lumiBlocks") renderLumi();
         if (key === "notation") {

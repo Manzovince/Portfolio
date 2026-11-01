@@ -3,6 +3,7 @@
 const STORAGE_KEY = "webPiano.settings";
 
 const DEFAULTS = {
+    settingsTab: "sound", // last tab opened in the settings drawer
     sound: true,
     instrument: "piano",
     volume: 0.8,
@@ -38,6 +39,7 @@ const DEFAULTS = {
     lumiRootColor: "#f2b84b",
     lumiOctave: 0,
     lumiScaleSync: true,
+    lumiKeyLights: true, // light single keys from the app (notes, exercises, ripples)
     practiceKind: "chords",
     practiceChords: "triads",
     practiceScales: "majorScales",

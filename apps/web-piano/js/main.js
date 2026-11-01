@@ -1,13 +1,13 @@
-import { initKeyboard } from "./keyboard.js?v=20261101a";
-import { initRoll } from "./roll.js?v=20261101a";
-import { initWave } from "./wave.js?v=20261101a";
-import { initScore } from "./score.js?v=20261101a";
-import { initMidi } from "./midi.js?v=20261101a";
-import { initLeds } from "./leds.js?v=20261101a";
-import { initLumi } from "./lumi.js?v=20261101a";
-import { unlockAudio } from "./audio.js?v=20261101a";
-import { initUI } from "./ui.js?v=20261101a";
-import { initPractice } from "./practice.js?v=20261101a";
+import { initKeyboard } from "./keyboard.js?v=20261101b";
+import { initRoll } from "./roll.js?v=20261101b";
+import { initWave } from "./wave.js?v=20261101b";
+import { initScore } from "./score.js?v=20261101b";
+import { initMidi } from "./midi.js?v=20261101b";
+import { initLeds } from "./leds.js?v=20261101b";
+import { initLumi } from "./lumi.js?v=20261101b";
+import { unlockAudio } from "./audio.js?v=20261101b";
+import { initUI } from "./ui.js?v=20261101b";
+import { initPractice } from "./practice.js?v=20261101b";
 
 initKeyboard(document.getElementById("keyboard"));
 initRoll(document.getElementById("roll"), document.getElementById("usage"));
