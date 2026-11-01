@@ -16,6 +16,7 @@ RewriteBase /
 # Renamed projects
 RewriteRule ^dictee(/.*)?$ /salve/ [R=301,L]
 RewriteRule ^recif-hexagonal(/.*)?$ /recif/ [R=301,L]
+RewriteRule ^ponton(/.*)?$ /pechemelba/ [R=301,L]
 
 # Direct hits on the internal folders go back to the public URL
 RewriteCond %{THE_REQUEST} \s/+(?:pages|apps|lab)/([^\s?]*)
