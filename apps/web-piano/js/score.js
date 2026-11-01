@@ -10,10 +10,10 @@
 // When a MIDI file is open, the staff shows that song instead, with its own
 // rhythm and time signature, and turns its lines as the song plays.
 
-import { subscribe } from "./piano.js?v=20261101b";
-import { settings, onSettingChange } from "./settings.js?v=20261101b";
-import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=20261101b";
-import { currentSong, onSongChange, onSongPosition } from "./song.js?v=20261101b";
+import { subscribe } from "./piano.js?v=20261101n";
+import { settings, onSettingChange } from "./settings.js?v=20261101n";
+import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=20261101n";
+import { currentSong, onSongChange, onSongPosition } from "./song.js?v=20261101n";
 
 const VEXFLOW_URL = "https://cdn.jsdelivr.net/npm/vexflow@5.0.0/build/esm/entry/vexflow.js";
 // The music font as a data URL, embedded in exported images so they draw anywhere

@@ -274,7 +274,23 @@ button.pill:disabled {
     top: 8px;
     right: calc(var(--gutter) - 4px);
     display: flex;
-    gap: 2px;
+    align-items: center;
+    gap: 8px;
+}
+
+.staff-tools {
+    display: flex;
+}
+
+.staff-tools .icon-button.small {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+}
+
+.staff-tools .icon-button:disabled {
+    opacity: 0.35;
+    pointer-events: none;
 }
 
 /* === Whole score dialog === */
@@ -389,6 +405,157 @@ button.pill:disabled {
     }
 }
 
+/* === Song library === */
+
+.library-dialog {
+    width: min(600px, calc(100vw - 2 * var(--gutter)));
+    height: min(640px, calc(100dvh - 2 * var(--gutter)));
+}
+
+.import-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-color: var(--accent);
+    color: var(--ink);
+}
+
+.import-chip .icon {
+    width: 15px;
+    height: 15px;
+    color: var(--accent);
+}
+
+.library-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: grid;
+    align-content: start;
+    gap: 22px;
+    padding: 16px 20px 24px;
+}
+
+.library-body section {
+    display: grid;
+    gap: 8px;
+}
+
+.library-body h3 {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.library-part {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    color: var(--ink-2);
+    font-size: 14px;
+}
+
+.song-list {
+    display: grid;
+    list-style: none;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: rgb(233 219 199 / 0.035);
+    overflow: hidden;
+}
+
+.song-list:empty {
+    display: none;
+}
+
+.song-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-right: 8px;
+}
+
+.song-item + .song-item {
+    border-top: 1px solid var(--line);
+}
+
+.song-pick {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    text-align: left;
+    transition: background-color 0.15s;
+}
+
+.song-item:hover {
+    background: rgb(233 219 199 / 0.04);
+}
+
+.song-badge {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: rgb(68 172 163 / 0.14);
+    color: var(--accent);
+}
+
+.song-badge .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.song-text {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.song-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--ink);
+    font-size: 15px;
+}
+
+.song-meta {
+    color: var(--ink-3);
+    font-size: 12px;
+}
+
+.song-item[aria-current="true"] .song-name {
+    color: var(--accent);
+}
+
+.song-delete {
+    color: var(--ink-3);
+}
+
+.song-delete:hover {
+    color: var(--coral);
+}
+
+.library-empty {
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px dashed var(--line-strong);
+    color: var(--ink-3);
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+
 body.staff-hidden .staff,
 body.staff-unavailable .staff {
     display: none;
@@ -501,6 +668,12 @@ body.staff-unavailable .staff {
     color: var(--ink-2);
     font-size: 15px;
     line-height: 1.5;
+}
+
+/* The readout ignores the pointer; its example-song button must not */
+.hint .example-song {
+    pointer-events: auto;
+    margin-top: 4px;
 }
 
 .hint-keys {
@@ -1208,6 +1381,42 @@ body.song-open .practice {
 
 /* === Practice === */
 
+/* "Practise" and "Songs" share one rounded block, split by a hairline */
+.pill-group {
+    display: flex;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+}
+
+.pill-group .pill {
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.pill-group .pill:first-child {
+    border-radius: 99px 0 0 99px;
+}
+
+.pill-group .pill:last-child {
+    border-radius: 0 99px 99px 0;
+}
+
+.pill-group .pill + .pill {
+    border-left: 1px solid var(--line);
+}
+
+.pill-group .pill:hover {
+    background: var(--line);
+    color: var(--ink);
+}
+
+.pill-group .icon {
+    width: 16px;
+    height: 16px;
+}
+
 .practice-toggle .icon {
     width: 16px;
     height: 16px;
@@ -1349,7 +1558,7 @@ body.practicing .readout {
 }
 
 @media (max-width: 599px) {
-    .practice-toggle span {
+    .pill-group .pill span {
         display: none;
     }
 

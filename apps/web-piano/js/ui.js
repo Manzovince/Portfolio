@@ -1,30 +1,31 @@
 // === Interface: chord readout, top bar, settings drawer ===
 
-import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261101b";
-import { settings, setSetting, onSettingChange, resetSynth } from "./settings.js?v=20261101b";
+import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261101n";
+import { settings, setSetting, onSettingChange, resetSynth } from "./settings.js?v=20261101n";
 import {
     t, chordQuality, inversionName, intervalName, scaleName, currentNotation,
     getLanguage, setLanguage, onLanguageChange, applyStaticText,
-} from "./i18n.js?v=20261101b";
+} from "./i18n.js?v=20261101n";
 import {
     detectChord, chordSymbol, noteName, spellPc, spelledOctave, pitchClass,
     intervalBetween, scaleContext, scaleNotes, SCALES,
-} from "./theory.js?v=20261101b";
-import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261101b";
-import { ledState, onLedState, connectLeds } from "./leds.js?v=20261101b";
-import { lumiState, onLumiState, lumiCount, lumiKeyCount, retryLumi } from "./lumi.js?v=20261101b";
-import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261101b";
-import { keysHint, shiftView } from "./keyboard.js?v=20261101b";
+} from "./theory.js?v=20261101n";
+import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261101n";
+import { ledState, onLedState, connectLeds } from "./leds.js?v=20261101n";
+import { lumiState, onLumiState, lumiCount, lumiKeyCount, retryLumi } from "./lumi.js?v=20261101n";
+import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261101n";
+import { keysHint, shiftView } from "./keyboard.js?v=20261101n";
 import {
     clearScore, hasScore, onScoreChange, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi,
-} from "./score.js?v=20261101b";
-import { resetUsage } from "./roll.js?v=20261101b";
+} from "./score.js?v=20261101n";
+import { resetUsage } from "./roll.js?v=20261101n";
+import { EXAMPLES, importedSongs, addSong, songFile, removeSong, onLibraryChange } from "./library.js?v=20261101n";
 import {
     currentSong, openSongFile, closeSong, playSong, pauseSong, seekSong, setSongSpeed,
     isSongPlaying, songPosition, songSpeed, onSongChange, onSongPosition,
     songPart, setSongPart, isWaitingForPlayer,
-} from "./song.js?v=20261101b";
-import { setPracticing, isPracticing, onPracticeChange } from "./practice.js?v=20261101b";
+} from "./song.js?v=20261101n";
+import { setPracticing, isPracticing, onPracticeChange } from "./practice.js?v=20261101n";
 
 const $ = selector => document.querySelector(selector);
 const finePointer = matchMedia("(hover: hover) and (pointer: fine)");
@@ -263,6 +264,7 @@ function syncControls() {
     $("#tempoRow").hidden = $("#tempoHelp").hidden = !settings.showStaff;
     $("#ledOptions").hidden = !settings.ledEnabled;
     $("#lumiOptions").hidden = !settings.lumiEnabled;
+    $("#lumiModeHelp").hidden = $("#lumiGuideColorRow").hidden = !settings.lumiKeyLights;
     $("#lumiBrightnessValue").textContent = `${Math.round(settings.lumiBrightness * 100)}%`;
     $("#instrument").disabled = !settings.sound;
     $("#synthOptions").hidden = settings.instrument === "piano";
@@ -348,41 +350,122 @@ function renderSongPosition() {
 }
 
 let errorTimer = null;
-async function openSong(file) {
+// `keep`: a file picked or dropped goes into the library; songs opened from it are already there
+async function openSong(file, { keep = true } = {}) {
     try {
         await openSongFile(file);
         setPracticing(false);
+        setSongPart(settings.songStartPart);
         // The song is meant to be read: bring the staff back if it was hidden
         setSetting("showStaff", true);
         hasPlayed = true;
         $("#hint").hidden = true;
+        if (keep) addSong(file, currentSong().title);
+        return true;
     } catch (err) {
         console.warn("MIDI file:", err);
         $("#songError").textContent = t("songError");
         $("#songError").hidden = false;
         clearTimeout(errorTimer);
         errorTimer = setTimeout(() => ($("#songError").hidden = true), 4000);
+        return false;
     }
+}
+
+// === Song library ===
+
+let currentSongId = null;
+
+async function openLibrarySong(id) {
+    try {
+        if (await openSong(await songFile(id), { keep: false })) currentSongId = id;
+    } catch (err) {
+        console.warn("Library:", err);
+    }
+    $("#libraryDialog").close();
+}
+
+function songItem({ id, title, meta, removable }) {
+    const item = document.createElement("li");
+    item.className = "song-item";
+    item.setAttribute("aria-current", id === currentSongId && Boolean(currentSong()));
+    const open = document.createElement("button");
+    open.type = "button";
+    open.className = "song-pick";
+    open.innerHTML = `<span class="song-badge"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-music" /></svg></span>
+        <span class="song-text"><span class="song-name"></span><span class="song-meta"></span></span>`;
+    open.querySelector(".song-name").textContent = title;
+    open.querySelector(".song-meta").textContent = meta;
+    open.addEventListener("click", () => openLibrarySong(id));
+    item.append(open);
+    if (removable) {
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "icon-button small song-delete";
+        remove.title = remove.ariaLabel = t("deleteSong");
+        remove.innerHTML = `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trash" /></svg>`;
+        remove.addEventListener("click", () => {
+            if (confirm(t("deleteConfirm", { title }))) removeSong(id);
+        });
+        item.append(remove);
+    }
+    return item;
+}
+
+async function renderLibrary() {
+    const date = new Intl.DateTimeFormat(getLanguage(), { day: "numeric", month: "short", year: "numeric" });
+    $("#exampleList").replaceChildren(...EXAMPLES.map(e =>
+        songItem({ id: e.id, title: e.title, meta: t("exampleMeta", { composer: e.composer }) + (e.fitsLumi ? ` · ${t("fitsLumi")}` : "") })));
+    const imported = await importedSongs();
+    $("#importedList").replaceChildren(...imported.map(song =>
+        songItem({ id: song.id, title: song.title, meta: t("importedMeta", { date: date.format(song.addedAt) }), removable: true })));
+    $("#libraryEmpty").hidden = imported.length > 0;
+}
+
+function openLibrary() {
+    if ($("#settings").classList.contains("open")) openDrawer(false);
+    renderLibrary();
+    $("#libraryDialog").showModal();
+}
+
+function bindLibrary() {
+    const dialog = $("#libraryDialog");
+    const input = $("#songFile");
+    $("#openLibrary").addEventListener("click", openLibrary);
+    $("#openLibrarySettings").addEventListener("click", openLibrary);
+    $("#closeLibrary").addEventListener("click", () => dialog.close());
+    dialog.addEventListener("click", e => e.target === dialog && dialog.close());
+    $("#importSong").addEventListener("click", () => input.click());
+    document.querySelectorAll(".example-song").forEach(button =>
+        button.addEventListener("click", () => openLibrarySong(EXAMPLES.find(e => e.id === "example:ode").id)));
+    onLibraryChange(() => dialog.open && renderLibrary());
+    onLanguageChange(() => dialog.open && renderLibrary());
 }
 
 function bindSong() {
     const input = $("#songFile");
-    $("#openSong").addEventListener("click", () => input.click());
-    input.addEventListener("change", () => {
-        if (input.files[0]) openSong(input.files[0]);
+    input.addEventListener("change", async () => {
+        const file = input.files[0];
         input.value = "";
+        if (file && await openSong(file)) {
+            currentSongId = null;
+            $("#libraryDialog").close();
+        }
     });
     // A MIDI file dropped anywhere on the page opens too
     window.addEventListener("dragover", e => e.preventDefault());
     window.addEventListener("drop", e => {
         e.preventDefault();
         const file = [...(e.dataTransfer?.files ?? [])].find(f => /\.midi?$/i.test(f.name) || f.type.includes("midi"));
-        if (file) openSong(file);
+        if (file) openSong(file).then(ok => ok && (currentSongId = null));
     });
 
     $("#songPlay").addEventListener("click", () => (isSongPlaying() ? pauseSong() : playSong()));
     $("#songClose").addEventListener("click", closeSong);
-    $("#songPart").addEventListener("change", e => setSongPart(e.target.value));
+    $("#songPart").addEventListener("change", e => {
+        setSongPart(e.target.value);
+        setSetting("songStartPart", e.target.value); // the next song opens the same way
+    });
     $("#songSpeed").addEventListener("click", e => {
         const button = e.target.closest("button");
         if (button) setSongSpeed(Number(button.dataset.speed));
@@ -404,6 +487,7 @@ function bindSong() {
 
 function renderScoreState(played = hasScore()) {
     $("#scoreEmpty").hidden = played;
+    $("#clearStaff").disabled = !played; // nothing to clear yet
     $("#fullScore").hidden = !played;
     ["#exportPng", "#exportSvg", "#exportMidi"].forEach(id => ($(id).disabled = !played));
     // A song came from a MIDI file already: only its images can be downloaded
@@ -438,6 +522,7 @@ function bindScoreDialog() {
         });
     });
     onScoreChange(renderScoreState);
+    renderScoreState();
 }
 
 export function initUI() {
@@ -459,6 +544,7 @@ export function initUI() {
     $("#clearStaff").addEventListener("click", clearScore);
     bindScoreDialog();
     bindSong();
+    bindLibrary();
     $("#resetUsage").addEventListener("click", resetUsage);
     $("#resetSynth").addEventListener("click", resetSynth);
     $("#octDown").addEventListener("click", () => shiftView(-1));

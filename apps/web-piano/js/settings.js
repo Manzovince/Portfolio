@@ -19,6 +19,7 @@ const DEFAULTS = {
     notation: null, // null = follow the language (solfège in French)
     colorMode: "rainbow",
     showStaff: true,
+    songStartPart: "right", // listen | right | left | both: how songs open from the library
     tempo: 80, // beats per minute, used to write note lengths on the staff
     showRoll: true,
     showUsage: false,
@@ -39,7 +40,8 @@ const DEFAULTS = {
     lumiRootColor: "#f2b84b",
     lumiOctave: 0,
     lumiScaleSync: true,
-    lumiKeyLights: true, // light single keys from the app (notes, exercises, ripples)
+    lumiKeyLights: true, // show the notes to play during exercises and songs
+    lumiGuideColor: "#2ec4b6",
     practiceKind: "chords",
     practiceChords: "triads",
     practiceScales: "majorScales",

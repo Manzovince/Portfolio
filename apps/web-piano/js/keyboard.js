@@ -1,13 +1,13 @@
 // === On-screen keyboard, computer-keyboard and pointer input ===
 
-import { press, lift, setPedal, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261101b";
-import { settings, onSettingChange } from "./settings.js?v=20261101b";
-import { noteColor, rgbString } from "./colors.js?v=20261101b";
-import { noteName, defaultSpelling, scaleNotes, pitchClass } from "./theory.js?v=20261101b";
-import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261101b";
-import { songGuide, onSongGuide } from "./song.js?v=20261101b";
-import { getLanguage, onLanguageChange, currentNotation } from "./i18n.js?v=20261101b";
-import { lumiKeyCount, lumiLowest, onLumiState } from "./lumi.js?v=20261101b";
+import { press, lift, setPedal, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261101n";
+import { settings, onSettingChange } from "./settings.js?v=20261101n";
+import { noteColor, rgbString } from "./colors.js?v=20261101n";
+import { noteName, defaultSpelling, scaleNotes, pitchClass } from "./theory.js?v=20261101n";
+import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261101n";
+import { songGuide, onSongGuide } from "./song.js?v=20261101n";
+import { getLanguage, onLanguageChange, currentNotation } from "./i18n.js?v=20261101n";
+import { lumiKeyCount, lumiLowest, onLumiState } from "./lumi.js?v=20261101n";
 
 const isBlack = midi => [1, 3, 6, 8, 10].includes(midi % 12);
 // Black keys sit slightly off-centre on a real piano

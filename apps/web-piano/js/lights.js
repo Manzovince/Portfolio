@@ -4,12 +4,12 @@
 // neighbour still lit by a ripple), every frame computes the colour each key
 // should have; each output then sends only what changed since its last frame.
 
-import { subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261101b";
-import { settings, onSettingChange } from "./settings.js?v=20261101b";
-import { noteColor, hsvToRgb, scaleColor } from "./colors.js?v=20261101b";
-import { scaleNotes, pitchClass } from "./theory.js?v=20261101b";
-import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261101b";
-import { songGuide, onSongGuide } from "./song.js?v=20261101b";
+import { subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261101n";
+import { settings, onSettingChange } from "./settings.js?v=20261101n";
+import { noteColor, hsvToRgb, scaleColor } from "./colors.js?v=20261101n";
+import { scaleNotes, pitchClass } from "./theory.js?v=20261101n";
+import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261101n";
+import { songGuide, onSongGuide } from "./song.js?v=20261101n";
 
 const RIPPLE = { reach: 10, msPerKey: 30, decay: 0.6, life: 700 };
 const SCALE_GLOW = 0.12; // share of the brightness used for the scale guide
@@ -23,6 +23,10 @@ export const onLightsChange = fn => listeners.add(fn);
 const changed = () => listeners.forEach(fn => fn());
 
 export const lightsAnimating = now => ripples.some(r => now - r.start < RIPPLE.life);
+
+// Notes to play right now, from an exercise (with hints) or a song being learnt
+export const currentGuide = () => (isPracticing() ? practiceGuide() : songGuide());
+export const guideActive = () => !!currentGuide();
 
 const maxChannel = (a, b) => ({ r: Math.max(a.r, b.r), g: Math.max(a.g, b.g), b: Math.max(a.b, b.b) });
 
@@ -42,7 +46,7 @@ export function computeFrame(now, { intensity = 1, scale = true, hello = false }
 
     // Scale guide: every note of the scale glows softly. During an exercise,
     // its hints take over: the notes to play now glow brighter.
-    const guide = isPracticing() ? practiceGuide() : songGuide();
+    const guide = currentGuide();
     const soft = guide ? guide.soft ?? new Set()
         : scale ? new Set(scaleNotes(settings.scaleRoot, settings.scaleType).map(n => n.pc)) : new Set();
     for (let m = LOWEST; m <= HIGHEST; m++) {

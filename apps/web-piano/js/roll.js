@@ -1,9 +1,9 @@
 // === Piano roll (notes rising from the keys) and note-usage histogram ===
 
-import { subscribe } from "./piano.js?v=20261101b";
-import { settings, onSettingChange } from "./settings.js?v=20261101b";
-import { keyGeometry, onKeyboardLayout } from "./keyboard.js?v=20261101b";
-import { noteColor, rgbString } from "./colors.js?v=20261101b";
+import { subscribe } from "./piano.js?v=20261101n";
+import { settings, onSettingChange } from "./settings.js?v=20261101n";
+import { keyGeometry, onKeyboardLayout } from "./keyboard.js?v=20261101n";
+import { noteColor, rgbString } from "./colors.js?v=20261101n";
 
 const SPEED = 0.09;     // CSS pixels per millisecond
 const MAX_NOTES = 2000;

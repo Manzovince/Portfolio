@@ -3,9 +3,9 @@
 // Protocol understood by the ESP32 firmware: "SET <led> <r> <g> <b>" and "OFF <led>".
 // Frames come from lights.js; only the LEDs that changed are sent.
 
-import { settings, onSettingChange } from "./settings.js?v=20261101b";
-import { computeFrame, lightsAnimating, onLightsChange } from "./lights.js?v=20261101b";
-import { LOWEST, HIGHEST } from "./piano.js?v=20261101b";
+import { settings, onSettingChange } from "./settings.js?v=20261101n";
+import { computeFrame, lightsAnimating, onLightsChange } from "./lights.js?v=20261101n";
+import { LOWEST, HIGHEST } from "./piano.js?v=20261101n";
 
 // LED index under each key, A0 to C8, measured on the strip (two LEDs per key)
 const NOTE_TO_LED = [

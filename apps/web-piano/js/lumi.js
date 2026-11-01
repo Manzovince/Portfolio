@@ -6,11 +6,13 @@
 //   at github.com/benob/LUMI-lights.
 // - Plain MIDI lights single keys: a note-on picks a colour from the program's
 //   128-colour table by velocity, polyphonic aftertouch sets that key's
-//   brightness, a note-off gives the key back to the LUMI.
+//   brightness, a note-off gives the key back to the LUMI. Used only to show
+//   the notes to play during an exercise or while learning a song.
 
-import { settings, onSettingChange } from "./settings.js?v=20261101b";
-import { midiAccess, onMidiAccess, connectMidi } from "./midi.js?v=20261101b";
-import { computeFrame, lightsAnimating, onLightsChange } from "./lights.js?v=20261101b";
+import { settings, onSettingChange } from "./settings.js?v=20261101n";
+import { midiAccess, onMidiAccess, connectMidi } from "./midi.js?v=20261101n";
+import { onLightsChange, guideActive, currentGuide } from "./lights.js?v=20261101n";
+import { pitchClass } from "./theory.js?v=20261101n";
 
 const ROLI = [0x00, 0x21, 0x10];
 const LUMI_ID = 0x37;
@@ -100,11 +102,12 @@ export const COMMANDS = {
 function commandFor(name) {
     switch (name) {
         case "brightness": return COMMANDS.brightness(Math.round(settings.lumiBrightness * 100));
-        case "mode": return COMMANDS.mode(Math.max(0, LUMI_MODES.indexOf(settings.lumiMode)));
-        case "color": return COMMANDS.color(0, hexToRgb(settings.lumiColor));
-        case "rootColor": return COMMANDS.color(1, hexToRgb(settings.lumiRootColor));
-        case "scale": return COMMANDS.scale(LUMI_SCALES[settings.scaleType] ?? CHROMATIC);
-        case "key": return COMMANDS.key(settings.scaleRoot);
+        // While a guide is on, the settings below give the piano look (see keysActive)
+        case "mode": return COMMANDS.mode(guideLook ? SINGLE_MODE : Math.max(0, LUMI_MODES.indexOf(settings.lumiMode)));
+        case "color": return COMMANDS.color(0, guideLook ? PIANO_WHITE : hexToRgb(settings.lumiColor));
+        case "rootColor": return COMMANDS.color(1, guideLook ? PIANO_WHITE : hexToRgb(settings.lumiRootColor));
+        case "scale": return COMMANDS.scale(guideLook ? LUMI_SCALES.major : LUMI_SCALES[settings.scaleType] ?? CHROMATIC);
+        case "key": return COMMANDS.key(guideLook ? 0 : settings.scaleRoot);
         case "octave": return COMMANDS.octave(settings.lumiOctave);
     }
 }
@@ -119,13 +122,15 @@ function send(bytes) {
 function queue(...names) {
     if (state !== "connected") return;
     names.forEach(name => {
-        if ((name === "scale" || name === "key") && !settings.lumiScaleSync) return;
+        if ((name === "scale" || name === "key") && !settings.lumiScaleSync && !guideLook && !leavingGuide) return;
         dirty.add(name);
     });
     clearTimeout(flushTimer);
     flushTimer = setTimeout(() => {
+        if (dirty.has("mode")) modeSettlesAt = performance.now() + 120;
         dirty.forEach(name => send(commandFor(name)));
         dirty.clear();
+        leavingGuide = false;
     }, 40);
 }
 
@@ -133,7 +138,7 @@ const pushAll = () => queue("mode", "brightness", "color", "rootColor", "octave"
 
 // === Single keys ===
 
-let lit = new Map();      // midi -> "colour brightness" last sent
+let lit = new Map();      // midi -> palette index last sent
 let frameRequested = false;
 const nearest = new Map(); // "r,g,b" -> palette index
 
@@ -155,32 +160,87 @@ export function paletteIndex({ r, g, b }) {
     return nearest.get(key);
 }
 
-const keysActive = () => state === "connected" && settings.lumiKeyLights;
+// While a guide is on, the notes to play are lit in their own colour. The LUMI
+// only shows lights sent from here in its single colour mode (its other modes
+// paint over them), so meanwhile it is set to look like its piano mode: single
+// colour, C major (the white keys) in a soft white. Its own settings come back after.
+const SINGLE_MODE = 1;
+const PIANO_WHITE = { r: 150, g: 150, b: 150 };
+const LOOK = ["mode", "color", "rootColor", "scale", "key"];
+const keysActive = () => state === "connected" && settings.lumiKeyLights && guideActive();
+let guideLook = false;   // the piano look is what the LUMI was last told
+let leavingGuide = false;
+let modeSettlesAt = 0;   // a mode change repaints the keys: light them only after it
+let lastStep = null;
+
+function onLights() {
+    if (state !== "connected") return;
+    const active = keysActive();
+    if (active !== guideLook) {
+        guideLook = active;
+        leavingGuide = !active;
+        queue(...LOOK);
+    }
+    if (active) requestKeys();
+    else if (lit.size) releaseKeys();
+}
+
+// Notes to play now that fall on the LUMI's keys
+function notesToPlay() {
+    const guide = currentGuide();
+    const lo = lumiLowest(), hi = lo + lumiKeyCount() - 1;
+    const notes = new Set();
+    for (let midi = lo; midi <= hi; midi++) {
+        if (guide?.midis?.has(midi) || guide?.strong?.has(pitchClass(midi))) notes.add(midi);
+    }
+    return notes;
+}
+
+const lightKey = (midi, colour) => {
+    sendRaw([0x90, midi, colour]);
+    sendRaw([0xa0, midi, 127]); // full brightness
+};
 
 function renderKeys() {
     frameRequested = false;
     if (!keysActive()) return;
-    const now = performance.now();
-    const frame = computeFrame(now, { scale: false });
-    const lo = lumiLowest(), hi = lo + lumiKeyCount() - 1;
-    const messages = [];
-    for (let midi = lo; midi <= hi; midi++) {
-        const c = frame.get(midi);
-        const peak = c ? Math.max(c.r, c.g, c.b) : 0;
-        const value = peak ? `${paletteIndex(c)} ${Math.max(1, Math.round(peak / 255 * 127))}` : null;
-        if ((lit.get(midi) ?? null) === value) continue;
-        if (value) {
-            const [colour, level] = value.split(" ").map(Number);
-            messages.push([0x90, midi, colour], [0xa0, midi, level]);
-            lit.set(midi, value);
-        } else {
-            messages.push([0x80, midi, 0]);
-            lit.delete(midi);
-        }
+    const wait = dirty.has("mode") ? 200 : modeSettlesAt - performance.now();
+    if (wait > 0) {
+        setTimeout(requestKeys, wait);
+        return;
     }
-    messages.forEach(sendRaw);
-    if (lightsAnimating(now)) requestKeys();
+    const colour = paletteIndex(hexToRgb(settings.lumiGuideColor));
+    const wanted = notesToPlay();
+    // A song moving on to the same note again: blink it so the step shows
+    const step = currentGuide()?.midis ?? null;
+    if (step && lastStep && step !== lastStep) {
+        wanted.forEach(midi => {
+            if (!lit.has(midi)) return;
+            sendRaw([0x80, midi, 0]);
+            lit.delete(midi);
+        });
+        lastStep = step;
+        setTimeout(requestKeys, 90);
+        return;
+    }
+    lastStep = step;
+    // Switch off first, so a key that moves is never lit twice
+    lit.forEach((_, midi) => {
+        if (wanted.has(midi)) return;
+        sendRaw([0x80, midi, 0]);
+        lit.delete(midi);
+    });
+    wanted.forEach(midi => {
+        if (lit.get(midi) === colour) return;
+        lightKey(midi, colour);
+        lit.set(midi, colour);
+    });
 }
+
+// MIDI messages can get lost (Bluetooth especially): light the keys again now and then
+setInterval(() => {
+    if (keysActive()) lit.forEach((colour, midi) => lightKey(midi, colour));
+}, 2000);
 
 function requestKeys() {
     if (frameRequested || !keysActive()) return;
@@ -232,7 +292,7 @@ export const retryLumi = () => connectMidi(true);
 
 export function initLumi() {
     onMidiAccess(refresh);
-    onLightsChange(requestKeys);
+    onLightsChange(onLights);
     refresh();
 }
 
@@ -249,7 +309,8 @@ onSettingChange(key => {
         return refresh();
     }
     if (key === "lumiBlocks") return setState(state);
-    if (key === "lumiKeyLights") settings.lumiKeyLights ? requestKeys() : releaseKeys();
+    if (key === "lumiKeyLights") onLights();
+    if (key === "lumiGuideColor") requestKeys();
     if (key === "lumiOctave") {
         releaseKeys();
         requestKeys();
