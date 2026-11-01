@@ -356,26 +356,52 @@ const SHOP=[
   {id:'perenoel',slot:'tete',n:'Bonnet de Père Noël',p:0,noel:1,at:[0,3],map:["w.........",".rr.......","..rrrrr...","..rrrrrrr.",".wwwwwwwww"],pal:{r:'#d8303a',w:'#ffffff'}},
   {id:'bois',slot:'tete',n:'Bois de renne',p:60,noel:1,at:[1,0],map:["b.b...b.b",".bb...bb.","..b...b.."],pal:{b:'#8a5a3a'}},
   {id:'echarpenoel',slot:'cou',n:'Écharpe de Noël',p:60,noel:1,at:[2,12],map:["sssssssss","sGsGsGsGs",".ss......",".sG......"],pal:{s:'#d8303a',G:'#3a8a4a'}},
+  {id:'lapin',slot:'animal',n:'Lapin',p:0},
+  {id:'souris',slot:'animal',n:'Souris',p:200,pal:{w:'#c4c0c4',s:'#a09ca4',p:'#f0a0b0'},
+    ears:["",".www...www..","wpppw.wpppw","wpppw.wpppw",".www...www..","..ww...ww...","..wwwwwww"]},
+  {id:'chat',slot:'animal',n:'Chat roux',p:250,pal:{w:'#f2ac64',s:'#cc8040',p:'#f08a8a',k:'#d88a44'},face:[[0,5,'k'],[0,7,'k'],[1,6,'k']],
+    ears:["","","","..w.....w","..ww...ww","..wpw.wpw","..wwwwwww"]},
+  {id:'chatnoir',slot:'animal',n:'Chat noir',p:300,pal:{w:'#44424c',s:'#2e2c34',p:'#f0a0a8',e:'#f2d24a',l:'#44424c'},
+    ears:["","","","..w.....w","..ww...ww","..wpw.wpw","..wwwwwww"]},
+  {id:'chien',slot:'animal',n:'Chien',p:250,pal:{w:'#eedab4',s:'#cbb086',p:'#3a2a2a',k:'#9a6a44'},face:[[1,3,'k'],[1,4,'k'],[2,3,'k'],[2,4,'k'],[3,4,'k']],
+    ears:["","","","..kk....kk",".kkk....kkk",".kk......kk","..wwwwwww"]},
+  {id:'renard',slot:'animal',n:'Renard',p:400,pal:{w:'#e8803c',s:'#c0602a',p:'#2a2224',k:'#3a2a2a',m:'#fbf4ea'},face:[[3,10,'m'],[4,7,'m'],[4,8,'m'],[4,9,'m'],[4,10,'m'],[5,6,'m'],[5,7,'m'],[5,8,'m'],[5,9,'m']],leg:'#3a2a2a',
+    ears:["","","..k.....k","..wk...kw","..ww...ww","..wpw.wpw","..wwwwwww"]},
+  {id:'ours',slot:'animal',n:'Ours',p:400,pal:{w:'#9a6a48',s:'#7a5036',p:'#2a2224',m:'#d0a880',h:'#9a6a48'},face:[[3,9,'m'],[3,10,'m'],[4,9,'m'],[4,10,'m']],
+    ears:["","","","",".ww.....ww",".wpw...wpw","..wwwwwww"]},
+  {id:'koala',slot:'animal',n:'Koala',p:500,pal:{w:'#a8a8b2',s:'#888894',p:'#2a2a30',k:'#2a2a30',W:'#f2f0ee'},face:[[3,10,'k'],[4,10,'k']],
+    ears:["","","ww.......ww","wWWw...wWWw","wWWw...wWWw",".www...www.","..wwwwwww"]},
+  {id:'panda',slot:'animal',n:'Panda',p:600,pal:{w:'#f6f4ee',s:'#d8d4cc',p:'#2a2a30',k:'#2a2a30',e:'#ffffff'},face:[[1,8,'k'],[1,9,'k'],[2,8,'k'],[2,10,'k'],[3,8,'k'],[3,9,'k']],leg:'#2a2a30',
+    ears:["","","","",".kk.....kk",".kkk...kkk","..wwwwwww"]},
   {id:'foulard',slot:'cou',n:'Foulard de marin',p:90,at:[2,12],map:["fffffffff","..fffff..","...fff...","....f...."],pal:{f:'#3a8ac0'}}
 ];
 const SHOPI=Object.fromEntries(SHOP.map(i=>[i.id,i]));
-SHOP.forEach(i=>{if(i.map)i.spr=mapSprite(i.map,i.pal,!i.flat)});
+SHOP.forEach(i=>{if(i.map)i.spr=mapSprite(i.map,i.pal,!i.flat);if(i.ears)i.ears=i.ears.map(r=>r.padStart(r.length+1,'.'))});
 let closet=store.get('closet',null)||{own:['rouge'],wear:{corps:'rouge'}};
 const saveCloset=()=>store.set('closet',closet);
 const OX=3,OY=3;
 function dressed(ear,blink,wear){
   const[c,g]=canvasOf(13+OX*2,20+OY*2);
-  g.drawImage(rabbitSprite(ear,blink,SHOPI[wear.corps]||SHOP[0]),OX,OY);
+  g.drawImage(rabbitSprite(ear,blink,SHOPI[wear.corps]||SHOP[0],SHOPI[wear.animal]),OX,OY);
   for(const slot of['cou','yeux','tete']){const it=SHOPI[wear[slot]];if(it)g.drawImage(it.spr,OX+it.at[0]-(it.flat?0:1),OY+it.at[1]-(it.flat?0:1))}
   return c;
 }
 let RAB=[];
 function buildRabbit(){RAB=[0,1].flatMap(e=>[0,1].map(b=>dressed(e,b,closet.wear)))}
-function rabbitSprite(ear,blink,corps){
-  const body=RAB_BODY.slice();if(blink)body[2]=body[2].replace('e','o');
+function rabbitSprite(ear,blink,corps,an){
+  const body=RAB_BODY.slice();
+  if(an&&an.face)for(const[y,x,ch]of an.face)body[y]=body[y].slice(0,x)+ch+body[y].slice(x+1);
+  if(blink)body[2]=body[2].replace('e','o');
+  if(an&&an.ears)body[11]=body[11].replace(/w/g,'l');
   if(corps&&corps.stripe)for(const i of[7,9])body[i]=body[i].replace(/[rR]/g,'n');
-  const pal={...RAB_PAL,n:corps&&corps.stripe||'#000'};if(corps){pal.r=corps.pal[0];pal.R=corps.pal[1]}
-  return mapSprite(EARS[ear].concat(body),pal,false);
+  const pal={...RAB_PAL,...(an&&an.pal),n:corps&&corps.stripe||'#000'};if(corps){pal.r=corps.pal[0];pal.R=corps.pal[1]}
+  if(!an||!an.ears)return mapSprite(EARS[ear].concat(body),pal,false);
+  // autre animal : oreilles contourées automatiquement, puis le corps du lapin par-dessus
+  if(!an.pal.h)pal.h=pal.w;pal.l=an.leg||pal.w;
+  const[c,g]=canvasOf(13,20);
+  g.drawImage(mapSprite(an.ears,pal),-1,-1);
+  g.drawImage(mapSprite(Array(7).fill('.').concat(body),pal,false),0,0);
+  return c;
 }
 const RAB_H=20, HAND=[10,14];
 const BUCKET=mapSprite([
@@ -482,7 +508,21 @@ const SP=[
   {id:'bar',n:'Bar',rar:'u',w:9,cm:[30,80],wd:'mer',look:{len:16,h:5,body:'#b8c0c4',back:'#5a6670',belly:'#f0f2f2',fin:'#8a949a'}},
   {id:'dorade',n:'Dorade royale',rar:'u',w:8,cm:[20,50],wd:'mer',look:{len:13,h:7,body:'#d0ccc0',back:'#8a8a80',belly:'#f4f2ea',fin:'#e0b840',pat:'shine'}},
   {id:'crabe',n:'Crabe',rar:'u',w:8,cm:[6,18],wd:'mer',quip:'Il est reparti de travers, vexé.',map:["r.......r","rr.k.k.rr",".rrrrrrr.","rrRRRRRrr",".r.r.r.r."],pal:{r:'#e0603a',R:'#c04a2a',k:OUT}},
-  {id:'poulpe',n:'Poulpe',rar:'r',w:3,cm:[20,60],wd:'mer',quip:'Il t’a rendu ta ligne avec huit bras.',map:["..ppppp..",".ppppppp.",".pkpppkp.",".ppppppp.","p.p.p.p.p","p.p.p.p.p",".p.p.p.p."],pal:{p:'#c86a9a',k:OUT}},
+  {id:'poulpe',n:'Poulpe',rar:'r',w:3,cm:[20,60],wd:'mer',quip:'Il t’a rendu ta ligne avec huit bras.',map:[
+    "....ppppp......",
+    "..ppPPPPPpp....",
+    ".pPPWWPPPPPp...",
+    ".pPWPPPPPsPp...",
+    ".pPPPPsPPPPp...",
+    "..pPPPPPPPpp...",
+    "..pewppewpp....",
+    ".ppppppppppp...",
+    "pp.ppp.ppp.pp..",
+    "p.pp.pp.p.pp.p.",
+    "p.p..p..pp..p.p",
+    "pp..pp...p..pp.",
+    ".p.pp...pp...p.",
+    "..pp.....p..pp."],pal:{p:'#c8607e',P:'#e08a9e',W:'#f6c4cc',s:'#a8486a',e:OUT,w:'#fff6e8'}},
   {id:'hippocampe',n:'Hippocampe',rar:'e',w:1.2,cm:[6,18],wd:'mer',quip:'Chez eux, c’est le papa qui porte les bébés.',map:["..yy..",".yyyk.","..yyyy","..yy..",".yyy..","yyyy..",".yyy..","..yy..","...y.y","....y."],pal:{y:'#f2b440',k:OUT}},
   {id:'raie',n:'Raie',rar:'e',w:1.2,cm:[40,150],wd:'mer',quip:'Elle volait sous l’eau.',map:["....gg....","..gggggg..","gggggggggg",".gGgggggG.","...gggg...",".....g....","......g...","......g..."],pal:{g:'#8a9a9a',G:'#b0bcbc'}},
   {id:'coquillage',n:'Coquillage',rar:'j',w:4,wd:'mer',quip:'On entend la mer dedans. Normal.',map:["..www..",".wWwWw.","wWwWwWw","wwwwwww",".wwwww.","..www.."],pal:{w:'#f4d8c8',W:'#e0a890'}},
@@ -495,14 +535,48 @@ const SP=[
   {id:'thon',n:'Thon rouge',rar:'u',w:8,cm:[60,200],wd:'large',look:{len:18,h:7,body:'#5a7a9a',back:'#1e3450',belly:'#e8ecf0',fin:'#f2c64a'}},
   {id:'stjacques',n:'Coquille Saint-Jacques',rar:'u',w:6,cm:[8,15],wd:'large',quip:'Elle claque des valves, outrée.',map:["..wwwww..",".wWwWwWw.","wWwWwWwWw","wwwwwwwww",".wwwwwww.","...www..."],pal:{w:'#f0b890',W:'#d88a68'}},
   {id:'volant',n:'Poisson volant',rar:'r',w:4,cm:[20,40],wd:'large',quip:'Il a failli s’envoler avec la ligne.',look:{len:12,h:4,body:'#9ac0e0',back:'#3a6a9a',belly:'#f0f6fa',fin:'#cfe6f4',shape:'wing'}},
-  {id:'meduse',n:'Méduse',rar:'r',w:4,wd:'large',quip:'Elle n’a pas piqué. Cette fois.',map:["..pppp..",".pPPPPp.","pPPPPPPp","pppppppp",".p.p.p.p","p.p.p.p.",".p...p.."],pal:{p:'#c8a0e0',P:'#e8d0f4'}},
+  {id:'meduse',n:'Méduse',rar:'r',w:4,wd:'large',quip:'Elle n’a pas piqué. Cette fois.',map:[
+    "....ppppp....",
+    "..ppPPPPPpp..",
+    ".pPWWPPPPPPp.",
+    ".pWWPPoPPPPp.",
+    "pPWPPoooPoPPp",
+    "pPPPoPPPoooPp",
+    "dpdpdpdpdpdpd",
+    ".t..aAa...t..",
+    "..t.aAa..t...",
+    ".t...aAa..t..",
+    "..t..aAa...t.",
+    ".t..aAa...t..",
+    "..t.aa.....t.",
+    "...t.a....t..",
+    "..t.......t.."],pal:{p:'#a87cd0',P:'#cfaeea',W:'#f6eefc',o:'#f09ac4',d:'#8a5cb0',t:'#c4a4e0',a:'#e09cd0',A:'#f6cce6'}},
   {id:'espadon',n:'Espadon',rar:'e',w:1.2,cm:[120,300],wd:'large',quip:'Il a failli percer la barque.',look:{len:24,h:6,body:'#7a8aa0',back:'#2e3e58',belly:'#e4e8ee',fin:'#4a5a78',shape:'sword'}},
-  {id:'calmar',n:'Calmar',rar:'e',w:1.2,cm:[30,100],wd:'large',quip:'Il a laissé une tache d’encre sur le pull.',map:["......rrrr..","rr.rrrrrrRr.","rrrrrrrrkrRr","rr.rrrrrrRr.","......rrrr.."],pal:{r:'#e09a8a',R:'#c87a6a',k:OUT}},
-  {id:'nautile',n:'Nautile',rar:'e',w:1,cm:[12,25],wd:'large',quip:'La même coquille depuis 500 millions d’années.',map:["..wwww..",".wrwwrw.","wrwwwwrw","wwrrwwwk","wrwwrww.",".wwwww.."],pal:{w:'#f4ece0',r:'#c87a4a',k:OUT}},
+  {id:'calmar',n:'Calmar',rar:'e',w:1.2,cm:[30,100],wd:'large',quip:'Il a laissé une tache d’encre sur le pull.',map:[
+    "................ff....",
+    "..............ffFf....",
+    "........mmmmmmmmmmFf..",
+    "aaa.ahhmMMMMMMMMMMmmm.",
+    "..aahhkhMMsMMMsMMMMmmm",
+    "aaaahhhhmmmmsmmmmmmmm.",
+    ".a.a....mmmmmmmmmmFf..",
+    "cca...........ffFf....",
+    "................ff...."],pal:{m:'#e0806e',M:'#f2ae9c',s:'#c0504e',f:'#cc6e5e',F:'#f4c0b0',h:'#d27462',k:OUT,a:'#e89a88',c:'#b85a4c'}},
+  {id:'nautile',n:'Nautile',rar:'e',w:1,cm:[12,25],wd:'large',quip:'La même coquille depuis 500 millions d’années.',map:[
+    "......wWWWWw...",
+    "....wWrWwrWwrw.",
+    "...wrwwrwwrwwrw",
+    "..hwwrwwrwwrwrw",
+    ".hhhwwwwnnwwrww",
+    "tkhhwwwnnNnwwrw",
+    "tthhhwwwnnwwwrw",
+    "t.thhwwwwwwwrww",
+    ".t.thwwwwwwwww.",
+    "..t..wwwwwwww..",
+    ".......www....."],pal:{w:'#f4ece0',W:'#fffaf0',r:'#b8643c',n:'#d8c8b4',N:'#8a6a50',h:'#a8705a',k:OUT,t:'#c4907a'}},
   {id:'kraken',n:'Bébé kraken',rar:'l',w:.3,cm:[20,40],wd:'large',quip:'Un bébé. La maman n’est pas loin…',map:["...pppp...","..pppppp..",".pwkppwkp.",".pppppppp.","pp.pp.pp.p","p..p..p..p"],pal:{p:'#7a5ab0',w:'#ffffff',k:OUT}},
   {id:'carte',n:'Carte au trésor',rar:'l',w:.3,wd:'large',quip:'Le X est… quelque part par là.',map:["ppppppppp","pPPpPPPPp","pPPPPrPPp","pPpPPPPPp","ppppppppp"],pal:{p:'#c8a870',P:'#ecdcb0',r:'#e8605a'}},
   {id:'bouee',n:'Bouée',rar:'j',w:3,wd:'large',quip:'Elle flottait, comme prévu.',map:[".rwr.","r...r","w...w","r...r",".rwr."],pal:{r:'#e8605a',w:'#f4f0e6'}},
-  {id:'rame',n:'Rame',rar:'j',w:3,wd:'large',quip:'Pratique. Il en manquait une.',map:["..........bbb.","wwwwwwwwwwbbbb","..........bbb."],pal:{w:'#a0764e',b:'#c09468'}},
   // ---- Plage tropicale
   {id:'clown',n:'Poisson-clown',rar:'c',w:20,cm:[6,11],wd:'tropique',look:{len:10,h:5,body:'#f08a2a',back:'#f08a2a',belly:'#f8a64a',fin:'#2a2a30',pat:'clown'}},
   {id:'chirurgien',n:'Chirurgien bleu',rar:'c',w:18,cm:[12,30],wd:'tropique',look:{len:12,h:6,body:'#3a7ad8',back:'#1a2a6a',belly:'#5a9ae8',fin:'#f2d040'}},
@@ -513,7 +587,20 @@ const SP=[
   {id:'ballon',n:'Poisson-ballon',rar:'r',w:4,cm:[15,40],wd:'tropique',quip:'Il s’est gonflé de vexation.',look:{len:11,h:10,body:'#e8d8a0',back:'#a89060',belly:'#fff8e0',fin:'#c8a868',pat:'spots'}},
   {id:'conque',n:'Conque',rar:'r',w:3,wd:'tropique',quip:'Souffle dedans : ça fait « tuuut ».',map:["....pp....","..ppPPpp..",".pPPwwPPp.","pPPwwwwPPp",".pppPPppp.","...ppp....","....p....."],pal:{p:'#f0c0a0',P:'#e89a7a',w:'#fbe8e0'}},
   {id:'tortuemer',n:'Tortue de mer',rar:'e',w:1.2,cm:[60,120],wd:'tropique',quip:'Elle a 80 ans et s’en fiche.',map:["..f.......f..","...bbbbbbb...","..bBbBbBbBb.h",".bBBbBBbBBbhk","..bbbbbbbbb.h","..f.......f.."],pal:{b:'#5a8a4a',B:'#8ab86a',h:'#a8c88a',f:'#a8c88a',k:OUT}},
-  {id:'manta',n:'Raie manta',rar:'l',w:.3,cm:[300,600],wd:'tropique',quip:'Elle a souri, puis elle est repartie planer.',map:["g.............g","gg...........gg",".gggggggggggggg.","..gGggggggggGg..","....ggggggg.....","......w.w.......",".......g........",".......g........"],pal:{g:'#3a4a5a',G:'#5a6a7a',w:'#f4f4f0'}},
+  {id:'manta',n:'Raie manta',rar:'l',w:.3,cm:[300,600],wd:'tropique',quip:'Elle a souri, puis elle est repartie planer.',map:[
+    ".......hh...hh.......",
+    ".......hgggggh.......",
+    "......dgGGGGGgd......",
+    "....ddgGwwgwwGgdd....",
+    "..ddgggGwgggwGgggdd..",
+    "ddggggggGgggGggggggdd",
+    ".dddggggggggggggggdd.",
+    "...dddgggggggggddd...",
+    ".....ddgggggggdd.....",
+    ".......ddgggdd.......",
+    ".........dgd.........",
+    "..........d..........",
+    "..........d.........."],pal:{d:'#26364a',g:'#384c64',G:'#58708e',h:'#2e4058',w:'#e6eef2'}},
   {id:'perle',n:'Perle',rar:'l',w:.3,wd:'tropique',quip:'Parfaitement ronde.',map:["..ppp..",".pPPpp.","pPWPppp","ppPpppp","pppppps",".pppps.","..sss.."],pal:{p:'#f0ece4',P:'#fffaf4',W:'#ffffff',s:'#c8c0d0'}},
   {id:'coco',n:'Noix de coco',rar:'j',w:4,wd:'tropique',quip:'Il manque juste une paille.',map:[".bbbb.","bBbbbb","bbbkbb","bbbbbb",".bbbb."],pal:{b:'#6a4a30',B:'#8a6a48',k:'#3a2a1a'}},
   {id:'boule',n:'Boule de Noël',rar:'j',w:5,wd:'*',noel:1,quip:'Elle brille encore.',map:["..y..",".rrr.","rWrrr","rrrrr",".rrr."],pal:{y:'#f2c64a',r:'#d8303a',W:'#ffffff'}},
@@ -1390,19 +1477,19 @@ function showTab(tab){
   }else if(tab==='boutique'){
     const L=loadLog();
     B.innerHTML=`<div class="stats"><div class="stat"><b class="price">${L.coins}</b>pièces</div></div><p class="lockl" style="margin:0 0 6px">Chaque prise rapporte des pièces : plus elle est rare, plus elle vaut cher. Les ballons cadeaux qui passent dans le ciel aussi.</p>`;
-    for(const[slot,name]of[['tete','Chapeaux'],['yeux','Lunettes'],['cou','Autour du cou'],['corps','Pulls']]){
+    for(const[slot,name]of[['animal','Animaux'],['tete','Chapeaux'],['yeux','Lunettes'],['cou','Autour du cou'],['corps','Pulls']]){
       const h=document.createElement('h3');h.className='wh';h.textContent=name;B.appendChild(h);
       const G=document.createElement('div');G.className='grid';B.appendChild(G);
       for(const it of SHOP.filter(i=>i.slot===slot&&(!i.noel||NOEL||closet.own.includes(i.id)))){
-        const own=closet.own.includes(it.id),worn=closet.wear[slot]===it.id,c=document.createElement('div');
+        const own=closet.own.includes(it.id),worn=(closet.wear[slot]||(slot==='animal'?'lapin':''))===it.id,c=document.createElement('div');
         c.className='card shop'+(worn?' worn':'')+(!own&&L.coins<it.p?' poor':'');
         c.appendChild(bigSprite(dressed(0,0,{...closet.wear,[slot]:it.id}),3));
         const info=document.createElement('div');
-        info.innerHTML=`<div class="nm">${it.n}</div><div class="ms">${worn?(slot==='corps'?'porté':'porté · cliquer pour enlever'):own?'à toi · cliquer pour porter':`<span class="price">${it.p} pièces</span>`}</div>`;
+        info.innerHTML=`<div class="nm">${it.n}</div><div class="ms">${worn?(slot==='corps'||slot==='animal'?'porté':'porté · cliquer pour enlever'):own?'à toi · cliquer pour porter':`<span class="price">${it.p} pièces</span>`}</div>`;
         c.appendChild(info);
         c.onclick=()=>{
           if(!own){const L2=loadLog();if(L2.coins<it.p)return;L2.coins-=it.p;store.set('log',L2);refreshCount();closet.own.push(it.id)}
-          if(worn&&slot!=='corps')delete closet.wear[slot];else closet.wear[slot]=it.id;
+          if(worn&&slot!=='corps'&&slot!=='animal')delete closet.wear[slot];else closet.wear[slot]=it.id;
           saveCloset();buildRabbit();showTab('boutique');
         };
         G.appendChild(c);
