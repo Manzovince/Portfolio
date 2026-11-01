@@ -334,6 +334,32 @@ const SP=[
   {id:'koi',n:'Carpe koï',rar:'e',w:1.8,cm:[30,72],when:'jour',look:{len:15,h:6,body:'#f6f2ec',back:'#ea742c',belly:'#ffffff',fin:'#f4d0c0',pat:'koi'}},
   {id:'silure',n:'Silure',rar:'e',w:1.6,cm:[80,230],when:'nuit',look:{len:24,h:6,body:'#5c5c56',back:'#34342e',belly:'#bab6a6',fin:'#4a4a44',shape:'cat'}},
   {id:'dore',n:'Poisson doré',rar:'l',w:.5,cm:[14,26],look:{len:12,h:6,body:'#f4c22c',back:'#c48c14',belly:'#ffe88c',fin:'#ffae2a',pat:'shine'}},
+  {id:'poissonrouge',n:'Poisson rouge',rar:'u',w:3,cm:[6,20],when:'jour',quip:'Échappé d’un bocal, sûrement.',look:{len:10,h:5,body:'#f07a2a',back:'#d05a1a',belly:'#ffc080',fin:'#f8a060'}},
+  {id:'grenouille',n:'Grenouille',rar:'u',w:4,cm:[5,12],when:'nuit',quip:'Elle n’avait rien demandé.',map:[
+    ".gg...gg.","gwkg.gwkg","ggggggggg","gGGGGGGGg",".gLLLLLg.","gg.ggg.gg"],pal:{g:'#5f9a4a',G:'#7fb85a',w:'#ffffff',k:OUT,L:'#c8d890'}},
+  {id:'canard',n:'Canard en plastique',rar:'r',w:1.5,quip:'Couic.',map:[
+    "...yyy....","..yyyyy...","..yykyyoo.","..yyyyy...","y..yyy....","yyyyyyyyy.","yyyYYYyyy.",".yyyyyyy.."],pal:{y:'#f6d03a',Y:'#e0b020',k:OUT,o:'#f08a2a'}},
+  {id:'tortue',n:'Cistude',rar:'r',w:1.5,quip:'Elle est repartie, sans se presser.',map:[
+    "...bbbbb.....","..bBbBbBb....",".bBbBbBbBbhkh",".bbbbbbbbbhhh","..f.....f...."],pal:{b:'#6a7a3a',B:'#8a9a4a',h:'#9aaa6a',k:OUT,f:'#9aaa6a'}},
+  {id:'manette',n:'Manette de jeu',rar:'r',w:1,quip:'Il manque des piles.',map:[
+    ".ggggggggg.","ggkgggggrgg","gkkkgggbgyg","ggkgggggggg",".ggg...ggg."],pal:{g:'#6a6a7a',k:'#2a2a34',r:'#e8605a',b:'#5a8ad0',y:'#f2c64a'}},
+  {id:'ancre',n:'Ancre',rar:'r',w:1.2,quip:'Bien trop grosse pour ce lac.',map:[
+    "...rrr...","...r.r...","...rrr...",".rrrrrrr.","....r....","....r....","r...r...r","rr..r..rr",".rr.r.rr.","..rrrrr.."],pal:{r:'#7a8088'}},
+  {id:'esturgeon',n:'Esturgeon',rar:'e',w:.8,cm:[90,250],quip:'Un fossile vivant.',look:{len:24,h:5,body:'#8a8a7a',back:'#5a5a50',belly:'#d8d4c4',fin:'#6a6a5a',pat:'plates',shape:'long'}},
+  {id:'squelette',n:'Poisson-squelette',rar:'e',w:.8,cm:[15,40],when:'nuit',quip:'Il nage encore, on dirait.',map:[
+    "w....w.w.w.www.",".w...w.w.w.wkww","..wwwwwwwwwwwww",".w...w.w.w.wwww","w....w.w.w..ww."],pal:{w:'#ece8dc',k:OUT}},
+  {id:'carotte',n:'Carotte',rar:'e',w:.7,quip:'Le lapin est ravi.',map:[
+    "g.g..........",".ggoooooo....","gggoOoooooooo",".ggoooooo....","g.g.........."],pal:{g:'#6aa04a',o:'#f08a2a',O:'#f8b060'}},
+  {id:'pane',n:'Poisson pané',rar:'e',w:.6,quip:'Déjà prêt à cuire.',map:[
+    "...bbbbbbb..","b.bBbbbBbbb.","bbbbbBbbbbbb","b.bbBbbbbBb.","...bbbbbbb.."],pal:{b:'#d8a050',B:'#b07a30'}},
+  {id:'etoile',n:'Poisson étoilé',rar:'l',w:.35,cm:[10,20],when:'nuit',quip:'Tombé du ciel cette nuit.',look:{len:13,h:6,body:'#2a3a6a',back:'#1a2448',belly:'#4a5a8a',fin:'#6a7ac0',pat:'stars'}},
+  {id:'nuage',n:'Poisson-nuage',rar:'l',w:.35,cm:[20,40],when:'jour',quip:'Il flottait un peu trop bas.',look:{len:13,h:7,body:'#fbfaf4',back:'#e6ecf0',belly:'#ffffff',fin:'#cfe0ec'}},
+  {id:'couronne',n:'Couronne engloutie',rar:'l',w:.3,quip:'Le roi du lac la cherchait.',map:[
+    "y....y....y","yy..yry..yy","yyyyyyyyyyy","yYrYYbYYrYy","yyyyyyyyyyy"],pal:{y:'#f2c64a',Y:'#ffe68a',r:'#e8605a',b:'#5a8ad0'}},
+  {id:'cle',n:'Clé rouillée',rar:'j',w:3,quip:'Elle ouvre quelque chose, quelque part.',map:[
+    ".ooo.......","o...o......","o...okkkkkk","o...o...k.k",".ooo......."],pal:{o:'#8a6038',k:'#a07848'}},
+  {id:'chaussette',n:'Chaussette',rar:'j',w:3,quip:'L’autre est sûrement dans le sèche-linge.',map:[
+    "wwww...","rrrr...","wwww...","rrrr...","wwww...","rrrrr..","wwwwwww","rrrrrrr",".rrrrr."],pal:{w:'#f4f0e6',r:'#e8605a'}},
   {id:'botte',n:'Vieille botte',rar:'j',w:4,map:[
     "..bbbb....","..bBbb....","..bBbb....","..bBbb....","..bbbb....","..bbbbbb..","..bbbbbbbb","..ssssssss"],pal:{b:'#6a4a3a',B:'#8a6a52',s:'#3a2a2a'}},
   {id:'branche',n:'Branche',rar:'j',w:4,map:[
@@ -365,6 +391,8 @@ function fishSprite(sp){
       if(L.pat==='scales'&&(x+y)%2===0&&v>.25&&v<.7)c=rgb(mix(hex(L.body),hex(L.back),.35));
       if(L.pat==='koi'&&koi.has(x+','+y))c=L.back;
       if(L.pat==='shine'&&v<.45&&(x+y*2)%5===0)c='#fff6c8';
+      if(L.pat==='plates'&&v<.3&&x%3===1&&u>.1&&u<.9)c='#c8c4b4';
+      if(L.pat==='stars'&&spots.has(x+','+y))c=(x+y)%2?'#fff6c0':'#a8b8f0';
       return c;
     }
     // nageoires
@@ -502,6 +530,8 @@ function landFish(sp,active,perfect){
   if(cm)t2=(sp.id==='ecrevisse'?cm+' cm':cm+' cm')+' · '+t2;
   if(perfect)t2+=' · ferrage parfait';
   if(!active)t2+=' · ferré par le lapin';
+  if(sp.quip)t2=sp.quip+' · '+t2;
+  if(sp.id==='carotte')setTimeout(heart,400);
   if(sp.id==='bouteille')t2='« '+MSGS[R()*MSGS.length|0]+' »';
   toast(sp.spr,sp.n+(res.isNew?'<span class="tag new">nouveau</span>':res.record?'<span class="tag new">record</span>':''),t2,RAR[sp.rar].col,sp.id==='bouteille'?6500:3800);
 }
@@ -785,7 +815,7 @@ function showTab(tab){
       const e=L.sp[s.id],c=document.createElement('div');c.className='card'+(e?'':' inc');
       const img=bigSprite(e?s.spr:silhouette(s.spr),4);c.appendChild(img);
       const info=document.createElement('div');
-      info.innerHTML=e?`<div class="nm">${s.n}</div><div class="rr" style="color:${RAR[s.rar].col}">${RAR[s.rar].n}</div><div>×${e.n}${e.best?` · record ${e.best} cm`:''}</div>${e.perfect?`<div class="ms">${e.perfect} ferrage${e.perfect>1?'s':''} parfait${e.perfect>1?'s':''}</div>`:''}`
+      info.innerHTML=e?`<div class="nm">${s.n}</div><div class="rr" style="color:${RAR[s.rar].col}">${RAR[s.rar].n}</div><div>×${e.n}${e.best?` · record ${e.best} cm`:''}</div>${s.quip?`<div class="ms">${s.quip}</div>`:''}${e.perfect?`<div class="ms">${e.perfect} ferrage${e.perfect>1?'s':''} parfait${e.perfect>1?'s':''}</div>`:''}`
         :`<div class="nm">???</div><div class="rr">${RAR[s.rar].n}</div><div class="ms">${s.when?HINTS[s.when]:s.rar==='l'||s.rar==='e'?'ne se laisse pas prendre seul':'patience…'}</div>`;
       c.appendChild(info);G.appendChild(c);
     }
