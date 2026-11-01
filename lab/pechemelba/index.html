@@ -577,6 +577,8 @@ const SP=[
   {id:'kraken',n:'Bébé kraken',rar:'l',w:.3,cm:[20,40],wd:'large',quip:'Un bébé. La maman n’est pas loin…',map:["...pppp...","..pppppp..",".pwkppwkp.",".pppppppp.","pp.pp.pp.p","p..p..p..p"],pal:{p:'#7a5ab0',w:'#ffffff',k:OUT}},
   {id:'carte',n:'Carte au trésor',rar:'l',w:.3,wd:'large',quip:'Le X est… quelque part par là.',map:["ppppppppp","pPPpPPPPp","pPPPPrPPp","pPpPPPPPp","ppppppppp"],pal:{p:'#c8a870',P:'#ecdcb0',r:'#e8605a'}},
   {id:'bouee',n:'Bouée',rar:'j',w:3,wd:'large',quip:'Elle flottait, comme prévu.',map:[".rwr.","r...r","w...w","r...r",".rwr."],pal:{r:'#e8605a',w:'#f4f0e6'}},
+  {id:'canard',n:'Canard en plastique',rar:'j',w:2,wd:'large',quip:'Il a vu plus de pays que toi.',map:["....yyy...","...yWyyy..","...yyykoo.","....yyyoo.","y...yyy...","yyyyyyyyy.","yyWWyyyyyy",".yyyyyyyY.","..YYYYYY.."],pal:{y:'#f6d23a',Y:'#d8a820',W:'#fff6c0',k:OUT,o:'#f08a3a'}},
+  {id:'baudroie',n:'Poisson-lanterne',rar:'e',w:1,cm:[8,20],when:'nuit',wd:'large',quip:'Il a éclairé le fond de la barque toute la nuit.',map:[".......ssss...","....bbbs...s..","..bbbBBbb...LL","bbbbBBBBbbb.LL",".bbbbBBeBbbb..","bbbbbbbbbbwtw.","bbbbbbbbbm....",".bbbbbbbbbwtw.","..bbbbbbbbb..."],pal:{b:'#3a3446',B:'#57506a',e:'#f2e27a',s:'#6a6280',L:'#fff2a0',m:'#7a2a3a',w:'#f4f0e6',t:'#7a2a3a'}},
   // ---- Plage tropicale
   {id:'clown',n:'Poisson-clown',rar:'c',w:20,cm:[6,11],wd:'tropique',look:{len:10,h:5,body:'#f08a2a',back:'#f08a2a',belly:'#f8a64a',fin:'#2a2a30',pat:'clown'}},
   {id:'chirurgien',n:'Chirurgien bleu',rar:'c',w:18,cm:[12,30],wd:'tropique',look:{len:12,h:6,body:'#3a7ad8',back:'#1a2a6a',belly:'#5a9ae8',fin:'#f2d040'}},
@@ -602,7 +604,17 @@ const SP=[
     "..........d..........",
     "..........d.........."],pal:{d:'#26364a',g:'#384c64',G:'#58708e',h:'#2e4058',w:'#e6eef2'}},
   {id:'perle',n:'Perle',rar:'l',w:.3,wd:'tropique',quip:'Parfaitement ronde.',map:["..ppp..",".pPPpp.","pPWPppp","ppPpppp","pppppps",".pppps.","..sss.."],pal:{p:'#f0ece4',P:'#fffaf4',W:'#ffffff',s:'#c8c0d0'}},
+  {id:'megalodon',n:'Dent de mégalodon',rar:'l',w:.25,wd:'tropique',quip:'Le reste du requin n’est pas loin. Enfin, il y a trois millions d’années.',map:[".rrrrrrrrr.","rRRRRRRRRRr",".wWWWWWWWs.",".wWWWWWWss.","..wWWWWWs..","..wWWWWss..","...wWWWs...","...wWWss...","....wWs....","....ws....."],pal:{r:'#4a3e36',R:'#6a5a4a',w:'#c4c8cc',W:'#949aa2',s:'#62666e'}},
   {id:'coco',n:'Noix de coco',rar:'j',w:4,wd:'tropique',quip:'Il manque juste une paille.',map:[".bbbb.","bBbbbb","bbbkbb","bbbbbb",".bbbb."],pal:{b:'#6a4a30',B:'#8a6a48',k:'#3a2a1a'}},
+  {id:'poissonrouge',n:'Poisson rouge',rar:'c',w:9,cm:[6,18],wd:'jardin',look:{len:10,h:5,body:'#f08a2a',back:'#d8641a',belly:'#fbd08a',fin:'#f6a860'}},
+  {id:'medaka',n:'Médaka',rar:'c',w:8,cm:[3,4],wd:'jardin',look:{len:8,h:3,body:'#e8d8a0',back:'#c8b070',belly:'#faf2d8',fin:'#e8dcb4'}},
+  {id:'showa',n:'Koï Showa',rar:'u',w:5,cm:[30,65],wd:'jardin',look:{len:15,h:6,body:'#f6f2ec',back:'#2a2a30',belly:'#ffffff',fin:'#f4d0c0',pat:'koi'}},
+  {id:'tortuebassin',n:'Tortue de bassin',rar:'u',w:4,cm:[10,25],wd:'jardin',quip:'Elle a pris son temps pour mordre.',map:["...ssss....","..sSsSss...",".sSsSsSssgg","gssssssssgk",".gg....gg.."],pal:{s:'#5a7a4a',S:'#7a9a5a',g:'#8aa070',k:OUT}},
+  {id:'tancho',n:'Koï Tanchō',rar:'r',w:3,cm:[35,70],wd:'jardin',quip:'Un seul point rouge, comme un soleil levant.',look:{len:15,h:6,body:'#f8f6f2',back:'#e8e4dc',belly:'#ffffff',fin:'#f4e8e0',pat:'tancho'}},
+  {id:'salamandre',n:'Salamandre géante',rar:'e',w:1.2,cm:[60,140],wd:'jardin',when:'nuit',quip:'Elle était là bien avant le jardin.',look:{len:20,h:4,body:'#6a5a44',back:'#4a3e30',belly:'#9a8a6a',fin:'#5a4a38',shape:'eel',pat:'spots'}},
+  {id:'ogon',n:'Koï Ogon',rar:'l',w:.3,cm:[50,90],wd:'jardin',quip:'Elle brille comme une pièce au fond de l’eau.',look:{len:17,h:7,body:'#f2c64a',back:'#e0a826',belly:'#fbe8a0',fin:'#f6d880',pat:'shine'}},
+  {id:'origami',n:'Bateau en origami',rar:'j',w:3,wd:'jardin',quip:'Quelqu’un l’a plié avec soin.',map:[".....p.....","....pPP....","...pPPPP...","wwwwwwwwwww",".wWwwwwwWw.","..wwwwwww.."],pal:{p:'#f6c0cc',P:'#e09aae',w:'#f8d4dc',W:'#e09aae'}},
+  {id:'geta',n:'Sandale geta',rar:'j',w:2,wd:'jardin',quip:'Il manque l’autre. Et le pied.',map:["....rr.....","...r..r....","wwwwwwwwwww","WWWWWWWWWWW",".WW....WW..",".WW....WW.."],pal:{r:'#d8402e',w:'#d8b080',W:'#a87a50'}},
   {id:'boule',n:'Boule de Noël',rar:'j',w:5,wd:'*',noel:1,quip:'Elle brille encore.',map:["..y..",".rrr.","rWrrr","rrrrr",".rrr."],pal:{y:'#f2c64a',r:'#d8303a',W:'#ffffff'}},
   {id:'sucredorge',n:'Sucre d’orge',rar:'r',w:3,wd:'*',noel:1,quip:'Le lapin l’a léché. Juste un peu.',map:[".rww.","w..r.","r..w.","...r.","...w.","...r."],pal:{r:'#d8303a',w:'#ffffff'}},
   {id:'painepice',n:'Bonhomme pain d’épice',rar:'e',w:1.2,wd:'*',noel:1,quip:'Il court plus vite que toi.',map:[".bbb.",".bwb.","bbbbb","b.w.b",".bbb.",".b.b."],pal:{b:'#b87a40',w:'#ffffff'}},
@@ -639,6 +651,7 @@ function fishSprite(sp){
       if(L.pat==='light'&&spots.has(x+','+y)&&v>.2&&v<.75)c='#dfe6b0';
       if(L.pat==='scales'&&(x+y)%2===0&&v>.25&&v<.7)c=rgb(mix(hex(L.body),hex(L.back),.35));
       if(L.pat==='koi'&&koi.has(x+','+y))c=L.back;
+      if(L.pat==='tancho'&&Math.hypot(x-len,(y-(cy-half*.45))*1.3)<1.9)c='#e03a2a';
       if(L.pat==='shine'&&v<.45&&(x+y*2)%5===0)c='#fff6c8';
       if(L.pat==='plates'&&v<.3&&x%3===1&&u>.1&&u<.9)c='#c8c4b4';
       if(L.pat==='clown'&&(Math.abs(x-(len*.75+3))<1||Math.abs(x-(len*.4+3))<1)&&u<1)c='#ffffff';
@@ -690,7 +703,8 @@ const WORLDS=[
   {id:'glace',n:'Lac gelé',d:'On pêche par un trou dans la glace.',need:18,tree:'snow',mount:2,snow:1,ice:1,water:['#dce9f0',.78],sky:['#dfe8f0',.25],sw:['#e4ecf2','#cfe2ec']},
   {id:'mer',n:'Bord de mer',d:'Un vieux ponton face au large, et des voiliers qui passent.',need:25,tree:'none',sea:1,water:['#2f86a0',.45],sw:['#bfe0ea','#2f86a0']},
   {id:'large',n:'Au large',d:'Une petite barque qui dérive doucement sur l’océan.',need:32,tree:'none',boat:1,water:['#1f6f96',.5],sw:['#cfe4ec','#1f6f96']},
-  {id:'tropique',n:'Plage tropicale',d:'Sable blanc, palmiers et eau turquoise.',need:40,tree:'palm',water:['#1ccfc4',.72],sky:['#d8f0ec',.2],sw:['#d8f0ec','#2ec4c0']}
+  {id:'tropique',n:'Plage tropicale',d:'Sable blanc, palmiers et eau turquoise.',need:40,tree:'palm',water:['#1ccfc4',.72],sky:['#d8f0ec',.2],sw:['#d8f0ec','#2ec4c0']},
+  {id:'jardin',n:'Jardin zen',d:'Un étang à koïs sous les cerisiers, face au mont Fuji.',need:48,tree:'sakura',fuji:1,pads:1,petals:1,water:['#4f8f86',.45],sky:['#f6dce0',.22],sw:['#f6dce0','#4f8f86']}
 ];
 const WI=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
 const discovered=()=>Object.keys(loadLog().sp).filter(id=>SPI[id]).length;
@@ -715,7 +729,7 @@ let WORLD=WI[Q.get('monde')]||WI[store.get('world','lac')]||WI.lac;
 if(!unlocked(WORLD))WORLD=WI.lac;
 function setWorld(id){
   WORLD=WI[id];store.set('world',id);resize();setSt('idle');F.wait0=1;F.first=true;F.tx=0;F.hold=null;hint('');
-  $('#wName').textContent='Pêche Melba · '+WORLD.n;
+  $('#wName').textContent=WORLD.n;
 }
 function worldSky(sk){
   const w=WORLD;if(!w.water&&!w.sky)return sk;const o={...sk};
@@ -728,6 +742,7 @@ const BANKS={
   riviere:{grass:['#7ea487','#a9c79a'],earth:['#8a8f94','#6e7378','#b0b5ba'],base:'#555a60'},
   marais:{grass:['#6f8a5a','#8ea472'],earth:['#6a5a48','#584a3a','#7e6c56'],base:'#463a2e'},
   glace:{grass:['#eef3f6','#ffffff'],earth:['#b8c6d0','#9fb0bc','#d2dde4'],base:'#7e909e',snow:1},
+  jardin:{grass:['#6f9a5e','#8fb874'],earth:['#d8d2c4','#c0b8a8','#ece8de'],base:'#8a8274'},
   tropique:{grass:['#f2e2a8','#faf0cc'],earth:['#e6cc90','#d4b878','#f4e4b4'],base:'#c8a868',snow:1}
 };
 const DARK_PAL=['#3e6466','#577f7c','#7fa293','#b2c9a4'];
@@ -903,6 +918,42 @@ function makeWillow(h,seed,back){
     return null;
   });
 }
+function makeSakura(h,seed,back,maple){
+  const r=rng(seed),w=Math.round(h*1.15)|1,cx=w>>1,cy=Math.round(h*.34),rx=w/2-2,ry=h*.26,tw=Math.max(2,Math.round(w*.06));
+  const pal=(maple?['#7a2228','#a8302c','#d0502e','#ec7a3a','#f8a858']:['#b45a7e','#d47c9c','#ec9eb8','#f8c4d4','#fff0f4']).map(c=>back?rgb(mix(hex(c),[232,222,228],.35)):c);
+  const lobes=[{x:cx,y:cy,rx:rx*.55,ry:ry*.7}];
+  for(let i=0;i<10;i++){const a=-Math.PI*(r()*1.15-.075),d=.45+r()*.4;lobes.push({x:cx+Math.cos(a)*rx*d*.8,y:cy-Math.sin(a)*ry*d*.6+ry*.1,rx:rx*(.25+r()*.14),ry:ry*(.32+r()*.14)})}
+  lobes.sort((a,b)=>a.y-b.y);
+  const inLobe=(x,y)=>{let best=null;for(const L of lobes){const dx=(x-L.x)/L.rx,dy=(y-L.y)/L.ry,d=dx*dx+dy*dy;if(d<1)best={dx,dy,d}}return best};
+  // tronc noueux et branches qui montent dans le feuillage
+  const wood=new Map(),lean=(r()-.5)*w*.18;
+  const line=(x0,y0,x1,y1,t0,t1)=>{const n=Math.ceil(Math.hypot(x1-x0,y1-y0))*2;for(let i=0;i<=n;i++){const k=i/n,x=lerp(x0,x1,k),y=lerp(y0,y1,k),t=lerp(t0,t1,k);for(let dx=-t;dx<=t+.01;dx+=.5)wood.set(Math.round(x+dx)+','+Math.round(y),dx<0)}};
+  const pts=[[cx+lean,h-1],[cx+lean*.2+(r()-.5)*4,h*.72],[cx-lean*.4,h*.55],[cx,cy+ry*.2]];
+  for(let i=0;i<3;i++)line(...pts[i],...pts[i+1],tw*(1-i*.22),tw*(1-(i+1)*.22));
+  for(let i=0;i<4;i++){const L=lobes[1+(r()*(lobes.length-1)|0)],p=pts[1+(r()*2|0)];line(p[0],p[1],L.x,L.y,tw*.5,0)}
+  return gridSprite(w,h,(x,y)=>{
+    const L=inLobe(x,y),wd=wood.get(x+','+y);
+    if(L&&!(wd!=null&&L.d>.55&&r()<.5)){
+      let v=-L.dx*.5-L.dy*.65+(r()-.5)*.3;
+      if(L.d>.75&&L.dy>0)v-=.5;
+      if(r()<.07)v+=.6;
+      return pal[v>.6?4:v>.2?3:v>-.2?2:v>-.6?1:0];
+    }
+    if(wd!=null)return wd?'#6e5052':'#4a3438';
+    if(y>h-2&&Math.abs(x-cx-lean)<=tw+1)return '#4a3438';
+    return null;
+  });
+}
+const TORII=n=>mapSprite(["kk...................kk","kkkkkkkkkkkkkkkkkkkkkkk",".RRRRRRRRRRRRRRRRRRRRR.","...rr.....RrR.....rr...","..rrrrrrrrrrrrrrrrrrr..",...Array(n).fill("...rr.............rr..."),"..kkkk...........kkkk.."],{r:'#d8402e',R:'#b02e22',k:'#2e2a2e'});
+const TORO=mapSprite(["....s....","...sss...",".sssssss.","sSSSSSSSs","..sLLLs..","..sLLLs..",".sssssss.","...sss...","...sSs...","...sss...","..sssss.."],{s:'#a29e96',S:'#7a766e',L:'#efe2b0'});
+function drawFuji(g){
+  const cx=Math.round(W*.52),hm=Math.round(WY*.4),bw=hm*3.4;
+  for(let x=Math.round(cx-bw/2);x<cx+bw/2;x++){
+    const u=Math.max(0,Math.abs(x-cx)/(bw/2)-.05)/.95,top=Math.round(GT-hm*Math.pow(1-u,1.7));
+    const snow=top+Math.round(hm*(.3-.55*u)+Math.abs(Math.sin(x*.45))*hm*.06*(1-u));
+    for(let y=top;y<=GT;y++){const left=x<cx;g.fillStyle=y<snow?(left?'#ffffff':'#e2eaf2'):left?'#a8b6c8':'#94a2b6';g.fillRect(x,y,1,1)}
+  }
+}
 function drawMountains(g,r,snowy){
   for(const k of[0,1]){
     const ph=[r()*6,r()*6,r()*6],hm=WY*(k?.36:.5),col=hex(k?'#8fa3ae':'#adbec6'),dk=hex(k?'#7a8e9a':'#9aaeb8');
@@ -971,17 +1022,18 @@ function buildLand(){
   [land]=canvasOf(WORLD.boat?W*2:W,WY);const g=land.getContext('2d');
   if(WORLD.boat)drawIslands(g,r,W*2);
   if(WORLD.mount)drawMountains(g,r,WORLD.mount===2);
+  if(WORLD.fuji)drawFuji(g);
   // arbres : rang du fond puis rang de devant
   trees=[];
-  const make=(h,seed,back)=>kind==='palm'?makePalm(h,seed,back):kind==='willow'?makeWillow(h,seed,back):makePine(h,seed,back,kind==='pineDark'?DARK_PAL:TREE_PAL,kind==='snow');
+  const make=(h,seed,back)=>kind==='sakura'?makeSakura(h,seed,back,seed%4===0):kind==='palm'?makePalm(h,seed,back):kind==='willow'?makeWillow(h,seed,back):makePine(h,seed,back,kind==='pineDark'?DARK_PAL:TREE_PAL,kind==='snow');
   const plant=(x0,x1,back)=>{
     let x=x0+r()*6;
     while(true){
-      const h=Math.round(clamp(H*(back?.4:.32)*(.75+r()*.45)*(kind==='willow'?.8:kind==='pineDark'?1.12:kind==='palm'?1.05:1),24,150));
+      const h=Math.round(clamp(H*(back?.4:.32)*(.75+r()*.45)*(kind==='willow'?.8:kind==='pineDark'?1.12:kind==='palm'?1.05:kind==='sakura'?.85:1),24,150));
       const spr=make(h,(r()*1e9)|0,back),w=spr.width;
       if(x+w*.35>x1)break;
       trees.push({x:Math.round(x),back,spr});
-      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?.5:1)+r()*8;
+      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?.5:kind==='sakura'?.7:1)+r()*8;
     }
   };
   if(kind!=='none'){
@@ -1008,6 +1060,7 @@ function buildLand(){
   // berges (ou ponton + falaise au bord de mer)
   LH=null;
   sails=[];if(WORLD.sea){drawPier(g);for(let i=0;i<2;i++)spawnSail(R()*W)}else if(!WORLD.boat)for(const b of[LB,RB])drawBank(g,b,r,P);
+  if(WORLD.id==='jardin'){const t=TORII(Math.round(H*.1)),tx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.3);g.drawImage(t,tx-(t.width>>1),GT+2-t.height);g.drawImage(TORO,rab.x-26,GT+2-TORO.height)}
   // herbes, roseaux et fleurs (animés)
   tufts=[];flowers=[];
   if(!WORLD.sea&&!WORLD.boat)for(const b of[LB,RB])for(let x=Math.max(b.x0,0)+1;x<Math.min(b.x1,W)-1;x+=1+(r()*3|0)){
@@ -1030,7 +1083,8 @@ function buildLand(){
   rocks=[];if(flow)for(const b of[LB,RB])rocks.push({x:Math.round(lerp(Math.max(b.x0,0)+8,Math.min(b.x1,W)-8,r())),w:4+(r()*4|0),h:2+(r()*2|0)});
   pads=[];if(WORLD.pads)for(let i=0;i<Math.round(W/22);i++){const x=r()*W|0;if(x>castMin()-8&&x<castMax()+8)continue;pads.push({x,y:WY+3+(r()*(H-WY-6)|0),w:2+(r()*2|0),f:r()<.35})}
   cracks=[];if(WORLD.ice)for(let i=0;i<Math.round(W/30);i++){let x=r()*W,y=WY+2+r()*(H-WY-4);const pts=[];for(let k=0;k<6+r()*8;k++){pts.push([x|0,y|0]);x+=1+r()*2;y=clamp(y+(r()-.5)*1.6,WY+1,H-1)}cracks.push(pts)}
-  flakes=[];if(WORLD.snow||NOEL)for(let i=0;i<Math.round(W*H/(WORLD.snow?350:600));i++)flakes.push({x:r()*W,y:r()*H,v:4+r()*8,p:r()*6});
+  flakes=[];if(WORLD.snow||NOEL)for(let i=0;i<Math.round(W*H/(WORLD.snow?350:600));i++)flakes.push({x:r()*W,y:r()*H,v:4+r()*8,p:r()*6,c:'#ffffff'});
+  else if(WORLD.petals)for(let i=0;i<Math.round(W*H/1600);i++)flakes.push({x:r()*W,y:r()*H,v:3+r()*4,p:r()*6,c:r()<.5?'#f6b4c8':'#fbdce6'});
 }
 function drawBank(g,b,r,P){
   const x0=Math.max(b.x0,-1),x1=Math.min(b.x1,W);
@@ -1299,7 +1353,7 @@ function draw(){
     ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
   }
   // neige
-  if(flakes.length){ctx.fillStyle='#ffffff';for(const f of flakes){ctx.globalAlpha=.85;ctx.fillRect(Math.round(f.x),Math.round(f.y),1,1)}ctx.globalAlpha=1}
+  if(flakes.length){for(const f of flakes){ctx.fillStyle=f.c;ctx.globalAlpha=.85;ctx.fillRect(Math.round(f.x),Math.round(f.y),1,1)}ctx.globalAlpha=1}
   // bulle "!" et jauge
   if(F.st==='bite'&&Math.sin(T*16)>-.6){
     const n=F.fish.rar==='l'||F.fish.rar==='e'?3:F.fish.rar==='r'?2:1,bw=n*3+3,bx0=rab.x+7-(bw>>1),by0=rab.y-11;
@@ -1500,7 +1554,6 @@ function showTab(tab){
     B.innerHTML=`<div class="set">
       <label>Moteur de recherche <select id="sEng">${Object.entries(ENG).map(([k,v])=>`<option value="${k}"${k===eng?' selected':''}>${v[0]}</option>`).join('')}</select></label>
       <label>Thème de Noël <select id="sNoel"><option value="auto">Auto (décembre)</option><option value="on">Toujours</option><option value="off">Jamais</option></select></label>
-      <label>Débloquer tous les mondes <input type="checkbox" id="sAll"></label>
       <label>Raccourcis par défaut <button id="sLinks">Rétablir</button></label>
       <label>Remettre le carnet à zéro <button class="danger" id="sReset">Effacer</button></label>
       <p>Le lapin pêche tout seul, même quand l’onglet est fermé : il ferre les poissons communs, mais les rares, épiques et légendaires ne se prennent qu’à la main. Quand le flotteur plonge, maintiens Espace (ou le clic) : la jauge apparaît, et tu relâches quand l’aiguille est dans la zone verte — au centre doré pour un ferrage parfait. Clique sur l’eau pour lancer ailleurs, sur le lapin pour un câlin. Les prises rapportent des pièces pour la boutique, et un ballon cadeau passe parfois dans le ciel : clique dessus.</p>
@@ -1508,7 +1561,7 @@ function showTab(tab){
     </div>`;
     $('#sEng').onchange=e=>setEng(e.target.value);
     $('#sNoel').value=store.get('noel','auto');$('#sNoel').onchange=e=>{store.set('noel',e.target.value);applyNoel()};
-    $('#sAll').checked=store.get('all',false);$('#sAll').onchange=e=>{store.set('all',e.target.checked);if(!unlocked(WORLD))setWorld('lac')};
+
     $('#sLinks').onclick=()=>{store.set('links',DEF_LINKS);renderLinks()};
     $('#sReset').onclick=()=>{if(confirm('Effacer toutes les prises du carnet ?')){store.set('log',null);refreshCount();showTab('carnet')}};
   }
@@ -1537,7 +1590,7 @@ document.addEventListener('visibilitychange',()=>{
 
 /* ---------- démarrage ---------- */
 addEventListener('resize',resize);
-$('#wName').textContent='Pêche Melba · '+WORLD.n;
+$('#wName').textContent=WORLD.n;
 function applyNoel(){
   const was=NOEL;NOEL=noelOn();
   if(NOEL&&!closet.own.includes('perenoel')){closet.own.push('perenoel');if(!closet.wear.tete)closet.wear.tete='perenoel';saveCloset();buildRabbit();
