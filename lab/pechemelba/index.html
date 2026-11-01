@@ -984,6 +984,24 @@ function makePagoda(h){
   });
 }
 const TORO=mapSprite(["....s....","...sss...",".sssssss.","sSSSSSSSs","..sLLLs..","..sLLLs..",".sssssss.","...sss...","...sSs...","...sss...","..sssss.."],{s:'#a29e96',S:'#7a766e',L:'#efe2b0'});
+function drawBamboo(g,r,x0,x1,hmax,back,yb){
+  const P=(back?['#8fae86','#a8c49a','#7a9a72','#c4d8b0']:['#5e8a4a','#86b060','#46703a','#a8cc7a']).map(hex);
+  const px=(x,y,c)=>{g.fillStyle=rgb(c);g.fillRect(x,y,1,1)};
+  for(let x=x0;x<x1;x+=3+(r()*5|0)){
+    const h=Math.round(hmax*(.6+r()*.4)),lean=(r()-.5)*.08,gap=6+(r()*4|0);
+    for(let k=0;k<h;k++){
+      const y=yb-k,cx=Math.round(x+lean*k),node=k%gap===0&&k>2;
+      px(cx,y,node?P[2]:P[1]);px(cx+1,y,node?P[3]:P[0]);
+      // rameaux et feuilles fines dans le haut de la tige
+      if(node&&k>h*.35){
+        const d=r()<.5?-1:1,len=3+(r()*4|0);
+        for(let j=1;j<=len;j++){px(cx+(d>0?1:0)+d*j,y-Math.round(j*.4),P[2]);if(j>1&&r()<.75)px(cx+(d>0?1:0)+d*j,y-Math.round(j*.4)+1,j%2?P[3]:P[1])}
+      }
+    }
+    // touffe au sommet
+    for(let j=0;j<5;j++){const d=j%2?1:-1,yy=yb-h+j;px(Math.round(x+lean*h)+d*(1+j%3),yy,P[3]);px(Math.round(x+lean*h)+d*(2+j%3),yy+1,P[1])}
+  }
+}
 function drawFuji(g,r){
   const cx=Math.round(W*.52),hm=Math.round(WY*.46),bw=hm*3.5,sy=GT-hm,ph=r()*6,haze=hex('#c8d4de');
   const C={snowL:hex('#ffffff'),snowR:hex('#dce6f0'),snowG:hex('#c4d2e2'),rockL:hex('#a2b0c4'),rockR:hex('#8694aa'),gully:hex('#74829a')};
@@ -1079,6 +1097,7 @@ function buildLand(){
   if(WORLD.boat)drawIslands(g,r,W*2);
   if(WORLD.mount)drawMountains(g,r,WORLD.mount===2);
   if(WORLD.fuji)drawFuji(g,r);
+  if(WORLD.id==='jardin'){drawBamboo(g,r,Math.max(LB.x0,0)+4,Math.max(LB.x0,0)+Math.round(W*.08),H*.4,true,GT+1);drawBamboo(g,r,Math.min(RB.x1,W)-Math.round(W*.07),Math.min(RB.x1,W)-2,H*.42,true,GT+1)}
   // arbres : rang du fond puis rang de devant
   trees=[];
   const make=(h,seed,back)=>kind==='sakura'?makeSakura(h,seed,back,seed%4===0):kind==='palm'?makePalm(h,seed,back):kind==='willow'?makeWillow(h,seed,back):makePine(h,seed,back,kind==='pineDark'?DARK_PAL:TREE_PAL,kind==='snow');
@@ -1116,7 +1135,7 @@ function buildLand(){
   // berges (ou ponton + falaise au bord de mer)
   LH=null;
   sails=[];if(WORLD.sea){drawPier(g);for(let i=0;i<2;i++)spawnSail(R()*W)}else if(!WORLD.boat)for(const b of[LB,RB])drawBank(g,b,r,P);
-  if(WORLD.id==='jardin'){const t=makeTorii(Math.round(H*.34)),tx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.3);g.drawImage(t,tx-(t.width>>1),GT+2-t.height);g.drawImage(TORO,rab.x-26,GT+2-TORO.height)}
+  if(WORLD.id==='jardin'){const t=makeTorii(Math.round(H*.34)),tx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.3);g.drawImage(t,tx-(t.width>>1),GT+2-t.height);g.drawImage(TORO,rab.x-26,GT+2-TORO.height);drawBamboo(g,r,Math.min(RB.x1,W)-22,Math.min(RB.x1,W)-4,H*.38,false,GT);drawBamboo(g,r,Math.max(LB.x0,0)+2,Math.max(LB.x0,0)+16,H*.36,false,GT)}
   // herbes, roseaux et fleurs (animés)
   tufts=[];flowers=[];
   if(!WORLD.sea&&!WORLD.boat)for(const b of[LB,RB])for(let x=Math.max(b.x0,0)+1;x<Math.min(b.x1,W)-1;x+=1+(r()*3|0)){
