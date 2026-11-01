@@ -523,7 +523,7 @@ const WORLDS=[
   {id:'riviere',n:'Rivière de montagne',d:'Une eau vive qui descend des sommets.',need:6,tree:'pineDark',mount:1,flow:11,water:['#5f9fb4',.4],sw:['#b8d0dc','#5f9fb4']},
   {id:'marais',n:'Marais brumeux',d:'Des roseaux, de la brume et des choses qui bougent.',need:12,tree:'willow',reeds:1,fog:1,pads:1,water:['#5f6f40',.5],sky:['#c6cbb4',.25],sw:['#c8ccb4','#5f6f40']},
   {id:'glace',n:'Lac gelé',d:'On pêche par un trou dans la glace.',need:18,tree:'snow',mount:2,snow:1,ice:1,water:['#dce9f0',.78],sky:['#dfe8f0',.25],sw:['#e4ecf2','#cfe2ec']},
-  {id:'mer',n:'Bord de mer',d:'Un vieux ponton face au large, et son phare.',need:25,tree:'none',sea:1,water:['#2f86a0',.45],sw:['#bfe0ea','#2f86a0']},
+  {id:'mer',n:'Bord de mer',d:'Un vieux ponton face au large, et des voiliers qui passent.',need:25,tree:'none',sea:1,water:['#2f86a0',.45],sw:['#bfe0ea','#2f86a0']},
   {id:'large',n:'Au large',d:'Une petite barque qui dérive doucement sur l’océan.',need:32,tree:'none',boat:1,water:['#1f6f96',.5],sw:['#cfe4ec','#1f6f96']},
   {id:'tropique',n:'Plage tropicale',d:'Sable blanc, palmiers et eau turquoise.',need:40,tree:'palm',water:['#1ccfc4',.72],sky:['#d8f0ec',.2],sw:['#d8f0ec','#2ec4c0']}
 ];
@@ -569,6 +569,26 @@ const BOAT=(()=>{
   const m=[];for(let row=0;row<6;row++){const inl=row<2?0:row-1,inr=row<1?0:row+1,c=['b','r','w','w','w','k'][row],len=36-inl-inr;m.push('.'.repeat(inl)+c.repeat(len)+'.'.repeat(inr))}
   return mapSprite(m,{b:'#8a6040',r:'#e8605a',w:'#f4f0e6',k:'#6a4a34'});
 })();
+function makeSail(d,seed){
+  const r=rng(seed),hw=Math.round(7+d*12),sh=Math.round(6+d*14),mast=Math.round(hw*.42);
+  const hull=['#e8605a','#3a5a8a','#f4f0e6','#2a7a6a','#c8a060'][r()*5|0],sail=r()<.75?'#fbf8f0':'#f2d888',stripe=r()<.4;
+  const spr=gridSprite(hw,sh+3,(x,y)=>{
+    if(y<sh){
+      if(x===mast)return '#6a4a34';
+      const k=(y+1)/sh;
+      if(x>mast&&x<=mast+Math.round(k*(hw-mast-2)))return stripe&&y%4===2?'#e8605a':sail;
+      if(x<mast&&x>=mast-Math.round(k*mast*.8)&&y>sh*.3)return sail;
+      return null;
+    }
+    const row=y-sh;if(x<row||x>=hw-row*1.5)return null;
+    return row?rgb(mix(hex(hull),[30,30,40],.25)):hull;
+  });
+  return{spr,mast};
+}
+function spawnSail(x0){
+  const d=Math.pow(R(),1.4),dir=R()<.5?1:-1,{spr,mast}=makeSail(d,R()*1e9|0);
+  sails.push({d,dir,spr,mast,ph:R()*6,x:x0!=null?x0:dir>0?-spr.width-2:W+2,y:WY+1+Math.round(d*(H-WY-5)),v:(1+d*5)*dir});
+}
 function drawIslands(g,r,L){
   for(let i=0;i<5;i++){
     const cx=r()*L,w=24+r()*70,h=4+r()*12,palm=r()<.6;
@@ -649,6 +669,7 @@ function resize(){
   RB={x0:Math.round(W*(narrow?.86:.6)),x1:narrow?W+4:Math.round(W*.97)};
   const gl=WORLD.sea?GT-3:WORLD.boat?WY-2:GT;rab={x:LB.x1-15,y:gl-RAB_H,gy:gl,y0:gl-RAB_H,gy0:gl};
   if(WORLD.boat){RB={x0:Math.round(W*.88),x1:W+4};LB.x1=rab.x+18}
+  if(WORLD.sea)RB={x0:Math.round(W*.94),x1:W+4};
   buildLand();
   if(F.st==='wait'||F.st==='bite'||F.st==='reel')F.tx=clamp(F.tx,castMin(),castMax());
 }
@@ -679,7 +700,7 @@ function buildLand(){
   for(const b of[true,false])for(const t of trees)if(t.back===b)g.drawImage(t.spr,t.x-(t.spr.width>>1),GT+3-t.spr.height);
   // berges (ou ponton + falaise au bord de mer)
   LH=null;
-  if(WORLD.sea){drawPier(g);drawCliff(g,r)}else if(!WORLD.boat)for(const b of[LB,RB])drawBank(g,b,r,P);
+  sails=[];if(WORLD.sea){drawPier(g);for(let i=0;i<2;i++)spawnSail(R()*W)}else if(!WORLD.boat)for(const b of[LB,RB])drawBank(g,b,r,P);
   // herbes, roseaux et fleurs (animés)
   tufts=[];flowers=[];
   if(!WORLD.sea&&!WORLD.boat)for(const b of[LB,RB])for(let x=Math.max(b.x0,0)+1;x<Math.min(b.x1,W)-1;x+=1+(r()*3|0)){
@@ -718,7 +739,7 @@ function drawBank(g,b,r,P){
 
 /* ---------- état de pêche ---------- */
 const F={st:'idle',t:0,wait0:1.2,tx:0,wd:0,nib:0,fish:null,gauge:null,hold:null,first:true,ang:-1,bend:0,ear:0,blink:0,earT:3,blinkT:2,hop:0};
-let scrollX=0,buoyT=8,buoys=[],T=0,parts=[],ripples=[],birds=[],jump=null,jumpT=rnd(15,40),birdT=rnd(10,30),shoot=null;
+let sails=[],sailT=4,scrollX=0,buoyT=8,buoys=[],T=0,parts=[],ripples=[],birds=[],jump=null,jumpT=rnd(15,40),birdT=rnd(10,30),shoot=null;
 function setSt(s){F.st=s;F.t=0}
 function isDark(){return skyAt(sunElev(now())).dark>.5}
 function pickFish(){
@@ -806,6 +827,7 @@ function update(dt){
   F.ang=lerp(F.ang,ang,F.st==='cast'?1:Math.min(1,dt*8));F.bend=lerp(F.bend,bend,Math.min(1,dt*10));
   // ambiance
   for(const c of clouds){c.x+=c.v*dt*(WORLD.boat?-2:1);if(c.x>W)c.x=-c.spr.width;if(c.x<-c.spr.width)c.x=W}
+  if(WORLD.sea){if((sailT-=dt)<0&&sails.length<4){sailT=rnd(6,22);spawnSail()}for(const b of sails)b.x+=b.v*dt;sails=sails.filter(b=>b.x>-b.spr.width-4&&b.x<W+4)}
   if(WORLD.boat){scrollX+=dt*3;const b=Math.sin(T*1.6)>.35?1:0;rab.y=rab.y0+b;rab.gy=rab.gy0+b;
     if((buoyT-=dt)<0){buoyT=rnd(20,50);buoys.push({x:W+4,y:WY+3+R()*(H-WY-8),k:R()<.5})}
     for(const b of buoys)b.x-=dt*7;buoys=buoys.filter(b=>b.x>-6)}
@@ -891,7 +913,14 @@ function draw(){
     ctx.fillStyle=nightMix('#6f9a50');ctx.fillRect(p.x-p.w+1,p.y-1,p.w,1);
     if(p.f){ctx.fillStyle=nightMix('#f2a6b4');ctx.fillRect(p.x,p.y-2,1,1)}
   }
-  if(Wd.sea&&RB.x0<W)for(let i=0;i<5;i++)if(Math.sin(T*3+i*1.7)>.2){ctx.fillStyle='#f4f8f6';ctx.fillRect(RB.x0-2+i*3,WY+(i%2),2,1)}
+  // voiliers au loin
+  for(const b of sails.slice().sort((a,c)=>a.d-c.d)){
+    const x=Math.round(b.x),y=b.y-b.spr.height+2+(Math.sin(T*1.5+b.ph)>.6?1:0);b.mx=b.dir>0?x+b.mast+1:x+b.spr.width-2-b.mast;b.my=y+1;
+    ctx.globalAlpha=(.45+.55*b.d)*(1-sk.dark*.55);
+    if(b.dir<0){ctx.save();ctx.translate(x+b.spr.width,0);ctx.scale(-1,1);ctx.drawImage(b.spr,0,y);ctx.restore()}else ctx.drawImage(b.spr,x,y);
+    if(b.d>.35){ctx.fillStyle='#f4f8f6';for(let i=1;i<4;i++)if(Math.sin(T*5+i)>-.2)ctx.fillRect(b.dir>0?x-i*2:x+b.spr.width+i*2-1,b.y+1,1,1)}
+    ctx.globalAlpha=1;
+  }
   // ronds dans l'eau
   if(!Wd.ice)for(const r of ripples){ctx.globalAlpha=clamp(r.l,0,1)*.8;ctx.fillStyle=rgb(sk.hi);
     for(let a=0;a<Math.PI*2;a+=1.2/Math.max(2,r.r)){const x=Math.round(r.x+Math.cos(a)*r.r),y=Math.round(r.y+Math.sin(a)*r.r*.3);if(y>=WY)ctx.fillRect(x,y,1,1)}}
@@ -929,6 +958,7 @@ function draw(){
     for(const[r,a]of[[16,.05],[10,.07],[5,.12]]){ctx.globalAlpha=a*k*(.92+.08*Math.sin(T*9));ctx.fillStyle='#ffa850';ctx.beginPath();ctx.arc(lx,ly,r,0,7);ctx.fill()}
     ctx.globalAlpha=.18*k;ctx.fillStyle='#ffb060';ctx.fillRect(lx-2,WY+2,5,1);ctx.fillRect(lx-1,WY+4,3,1);
     for(const f of flies){const b=Math.max(0,Math.sin(T*1.7+f.p));if(b<.1)continue;ctx.globalAlpha=b*k;ctx.fillStyle='#e6f27a';ctx.fillRect(Math.round(f.x),Math.round(f.y),1,1);ctx.globalAlpha=b*k*.25;ctx.fillRect(Math.round(f.x)-1,Math.round(f.y)-1,3,3)}
+    for(const b of sails)if(b.mx!=null){ctx.globalAlpha=k*(.6+.4*Math.sin(T*2+b.ph));ctx.fillStyle='#ffd27a';ctx.fillRect(b.mx,b.my,1,1);ctx.globalAlpha=.15*k;ctx.fillRect(b.mx-1,b.my-1,3,3)}
     if(LH){const a=T*.9,dx=Math.cos(a),ad=Math.abs(dx);
       ctx.globalAlpha=.11*k*ad;ctx.fillStyle='#fff2b0';ctx.beginPath();ctx.moveTo(LH.x,LH.y);ctx.lineTo(LH.x+dx*W*.7,LH.y-10*ad-2);ctx.lineTo(LH.x+dx*W*.7,LH.y+10*ad+2);ctx.fill();
       for(const[r,al]of[[8,.12],[3,.4]]){ctx.globalAlpha=al*k;ctx.beginPath();ctx.arc(LH.x,LH.y,r,0,7);ctx.fill()}}
