@@ -1,8 +1,8 @@
 // === Waveform: a faint oscilloscope of what is sounding, behind the roll ===
 
-import { subscribe } from "./piano.js?v=20261018a";
-import { settings, onSettingChange } from "./settings.js?v=20261018a";
-import { getAnalyser, hasVoices } from "./audio.js?v=20261018a";
+import { subscribe } from "./piano.js?v=20261101a";
+import { settings, onSettingChange } from "./settings.js?v=20261101a";
+import { getAnalyser, hasVoices } from "./audio.js?v=20261101a";
 
 const WINDOW = 1024;     // samples drawn across the width (~21 ms at 48 kHz)
 const SILENCE = 0.0015;  // peak below which a frame counts as quiet

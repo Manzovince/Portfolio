@@ -547,6 +547,13 @@ body.staff-unavailable .staff {
     border-color: var(--line-strong);
 }
 
+body.keyboard-hidden .keys {
+    height: 0;
+    padding-top: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    overflow: hidden;
+}
+
 body.keyboard-partial .shift {
     display: grid;
 }
@@ -792,7 +799,32 @@ select option {
     width: 170px;
 }
 
+.color-input {
+    width: 44px;
+    height: 30px;
+    padding: 2px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: none;
+    cursor: pointer;
+}
+
+.color-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-input::-webkit-color-swatch {
+    border: none;
+    border-radius: 5px;
+}
+
+.color-input::-moz-color-swatch {
+    border: none;
+    border-radius: 5px;
+}
+
 select:hover,
+.color-input:hover,
 .text-input:hover,
 .text-input:focus {
     border-color: var(--line-strong);

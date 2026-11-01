@@ -1,12 +1,13 @@
 // === On-screen keyboard, computer-keyboard and pointer input ===
 
-import { press, lift, setPedal, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261018a";
-import { settings, onSettingChange } from "./settings.js?v=20261018a";
-import { noteColor, rgbString } from "./colors.js?v=20261018a";
-import { noteName, defaultSpelling, scaleNotes, pitchClass } from "./theory.js?v=20261018a";
-import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261018a";
-import { songGuide, onSongGuide } from "./song.js?v=20261018a";
-import { getLanguage, onLanguageChange, currentNotation } from "./i18n.js?v=20261018a";
+import { press, lift, setPedal, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from "./piano.js?v=20261101a";
+import { settings, onSettingChange } from "./settings.js?v=20261101a";
+import { noteColor, rgbString } from "./colors.js?v=20261101a";
+import { noteName, defaultSpelling, scaleNotes, pitchClass } from "./theory.js?v=20261101a";
+import { isPracticing, practiceGuide, onPracticeChange } from "./practice.js?v=20261101a";
+import { songGuide, onSongGuide } from "./song.js?v=20261101a";
+import { getLanguage, onLanguageChange, currentNotation } from "./i18n.js?v=20261101a";
+import { lumiKeyCount, lumiLowest, onLumiState } from "./lumi.js?v=20261101a";
 
 const isBlack = midi => [1, 3, 6, 8, 10].includes(midi % 12);
 // Black keys sit slightly off-centre on a real piano
@@ -28,6 +29,7 @@ let keys = new Map(); // midi -> element
 let geometry = new Map(); // midi -> { x, w, black } relative to the keyboard
 let range = { lo: LOWEST, hi: HIGHEST, partial: false };
 let center = 60;  // octave kept in view when the whole keyboard does not fit
+let fixedShift = 0; // octaves a fixed-size keyboard was moved by
 let baseC = 60;   // computer keys: KeyA plays this note
 let layoutLabels = null; // Map code -> printed character, when the browser can tell
 const layoutListeners = new Set();
@@ -46,7 +48,28 @@ export function keyGeometry() {
 const WHITES = [];
 for (let m = LOWEST; m <= HIGHEST; m++) if (!isBlack(m)) WHITES.push(m);
 
+// A chosen number of keys (or the LUMI's own range), starting on a C
+function fixedRange() {
+    const size = settings.keyboardSize;
+    let count, lo;
+    if (size === "lumi") {
+        count = lumiKeyCount();
+        lo = lumiLowest();
+    } else {
+        count = Number(size);
+        if (!count || count >= 88) return null;
+        lo = count >= 49 ? 36 : 48;
+    }
+    lo += 12 * fixedShift;
+    // Stay on the 88 keys, a whole octave at a time
+    while (lo + count - 1 > HIGHEST) lo -= 12;
+    while (lo < LOWEST) lo += 12;
+    return { lo, hi: Math.min(HIGHEST, lo + count - 1), partial: true };
+}
+
 function computeRange(width) {
+    const fixed = fixedRange();
+    if (fixed) return fixed;
     const minWhite = coarsePointer.matches ? 30 : 13;
     if (width / WHITES.length >= minWhite) return { lo: LOWEST, hi: HIGHEST, partial: false };
     const count = Math.max(8, Math.min(WHITES.length, Math.floor(width / (coarsePointer.matches ? 40 : 22))));
@@ -163,7 +186,21 @@ export function shiftOctave(direction) {
 
 // Partial keyboards scroll by an octave without moving the computer keys
 export function shiftView(direction) {
-    center = Math.max(24, Math.min(96, center + 12 * direction));
+    if (fixedRange()) {
+        const before = range.lo;
+        fixedShift += direction;
+        if (fixedRange().lo === before) fixedShift -= direction; // already at the end
+    } else {
+        center = Math.max(24, Math.min(96, center + 12 * direction));
+    }
+    build();
+}
+
+// A fixed-size keyboard follows the MIDI keyboard when it plays outside the keys shown
+function follow(midi) {
+    if (!fixedRange() || (midi >= range.lo && midi <= range.hi)) return;
+    const octaves = midi < range.lo ? -Math.ceil((range.lo - midi) / 12) : Math.ceil((midi - range.hi) / 12);
+    fixedShift += octaves;
     build();
 }
 
@@ -297,15 +334,24 @@ export function initKeyboard(element) {
         document.dispatchEvent(new Event("keylabels"));
     }).catch(() => {});
 
+    document.body.classList.toggle("keyboard-hidden", !settings.showKeyboard);
+    onLumiState(() => settings.keyboardSize === "lumi" && build());
     build();
 }
 
 subscribe(event => {
+    if (event.type === "on" && event.source === "midi") follow(event.midi);
     if (event.type === "on") setActive(event.midi, true);
     if (event.type === "off") setActive(event.midi, false);
 });
 
 onSettingChange(key => {
+    if (key === "keyboardSize" || key === "lumiOctave") {
+        fixedShift = 0;
+        build();
+    }
+    if (key === "lumiBlocks" && settings.keyboardSize === "lumi") build();
+    if (key === "showKeyboard") document.body.classList.toggle("keyboard-hidden", !settings.showKeyboard);
     if (key === "showLabels" || key === "notation") refreshLabels();
     if (key === "scaleRoot" || key === "scaleType") refreshScale();
     if (key === "colorMode") refreshActive();

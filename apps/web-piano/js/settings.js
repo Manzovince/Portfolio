@@ -22,12 +22,22 @@ const DEFAULTS = {
     showRoll: true,
     showUsage: false,
     showLabels: true,
+    showKeyboard: true,
+    keyboardSize: "auto", // auto (fits the screen) | lumi | 88 | 61 | 49 | 37 | 25
     scaleRoot: 0,
     scaleType: "",
     ledEnabled: false,
     ledHost: "192.168.1.17:81",
     ledIntensity: 0.2,
     ledEffect: "key",
+    lumiEnabled: false,
+    lumiBlocks: "auto", // auto (one per LUMI port found) | 1 | 2
+    lumiBrightness: 0.6,
+    lumiMode: "rainbow", // rainbow | single | piano | night
+    lumiColor: "#44aca3",
+    lumiRootColor: "#f2b84b",
+    lumiOctave: 0,
+    lumiScaleSync: true,
     practiceKind: "chords",
     practiceChords: "triads",
     practiceScales: "majorScales",

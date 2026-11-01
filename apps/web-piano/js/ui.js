@@ -1,29 +1,30 @@
 // === Interface: chord readout, top bar, settings drawer ===
 
-import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261018a";
-import { settings, setSetting, onSettingChange, resetSynth } from "./settings.js?v=20261018a";
+import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261101a";
+import { settings, setSetting, onSettingChange, resetSynth } from "./settings.js?v=20261101a";
 import {
     t, chordQuality, inversionName, intervalName, scaleName, currentNotation,
     getLanguage, setLanguage, onLanguageChange, applyStaticText,
-} from "./i18n.js?v=20261018a";
+} from "./i18n.js?v=20261101a";
 import {
     detectChord, chordSymbol, noteName, spellPc, spelledOctave, pitchClass,
     intervalBetween, scaleContext, scaleNotes, SCALES,
-} from "./theory.js?v=20261018a";
-import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261018a";
-import { ledState, onLedState, connectLeds } from "./leds.js?v=20261018a";
-import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261018a";
-import { keysHint, shiftView } from "./keyboard.js?v=20261018a";
+} from "./theory.js?v=20261101a";
+import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261101a";
+import { ledState, onLedState, connectLeds } from "./leds.js?v=20261101a";
+import { lumiState, onLumiState, lumiCount, lumiKeyCount, retryLumi } from "./lumi.js?v=20261101a";
+import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261101a";
+import { keysHint, shiftView } from "./keyboard.js?v=20261101a";
 import {
     clearScore, hasScore, onScoreChange, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi,
-} from "./score.js?v=20261018a";
-import { resetUsage } from "./roll.js?v=20261018a";
+} from "./score.js?v=20261101a";
+import { resetUsage } from "./roll.js?v=20261101a";
 import {
     currentSong, openSongFile, closeSong, playSong, pauseSong, seekSong, setSongSpeed,
     isSongPlaying, songPosition, songSpeed, onSongChange, onSongPosition,
     songPart, setSongPart, isWaitingForPlayer,
-} from "./song.js?v=20261018a";
-import { setPracticing, isPracticing, onPracticeChange } from "./practice.js?v=20261018a";
+} from "./song.js?v=20261101a";
+import { setPracticing, isPracticing, onPracticeChange } from "./practice.js?v=20261101a";
 
 const $ = selector => document.querySelector(selector);
 const finePointer = matchMedia("(hover: hover) and (pointer: fine)");
@@ -163,6 +164,17 @@ function renderLed() {
     $("#ledHint").hidden = !(state === "failed" && location.protocol === "https:");
 }
 
+function renderLumi() {
+    const state = settings.lumiEnabled ? lumiState() : "off";
+    const text = {
+        off: "", unsupported: t("lumiUnsupported"), denied: t("lumiDenied"), none: t("lumiNone"),
+        connected: t("lumiConnected", { n: lumiCount(), keys: lumiKeyCount() }),
+    }[state];
+    $("#lumiStatus").textContent = text;
+    $("#lumiStatus").dataset.state = state === "connected" ? "connected" : state === "none" ? "off" : "failed";
+    $("#lumiRetry").hidden = state !== "denied";
+}
+
 // === Settings drawer ===
 
 function openDrawer(open) {
@@ -216,6 +228,8 @@ function syncControls() {
     $("#tempoValue").textContent = `${settings.tempo} BPM`;
     $("#tempoRow").hidden = !settings.showStaff;
     $("#ledOptions").hidden = !settings.ledEnabled;
+    $("#lumiOptions").hidden = !settings.lumiEnabled;
+    $("#lumiBrightnessValue").textContent = `${Math.round(settings.lumiBrightness * 100)}%`;
     $("#instrument").disabled = !settings.sound;
     $("#synthOptions").hidden = settings.instrument === "piano";
     document.querySelectorAll("[data-out]").forEach(out => {
@@ -240,6 +254,8 @@ function bindControls() {
             el.addEventListener("change", () => setSetting(key, el.checked));
         } else if (el.type === "range") {
             el.addEventListener("input", () => setSetting(key, Number(el.value)));
+        } else if (el.type === "color") {
+            el.addEventListener("input", () => setSetting(key, el.value));
         } else if (el.type === "text") {
             el.addEventListener("change", () => setSetting(key, el.value.trim()));
         } else {
@@ -257,6 +273,7 @@ function renderAllText() {
     renderMidi();
     renderSound();
     renderLed();
+    renderLumi();
     fillScaleOptions();
     syncControls();
     hasPlayed && renderReadout();
@@ -403,6 +420,7 @@ export function initUI() {
     $("#settings").inert = true;
     $("#midiStatus").addEventListener("click", connectMidi);
     $("#ledRetry").addEventListener("click", connectLeds);
+    $("#lumiRetry").addEventListener("click", retryLumi);
     $("#clearStaff").addEventListener("click", clearScore);
     bindScoreDialog();
     bindSong();
@@ -413,6 +431,7 @@ export function initUI() {
 
     onMidiStatus(renderMidi);
     onLedState(renderLed);
+    onLumiState(renderLumi);
     onAudioStateChange(queueReadout);
     finePointer.addEventListener("change", renderHint);
     document.addEventListener("keylabels", renderHint);
@@ -421,6 +440,7 @@ export function initUI() {
         syncControls();
         if (key === "sound") renderSound();
         if (key === "ledEnabled") renderLed();
+        if (key === "lumiEnabled" || key === "lumiBlocks") renderLumi();
         if (key === "notation") {
             fillScaleOptions();
             hasPlayed && renderReadout();

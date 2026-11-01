@@ -22,7 +22,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css?v=20261018a">
+    <link rel="stylesheet" href="./styles.css?v=20261101a">
 </head>
 
 <body>
@@ -270,6 +270,18 @@
                 </div>
             </div>
             <label class="row"><span data-t="labels"></span><input type="checkbox" class="switch" data-setting="showLabels"></label>
+            <label class="row"><span data-t="showKeyboard"></span><input type="checkbox" class="switch" data-setting="showKeyboard"></label>
+            <label class="row"><span data-t="keyboardSize"></span>
+                <select data-setting="keyboardSize">
+                    <option value="auto" data-t="sizeAuto"></option>
+                    <option value="lumi">LUMI</option>
+                    <option value="88">88</option>
+                    <option value="61">61</option>
+                    <option value="49">49</option>
+                    <option value="37">37</option>
+                    <option value="25">25</option>
+                </select>
+            </label>
         </section>
 
         <section>
@@ -278,6 +290,46 @@
             <label class="row"><span data-t="scaleKey"></span><select id="scaleRoot" data-setting="scaleRoot" data-type="number"></select></label>
             <p id="scaleNotes" class="scale-notes" hidden></p>
             <p class="help" data-t="scaleHelp"></p>
+        </section>
+
+        <section>
+            <h3>ROLI LUMI</h3>
+            <label class="row"><span data-t="lumiEnabled"></span><input type="checkbox" class="switch" data-setting="lumiEnabled"></label>
+            <div id="lumiOptions">
+                <div class="row">
+                    <span id="lumiStatus" class="led-status"></span>
+                    <button id="lumiRetry" class="text-button" type="button" data-t="retry" hidden></button>
+                </div>
+                <label class="row slider"><span data-t="ledIntensity"></span><output id="lumiBrightnessValue"></output>
+                    <input type="range" min="0" max="1" step="0.01" data-setting="lumiBrightness">
+                </label>
+                <label class="row"><span data-t="lumiMode"></span>
+                    <select data-setting="lumiMode">
+                        <option value="rainbow" data-t="lumiRainbow"></option>
+                        <option value="single" data-t="lumiSingle"></option>
+                        <option value="piano" data-t="lumiPiano"></option>
+                        <option value="night" data-t="lumiNight"></option>
+                    </select>
+                </label>
+                <label class="row"><span data-t="lumiColor"></span><input type="color" class="color-input" data-setting="lumiColor"></label>
+                <label class="row"><span data-t="lumiRootColor"></span><input type="color" class="color-input" data-setting="lumiRootColor"></label>
+                <label class="row"><span data-t="lumiOctave"></span>
+                    <select data-setting="lumiOctave" data-type="number">
+                        <option value="-4">−4</option><option value="-3">−3</option><option value="-2">−2</option><option value="-1">−1</option>
+                        <option value="0">0</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option>
+                        <option value="4">+4</option><option value="5">+5</option>
+                    </select>
+                </label>
+                <label class="row"><span data-t="lumiBlocks"></span>
+                    <select data-setting="lumiBlocks">
+                        <option value="auto" data-t="sizeAuto"></option>
+                        <option value="1" data-t="lumiOne"></option>
+                        <option value="2" data-t="lumiTwo"></option>
+                    </select>
+                </label>
+                <label class="row"><span data-t="lumiScaleSync"></span><input type="checkbox" class="switch" data-setting="lumiScaleSync"></label>
+                <p class="help" data-t="lumiHelp"></p>
+            </div>
         </section>
 
         <section>
@@ -314,7 +366,7 @@
         <a class="about" href="../web-piano.html" data-t="about"></a>
     </aside>
 
-    <script type="module" src="./js/main.js?v=20261018a"></script>
+    <script type="module" src="./js/main.js?v=20261101a"></script>
 </body>
 
 </html>
