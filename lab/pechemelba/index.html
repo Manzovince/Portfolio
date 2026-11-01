@@ -244,26 +244,51 @@ function gridSprite(w,h,col){ // col(x,y) -> couleur ou null ; contour auto
 }
 const TREE_PAL=['#4c7473','#6a978f','#98b9a3','#cbdcb4'];
 function makePine(h,seed,back,base=TREE_PAL,snow=false){
-  const r=rng(seed),w=Math.round(h*.5)|1,cx=w>>1,trunkH=Math.max(4,Math.round(h*.13)),fh=h-trunkH+2;
-  const tiers=Math.max(3,Math.round(fh/11)),tw=Math.max(2,Math.round(w*.11));
+  const r=rng(seed),w=Math.round(h*.52)|1,cx=w>>1,trunkH=Math.max(4,Math.round(h*.13)),fh=h-trunkH+2;
+  const tiers=Math.max(3,Math.round(fh/10)),tw=Math.max(2,Math.round(w*.11));
   const pal=base.map(c=>back?rgb(mix(hex(c),[214,230,222],.32)):c);
+  const deep=rgb(mix(hex(pal[0]),[40,52,60],back?.15:.4));
+  const T=[];for(let i=0;i<tiers;i++)T.push({ph:(r()*12)|0,mx:(w/2)*(.3+.7*(i+1)/tiers)*(.93+r()*.1)});
   const halves=[];
   for(let y=0;y<fh;y++){
-    const tp=y/fh*tiers,ti=Math.floor(tp),t=tp-ti,mx=(w/2)*(.3+.7*(ti+1)/tiers);
-    halves.push({half:(ti===0?mx*t:mx*(.42+.58*t))+(r()-.5)*1.1,t,ti});
+    const tp=y/fh*tiers,ti=Math.min(tiers-1,Math.floor(tp)),t=tp-ti,mx=T[ti].mx;
+    halves.push({half:(ti===0?mx*Math.pow(t,.85):mx*(.4+.6*t))+(r()-.5)*.8,t,ti});
   }
-  return gridSprite(w,h,(x,y)=>{
-    const dx=x-cx;
-    if(y<fh){
-      const{half,t}=halves[y],edge=half+(r()<.12?1:0)-(r()<.08?1:0);
-      if(Math.abs(dx)<=edge&&edge>0){
-        const v=-dx/(half+.5)*.7+(1-t)*.35+(r()-.5)*.22-y/fh*.15;
-        if(snow&&(t<.4||v>.55)&&r()<.85)return t<.2||v>.7?'#ffffff':'#e2eaee';
-        if(t>.9&&Math.abs(dx)>half*.55&&r()<.7)return pal[0];
-        return pal[v>.42?3:v>.02?2:v>-.38?1:0];
-      }
+  // bout des branches qui retombe sous chaque étage
+  const tips=new Map();
+  for(let i=0;i<tiers-1;i++){
+    const yb=Math.round((i+1)*fh/tiers),mx=T[i].mx;
+    for(let dx=Math.ceil(mx*.45);dx<=mx+.5;dx++)for(const sg of[-1,1]){
+      if((dx+T[i].ph+(sg>0?1:0))%3)continue;
+      const len=1+(dx>mx*.7?1:0)+(r()<.3?1:0);
+      for(let k=0;k<len;k++)tips.set((yb+k)*w+cx+sg*dx,k);
     }
-    if(y>=fh-3&&Math.abs(dx+.5)<=tw/2)return dx<0?'#8c5e52':'#6a443f';
+  }
+  const cones=new Set();for(let i=1;i<tiers;i++)if(r()<.45){const yb=Math.round((i+1)*fh/tiers)-2,dx=Math.round(T[i].mx*(.4+r()*.4))*(r()<.5?-1:1);cones.add(yb*w+cx+dx)}
+  return gridSprite(w,h,(x,y)=>{
+    const dx=x-cx,ad=Math.abs(dx);
+    if(y<fh){
+      const{half,t,ti}=halves[y],edge=half+(r()<.1?1:0)-(r()<.08?1:0);
+      if(ad<=edge&&edge>0){
+        if(cones.has(y*w+x)&&!back&&!snow)return r()<.5?'#8c5e52':'#6a443f';
+        // aiguilles : traits qui descendent vers l'extérieur
+        const k=(y-ad+T[ti].ph+40)%4;
+        let v=-dx/(half+.5)*.75+(1-t)*.3+(r()-.5)*.14-y/fh*.12;
+        const seg=(((y+ad)>>1)+T[ti].ph)%3;if(k===0&&seg)v-=.3;else if(k===2&&seg!==1&&v>.1)v+=.18;
+        if(ti>0&&t<.22&&ad<half*.85)v-=.45; // ombre de l'étage du dessus
+        if(ad>edge-1&&t>.6)v-=.15;
+        if(snow&&(t<.38&&!(ti>0&&t<.12)||v>.6)&&r()<.85)return t<.2||v>.7?'#ffffff':'#e2eaee';
+        if(snow&&t>.88&&ad>half*.6&&r()<.5)return '#e2eaee';
+        if(t>.9&&ad>half*.55&&r()<.7)return pal[0];
+        return v<-.75?deep:pal[v>.45?3:v>.03?2:v>-.38?1:0];
+      }
+      const tip=tips.get(y*w+x);
+      if(tip!=null)return snow&&tip===0&&dx<0?'#e2eaee':tip?deep:pal[dx<0?1:0];
+    }
+    if(y>=fh-3&&Math.abs(dx+.5)<=tw/2+(y===h-1?1:0)){
+      if(y===h-1&&Math.abs(dx+.5)>tw/2)return '#5a3a36';
+      return dx<0?((y+x)%3?'#8c5e52':'#9e6e5c'):'#6a443f';
+    }
     return null;
   });
 }
@@ -583,6 +608,14 @@ const WORLDS=[
 const WI=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
 const discovered=()=>Object.keys(loadLog().sp).filter(id=>SPI[id]).length;
 const unlocked=w=>Q.get('monde')===w.id||store.get('all',false)||discovered()>=w.need;
+// ?tout : débloque tous les mondes et remplit le carnet (espèces + poèmes), puis nettoie l'URL
+if(Q.has('tout')){
+  const L=loadLog();
+  for(const sp of SP)if(!L.sp[sp.id]||!L.sp[sp.id].n)L.sp[sp.id]={n:1,best:0,first:Date.now()};
+  L.poems=POEMS.map((_,i)=>i);store.set('log',L);store.set('all',true);
+  Q.delete('tout');history.replaceState(null,'',location.pathname+(Q.toString()?'?'+Q:''));
+  setTimeout(()=>toast(null,'Tout est débloqué','Mondes, espèces et poèmes sont dans le carnet.',null,6000,'carnet'),800);
+}
 // thème de Noël : auto = du 1er décembre au 6 janvier
 function noelOn(){
   if(Q.has('noel'))return Q.get('noel')!=='0';
@@ -740,15 +773,45 @@ function drawIslands(g,r,L){
   }
 }
 function makeWillow(h,seed,back){
-  const r=rng(seed),w=Math.round(h*.8)|1,cx=w>>1,cy=Math.round(h*.32),rx=w/2-1,ry=h*.28,tw=Math.max(2,Math.round(w*.09));
-  const pal=['#4b5b3a','#677846','#8a9a5c','#b2bc7e'].map(c=>back?rgb(mix(hex(c),[214,222,206],.32)):c);
+  const r=rng(seed),w=Math.round(h*.85)|1,cx=w>>1,cy=Math.round(h*.32),rx=w/2-1,ry=h*.28,tw=Math.max(2,Math.round(w*.08));
+  const pal=['#3c4a30','#4b5b3a','#677846','#8a9a5c','#b2bc7e'].map(c=>back?rgb(mix(hex(c),[214,222,206],.32)):c);
+  // feuillage en grosses touffes qui se chevauchent (celles du bas devant)
+  const lobes=[{x:cx,y:cy,rx:rx*.62,ry:ry*.75}];
+  for(let i=0;i<7;i++){const a=-Math.PI*(.05+.9*i/6),d=.55+r()*.2;lobes.push({x:cx+Math.cos(a)*rx*d*.75,y:cy+Math.sin(a)*ry*d*.7+ry*.15,rx:rx*(.32+r()*.12),ry:ry*(.38+r()*.12)})}
+  for(let i=0;i<3;i++)lobes.push({x:cx+(i-1)*rx*.55+(r()-.5)*3,y:cy+ry*.45,rx:rx*(.3+r()*.1),ry:ry*.38});
+  lobes.sort((a,b)=>a.y-b.y);
+  const inLobe=(x,y)=>{let best=null;for(const L of lobes){const dx=(x-L.x)/L.rx,dy=(y-L.y)/L.ry,d=dx*dx+dy*dy;if(d<1)best={dx,dy,d}}return best};
+  let bottom=0;for(const L of lobes)bottom=Math.max(bottom,L.y+L.ry);
+  // rideaux de branches qui pendent
   const strands=new Map();
-  for(let x=0;x<w;x++){const dx=(x-cx)/rx;if(r()<.55&&Math.abs(dx)<.95)strands.set(x,Math.round(cy+ry*Math.sqrt(1-dx*dx)*.8+r()*h*.35))}
+  for(let x=1;x<w-1;x++){
+    if(r()<.4)continue;let top=-1;
+    for(let y=Math.round(bottom);y>0;y--)if(inLobe(x,y)){top=y;break}
+    if(top<0)continue;
+    strands.set(x,{top,end:Math.min(h-3,Math.round(top+3+r()*h*.4)),ph:(r()*4)|0});
+  }
+  // branches visibles sous le feuillage
+  const forks=[[-1,.5],[1,.45],[-1,.2],[1,.25]].map(([sg,k])=>({sg,k:k+r()*.1,len:Math.round(rx*(.35+r()*.2))}));
   return gridSprite(w,h,(x,y)=>{
-    const dx=(x-cx)/rx,dy=(y-cy)/ry,d=dx*dx+dy*dy+(r()-.5)*.18;
-    if(d<1){const v=-dx*.6-dy*.5+(r()-.5)*.3;return pal[v>.45?3:v>0?2:v>-.45?1:0]}
-    const st=strands.get(x);if(st&&y>cy&&y<=st)return y===st?pal[0]:pal[(x+y)%3?1:2];
-    if(y>cy&&Math.abs(x-cx+.5)<=tw/2+(y>h-3?1:0))return x<cx?'#7a5a46':'#5a4036';
+    const L=inLobe(x,y);
+    if(L){
+      const n=(r()-.5)*.25;
+      let v=-L.dx*.55-L.dy*.6+n;
+      if(L.d>.72&&L.dy>0)v-=.5; // creux entre deux touffes
+      if((x*3+y*5)%7===0)v-=.3;else if((x+y*2)%6===0&&v>0)v+=.25;
+      return pal[v>.55?4:v>.15?3:v>-.25?2:v>-.65?1:0];
+    }
+    const st=strands.get(x);
+    if(st&&y>st.top&&y<=st.end){
+      if(y===st.end)return pal[(x%2)?1:0];
+      const leaf=(y+st.ph)%3;
+      return leaf===0?pal[3]:leaf===1?pal[2]:pal[1];
+    }
+    if(y>cy){
+      const dy=h-1-y,tx=x-cx+.5;
+      if(Math.abs(tx)<=tw/2+(y>h-3?1:0)+(y===h-1?1:0))return tx<0?((x+y)%4?'#7a5a46':'#8e6a52'):'#5a4036';
+      for(const f of forks){const fy=Math.round(cy+(h-cy)*f.k),d=fy-y;if(d>=0&&d<=f.len&&Math.round(tx*f.sg)===Math.round(tw/2+d*.9))return '#5a4036'}
+    }
     return null;
   });
 }
