@@ -688,6 +688,32 @@ function makeBalloon(col){
   g.drawImage(mapSprite(["..y..","ggygg","yyyyy","ggygg","ggygg"],{g:col===GIFT_COLS[0]?'#5a8ad0':'#e8605a',y:'#f2c64a'}),2,15);
   return c;
 }
+// petit avion à banderole
+const FONT={A:'010101111101101',B:'110101110101110',C:'011100100100011',D:'110101101101110',E:'111100110100111',F:'111100110100100',G:'011100101101011',H:'101101111101101',I:'111010010010111',J:'001001001101010',K:'101101110101101',L:'100100100100111',M:'101111111101101',N:'110101101101101',O:'010101101101010',P:'110101110100100',Q:'010101101110011',R:'110101110101101',S:'011100010001110',T:'111010010010010',U:'101101101101111',V:'101101101101010',W:'101101111111101',X:'101101010101101',Y:'101101010010010',Z:'111001010100111',' ':'000000000000000','!':'010010010000010','?':'110001010000010','.':'000000000000010',',':'000000000010100',"'":'010010000000000','♥':'000101111111010'};
+const BANNERS=['BELLE JOURNEE !','TU GERES !','PRENDS SOIN DE TOI','SOURIS ♥','CA VA ALLER','TU ES FORMIDABLE','PROFITE DU MOMENT','BOIS UN VERRE D\'EAU','MERCI D\'ETRE LA ♥','TOUT VA BIEN','FAIS UNE PAUSE','BRAVO POUR AUJOURD\'HUI','TU AS LE DROIT DE RALENTIR','QUELQU\'UN PENSE A TOI'];
+function makeBanner(text){
+  text=text.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase();
+  const bw=text.length*4+5,bh=9,[c,g]=canvasOf(bw,bh);
+  g.fillStyle=OUT;g.fillRect(0,0,bw,bh);g.fillStyle='#fffaf0';g.fillRect(1,1,bw-2,bh-2);
+  g.fillStyle='#e8605a';[...text].forEach((ch,i)=>{const f=FONT[ch]||FONT[' '];for(let k=0;k<15;k++)if(f[k]==='1')g.fillRect(3+i*4+k%3,2+(k/3|0),1,1)});
+  return c;
+}
+const PLANE=[1,-1].map(d=>{const m=["r.........","rr..wwwkk.",".wwwwwwwww","...rrr...."].map(row=>d>0?row:[...row].reverse().join(''));return mapSprite(m,{r:'#e8605a',w:'#f4f0e6',k:'#5a8ad0'})});
+let plane=null,planeT=rnd(60,160);
+function spawnPlane(){
+  const d=R()<.5?1:-1,list=NOEL?BANNERS.concat(['JOYEUX NOEL !','BONNES FETES ♥']):BANNERS,banner=makeBanner(list[R()*list.length|0]);
+  plane={d,banner,x:d>0?-PLANE[0].width-8:W+banner.width+8,y:Math.round(rnd(WY*.5,WY*.6))};
+}
+function drawPlane(sk){
+  if(!plane)return;const p=plane,spr=PLANE[p.d>0?0:1],b=p.banner,x=Math.round(p.x),y=p.y+(Math.sin(T*1.3)>.6?1:0);
+  ctx.globalAlpha=.92-sk.dark*.4;
+  const bx=p.d>0?x-8-b.width:x+spr.width+8,by=y-2;
+  ctx.fillStyle='rgba(60,60,70,.6)';const rx=p.d>0?x:x+spr.width-1;for(let i=1;i<8;i++)ctx.fillRect(rx-p.d*i,y+2+Math.round(i/8),1,1);
+  for(let i=0;i<b.width;i++){const tail=p.d>0?1-i/b.width:i/b.width,dy=Math.round(Math.sin(T*4+(p.d>0?i:-i)*.25)*tail*.75);ctx.drawImage(b,i,0,1,b.height,bx+i,by+dy,1,b.height)}
+  ctx.drawImage(spr,x,y);
+  ctx.fillStyle=OUT;if(Math.sin(T*40)>0)ctx.fillRect(p.d>0?x+spr.width-1:x,y+1,1,3);
+  ctx.globalAlpha=1;
+}
 let balloon=null,balloonT=rnd(45,150);
 function spawnBalloon(){const d=R()<.5?1:-1,cols=NOEL?['#d8303a','#3a8a4a','#f2c64a']:GIFT_COLS,col=cols[R()*cols.length|0];balloon={x:d>0?-12:W+2,y:rnd(WY*.46,WY*.62),d,ph:R()*6,col,spr:makeBalloon(col)}}
 function balloonHit(x,y){if(!balloon)return false;const bx=balloon.x,by=balloon.y+Math.sin(T*1.2+balloon.ph)*2;return x>=bx-3&&x<=bx+14&&y>=by-3&&y<=by+24}
@@ -958,6 +984,8 @@ function update(dt){
   F.ang=lerp(F.ang,ang,F.st==='cast'?1:Math.min(1,dt*8));F.bend=lerp(F.bend,bend,Math.min(1,dt*10));
   // ambiance
   for(const c of clouds){c.x+=c.v*dt*(WORLD.boat?-2:1);if(c.x>W)c.x=-c.spr.width;if(c.x<-c.spr.width)c.x=W}
+  if(!plane&&(planeT-=dt)<0){planeT=rnd(180,480);spawnPlane()}
+  if(plane){plane.x+=plane.d*dt*11;if(plane.x<-plane.banner.width-30||plane.x>W+plane.banner.width+30)plane=null}
   if(!balloon&&(balloonT-=dt)<0){balloonT=NOEL?rnd(70,200):rnd(150,420);spawnBalloon()}
   if(balloon){balloon.x+=balloon.d*dt*5;if(balloon.x<-16||balloon.x>W+16)balloon=null}
   if(WORLD.sea){if((sailT-=dt)<0&&sails.length<4){sailT=rnd(6,22);spawnSail()}for(const b of sails)b.x+=b.v*dt;sails=sails.filter(b=>b.x>-b.spr.width-4&&b.x<W+4)}
@@ -997,6 +1025,7 @@ function draw(){
   ctx.globalAlpha=1;
   if(shoot){const k=shoot.t/.7;for(let i=0;i<8;i++){ctx.globalAlpha=(1-k)*(1-i/8);ctx.fillStyle='#fff';ctx.fillRect(Math.round(shoot.x-k*60+i*2),Math.round(shoot.y+k*24-i*.8),1,1)}ctx.globalAlpha=1}
   drawSunMoon(d,e,sk);
+  drawPlane(sk);
   // premier plan (teinté selon l'heure)
   fx.clearRect(0,0,W,H);
   for(const c of clouds)fx.drawImage(c.spr,Math.round(c.x),Math.round(c.y));
