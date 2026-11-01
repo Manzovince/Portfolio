@@ -944,14 +944,70 @@ function makeSakura(h,seed,back,maple){
     return null;
   });
 }
-const TORII=n=>mapSprite(["kk...................kk","kkkkkkkkkkkkkkkkkkkkkkk",".RRRRRRRRRRRRRRRRRRRRR.","...rr.....RrR.....rr...","..rrrrrrrrrrrrrrrrrrr..",...Array(n).fill("...rr.............rr..."),"..kkkk...........kkkk.."],{r:'#d8402e',R:'#b02e22',k:'#2e2a2e'});
+function makeTorii(h){
+  const w=Math.round(h*.95)|1,cx=w>>1,pw=Math.max(2,Math.round(h*.075)),px=Math.round(w*.2),kt=Math.max(2,Math.round(h*.055));
+  const ny=kt*2+2+Math.round(h*.17),nt=Math.max(2,Math.round(h*.05)),bh=Math.max(2,Math.round(h*.06));
+  const RED=['#ec6a4a','#d8402e','#a82a20'],BLK=['#4a4248','#2e2a2e'];
+  return gridSprite(w,h,(x,y)=>{
+    const ax=Math.abs(x-cx),e=ax/(w/2),lift=Math.round(kt*1.3*Math.pow(e,3));
+    // kasagi : poutre noire aux bouts relevés, puis shimaki rouge
+    const k0=kt-lift;
+    if(y>=k0&&y<k0+kt&&ax<=w/2)return y===k0?BLK[0]:BLK[1];
+    const s0=kt+1-Math.round(lift*.5);
+    if(ax<=w/2-pw*.8&&y>=s0&&y<s0+kt)return y===s0?RED[0]:y===s0+kt-1?RED[2]:RED[1];
+    // nuki : traverse qui dépasse des piliers
+    if(ax<=w/2-px+pw*1.6&&y>=ny&&y<ny+nt)return y===ny?RED[0]:y===ny+nt-1?RED[2]:RED[1];
+    // gakuzuka et plaque
+    const pl=Math.round((s0+kt+ny)/2);
+    if(ax<=pw*.9&&y>=pl-pw&&y<=pl+pw)return ax>pw*.9-1||Math.abs(y-pl)===pw?'#e8c070':BLK[1];
+    if(ax<pw*.5&&y>=s0+kt&&y<ny)return x<cx?RED[1]:RED[2];
+    // piliers légèrement évasés, base noire
+    for(const p of[px,w-1-px]){
+      const d=x-p,half=pw/2+(y/h)*.8;
+      if(Math.abs(d+.5)<=half&&y>=s0+kt){
+        if(y>=h-bh)return d<0?BLK[0]:BLK[1];
+        return d<-half+1.5?RED[0]:d>half-1.5?RED[2]:RED[1];
+      }
+    }
+    return null;
+  });
+}
+function makePagoda(h){
+  const w=Math.round(h*.6)|1,cx=w>>1,tiers=3;
+  return gridSprite(w,h,(x,y)=>{
+    const ax=Math.abs(x-cx),th=(h-3)/tiers;
+    if(y<3)return ax<1?'#6a7488':null;
+    const ti=Math.floor((y-3)/th),t=(y-3)/th-ti,rw=w/2*(.55+.45*(ti+1)/tiers);
+    if(t<.3&&ax<=rw*(.6+.4*t/.3))return '#5a6478';
+    if(t>=.3&&ax<=rw*.62)return ax<rw*.3&&t>.55&&t<.85?'#c8a06a':'#8a7a78';
+    return null;
+  });
+}
 const TORO=mapSprite(["....s....","...sss...",".sssssss.","sSSSSSSSs","..sLLLs..","..sLLLs..",".sssssss.","...sss...","...sSs...","...sss...","..sssss.."],{s:'#a29e96',S:'#7a766e',L:'#efe2b0'});
-function drawFuji(g){
-  const cx=Math.round(W*.52),hm=Math.round(WY*.4),bw=hm*3.4;
+function drawFuji(g,r){
+  const cx=Math.round(W*.52),hm=Math.round(WY*.46),bw=hm*3.5,sy=GT-hm,ph=r()*6,haze=hex('#c8d4de');
+  const C={snowL:hex('#ffffff'),snowR:hex('#dce6f0'),snowG:hex('#c4d2e2'),rockL:hex('#a2b0c4'),rockR:hex('#8694aa'),gully:hex('#74829a')};
   for(let x=Math.round(cx-bw/2);x<cx+bw/2;x++){
-    const u=Math.max(0,Math.abs(x-cx)/(bw/2)-.05)/.95,top=Math.round(GT-hm*Math.pow(1-u,1.7));
-    const snow=top+Math.round(hm*(.3-.55*u)+Math.abs(Math.sin(x*.45))*hm*.06*(1-u));
-    for(let y=top;y<=GT;y++){const left=x<cx;g.fillStyle=y<snow?(left?'#ffffff':'#e2eaf2'):left?'#a8b6c8':'#94a2b6';g.fillRect(x,y,1,1)}
+    const u=Math.max(0,Math.abs(x-cx)/(bw/2)-.05)/.95,top=Math.round(GT-hm*Math.pow(1-u,1.7)),left=x<cx;
+    for(let y=top;y<=GT;y++){
+      const a=(x-cx)/(y-sy+4),sg=Math.sin(a*11+ph),dz=(y-sy)/hm;
+      // langues de neige qui descendent dans les ravines
+      const sl=sy+hm*(.3+(sg>0?sg*.2:sg*.05)+Math.sin(x*1.7)*.012);
+      let c;
+      if(y<sl)c=sg>.55&&!left?C.snowG:left?(sg>.7?C.snowR:C.snowL):C.snowR;
+      else{c=sg>.6?C.gully:left?C.rockL:C.rockR;if(sg<-.8&&left)c=mix(c,C.snowR,.25)}
+      if(y===top&&left)c=mix(c,[255,255,255],.4);
+      g.fillStyle=rgb(mix(c,haze,Math.pow(dz,2.5)*.55));g.fillRect(x,y,1,1);
+    }
+  }
+  // collines boisées au pied du volcan
+  for(const k of[0,1]){
+    const hh=WY*(k?.1:.17),ph2=r()*6,col=hex(k?'#5e8478':'#7a9696'),dk=hex(k?'#4e7066':'#6a8888');
+    for(let x=0;x<W;x++){
+      const n=.55+.3*Math.sin(x*.021+ph2)+.15*Math.sin(x*.07+ph2*2),top=Math.round(GT-hh*n-(k?Math.abs(Math.sin(x*.5))*2:0));
+      for(let y=top;y<=GT;y++){g.fillStyle=rgb(k&&(x+y)%5===0?dk:y===top?mix(col,[255,255,255],.15):col);g.fillRect(x,y,1,1)}
+    }
+    if(!k){const pg=makePagoda(Math.round(H*.13)),pxx=Math.round(W*.3);const n=.55+.3*Math.sin(pxx*.021+ph2)+.15*Math.sin(pxx*.07+ph2*2);g.drawImage(pg,pxx-(pg.width>>1),Math.round(GT-hh*n)+2-pg.height)}
   }
 }
 function drawMountains(g,r,snowy){
@@ -1022,7 +1078,7 @@ function buildLand(){
   [land]=canvasOf(WORLD.boat?W*2:W,WY);const g=land.getContext('2d');
   if(WORLD.boat)drawIslands(g,r,W*2);
   if(WORLD.mount)drawMountains(g,r,WORLD.mount===2);
-  if(WORLD.fuji)drawFuji(g);
+  if(WORLD.fuji)drawFuji(g,r);
   // arbres : rang du fond puis rang de devant
   trees=[];
   const make=(h,seed,back)=>kind==='sakura'?makeSakura(h,seed,back,seed%4===0):kind==='palm'?makePalm(h,seed,back):kind==='willow'?makeWillow(h,seed,back):makePine(h,seed,back,kind==='pineDark'?DARK_PAL:TREE_PAL,kind==='snow');
@@ -1060,7 +1116,7 @@ function buildLand(){
   // berges (ou ponton + falaise au bord de mer)
   LH=null;
   sails=[];if(WORLD.sea){drawPier(g);for(let i=0;i<2;i++)spawnSail(R()*W)}else if(!WORLD.boat)for(const b of[LB,RB])drawBank(g,b,r,P);
-  if(WORLD.id==='jardin'){const t=TORII(Math.round(H*.1)),tx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.3);g.drawImage(t,tx-(t.width>>1),GT+2-t.height);g.drawImage(TORO,rab.x-26,GT+2-TORO.height)}
+  if(WORLD.id==='jardin'){const t=makeTorii(Math.round(H*.34)),tx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.3);g.drawImage(t,tx-(t.width>>1),GT+2-t.height);g.drawImage(TORO,rab.x-26,GT+2-TORO.height)}
   // herbes, roseaux et fleurs (animés)
   tufts=[];flowers=[];
   if(!WORLD.sea&&!WORLD.boat)for(const b of[LB,RB])for(let x=Math.max(b.x0,0)+1;x<Math.min(b.x1,W)-1;x+=1+(r()*3|0)){
