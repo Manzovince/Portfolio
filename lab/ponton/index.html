@@ -616,32 +616,44 @@ const LIGHTHOUSE=(()=>{
   return mapSprite(m,{r:'#d8504a',w:'#f4f0e6',g:'#4a4a52',y:'#f8e8a0',Y:'#ffffff'});
 })();
 function makePalm(h,seed,back){
-  const r=rng(seed),w=Math.round(h*1.4)|1,px=new Map(),base=w>>1,th=h*.7;
+  const r=rng(seed),w=Math.round(h*1.6)|1,px=new Map(),base=w>>1,th=h*.66;
   const set=(x,y,c)=>{x=Math.round(x);y=Math.round(y);if(x>=0&&y>=0&&x<w&&y<h)px.set(x+','+y,back?rgb(mix(hex(c),[214,236,230],.3)):c)};
-  const lean=(r()<.5?-1:1)*(.1+r()*.15)*h,trunk=[];let tx=base,ty=h-1;
+  const lean=(r()<.5?-1:1)*(.08+r()*.14)*h,trunk=[];let tx=base,ty=h-1;
   for(let i=0;i<th;i++){const x=base+lean*Math.pow(i/th,1.6),y=h-1-i;trunk.push([x,y]);tx=x;ty=y}
-  const fronds=[];
-  for(let f=0;f<10;f++){const a=Math.PI-.35+f/9*(Math.PI+.7)+(r()-.5)*.2;fronds.push({a,len:h*(.24+r()*.14),back:f%3===1})}
-  // lumière venant d'en haut à gauche : palmes de gauche plus claires, dessous des folioles plus sombre
-  const frond=(F,dark)=>{
-    const dx=Math.cos(F.a),dy=Math.sin(F.a),L=F.len,lit=.5-.5*dx;
+  // palettes : arrière (ombre), milieu, avant (au soleil, lumière d'en haut à gauche)
+  const PAL={
+    back:{rib:'#244428',up:['#3e6e3c','#2f5a32','#244628'],dn:['#2a4c2c','#203e24','#1a3420']},
+    mid:{rib:'#3a6430',up:['#7ab452','#5a9a44','#3e7a38'],dn:['#4a8a3e','#3a7034','#2c5a2c']},
+    front:{rib:'#4e7a34',up:['#c4e884','#8cc65c','#5a9e46'],dn:['#6aa84c','#4e8a3e','#3a6e34']},
+    dead:{rib:'#8a6a38',up:['#d8b868','#b89448','#8a6a34'],dn:['#a88444','#8a6a34','#6a5028']}
+  };
+  const frond=(a,L,droop,P)=>{
+    const dx=Math.cos(a),dy=Math.sin(a);
     for(let st=1;st<L;st++){
-      const k=st/L,x=tx+dx*st,y=ty+dy*st*.7+k*k*L*.9;let ll=Math.round(Math.sin(Math.PI*Math.min(1,k*1.08))*L*.24)+1;
-      if(st%2)ll=Math.min(ll,1);
-      for(let j=1;j<=ll;j++){const t=j/ll;set(x+dx*j*.55,y+j*.95,dark?(t<.5?'#2f5a34':'#244628'):t<.25?(lit>.5?'#b8e07c':'#94c464'):t<.6?(lit>.5?'#6cae50':'#5a9a46'):'#3a6a36')}
-      if(!dark&&st%2===0)set(x,y-1,lit>.4?'#dcf0a0':'#acd476');
-      set(x,y,dark?'#26442a':'#4a7632');
+      const k=st/L,x=tx+dx*st,y=ty+dy*st*.7+k*k*L*droop;
+      let gx=dx,gy=dy*.7+2*k*droop;const gl=Math.hypot(gx,gy)||1;gx/=gl;gy/=gl;
+      if(st%2===0)for(const side of[-1,1]){
+        let nx=-gy*side,ny=gx*side;
+        let lx=nx*.8+gx*.55,ly=ny*.8+gy*.55+.55;const l2=Math.hypot(lx,ly);lx/=l2;ly/=l2;
+        const ll=Math.max(1,Math.round(Math.sin(Math.PI*Math.min(1,k*1.05+.05))*L*.2)),upSide=ny<0,pal=upSide?P.up:P.dn;
+        for(let j=1;j<=ll;j++){const t=j/ll;set(x+lx*j,y+ly*j,pal[t<.34?0:t<.7?1:2])}
+      }
+      set(x,y,P.rib);
     }
   };
-  fronds.filter(F=>F.back).forEach(F=>frond(F,true));
+  const N=13,list=[];
+  for(let f=0;f<N;f++){const a=Math.PI-.5+f/(N-1)*(Math.PI+1)+(r()-.5)*.18;list.push({a,L:h*(.3+r()*.13),droop:.55+r()*.5,layer:f%3===1?'back':f%3===2?'mid':'front'})}
+  list.push({a:Math.PI/2+(r()-.5)*.6,L:h*.24,droop:.2,layer:'dead'});
+  for(const f of list.filter(f=>f.layer==='back'||f.layer==='dead'))frond(f.a,f.L,f.droop,PAL[f.layer]);
   trunk.forEach(([x,y],i)=>{
     const shade=th-i<6,ring=i%3===0,thin=i>th*.65;
     set(x-1,y,shade?'#7a5a3e':ring?'#a07e54':'#dcc08e');
     set(x,y,shade?'#5e4430':ring?'#7e6040':'#b08e60');
     if(!thin)set(x+1,y,shade?'#4a3424':ring?'#5e4430':'#7e5e3e');
   });
-  set(tx-1,ty+2,'#6a4a30');set(tx+1,ty+2,'#5a3a24');set(tx,ty+3,'#6a4a30');set(tx-1,ty+1,'#a07e54');
-  fronds.filter(F=>!F.back).sort((a,b)=>Math.sin(b.a)-Math.sin(a.a)).forEach(F=>frond(F,false));
+  for(const[cx,cy,c]of[[-1,2,'#6a4a30'],[1,2,'#5a3a24'],[0,3,'#6a4a30'],[-1,1,'#a07e54'],[0,2,'#7a5a3a']])set(tx+cx,ty+cy,c);
+  for(const f of list.filter(f=>f.layer==='mid'))frond(f.a,f.L,f.droop,PAL.mid);
+  for(const f of list.filter(f=>f.layer==='front').sort((a,b)=>Math.sin(b.a)-Math.sin(a.a)))frond(f.a,f.L,f.droop,PAL.front);
   return gridSprite(w,h,(x,y)=>px.get(x+','+y)||null);
 }
 const BOAT=(()=>{
@@ -788,11 +800,11 @@ function buildLand(){
   const plant=(x0,x1,back)=>{
     let x=x0+r()*6;
     while(true){
-      const h=Math.round(clamp(H*(back?.4:.32)*(.75+r()*.45)*(kind==='willow'?.8:kind==='pineDark'?1.12:kind==='palm'?.95:1),24,150));
+      const h=Math.round(clamp(H*(back?.4:.32)*(.75+r()*.45)*(kind==='willow'?.8:kind==='pineDark'?1.12:kind==='palm'?1.05:1),24,150));
       const spr=make(h,(r()*1e9)|0,back),w=spr.width;
       if(x+w*.35>x1)break;
       trees.push({x:Math.round(x),back,spr});
-      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?.7:1)+r()*8;
+      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?.5:1)+r()*8;
     }
   };
   if(kind!=='none'){
