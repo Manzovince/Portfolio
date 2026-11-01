@@ -477,15 +477,14 @@ function cast(x){
   F.tx=Math.round(x??rnd(castMin(),castMax()));setSt('cast');F.fish=null;F.gauge=null;F.hold=null;hint('');
 }
 function bite(){F.fish=pickFish();setSt('bite');ripple(F.tx,WY+1,7);splash(F.tx,WY,4);
-  hint('Ça mord ! Clique ou appuie sur Espace',true)}
+  hint('Ça mord ! Maintiens Espace ou le clic',true)}
 function strike(){
   const rr=RAR[F.fish.rar];
   F.gauge={c:rnd(.25,.75),w:rr.zw,v:rr.v,ph:R()};setSt('reel');
-  hint('Arrête l’aiguille dans la zone verte',true);
+  hint('Relâche quand l’aiguille est dans le vert',true);
 }
 function needle(){const g=F.gauge,p=(F.t*g.v+g.ph)%2;return p<1?p:2-p}
 function tryHook(){
-  if(F.t<.15)return;
   const d=Math.abs(needle()-F.gauge.c);
   if(d<=F.gauge.w/2)landFish(F.fish,true,d<.035);
   else escape(F.fish.rar==='l'||F.fish.rar==='e'?'Quelque chose d’énorme s’est décroché…':'Il s’est décroché…');
@@ -688,17 +687,21 @@ function frame(ts){
 /* ---------- interactions ---------- */
 function act(x,y){
   if(F.st==='bite')return strike();
-  if(F.st==='reel')return tryHook();
   if(x!=null&&x>=rab.x-1&&x<=rab.x+13&&y>=rab.y&&y<=rab.y+RAB_H){F.hop=.25;heart();return}
   if((F.st==='wait'||F.st==='idle')&&(x==null||(y>=WY-8&&x>=castMin()-6&&x<=castMax()+6)))cast(x==null?null:clamp(x,castMin(),castMax()));
 }
 function heart(){const el=document.createElement('div');el.textContent='♥';Object.assign(el.style,{position:'fixed',left:(rab.x+6)*S+'px',top:(rab.y-4)*S+'px',color:'#e8605a',fontSize:S*5+'px',transition:'transform 1s,opacity 1s',pointerEvents:'none',zIndex:4});document.body.appendChild(el);requestAnimationFrame(()=>{el.style.transform='translateY(-40px)';el.style.opacity='0'});setTimeout(()=>el.remove(),1100)}
 cv.addEventListener('pointerdown',e=>{act(e.clientX/S,e.clientY/S)});
+addEventListener('pointerup',release);addEventListener('pointercancel',release);addEventListener('blur',release);
+function release(){if(F.st==='reel')tryHook()}
 cv.addEventListener('pointermove',e=>{const x=e.clientX/S,y=e.clientY/S;cv.classList.toggle('cible',F.st==='bite'||F.st==='reel'||((F.st==='wait'||F.st==='idle')&&y>=WY-8&&x>=castMin()-6&&x<=castMax()+6))});
 addEventListener('keydown',e=>{
   if(e.key==='Escape'){closeModal();return}
   const typing=/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
-  if(e.code==='Space'&&(!typing||(F.st==='bite'||F.st==='reel')&&!$('#q').value)){e.preventDefault();act(null,null)}
+  if(e.code==='Space'&&(!typing||(F.st==='bite'||F.st==='reel')&&!$('#q').value)){e.preventDefault();if(!e.repeat)act(null,null)}
+});
+addEventListener('keyup',e=>{
+  if(e.code==='Space'&&F.st==='reel'){e.preventDefault();release()}
 });
 let hintT=0;
 function hint(t,strong){const h=$('#hint');h.textContent=t;h.classList.toggle('on',!!t);h.classList.toggle('fort',!!strong)}
@@ -791,7 +794,7 @@ function showTab(tab){
       <label>Moteur de recherche <select id="sEng">${Object.entries(ENG).map(([k,v])=>`<option value="${k}"${k===eng?' selected':''}>${v[0]}</option>`).join('')}</select></label>
       <label>Raccourcis par défaut <button id="sLinks">Rétablir</button></label>
       <label>Remettre le carnet à zéro <button class="danger" id="sReset">Effacer</button></label>
-      <p>Le lapin pêche tout seul, même quand l’onglet est fermé : il ferre les poissons communs, mais les rares, épiques et légendaires ne se prennent qu’à la main. Clique (ou Espace) quand le flotteur plonge, puis arrête l’aiguille dans la zone verte — au centre doré pour un ferrage parfait. Clique sur l’eau pour lancer ailleurs, sur le lapin pour un câlin.</p>
+      <p>Le lapin pêche tout seul, même quand l’onglet est fermé : il ferre les poissons communs, mais les rares, épiques et légendaires ne se prennent qu’à la main. Quand le flotteur plonge, maintiens Espace (ou le clic) : la jauge apparaît, et tu relâches quand l’aiguille est dans la zone verte — au centre doré pour un ferrage parfait. Clique sur l’eau pour lancer ailleurs, sur le lapin pour un câlin.</p>
       <p>Le ciel suit l’heure et la position du soleil réelles. Certaines espèces ne mordent que la nuit, d’autres le jour.</p>
     </div>`;
     $('#sEng').onchange=e=>setEng(e.target.value);
