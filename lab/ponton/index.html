@@ -35,6 +35,7 @@ header{width:100%;display:flex;justify-content:space-between;align-items:center;
 .hd-r{display:flex;gap:8px}
 .pill{border:0;border-radius:999px;padding:10px 16px;font:600 13px/1 'JetBrains Mono',monospace;cursor:pointer;color:var(--ink);background:var(--chip);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);transition:transform .12s,background .2s}
 .pill:hover{transform:translateY(-1px)}
+.pill.coin{display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
 .pill.acc{background:var(--accent);color:#fff}
 .pill.acc:hover{background:var(--accent2)}
 .pill.ico{padding:0;width:34px;height:33px;display:grid;place-items:center}
@@ -99,6 +100,12 @@ main{display:flex;flex-direction:column;align-items:center;margin-top:0;width:10
 .wh:first-of-type{margin-top:4px}
 .lockl{font-size:12px;opacity:.65;margin:10px 0 0}
 .wl{display:grid;gap:10px}
+.card.shop{cursor:pointer;transition:transform .12s}
+.card.shop:hover{transform:translateY(-2px)}
+.card.shop.worn{border-color:var(--accent);box-shadow:3px 3px 0 var(--accent)}
+.card.shop.poor{opacity:.5;cursor:default}
+.card.shop canvas{height:96px}
+.price{display:inline-flex;align-items:center;gap:4px;font-weight:800}
 .poems{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
 .poem{white-space:pre-line;font-style:italic;font-size:12px;line-height:1.6;background:#fff;border:2px solid var(--line);border-radius:12px;padding:10px 12px}
 .haiku{display:block;font-style:italic;line-height:1.5;color:var(--panel-ink)}
@@ -119,6 +126,7 @@ main{display:flex;flex-direction:column;align-items:center;margin-top:0;width:10
   <header>
     <button class="brand" id="bWorld" title="Changer de monde"><svg viewBox="0 0 8 9" shape-rendering="crispEdges"><path fill="currentColor" d="M3 0h2v1h1v2H5v1h2v2H6v1h2v1H5v2H3V7H0V6h2V5H1V3h2V1h0z"/></svg><span id="wName">Ponton</span><span class="chev">▾</span></button>
     <div class="hd-r">
+      <button class="pill coin" id="bShop" title="Boutique"><svg width="14" height="14" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><path fill="#c8901c" d="M2 0h3v1H2zM1 1h1v1H1zM5 1h1v1H5zM0 2h1v3H0zM6 2h1v3H6zM1 5h1v1H1zM5 5h1v1H5zM2 6h3v1H2z"/><path fill="#f2c64a" d="M2 1h3v1H2zM1 2h5v3H1zM2 5h3v1H2z"/><path fill="#fff0a0" d="M2 2h1v2H2z"/></svg><span id="nCoin">0</span></button>
       <button class="pill acc" id="bCarnet">Carnet · <span id="nTot">0</span></button>
       <button class="pill ico" id="bSet" title="Réglages" aria-label="Réglages"><svg width="18" height="18" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M4 0h1v1H4zM1 1h1v1H1zM7 1h1v1H7zM3 1h3v1H3zM2 2h5v1H2zM2 3h1v3H2zM6 3h1v3H6zM0 4h2v1H0zM7 4h2v1H7zM2 6h5v1H2zM3 7h3v1H3zM1 7h1v1H1zM7 7h1v1H7zM4 8h1v1H4z"/></svg></button>
     </div>
@@ -140,6 +148,7 @@ main{display:flex;flex-direction:column;align-items:center;margin-top:0;width:10
   <div class="ph">
     <button class="tab on" data-tab="carnet">Carnet</button>
     <button class="tab" data-tab="mondes">Mondes</button>
+    <button class="tab" data-tab="boutique">Boutique</button>
     <button class="tab" data-tab="reglages">Réglages</button>
     <span class="sp"></span>
     <button class="close" id="mClose" aria-label="Fermer">✕</button>
@@ -303,11 +312,44 @@ const EARS=[[ // droites
   ".owpo.owwo...",
   ".owwo.owwo...",
   "..owwoowwo..."]];
-function rabbitSprite(ear,blink){
-  const body=RAB_BODY.slice();if(blink)body[2]=body[2].replace('e','o');
-  return mapSprite(EARS[ear].concat(body),RAB_PAL,false);
+const SHOP=[
+  {id:'rouge',slot:'corps',n:'Pull rouge',p:0,pal:['#e2635c','#b9474b']},
+  {id:'bleu',slot:'corps',n:'Pull bleu',p:40,pal:['#5a8ad0','#3e6aa8']},
+  {id:'vert',slot:'corps',n:'Pull vert',p:40,pal:['#6aa06a','#4a7a4a']},
+  {id:'rose',slot:'corps',n:'Pull rose',p:60,pal:['#f2a6b4','#d4808e']},
+  {id:'cire',slot:'corps',n:'Ciré jaune',p:120,pal:['#f2c64a','#d4a42a']},
+  {id:'mariniere',slot:'corps',n:'Marinière',p:150,pal:['#f4f0e6','#d8d2c8'],stripe:'#3a5a8a'},
+  {id:'bob',slot:'tete',n:'Bob de pêcheur',p:80,at:[0,5],map:["..hhhhhhhh..","..hHHHHHHh..","hhhhhhhhhhhhh"],pal:{h:'#d8c8a0',H:'#a08a60'}},
+  {id:'casquette',slot:'tete',n:'Casquette',p:70,at:[1,6],map:["..bbbbbbb....",".bbbbbbbbbbbb"],pal:{b:'#3a6a9a'}},
+  {id:'bonnet',slot:'tete',n:'Bonnet à pompon',p:90,at:[0,2],map:["....w.....","...rrrr...","..rrrrrrr.",".rrrrrrrrr",".wwwwwwwww"],pal:{r:'#e8605a',w:'#f4f0e6'}},
+  {id:'fleur',slot:'tete',n:'Fleur à l’oreille',p:50,at:[7,2],map:[".p.","pyp",".p."],pal:{p:'#f0607a',y:'#f6e28a'}},
+  {id:'paille',slot:'tete',n:'Chapeau de paille',p:120,at:[-1,5],map:["...yyyyyyy....","...yrrrrrry...","yyyyyyyyyyyyyy"],pal:{y:'#e8c870',r:'#e8605a'}},
+  {id:'couronne',slot:'tete',n:'Couronne',p:1500,at:[3,4],map:["y.y.y","yyyyy","yryby"],pal:{y:'#f2c64a',r:'#e8605a',b:'#5a8ad0'}},
+  {id:'rondes',slot:'yeux',n:'Lunettes rondes',p:80,at:[5,8],flat:1,map:["...ooo","aaao.o","...ooo"],pal:{o:'#4a4a52',a:'#9a9aa2'}},
+  {id:'soleil',slot:'yeux',n:'Lunettes de soleil',p:100,at:[5,9],flat:1,map:["ooookkk","....kkk"],pal:{o:OUT,k:'#2a2a40'}},
+  {id:'noeud',slot:'cou',n:'Nœud papillon',p:70,at:[9,12],map:["b.b","bbb","b.b"],pal:{b:'#e8605a'}},
+  {id:'echarpe',slot:'cou',n:'Écharpe',p:100,at:[2,12],map:["sssssssss","sSsSsSsSs",".ss......",".sS......"],pal:{s:'#5a8ad0',S:'#f4f0e6'}},
+  {id:'foulard',slot:'cou',n:'Foulard de marin',p:90,at:[2,12],map:["fffffffff","..fffff..","...fff...","....f...."],pal:{f:'#3a8ac0'}}
+];
+const SHOPI=Object.fromEntries(SHOP.map(i=>[i.id,i]));
+SHOP.forEach(i=>{if(i.map)i.spr=mapSprite(i.map,i.pal,!i.flat)});
+let closet=store.get('closet',null)||{own:['rouge'],wear:{corps:'rouge'}};
+const saveCloset=()=>store.set('closet',closet);
+const OX=3,OY=3;
+function dressed(ear,blink,wear){
+  const[c,g]=canvasOf(13+OX*2,20+OY*2);
+  g.drawImage(rabbitSprite(ear,blink,SHOPI[wear.corps]||SHOP[0]),OX,OY);
+  for(const slot of['cou','yeux','tete']){const it=SHOPI[wear[slot]];if(it)g.drawImage(it.spr,OX+it.at[0]-(it.flat?0:1),OY+it.at[1]-(it.flat?0:1))}
+  return c;
 }
-const RAB=[rabbitSprite(0,0),rabbitSprite(0,1),rabbitSprite(1,0),rabbitSprite(1,1)];
+let RAB=[];
+function buildRabbit(){RAB=[0,1].flatMap(e=>[0,1].map(b=>dressed(e,b,closet.wear)))}
+function rabbitSprite(ear,blink,corps){
+  const body=RAB_BODY.slice();if(blink)body[2]=body[2].replace('e','o');
+  if(corps&&corps.stripe)for(const i of[7,9])body[i]=body[i].replace(/[rR]/g,'n');
+  const pal={...RAB_PAL,n:corps&&corps.stripe||'#000'};if(corps){pal.r=corps.pal[0];pal.R=corps.pal[1]}
+  return mapSprite(EARS[ear].concat(body),pal,false);
+}
 const RAB_H=20, HAND=[10,14];
 const BUCKET=mapSprite([
   "..ooooo..",
@@ -502,20 +544,25 @@ function bigSprite(c,s){const[k,g]=canvasOf(c.width*s,c.height*s);g.drawImage(c,
 
 /* ---------- carnet (stockage partagé entre onglets) ---------- */
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
+const COIN={c:2,u:6,r:18,e:50,l:150,j:1};
+const coinOf=(sp,perfect)=>Math.round(COIN[sp.rar]*(perfect?1.5:1));
+function addCoins(n){const L=loadLog();L.coins+=n;store.set('log',L);refreshCount()}
 function loadLog(){
   const L=store.get('log',null)||{sp:{},total:0,day:'',today:0};
   if(L.day!==today()){L.day=today();L.today=0}
+  if(L.coins==null)L.coins=Object.entries(L.sp).reduce((a,[id,e])=>a+(SPI[id]?coinOf(SPI[id])*e.n:0),0);
   return L;
 }
 function addCatch(id,cm,perfect){
   const L=loadLog(),before=Object.keys(L.sp).filter(k=>SPI[k]).length,e=L.sp[id]||(L.sp[id]={n:0,best:0,first:Date.now()}),isNew=e.n===0;
   if(isNew&&typeof WORLDS!=='undefined')for(const w of WORLDS)if(w.need>before&&w.need<=before+1)setTimeout(()=>toast(null,'Nouveau monde : '+w.n,'Ouvre l’onglet Mondes pour y aller.',null,7000,'mondes'),4300);
   e.n++;if(cm&&cm>e.best)e.best=cm;if(perfect)e.perfect=(e.perfect||0)+1;
+  const coins=coinOf(SPI[id],perfect);L.coins+=coins;
   L.total++;L.today++;store.set('log',L);refreshCount();
-  return{isNew,record:cm&&cm===e.best&&e.n>1};
+  return{isNew,record:cm&&cm===e.best&&e.n>1,coins};
 }
-function refreshCount(){$('#nTot').textContent=loadLog().total}
-addEventListener('storage',e=>{if(e.key==='ponton.log')refreshCount();if(e.key==='ponton.links')renderLinks()});
+function refreshCount(){const L=loadLog();$('#nTot').textContent=L.total;$('#nCoin').textContent=L.coins}
+addEventListener('storage',e=>{if(e.key==='ponton.closet'){closet=store.get('closet',closet);buildRabbit()}if(e.key==='ponton.log')refreshCount();if(e.key==='ponton.links')renderLinks()});
 
 /* ---------- mondes ---------- */
 const WORLDS=[
@@ -588,6 +635,29 @@ function makeSail(d,seed){
 function spawnSail(x0){
   const d=Math.pow(R(),1.4),dir=R()<.5?1:-1,{spr,mast}=makeSail(d,R()*1e9|0);
   sails.push({d,dir,spr,mast,ph:R()*6,x:x0!=null?x0:dir>0?-spr.width-2:W+2,y:WY+1+Math.round(d*(H-WY-5)),v:(1+d*5)*dir});
+}
+const GIFT_COLS=['#e8605a','#5a8ad0','#f2c64a','#7fbf8a','#c88ad8'];
+function makeBalloon(col){
+  const[c,g]=canvasOf(11,22);
+  g.drawImage(mapSprite(["..bbb..",".bbbbb.","bWbbbbb","bbbbbbb","bbbbbbb",".bbbbb.","..bbb..","...b..."],{b:col,W:'#ffffff'}),1,0);
+  g.fillStyle='#f4f0e6';for(let y=9;y<15;y++)g.fillRect(5+(y%3===0?1:0),y,1,1);
+  g.drawImage(mapSprite(["..y..","ggygg","yyyyy","ggygg","ggygg"],{g:col===GIFT_COLS[0]?'#5a8ad0':'#e8605a',y:'#f2c64a'}),2,15);
+  return c;
+}
+let balloon=null,balloonT=rnd(45,150);
+function spawnBalloon(){const d=R()<.5?1:-1,col=GIFT_COLS[R()*GIFT_COLS.length|0];balloon={x:d>0?-12:W+2,y:rnd(WY*.46,WY*.62),d,ph:R()*6,col,spr:makeBalloon(col)}}
+function balloonHit(x,y){if(!balloon)return false;const bx=balloon.x,by=balloon.y+Math.sin(T*1.2+balloon.ph)*2;return x>=bx-3&&x<=bx+14&&y>=by-3&&y<=by+24}
+function openGift(){
+  const b=balloon;balloon=null;const by=b.y+Math.sin(T*1.2+b.ph)*2;
+  for(let i=0;i<20;i++)parts.push({x:b.x+5,y:by+4,vx:rnd(-20,20),vy:rnd(-24,6),l:rnd(.5,1),c:i%2?b.col:'#f2c64a',g:20});
+  const pool=SHOP.filter(i=>!closet.own.includes(i.id)&&i.p<=150);
+  if(pool.length&&R()<.3){
+    const it=pool[R()*pool.length|0];closet.own.push(it.id);saveCloset();
+    toast(dressed(0,0,{...closet.wear,[it.slot]:it.id}),'Cadeau : '+it.n+'<span class="tag new">nouveau</span>','Il t’attend dans la boutique.',null,5500,'boutique');
+  }else{
+    const c=Math.round(rnd(15,60));addCoins(c);
+    toast(b.spr,'Cadeau : '+c+' pièces','Le ballon a éclaté de joie.',null,4500,'boutique');
+  }
 }
 function drawIslands(g,r,L){
   for(let i=0;i<5;i++){
@@ -785,6 +855,7 @@ function landFish(sp,active,perfect){
     if(!got.includes(k)){got.push(k);store.set('log',L)}
     t2='<span class="haiku">'+POEMS[k].replace(/\n/g,'<br>')+'</span>';
   }
+  t2+=' · +'+res.coins+' pièce'+(res.coins>1?'s':'');
   toast(sp.spr,sp.n+(res.isNew?'<span class="tag new">nouveau</span>':res.record?'<span class="tag new">record</span>':''),t2,RAR[sp.rar].col,sp.id==='bouteille'?9000:3800);
 }
 function escape(msg){setSt('miss');F.fish=null;F.gauge=null;hint('');if(msg)toast(null,msg,'La prochaine fois peut-être.',null,2600)}
@@ -827,6 +898,8 @@ function update(dt){
   F.ang=lerp(F.ang,ang,F.st==='cast'?1:Math.min(1,dt*8));F.bend=lerp(F.bend,bend,Math.min(1,dt*10));
   // ambiance
   for(const c of clouds){c.x+=c.v*dt*(WORLD.boat?-2:1);if(c.x>W)c.x=-c.spr.width;if(c.x<-c.spr.width)c.x=W}
+  if(!balloon&&(balloonT-=dt)<0){balloonT=rnd(150,420);spawnBalloon()}
+  if(balloon){balloon.x+=balloon.d*dt*5;if(balloon.x<-16||balloon.x>W+16)balloon=null}
   if(WORLD.sea){if((sailT-=dt)<0&&sails.length<4){sailT=rnd(6,22);spawnSail()}for(const b of sails)b.x+=b.v*dt;sails=sails.filter(b=>b.x>-b.spr.width-4&&b.x<W+4)}
   if(WORLD.boat){scrollX+=dt*3;const b=Math.sin(T*1.6)>.35?1:0;rab.y=rab.y0+b;rab.gy=rab.gy0+b;
     if((buoyT-=dt)<0){buoyT=rnd(20,50);buoys.push({x:W+4,y:WY+3+R()*(H-WY-8),k:R()<.5})}
@@ -879,7 +952,7 @@ function draw(){
   if(L.today>0){plot(fx,rab.x-7,gy-8,'#9fb0b8');plot(fx,rab.x-8,gy-9,'#9fb0b8');plot(fx,rab.x-6,gy-9,'#9fb0b8')}
   fx.drawImage(LANTERN[lit?1:0],rab.x-17,gy-6);
   const sprite=RAB[F.ear*2+F.blink];
-  fx.drawImage(sprite,rab.x,rab.y-(F.hop>0?1:0));
+  fx.drawImage(sprite,rab.x-OX,rab.y-OY-(F.hop>0?1:0));
   const[hx,hy]=[rab.x+HAND[0],rab.y+HAND[1]-(F.hop>0?1:0)];
   {let x=hx,y=hy,a=F.ang;for(let i=0;i<24;i++){a+=F.bend/24;x+=Math.cos(a);y+=Math.sin(a);plot(fx,x,y,i>20?'#c8a070':'#7a4e3c')}}
   const[tx,ty]=rodTip();
@@ -891,6 +964,7 @@ function draw(){
   fx.globalCompositeOperation='source-atop';fx.globalAlpha=sk.ta;fx.fillStyle=rgb(sk.tint);fx.fillRect(0,0,W,H);
   fx.globalCompositeOperation='source-over';fx.globalAlpha=1;
   ctx.drawImage(fg,0,0);
+  if(balloon){const sw=Math.round(Math.sin(T*1.2+balloon.ph)*2);ctx.globalAlpha=1-sk.dark*.35;ctx.drawImage(balloon.spr,Math.round(balloon.x),Math.round(balloon.y)+sw);ctx.globalAlpha=1}
   // eau + reflets
   for(let y=WY;y<H;y++){ctx.fillStyle=rgb(mix(sk.water,[20,30,40],(y-WY)/(H-WY)*.12));ctx.fillRect(0,y,W,1)}
   ctx.globalAlpha=Wd.ice?.14:.3;
@@ -1019,10 +1093,10 @@ function act(x,y){
   if((F.st==='wait'||F.st==='idle')&&(x==null||(y>=WY-8&&x>=castMin()-6&&x<=castMax()+6)))cast(x==null?null:clamp(x,castMin(),castMax()));
 }
 function heart(){const el=document.createElement('div');el.textContent='♥';Object.assign(el.style,{position:'fixed',left:(rab.x+6)*S+'px',top:(rab.y-4)*S+'px',color:'#e8605a',fontSize:S*5+'px',transition:'transform 1s,opacity 1s',pointerEvents:'none',zIndex:4});document.body.appendChild(el);requestAnimationFrame(()=>{el.style.transform='translateY(-40px)';el.style.opacity='0'});setTimeout(()=>el.remove(),1100)}
-cv.addEventListener('pointerdown',e=>{act(e.clientX/S,e.clientY/S)});
+cv.addEventListener('pointerdown',e=>{const x=e.clientX/S,y=e.clientY/S;if(balloonHit(x,y))return openGift();act(x,y)});
 addEventListener('pointerup',release);addEventListener('pointercancel',release);addEventListener('blur',release);
 function release(){if(F.st==='reel')tryHook()}
-cv.addEventListener('pointermove',e=>{const x=e.clientX/S,y=e.clientY/S;cv.classList.toggle('cible',F.st==='bite'||F.st==='reel'||((F.st==='wait'||F.st==='idle')&&y>=WY-8&&x>=castMin()-6&&x<=castMax()+6))});
+cv.addEventListener('pointermove',e=>{const x=e.clientX/S,y=e.clientY/S;cv.style.cursor=balloonHit(x,y)?'pointer':'';cv.classList.toggle('cible',F.st==='bite'||F.st==='reel'||((F.st==='wait'||F.st==='idle')&&y>=WY-8&&x>=castMin()-6&&x<=castMax()+6))});
 addEventListener('keydown',e=>{
   if(e.key==='Escape'){closeModal();return}
   const typing=/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
@@ -1097,7 +1171,7 @@ function renderLinks(){
 /* ---------- carnet & réglages ---------- */
 function openModal(tab){$('#modal').classList.add('on');showTab(tab)}
 function closeModal(){$('#modal').classList.remove('on')}
-$('#bCarnet').onclick=()=>openModal('carnet');$('#bWorld').onclick=()=>openModal('mondes');$('#bSet').onclick=()=>openModal('reglages');
+$('#bCarnet').onclick=()=>openModal('carnet');$('#bShop').onclick=()=>openModal('boutique');$('#bWorld').onclick=()=>openModal('mondes');$('#bSet').onclick=()=>openModal('reglages');
 $('#mClose').onclick=closeModal;$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
 document.querySelectorAll('.ph .tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 const HINTS={nuit:'se montre la nuit',jour:'se montre le jour'};
@@ -1136,13 +1210,34 @@ function showTab(tab){
       if(ok&&w!==WORLD)c.onclick=()=>{setWorld(w.id);closeModal()};
       wl.appendChild(c);
     }
+  }else if(tab==='boutique'){
+    const L=loadLog();
+    B.innerHTML=`<div class="stats"><div class="stat"><b class="price">${L.coins}</b>pièces</div></div><p class="lockl" style="margin:0 0 6px">Chaque prise rapporte des pièces : plus elle est rare, plus elle vaut cher. Les ballons cadeaux qui passent dans le ciel aussi.</p>`;
+    for(const[slot,name]of[['tete','Chapeaux'],['yeux','Lunettes'],['cou','Autour du cou'],['corps','Pulls']]){
+      const h=document.createElement('h3');h.className='wh';h.textContent=name;B.appendChild(h);
+      const G=document.createElement('div');G.className='grid';B.appendChild(G);
+      for(const it of SHOP.filter(i=>i.slot===slot)){
+        const own=closet.own.includes(it.id),worn=closet.wear[slot]===it.id,c=document.createElement('div');
+        c.className='card shop'+(worn?' worn':'')+(!own&&L.coins<it.p?' poor':'');
+        c.appendChild(bigSprite(dressed(0,0,{...closet.wear,[slot]:it.id}),3));
+        const info=document.createElement('div');
+        info.innerHTML=`<div class="nm">${it.n}</div><div class="ms">${worn?(slot==='corps'?'porté':'porté · cliquer pour enlever'):own?'à toi · cliquer pour porter':`<span class="price">${it.p} pièces</span>`}</div>`;
+        c.appendChild(info);
+        c.onclick=()=>{
+          if(!own){const L2=loadLog();if(L2.coins<it.p)return;L2.coins-=it.p;store.set('log',L2);refreshCount();closet.own.push(it.id)}
+          if(worn&&slot!=='corps')delete closet.wear[slot];else closet.wear[slot]=it.id;
+          saveCloset();buildRabbit();showTab('boutique');
+        };
+        G.appendChild(c);
+      }
+    }
   }else{
     B.innerHTML=`<div class="set">
       <label>Moteur de recherche <select id="sEng">${Object.entries(ENG).map(([k,v])=>`<option value="${k}"${k===eng?' selected':''}>${v[0]}</option>`).join('')}</select></label>
       <label>Débloquer tous les mondes <input type="checkbox" id="sAll"></label>
       <label>Raccourcis par défaut <button id="sLinks">Rétablir</button></label>
       <label>Remettre le carnet à zéro <button class="danger" id="sReset">Effacer</button></label>
-      <p>Le lapin pêche tout seul, même quand l’onglet est fermé : il ferre les poissons communs, mais les rares, épiques et légendaires ne se prennent qu’à la main. Quand le flotteur plonge, maintiens Espace (ou le clic) : la jauge apparaît, et tu relâches quand l’aiguille est dans la zone verte — au centre doré pour un ferrage parfait. Clique sur l’eau pour lancer ailleurs, sur le lapin pour un câlin.</p>
+      <p>Le lapin pêche tout seul, même quand l’onglet est fermé : il ferre les poissons communs, mais les rares, épiques et légendaires ne se prennent qu’à la main. Quand le flotteur plonge, maintiens Espace (ou le clic) : la jauge apparaît, et tu relâches quand l’aiguille est dans la zone verte — au centre doré pour un ferrage parfait. Clique sur l’eau pour lancer ailleurs, sur le lapin pour un câlin. Les prises rapportent des pièces pour la boutique, et un ballon cadeau passe parfois dans le ciel : clique dessus.</p>
       <p>Le ciel suit l’heure et la position du soleil réelles. Certaines espèces ne mordent que la nuit, d’autres le jour. Chaque monde a ses propres poissons ; on en débloque de nouveaux en découvrant des espèces.</p>
     </div>`;
     $('#sEng').onchange=e=>setEng(e.target.value);
@@ -1155,13 +1250,13 @@ function showTab(tab){
 /* ---------- pêche pendant l'absence ---------- */
 function awayCatch(ms){
   const n=Math.min(14,Math.floor(ms/150e3));if(n<1)return;
-  const got={};let k=0;
-  for(let i=0;i<n;i++){const s=pickFish();if(R()<RAR[s.rar].auto){addCatch(s.id,sizeOf(s,false),false);got[s.id]=(got[s.id]||0)+1;k++}}
+  const got={};let k=0,coins=0;
+  for(let i=0;i<n;i++){const s=pickFish();if(R()<RAR[s.rar].auto){coins+=addCatch(s.id,sizeOf(s,false),false).coins;got[s.id]=(got[s.id]||0)+1;k++}}
   if(!k)return;
   const h=ms>=36e5?Math.round(ms/36e5)+' h':Math.round(ms/6e4)+' min';
   const list=Object.entries(got).sort((a,b)=>b[1]-a[1]).map(([id,c])=>c+' '+SPI[id].n.toLowerCase()).join(', ');
   const best=Object.keys(got).map(id=>SPI[id]).sort((a,b)=>'jcuerl'.indexOf(b.rar)-'jcuerl'.indexOf(a.rar))[0];
-  setTimeout(()=>toast(best.spr,`+${k} prise${k>1?'s':''} pendant ton absence`,`${h} : ${list}`,null,6000),700);
+  setTimeout(()=>toast(best.spr,`+${k} prise${k>1?'s':''} pendant ton absence`,`${h} : ${list} · +${coins} pièces`,null,6000),700);
 }
 const seen=store.get('seen',0);
 if(seen)awayCatch(Math.min(Date.now()-seen,12*36e5));
@@ -1176,7 +1271,7 @@ document.addEventListener('visibilitychange',()=>{
 /* ---------- démarrage ---------- */
 addEventListener('resize',resize);
 $('#wName').textContent='Ponton · '+WORLD.n;
-resize();renderLinks();refreshCount();tick();setInterval(tick,1000);
+buildRabbit();resize();renderLinks();refreshCount();tick();setInterval(tick,1000);
 requestAnimationFrame(frame);
 </script>
 </body>
