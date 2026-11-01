@@ -97,6 +97,9 @@ main{display:flex;flex-direction:column;align-items:center;margin-top:0;width:10
 .wh:first-of-type{margin-top:4px}
 .lockl{font-size:12px;opacity:.65;margin:10px 0 0}
 .wl{display:grid;gap:10px}
+.poems{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.poem{white-space:pre-line;font-style:italic;font-size:12px;line-height:1.6;background:#fff;border:2px solid var(--line);border-radius:12px;padding:10px 12px}
+.haiku{display:block;font-style:italic;line-height:1.5;color:var(--panel-ink)}
 .wcard{display:flex;gap:14px;align-items:center;text-align:left;border:2px solid var(--line);border-radius:12px;padding:10px;background:#fff;cursor:pointer;font:13px 'JetBrains Mono',monospace;color:var(--panel-ink)}
 .wcard small{opacity:.7;font-size:11px;line-height:1.5}
 .wcard.lock{opacity:.55;cursor:default}
@@ -452,7 +455,7 @@ const SP=[
 const SPI=Object.fromEntries(SP.map(s=>[s.id,s]));
 ['botte','branche','bouteille','cle','chaussette','canard'].forEach(id=>SPI[id].wd='*');
 const inWorld=(s,w)=>s.wd==='*'||(s.wd||'lac')===w;
-const MSGS=['Respire. Rien ne presse.','Le lac ne se dépêche jamais, et pourtant tout y arrive.','Une chose à la fois.','Bois un verre d’eau.','Ce que tu cherches viendra mordre.','Lève les yeux de l’écran une minute.','Les nuages ne tirent pas sur la ligne.','Tu en as déjà fait beaucoup aujourd’hui.','Le silence aussi, c’est quelque chose.','Pense à quelqu’un que tu aimes bien.','Les grands poissons aiment les patients.','Aujourd’hui est un bon jour pour rien.'];
+const POEMS=["Ta main dans la mienne\nle lac retient son souffle\nmême les poissons", "Pourquoi le ciel bleu ?\ndemande l’enfant au bord\nl’eau répond : regarde", "Un mot oublié\nflotte depuis cent hivers\nil disait « je t’aime »", "Ouvre chaque porte\nderrière l’une, un jardin\nderrière l’autre, toi", "Le vent tourne la page\nje ne savais pas lire\nle nom des nuages", "Nous deux sur la rive\nles heures coulent sans bruit\nqui compte les vagues ?", "Ce qui brille au fond\nn’est peut-être qu’un caillou\nplonge quand même", "Une lettre mouillée\nl’encre a fui vers la mer\nreste la tendresse", "Le premier café\nta voix encore endormie\nle jour peut attendre", "Sous chaque pierre\nun monde que je ne connais pas\nje la soulève", "Loin de toi, la lune\nest la même que chez toi\nça me suffit presque", "Je pose une question\nla rivière en fait mille\net continue sa route", "Deux cœurs, un parapluie\nla pluie est de notre côté\npour une fois", "Le phare, la nuit\nne cherche personne en vrai\nil dit : je suis là", "Curieux petit crabe\nil regarde de côté\ntout ce qui est neuf", "On s’est dit « à demain »\ndepuis, chaque lendemain\ncommence par toi", "Une graine, un doute\nil faut du temps pour savoir\nce qu’elle deviendra", "J’ai jeté ma ligne\npour attraper le silence\nil a mordu", "Ton rire au matin\nplus clair que l’eau du ruisseau\nje le garde en poche", "Où vont les nuages ?\nnulle part, ils se promènent\ncomme nous, parfois", "Dans cette bouteille\nquelqu’un a laissé ces mots\npour quelqu’un comme toi"];
 
 function fishSprite(sp){
   if(sp.map)return mapSprite(sp.map,sp.pal);
@@ -754,8 +757,12 @@ function landFish(sp,active,perfect){
   if(!active)t2+=' · ferré par le lapin';
   if(sp.quip)t2=sp.quip+' · '+t2;
   if(sp.id==='carotte')setTimeout(heart,400);
-  if(sp.id==='bouteille')t2='« '+MSGS[R()*MSGS.length|0]+' »';
-  toast(sp.spr,sp.n+(res.isNew?'<span class="tag new">nouveau</span>':res.record?'<span class="tag new">record</span>':''),t2,RAR[sp.rar].col,sp.id==='bouteille'?6500:3800);
+  if(sp.id==='bouteille'){
+    const L=loadLog(),got=L.poems||(L.poems=[]),left=POEMS.map((_,i)=>i).filter(i=>!got.includes(i)),k=left.length?left[R()*left.length|0]:R()*POEMS.length|0;
+    if(!got.includes(k)){got.push(k);store.set('log',L)}
+    t2='<span class="haiku">'+POEMS[k].replace(/\n/g,'<br>')+'</span>';
+  }
+  toast(sp.spr,sp.n+(res.isNew?'<span class="tag new">nouveau</span>':res.record?'<span class="tag new">record</span>':''),t2,RAR[sp.rar].col,sp.id==='bouteille'?9000:3800);
 }
 function escape(msg){setSt('miss');F.fish=null;F.gauge=null;hint('');if(msg)toast(null,msg,'La prochaine fois peut-être.',null,2600)}
 function rodTip(){
@@ -1083,6 +1090,10 @@ function showTab(tab){
         c.appendChild(info);G.appendChild(c);
       }
     }
+    const pg=(L.poems||[]).slice().sort((a,b)=>a-b),ph=document.createElement('h3');ph.className='wh';ph.textContent=`Poèmes repêchés · ${pg.length}/${POEMS.length}`;B.appendChild(ph);
+    const PG=document.createElement('div');PG.className='poems';B.appendChild(PG);
+    if(!pg.length)PG.innerHTML='<p class="lockl">Les bouteilles à la mer contiennent parfois un petit poème.</p>';
+    for(const k of pg){const d=document.createElement('div');d.className='poem';d.textContent=POEMS[k];PG.appendChild(d)}
     for(const w of WORLDS)if(!unlocked(w)){const p=document.createElement('p');p.className='lockl';p.textContent=`🔒 ${w.n} — se débloque à ${w.need} découvertes`;B.appendChild(p)}
   }else if(tab==='mondes'){
     const L=loadLog(),got=discovered(),wl=document.createElement('div');wl.className='wl';B.appendChild(wl);
