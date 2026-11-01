@@ -329,6 +329,9 @@ const SHOP=[
   {id:'soleil',slot:'yeux',n:'Lunettes de soleil',p:100,at:[5,9],flat:1,map:["ooookkk","....kkk"],pal:{o:OUT,k:'#2a2a40'}},
   {id:'noeud',slot:'cou',n:'Nœud papillon',p:70,at:[9,12],map:["b.b","bbb","b.b"],pal:{b:'#e8605a'}},
   {id:'echarpe',slot:'cou',n:'Écharpe',p:100,at:[2,12],map:["sssssssss","sSsSsSsSs",".ss......",".sS......"],pal:{s:'#5a8ad0',S:'#f4f0e6'}},
+  {id:'perenoel',slot:'tete',n:'Bonnet de Père Noël',p:0,noel:1,at:[0,3],map:["w.........",".rr.......","..rrrrr...","..rrrrrrr.",".wwwwwwwww"],pal:{r:'#d8303a',w:'#ffffff'}},
+  {id:'bois',slot:'tete',n:'Bois de renne',p:60,noel:1,at:[1,0],map:["b.b...b.b",".bb...bb.","..b...b.."],pal:{b:'#8a5a3a'}},
+  {id:'echarpenoel',slot:'cou',n:'Écharpe de Noël',p:60,noel:1,at:[2,12],map:["sssssssss","sGsGsGsGs",".ss......",".sG......"],pal:{s:'#d8303a',G:'#3a8a4a'}},
   {id:'foulard',slot:'cou',n:'Foulard de marin',p:90,at:[2,12],map:["fffffffff","..fffff..","...fff...","....f...."],pal:{f:'#3a8ac0'}}
 ];
 const SHOPI=Object.fromEntries(SHOP.map(i=>[i.id,i]));
@@ -489,6 +492,10 @@ const SP=[
   {id:'manta',n:'Raie manta',rar:'l',w:.3,cm:[300,600],wd:'tropique',quip:'Elle a souri, puis elle est repartie planer.',map:["g.............g","gg...........gg",".gggggggggggggg.","..gGggggggggGg..","....ggggggg.....","......w.w.......",".......g........",".......g........"],pal:{g:'#3a4a5a',G:'#5a6a7a',w:'#f4f4f0'}},
   {id:'perle',n:'Perle',rar:'l',w:.3,wd:'tropique',quip:'Parfaitement ronde.',map:["..ppp..",".pPPpp.","pPWPppp","ppPpppp","pppppps",".pppps.","..sss.."],pal:{p:'#f0ece4',P:'#fffaf4',W:'#ffffff',s:'#c8c0d0'}},
   {id:'coco',n:'Noix de coco',rar:'j',w:4,wd:'tropique',quip:'Il manque juste une paille.',map:[".bbbb.","bBbbbb","bbbkbb","bbbbbb",".bbbb."],pal:{b:'#6a4a30',B:'#8a6a48',k:'#3a2a1a'}},
+  {id:'boule',n:'Boule de Noël',rar:'j',w:5,wd:'*',noel:1,quip:'Elle brille encore.',map:["..y..",".rrr.","rWrrr","rrrrr",".rrr."],pal:{y:'#f2c64a',r:'#d8303a',W:'#ffffff'}},
+  {id:'sucredorge',n:'Sucre d’orge',rar:'r',w:3,wd:'*',noel:1,quip:'Le lapin l’a léché. Juste un peu.',map:[".rww.","w..r.","r..w.","...r.","...w.","...r."],pal:{r:'#d8303a',w:'#ffffff'}},
+  {id:'painepice',n:'Bonhomme pain d’épice',rar:'e',w:1.2,wd:'*',noel:1,quip:'Il court plus vite que toi.',map:[".bbb.",".bwb.","bbbbb","b.w.b",".bbb.",".b.b."],pal:{b:'#b87a40',w:'#ffffff'}},
+  {id:'grelot',n:'Grelot d’or',rar:'l',w:.4,wd:'*',noel:1,quip:'Tu l’entends tinter jusqu’ici.',map:["..y..",".yYy.","yYyyy","yykyy",".yyy."],pal:{y:'#f2c64a',Y:'#fff0a0',k:'#7a5a1a'}},
   {id:'botte',n:'Vieille botte',rar:'j',w:4,map:[
     "..bbbb....","..bBbb....","..bBbb....","..bBbb....","..bbbb....","..bbbbbb..","..bbbbbbbb","..ssssssss"],pal:{b:'#6a4a3a',B:'#8a6a52',s:'#3a2a2a'}},
   {id:'branche',n:'Branche',rar:'j',w:4,map:[
@@ -577,6 +584,13 @@ const WORLDS=[
 const WI=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
 const discovered=()=>Object.keys(loadLog().sp).filter(id=>SPI[id]).length;
 const unlocked=w=>Q.get('monde')===w.id||store.get('all',false)||discovered()>=w.need;
+// thème de Noël : auto = du 1er décembre au 6 janvier
+function noelOn(){
+  if(Q.has('noel'))return Q.get('noel')!=='0';
+  const m=store.get('noel','auto');if(m!=='auto')return m==='on';
+  const d=now();return d.getMonth()===11||(d.getMonth()===0&&d.getDate()<=6);
+}
+let NOEL=false;
 let WORLD=WI[Q.get('monde')]||WI[store.get('world','lac')]||WI.lac;
 if(!unlocked(WORLD))WORLD=WI.lac;
 function setWorld(id){
@@ -645,12 +659,12 @@ function makeBalloon(col){
   return c;
 }
 let balloon=null,balloonT=rnd(45,150);
-function spawnBalloon(){const d=R()<.5?1:-1,col=GIFT_COLS[R()*GIFT_COLS.length|0];balloon={x:d>0?-12:W+2,y:rnd(WY*.46,WY*.62),d,ph:R()*6,col,spr:makeBalloon(col)}}
+function spawnBalloon(){const d=R()<.5?1:-1,cols=NOEL?['#d8303a','#3a8a4a','#f2c64a']:GIFT_COLS,col=cols[R()*cols.length|0];balloon={x:d>0?-12:W+2,y:rnd(WY*.46,WY*.62),d,ph:R()*6,col,spr:makeBalloon(col)}}
 function balloonHit(x,y){if(!balloon)return false;const bx=balloon.x,by=balloon.y+Math.sin(T*1.2+balloon.ph)*2;return x>=bx-3&&x<=bx+14&&y>=by-3&&y<=by+24}
 function openGift(){
   const b=balloon;balloon=null;const by=b.y+Math.sin(T*1.2+b.ph)*2;
   for(let i=0;i<20;i++)parts.push({x:b.x+5,y:by+4,vx:rnd(-20,20),vy:rnd(-24,6),l:rnd(.5,1),c:i%2?b.col:'#f2c64a',g:20});
-  const pool=SHOP.filter(i=>!closet.own.includes(i.id)&&i.p<=150);
+  const pool=SHOP.filter(i=>!closet.own.includes(i.id)&&i.p<=150&&(!i.noel||NOEL));
   if(pool.length&&R()<.3){
     const it=pool[R()*pool.length|0];closet.own.push(it.id);saveCloset();
     toast(dressed(0,0,{...closet.wear,[it.slot]:it.id}),'Cadeau : '+it.n+'<span class="tag new">nouveau</span>','Il t’attend dans la boutique.',null,5500,'boutique');
@@ -699,6 +713,7 @@ function drawMountains(g,r,snowy){
   }
 }
 function drawPier(g){
+  if(NOEL){const LC=['#ff5a5a','#ffd84a','#5ad2ff','#7aff8a'];for(let x=2;x<LB.x1-1;x+=4)lights.push({x,y:rab.gy-1,c:LC[(x>>2)%4],ph:R()*6})}
   const y0=rab.gy,x1=LB.x1;
   for(let x=-1;x<x1;x++){
     const end=x===x1-1;
@@ -725,7 +740,7 @@ function drawCliff(g,r){
 
 /* ---------- scène ---------- */
 const cv=$('#scene'),ctx=cv.getContext('2d');
-let fg,fx,land,W,H,S,WY,GT,LB,RB,rab,LH=null,trees=[],clouds=[],stars=[],tufts=[],flowers=[],dashes=[],flies=[],rocks=[],pads=[],cracks=[],flakes=[];
+let lights=[],star=null,fg,fx,land,W,H,S,WY,GT,LB,RB,rab,LH=null,trees=[],clouds=[],stars=[],tufts=[],flowers=[],dashes=[],flies=[],rocks=[],pads=[],cracks=[],flakes=[];
 function resize(){
   S=clamp(Math.round(Math.min(innerWidth/420,innerHeight/245)),2,8);
   W=Math.ceil(innerWidth/S);H=Math.ceil(innerHeight/S);
@@ -768,6 +783,21 @@ function buildLand(){
     plant(RB.x0+14,RB.x1-10,true);plant(RB.x0+4,RB.x1-2,false);
   }
   for(const b of[true,false])for(const t of trees)if(t.back===b)g.drawImage(t.spr,t.x-(t.spr.width>>1),GT+3-t.spr.height);
+  lights=[];star=null;
+  if(NOEL){
+    const LC=['#ff5a5a','#ffd84a','#5ad2ff','#7aff8a','#ff8ad8'];let ci=0,tall=null;
+    for(const t of trees){
+      if(t.back)continue;
+      const sp=t.spr,ox=t.x-(sp.width>>1),oy=GT+3-sp.height,dat=sp.getContext('2d').getImageData(0,0,sp.width,sp.height).data;
+      const rowExt=y=>{let a=-1,b=-1;for(let x=0;x<sp.width;x++)if(dat[(y*sp.width+x)*4+3]){if(a<0)a=x;b=x}return[a,b]};
+      let top=0;while(top<sp.height&&rowExt(top)[0]<0)top++;
+      if(!tall||oy+top<tall.y)tall={x:ox+((rowExt(top)[0]+rowExt(top)[1])>>1),y:oy+top};
+      const fh=sp.height*.72,N=Math.round(fh/2.2);
+      for(let i=2;i<N;i++){const v=i/N,y=Math.round(top+v*fh),[a,b]=rowExt(y);if(a<0||b-a<3)continue;
+        const x=Math.round(a+1+(b-a-2)*(.5+.5*Math.sin(v*Math.PI*4.5+t.x)));lights.push({x:ox+x,y:oy+y,c:LC[ci++%LC.length],ph:R()*6})}
+    }
+    if(tall)star={x:tall.x,y:tall.y-2};
+  }
   // berges (ou ponton + falaise au bord de mer)
   LH=null;
   sails=[];if(WORLD.sea){drawPier(g);for(let i=0;i<2;i++)spawnSail(R()*W)}else if(!WORLD.boat)for(const b of[LB,RB])drawBank(g,b,r,P);
@@ -793,7 +823,7 @@ function buildLand(){
   rocks=[];if(flow)for(const b of[LB,RB])rocks.push({x:Math.round(lerp(Math.max(b.x0,0)+8,Math.min(b.x1,W)-8,r())),w:4+(r()*4|0),h:2+(r()*2|0)});
   pads=[];if(WORLD.pads)for(let i=0;i<Math.round(W/22);i++){const x=r()*W|0;if(x>castMin()-8&&x<castMax()+8)continue;pads.push({x,y:WY+3+(r()*(H-WY-6)|0),w:2+(r()*2|0),f:r()<.35})}
   cracks=[];if(WORLD.ice)for(let i=0;i<Math.round(W/30);i++){let x=r()*W,y=WY+2+r()*(H-WY-4);const pts=[];for(let k=0;k<6+r()*8;k++){pts.push([x|0,y|0]);x+=1+r()*2;y=clamp(y+(r()-.5)*1.6,WY+1,H-1)}cracks.push(pts)}
-  flakes=[];if(WORLD.snow)for(let i=0;i<Math.round(W*H/350);i++)flakes.push({x:r()*W,y:r()*H,v:4+r()*8,p:r()*6});
+  flakes=[];if(WORLD.snow||NOEL)for(let i=0;i<Math.round(W*H/(WORLD.snow?350:600));i++)flakes.push({x:r()*W,y:r()*H,v:4+r()*8,p:r()*6});
 }
 function drawBank(g,b,r,P){
   const x0=Math.max(b.x0,-1),x1=Math.min(b.x1,W);
@@ -813,7 +843,7 @@ let sails=[],sailT=4,scrollX=0,buoyT=8,buoys=[],T=0,parts=[],ripples=[],birds=[]
 function setSt(s){F.st=s;F.t=0}
 function isDark(){return skyAt(sunElev(now())).dark>.5}
 function pickFish(){
-  const dark=isDark(),pool=SP.filter(s=>inWorld(s,WORLD.id)&&(!s.when||(s.when==='nuit')===dark));
+  const dark=isDark(),pool=SP.filter(s=>(!s.noel||NOEL)&&inWorld(s,WORLD.id)&&(!s.when||(s.when==='nuit')===dark));
   let tot=pool.reduce((a,s)=>a+s.w,0),x=R()*tot;
   for(const s of pool){x-=s.w;if(x<=0)return s}
   return pool[0];
@@ -898,7 +928,7 @@ function update(dt){
   F.ang=lerp(F.ang,ang,F.st==='cast'?1:Math.min(1,dt*8));F.bend=lerp(F.bend,bend,Math.min(1,dt*10));
   // ambiance
   for(const c of clouds){c.x+=c.v*dt*(WORLD.boat?-2:1);if(c.x>W)c.x=-c.spr.width;if(c.x<-c.spr.width)c.x=W}
-  if(!balloon&&(balloonT-=dt)<0){balloonT=rnd(150,420);spawnBalloon()}
+  if(!balloon&&(balloonT-=dt)<0){balloonT=NOEL?rnd(70,200):rnd(150,420);spawnBalloon()}
   if(balloon){balloon.x+=balloon.d*dt*5;if(balloon.x<-16||balloon.x>W+16)balloon=null}
   if(WORLD.sea){if((sailT-=dt)<0&&sails.length<4){sailT=rnd(6,22);spawnSail()}for(const b of sails)b.x+=b.v*dt;sails=sails.filter(b=>b.x>-b.spr.width-4&&b.x<W+4)}
   if(WORLD.boat){scrollX+=dt*3;const b=Math.sin(T*1.6)>.35?1:0;rab.y=rab.y0+b;rab.gy=rab.gy0+b;
@@ -964,6 +994,14 @@ function draw(){
   fx.globalCompositeOperation='source-atop';fx.globalAlpha=sk.ta;fx.fillStyle=rgb(sk.tint);fx.fillRect(0,0,W,H);
   fx.globalCompositeOperation='source-over';fx.globalAlpha=1;
   ctx.drawImage(fg,0,0);
+  if(lights.length){
+    const k=sk.dark,glow=clamp((k-.2)/.5,0,1);
+    for(const l of lights){const on=.55+.45*Math.sin(T*2.2+l.ph);ctx.globalAlpha=(.55+.45*glow)*on;ctx.fillStyle=l.c;ctx.fillRect(l.x,l.y,1,1)}
+    if(glow>0){ctx.globalCompositeOperation='lighter';for(const l of lights){ctx.globalAlpha=.22*glow*(.55+.45*Math.sin(T*2.2+l.ph));ctx.fillStyle=l.c;ctx.fillRect(l.x-1,l.y-1,3,3)}ctx.globalCompositeOperation='source-over'}
+    ctx.globalAlpha=1;
+  }
+  if(star){const tw=.7+.3*Math.sin(T*3);ctx.fillStyle='#ffd84a';ctx.globalAlpha=tw;ctx.fillRect(star.x-2,star.y,5,1);ctx.fillRect(star.x,star.y-2,1,5);ctx.fillRect(star.x-1,star.y-1,3,3);ctx.fillStyle='#fff6c0';ctx.fillRect(star.x,star.y,1,1);
+    if(sk.dark>.3){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.2*sk.dark;ctx.beginPath();ctx.arc(star.x+.5,star.y+.5,6,0,7);ctx.fill();ctx.globalCompositeOperation='source-over'}ctx.globalAlpha=1}
   if(balloon){const sw=Math.round(Math.sin(T*1.2+balloon.ph)*2);ctx.globalAlpha=1-sk.dark*.35;ctx.drawImage(balloon.spr,Math.round(balloon.x),Math.round(balloon.y)+sw);ctx.globalAlpha=1}
   // eau + reflets
   for(let y=WY;y<H;y++){ctx.fillStyle=rgb(mix(sk.water,[20,30,40],(y-WY)/(H-WY)*.12));ctx.fillRect(0,y,W,1)}
@@ -1118,11 +1156,16 @@ function toast(spr,t1,t2,col,ms,tab){
 $('#toast').onclick=()=>{$('#toast').classList.remove('on');openModal($('#toast').dataset.tab)};
 
 /* ---------- horloge ---------- */
+function noelLine(d){
+  const m=d.getMonth(),j=d.getDate();let t;
+  if(m===11&&j<24)t=`J-${25-j} avant Noël`;else if(m===11&&j===24)t='Réveillon ce soir';else if(m===11&&j===25)t='Joyeux Noël !';else t='Bonnes fêtes';
+  return `<span class="sun">❄ ${t}</span>`;
+}
 const hm=d=>d?d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'--';
 function tick(){
   const d=now();$('#clock').textContent=hm(d);
   const st=sunTimes(d);
-  $('#date').innerHTML=`<b>${d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</b> <span class="sun" title="Lever du soleil"><svg viewBox="0 0 9 9" shape-rendering="crispEdges"><path fill="currentColor" d="M4 0h1v1H4zM3 1h3v1H3zM2 2h1v1H2zM6 2h1v1H6zM0 7h9v1H0zM2 5h5v1H2zM1 6h7v1H1zM3 4h3v1H3z"/></svg>${hm(st.rise)}</span><span class="sun" title="Coucher du soleil"><svg viewBox="0 0 9 9" shape-rendering="crispEdges"><path fill="currentColor" d="M3 0h3v1H3zM4 1h1v1H4zM2 2h1v1H2zM6 2h1v1H6zM0 7h9v1H0zM2 5h5v1H2zM1 6h7v1H1zM3 4h3v1H3z"/></svg>${hm(st.set)}</span>`;
+  $('#date').innerHTML=`<b>${d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</b> <span class="sun" title="Lever du soleil"><svg viewBox="0 0 9 9" shape-rendering="crispEdges"><path fill="currentColor" d="M4 0h1v1H4zM3 1h3v1H3zM2 2h1v1H2zM6 2h1v1H6zM0 7h9v1H0zM2 5h5v1H2zM1 6h7v1H1zM3 4h3v1H3z"/></svg>${hm(st.rise)}</span><span class="sun" title="Coucher du soleil"><svg viewBox="0 0 9 9" shape-rendering="crispEdges"><path fill="currentColor" d="M3 0h3v1H3zM4 1h1v1H4zM2 2h1v1H2zM6 2h1v1H6zM0 7h9v1H0zM2 5h5v1H2zM1 6h7v1H1zM3 4h3v1H3z"/></svg>${hm(st.set)}</span>${NOEL?noelLine(d):''}`;
   const sk=skyAt(sunElev(d));
   document.documentElement.classList.toggle('nuit',sk.dark>.45);
   document.body.style.background=rgb(sk.bot);
@@ -1183,7 +1226,7 @@ function showTab(tab){
     const big=Object.entries(L.sp).filter(([id,e])=>e.best&&SPI[id]).sort((a,b)=>b[1].best-a[1].best)[0];
     B.innerHTML=`<div class="stats"><div class="stat"><b>${L.total}</b>prises</div><div class="stat"><b>${L.today}</b>aujourd’hui</div><div class="stat"><b>${got}/${SP.length}</b>découvertes</div>${big?`<div class="stat"><b>${big[1].best} cm</b>${SPI[big[0]].n.toLowerCase()}</div>`:''}</div>`;
     const ws=[WORLD,...WORLDS.filter(w=>w!==WORLD&&unlocked(w))];
-    const groups=[...ws.map(w=>[w.n,SP.filter(s=>(s.wd||'lac')===w.id)]),['Partout',SP.filter(s=>s.wd==='*')]];
+    const groups=[...ws.map(w=>[w.n,SP.filter(s=>(s.wd||'lac')===w.id)]),['Partout',SP.filter(s=>s.wd==='*'&&!s.noel)],...(NOEL||SP.some(s=>s.noel&&L.sp[s.id])?[['Noël',SP.filter(s=>s.noel)]]:[])];
     for(const[name,list]of groups){
       const h=document.createElement('h3');h.className='wh';h.textContent=`${name} · ${list.filter(s=>L.sp[s.id]).length}/${list.length}`;B.appendChild(h);
       const G=document.createElement('div');G.className='grid';B.appendChild(G);
@@ -1216,7 +1259,7 @@ function showTab(tab){
     for(const[slot,name]of[['tete','Chapeaux'],['yeux','Lunettes'],['cou','Autour du cou'],['corps','Pulls']]){
       const h=document.createElement('h3');h.className='wh';h.textContent=name;B.appendChild(h);
       const G=document.createElement('div');G.className='grid';B.appendChild(G);
-      for(const it of SHOP.filter(i=>i.slot===slot)){
+      for(const it of SHOP.filter(i=>i.slot===slot&&(!i.noel||NOEL||closet.own.includes(i.id)))){
         const own=closet.own.includes(it.id),worn=closet.wear[slot]===it.id,c=document.createElement('div');
         c.className='card shop'+(worn?' worn':'')+(!own&&L.coins<it.p?' poor':'');
         c.appendChild(bigSprite(dressed(0,0,{...closet.wear,[slot]:it.id}),3));
@@ -1234,6 +1277,7 @@ function showTab(tab){
   }else{
     B.innerHTML=`<div class="set">
       <label>Moteur de recherche <select id="sEng">${Object.entries(ENG).map(([k,v])=>`<option value="${k}"${k===eng?' selected':''}>${v[0]}</option>`).join('')}</select></label>
+      <label>Thème de Noël <select id="sNoel"><option value="auto">Auto (décembre)</option><option value="on">Toujours</option><option value="off">Jamais</option></select></label>
       <label>Débloquer tous les mondes <input type="checkbox" id="sAll"></label>
       <label>Raccourcis par défaut <button id="sLinks">Rétablir</button></label>
       <label>Remettre le carnet à zéro <button class="danger" id="sReset">Effacer</button></label>
@@ -1241,6 +1285,7 @@ function showTab(tab){
       <p>Le ciel suit l’heure et la position du soleil réelles. Certaines espèces ne mordent que la nuit, d’autres le jour. Chaque monde a ses propres poissons ; on en débloque de nouveaux en découvrant des espèces.</p>
     </div>`;
     $('#sEng').onchange=e=>setEng(e.target.value);
+    $('#sNoel').value=store.get('noel','auto');$('#sNoel').onchange=e=>{store.set('noel',e.target.value);applyNoel()};
     $('#sAll').checked=store.get('all',false);$('#sAll').onchange=e=>{store.set('all',e.target.checked);if(!unlocked(WORLD))setWorld('lac')};
     $('#sLinks').onclick=()=>{store.set('links',DEF_LINKS);renderLinks()};
     $('#sReset').onclick=()=>{if(confirm('Effacer toutes les prises du carnet ?')){store.set('log',null);refreshCount();showTab('carnet')}};
@@ -1271,6 +1316,13 @@ document.addEventListener('visibilitychange',()=>{
 /* ---------- démarrage ---------- */
 addEventListener('resize',resize);
 $('#wName').textContent='Ponton · '+WORLD.n;
+function applyNoel(){
+  const was=NOEL;NOEL=noelOn();
+  if(NOEL&&!closet.own.includes('perenoel')){closet.own.push('perenoel');if(!closet.wear.tete)closet.wear.tete='perenoel';saveCloset();buildRabbit();
+    setTimeout(()=>toast(dressed(0,0,closet.wear),'Cadeau de Noël : bonnet de Père Noël','Il est dans la boutique, avec quelques nouveautés.',null,6000,'boutique'),1500)}
+  if(was!==NOEL&&W)resize();
+}
+applyNoel();
 buildRabbit();resize();renderLinks();refreshCount();tick();setInterval(tick,1000);
 requestAnimationFrame(frame);
 </script>
