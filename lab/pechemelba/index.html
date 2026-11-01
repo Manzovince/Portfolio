@@ -700,8 +700,9 @@ if(Q.has('tout')){
   const L=loadLog();
   for(const sp of SP)if(!L.sp[sp.id]||!L.sp[sp.id].n)L.sp[sp.id]={n:1,best:0,first:Date.now()};
   L.poems=POEMS.map((_,i)=>i);store.set('log',L);store.set('all',true);
+  const cl=store.get('closet',null)||{own:['rouge'],wear:{corps:'rouge'}};for(const it of SHOP)if(!cl.own.includes(it.id))cl.own.push(it.id);store.set('closet',cl);closet=cl;
   Q.delete('tout');history.replaceState(null,'',location.pathname+(Q.toString()?'?'+Q:''));
-  setTimeout(()=>toast(null,'Tout est débloqué','Mondes, espèces et poèmes sont dans le carnet.',null,6000,'carnet'),800);
+  setTimeout(()=>toast(null,'Tout est débloqué','Mondes, carnet et boutique : tout est à toi.',null,6000,'carnet'),800);
 }
 // thème de Noël : auto = du 1er décembre au 6 janvier
 function noelOn(){
