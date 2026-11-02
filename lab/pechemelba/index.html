@@ -1240,13 +1240,13 @@ function drawClearingFront(g,r){
   const autumn=SEASON==='automne',winter=SEASON==='hiver';
   const LEAF=autumn?['#5a2a14','#8a4a1e','#c8742a','#e8a83a','#f6d06a']:winter?['#3a3428','#5a5040','#7a6e58','#9a8e74','#bab092']:['#14301f','#244a2a','#3c722e','#68a638','#a8d250'];
   // gros troncs aux bords, avec racines
-  for(const[x0,dir]of[[-4,1],[W-12,-1]]){
-    const tw=13;for(let y=0;y<=GT+2;y++){const fl=Math.max(0,y-GT+10)*.8,w=Math.round(tw+fl),xs=dir>0?x0:x0-Math.round(fl);
+  for(const[x0,dir,tw]of[[-4,1,13],[W-12,-1,13],[Math.round(W*.07),1,8],[Math.round(W*.92),-1,8]]){
+for(let y=0;y<=GT+2;y++){const fl=Math.max(0,y-GT+10)*.8,w=Math.round(tw+fl),xs=dir>0?x0:x0-Math.round(fl);
       for(let d=0;d<w;d++){const u=d/(w-1),lit=dir>0?u>.7:u<.3,groove=Math.sin(d*1.9+Math.sin(y*.12)*1.2)>.6;px(xs+d,y,lit?((y*3+d)%9===0?'#d89050':'#c07a40'):groove?'#3a2418':(dir>0?u<.25:u>.75)?'#2e1c14':'#5a3a26')}}
     for(let i=0;i<10;i++){const y=Math.round(r()*GT*.85),len=4+r()*8;for(let j=0;j<len;j++)px(x0+(dir>0?tw+j:-j),y+Math.round(j*.4),'#3a5a2a')}
   }
   // voûte de feuillage en haut des deux côtés
-  const lobes=[];for(const side of[0,1])for(let i=0;i<26;i++){const k=Math.pow(r(),1.4),x=side?W-k*W*.34:k*W*.34,y=Math.pow(r(),1.2)*WY*(.24-k*.12)-6,rr=8+r()*12*(1-k*.4);lobes.push([x,y,rr])}
+  const lobes=[];for(const side of[0,1])for(let i=0;i<48;i++){const k=Math.pow(r(),1.3),x=side?W-k*W*.42:k*W*.42,y=Math.pow(r(),1.1)*WY*(.4-k*.28)-6,rr=8+r()*13*(1-k*.4);lobes.push([x,y,rr])}
   lobes.sort((a,b)=>a[1]-b[1]);
   // branches qui partent des troncs vers la voûte
   for(const[lx,ly]of lobes){if(r()<.5)continue;const sx=lx<W/2?6:W-6,sy=ly+20+r()*30,n=Math.ceil(Math.hypot(lx-sx,ly-sy));for(let i=0;i<=n;i++){const t=i/n,x=Math.round(lerp(sx,lx,t)),y=Math.round(lerp(sy,ly,t)-Math.sin(t*Math.PI)*6),th=t<.5?2:1;for(let d=0;d<th;d++)px(x,y+d,d?'#2e1c14':'#5a3a26')}}
