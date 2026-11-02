@@ -1097,32 +1097,34 @@ function makeSakura(h,seed,back,maple,oak){
     return null;
   });
 }
+// touffe de feuilles : un fond sombre puis des dizaines de petites feuilles éclairées en haut à gauche
+const LEAVES_ST=[[[0,0,1],[1,0,0],[1,1,0],[2,1,-1]],[[1,0,1],[0,1,0],[1,1,0],[2,1,-1],[1,2,-1]],[[0,0,1],[0,1,0],[1,1,0],[1,2,-1]],[[0,0,1],[1,0,1],[2,0,0],[1,1,0],[2,1,0],[3,1,-1]],[[1,0,1],[2,0,0],[0,1,0],[1,1,0],[0,2,-1]]];
+function leafy(put,L,n,r,skip){
+  for(let y=Math.floor(L.y-L.ry*.82);y<=L.y+L.ry*.82;y++)for(let x=Math.floor(L.x-L.rx*.82);x<=L.x+L.rx*.82;x++){const dx=(x-L.x)/(L.rx*.82),dy=(y-L.y)/(L.ry*.82);if(dx*dx+dy*dy<1&&!(skip&&skip(x,y)))put(x,y,dy>.3?0:1)}
+  const N=Math.round(Math.PI*L.rx*L.ry/2.6);
+  for(let i=0;i<N;i++){
+    const a=r()*Math.PI*2,d=Math.sqrt(r()),x=L.x+Math.cos(a)*L.rx*d,y=L.y+Math.sin(a)*L.ry*d;if(skip&&skip(Math.round(x),Math.round(y)))continue;
+    const dx=(x-L.x)/L.rx,dy=(y-L.y)/L.ry,l=-dx*.45-dy*1.15+(dx*dx+dy*dy>.7&&dy>.2?-.5:0)+(r()-.5)*.45,base=Math.max(1,Math.min(n-2,Math.round(1+(l+1)*(n-2.2)/2)));
+    for(const[ox,oy,k]of LEAVES_ST[(r()*LEAVES_ST.length)|0])put(Math.round(x+ox-1),Math.round(y+oy-1),Math.max(0,Math.min(n-1,base+k)));
+  }
+}
 function makeOak(h,seed,back,P0){
   const r=rng(seed),w=Math.round(h*1.1)|1,cx=w>>1,cy=Math.round(h*.37),rx=w/2-2,ry=h*.33,tw=Math.max(3,Math.round(w*.085));
   const pal=(P0||['#16301f','#244a2a','#3c722e','#68a638','#a8d250','#e0ee8a']).map(c=>back?rgb(mix(hex(c),[196,226,196],.38)):c);
   const lobes=[];
   for(let i=0;i<20;i++){const a=r()*Math.PI*2,d=Math.sqrt(r())*.66;lobes.push({x:cx+Math.cos(a)*rx*d,y:cy+Math.sin(a)*ry*d*.82,rx:rx*(.24+r()*.12),ry:ry*(.26+r()*.12)})}
   lobes.sort((a,b)=>a.y-b.y);
-  const front=(x,y)=>{let best=null;for(const L of lobes){const dx=(x-L.x)/L.rx,dy=(y-L.y)/L.ry,d=dx*dx+dy*dy;if(d<1)best={dx,dy,d}}return best};
+  const px=new Map(),put=(x,y,c)=>{if(x>=0&&y>=0&&x<w&&y<h)px.set(x+','+y,c)};
   // tronc évasé avec racines, et branches qui montent dans les touffes
-  const wood=new Map(),lean=(r()-.5)*w*.12;
-  const line=(x0,y0,x1,y1,t0,t1)=>{const n=Math.ceil(Math.hypot(x1-x0,y1-y0))*2;for(let i=0;i<=n;i++){const k=i/n,x=lerp(x0,x1,k),y=lerp(y0,y1,k),t=lerp(t0,t1,k);for(let dx=-t;dx<=t+.01;dx+=.5)wood.set(Math.round(x+dx)+','+Math.round(y),(dx+t)/(2*t+.01))}};
-  const top=[cx+lean*.2,cy+ry*.25];
+  const line=(x0,y0,x1,y1,t0,t1)=>{const n=Math.ceil(Math.hypot(x1-x0,y1-y0))*2;for(let i=0;i<=n;i++){const k=i/n,x=lerp(x0,x1,k),y=lerp(y0,y1,k),t=lerp(t0,t1,k);for(let dx=-t;dx<=t+.01;dx+=.5){const u=(dx+t)/(2*t+.01),X=Math.round(x+dx),Y=Math.round(y),shade=Y<cy+ry*1.05;
+    put(X,Y,u<.28?(shade?'#7a4a2e':'#c8844a'):u>.72?'#2e1e18':((X*3+Y)%5===0?'#4a3024':shade?'#4e3424':'#7a4a30'))}}};
+  const lean=(r()-.5)*w*.12,top=[cx+lean*.2,cy+ry*.25];
   line(cx+lean,h-1,...top,tw*1.25,tw*.6);
   for(const sg of[-1,1])line(cx+lean+sg*tw*.4,h-2,cx+lean+sg*tw*2,h-1,tw*.5,.5);
   for(let i=0;i<5;i++){const L=lobes[r()*lobes.length|0];line(top[0],top[1]+r()*ry*.3,L.x,L.y,tw*.45,.3)}
-  return gridSprite(w,h,(x,y)=>{
-    let L=front(x,y);const u=wood.get(x+','+y);if(L&&bare(x,y))L=null;
-    if(L){
-      let l=-(L.dx*.5+L.dy*.8)-(y-cy)/ry*.4;
-      const nz=Math.sin(x*1.37+y*.71)*Math.sin(x*.53-y*1.19)+(r()-.5)*.25,hsh=nz>.45?0:nz<-.55?3:1;if(hsh===0)l-=.32;else if(hsh===3&&l>.2)l+=.18;
-      if(L.d>.78&&L.dy>.15)return pal[0];
-      if(u!=null&&L.d>.6&&hsh<2)return u<.35?'#9a6036':'#4a3024';
-      return pal[l>.85?5:l>.5?4:l>.1?3:l>-.3?2:1];
-    }
-    if(u!=null){const shade=y<cy+ry*1.05;return u<.28?(shade?'#7a4a2e':'#c8844a'):u>.72?'#2e1e18':((x*3+y)%5===0?'#4a3024':shade?'#4e3424':'#7a4a30')}
-    return null;
-  });
+  const skip=SEASON==='hiver'?(x,y)=>bare(x,y):null;
+  for(const L of lobes)leafy((x,y,k)=>put(x,y,pal[k]),L,pal.length,r,skip);
+  return gridSprite(w,h,(x,y)=>px.get(x+','+y)||null);
 }
 function drawBushes(g,r){
   const P=['#1e3a24','#2e5a2e','#4e8a34','#86bc44','#c4e070'];
@@ -1227,10 +1229,8 @@ function drawForest(g,r){
       const cy=GT-WY*hh*(.75+r()*.35),rr=6+r()*(9-k)+k*2,lobes=[];
       for(let i=0;i<4;i++)lobes.push([x+(r()-.5)*rr*1.2,cy+(r()-.5)*rr*.8,rr*(.5+r()*.3)]);
       if(tr&&r()<.55){const tw=1+(k>2&&r()<.5?1:0)+(k>2?1:0);g.fillStyle=rgb(mix(hex('#4a3428'),C,.45-f*.2));g.fillRect(Math.round(x-tw/2),Math.round(cy),tw,Math.round(GT-cy))}
-      for(const[lx,ly,lr]of lobes)for(let y=Math.floor(ly-lr);y<=ly+lr;y++)for(let xx=Math.floor(lx-lr);xx<=lx+lr;xx++){
-        const dx=(xx-lx)/lr,dy=(y-ly)/lr,d=dx*dx+dy*dy;if(d>1||y>GT)continue;
-        const l=-dx*.5-dy*.8+Math.sin(xx*1.3+y*.7)*.25;g.fillStyle=rgb(l>.55?Lt:l<-.35?D:C);g.fillRect(xx,y,1,1);
-      }
+      const FP=[rgb(mix(D,[20,34,28],.25)),rgb(D),rgb(C),rgb(mix(C,Lt,.5)),rgb(Lt)];
+      for(const[lx,ly,lr]of lobes)leafy((xx,y,k)=>{if(y<=GT){g.fillStyle=FP[k];g.fillRect(xx,y,1,1)}},{x:lx,y:ly,rx:lr,ry:lr},5,r,winter?(xx,y)=>Math.sin(xx*.9+y*.43)*Math.sin(xx*.31-y*.77)>-.3:null);
     }
     const fy=GT-WY*.06;for(let y=Math.round(fy);y<=GT;y++){g.globalAlpha=(y-fy)/(GT-fy)*.35*(1-f);g.fillStyle='#e4f0d8';g.fillRect(0,y,W,1)}g.globalAlpha=1;
   });
@@ -1246,16 +1246,12 @@ for(let y=0;y<=GT+2;y++){const fl=Math.max(0,y-GT+10)*.8,w=Math.round(tw+fl),xs=
     for(let i=0;i<10;i++){const y=Math.round(r()*GT*.85),len=4+r()*8;for(let j=0;j<len;j++)px(x0+(dir>0?tw+j:-j),y+Math.round(j*.4),'#3a5a2a')}
   }
   // voûte de feuillage en haut des deux côtés
-  const lobes=[];for(const side of[0,1])for(let i=0;i<48;i++){const k=Math.pow(r(),1.3),x=side?W-k*W*.42:k*W*.42,y=Math.pow(r(),1.1)*WY*(.4-k*.28)-6,rr=8+r()*13*(1-k*.4);lobes.push([x,y,rr])}
+  const lobes=[];for(const side of[0,1])for(let i=0;i<48;i++){const k=Math.pow(r(),1.3),x=side?W-k*W*.36:k*W*.36,y=Math.pow(r(),1.1)*WY*(.4-k*.32)-6,rr=8+r()*13*(1-k*.4);lobes.push([x,y,rr])}
   lobes.sort((a,b)=>a[1]-b[1]);
   // branches qui partent des troncs vers la voûte
   for(const[lx,ly]of lobes){if(r()<.5)continue;const sx=lx<W/2?6:W-6,sy=ly+20+r()*30,n=Math.ceil(Math.hypot(lx-sx,ly-sy));for(let i=0;i<=n;i++){const t=i/n,x=Math.round(lerp(sx,lx,t)),y=Math.round(lerp(sy,ly,t)-Math.sin(t*Math.PI)*6),th=t<.5?2:1;for(let d=0;d<th;d++)px(x,y+d,d?'#2e1c14':'#5a3a26')}}
-  for(const[lx,ly,lr]of lobes)for(let y=Math.floor(ly-lr);y<=ly+lr;y++)for(let x=Math.floor(lx-lr*1.2);x<=lx+lr*1.2;x++){
-    if(y<0||x<0||x>=W)continue;const dx=(x-lx)/(lr*1.2),dy=(y-ly)/lr,d=dx*dx+dy*dy;if(d>1)continue;
-    if(winter&&Math.sin(x*.9+y*.43)*Math.sin(x*.31-y*.77)>-.3)continue;
-    if(d>.8&&Math.sin(x*2.1+y*1.3)>.3)continue;
-    const l=-dx*.45-dy*.8+Math.sin(x*1.37+y*.71)*Math.sin(x*.53-y*1.19)*.4;px(x,y,LEAF[d>.85&&dy>0?0:l>.6?4:l>.2?3:l>-.25?2:1]);
-  }
+  const sk=winter?(x,y)=>Math.sin(x*.9+y*.43)*Math.sin(x*.31-y*.77)>-.3:null;
+  for(const[lx,ly,lr]of lobes)leafy((x,y,k)=>{if(x>=0&&x<W&&y>=0)px(x,y,LEAF[k])},{x:lx,y:ly,rx:lr*1.2,ry:lr},LEAF.length,r,sk);
   // sol : fougères, champignons, rochers moussus, un tronc couché
   for(const B of[LB,RB])for(let x=Math.max(B.x0,0)+4;x<Math.min(B.x1,W)-4;x+=5+r()*9){
     if(B===LB&&x>rab.x-16&&x<rab.x+18)continue;const t=r(),X=Math.round(x);
