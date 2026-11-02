@@ -1647,36 +1647,43 @@ function drawPolderFront(g,r){
 }
 /* ----- Toits de Paris ----- */
 function drawEiffel(g,cx,base,h,col,glow){
-  // pieds en arche, 1er et 2e étages, flèche effilée ; treillis ajouré, côté gauche éclairé
-  const C=hex(col),Lt=rgb(mix(C,[255,240,220],.28)),Dk=rgb(mix(C,[30,24,30],.3)),Md=rgb(C);
-  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},edges=[];
-  const outer=t=>t<.18?h*.15+h*.13*Math.pow(1-t/.18,1.7):t<.42?lerp(h*.135,h*.06,(t-.18)/.24):Math.max(.6,h*.055*Math.pow(1-(t-.42)/.53,1.35));
-  for(let y=0;y<=Math.round(h*.95);y++){
-    const t=y/h,hw=outer(t),Y=base-y,iw=t<.14?h*.165*Math.sqrt(Math.max(0,1-Math.pow(t/.14,2))):-1;
-    const plat=Math.abs(t-.18)<.012||Math.abs(t-.42)<.009;
-    const ext=plat?Math.round(hw+(t<.3?2:1)):Math.round(hw);
-    for(let d=-ext;d<=ext;d++){
-      const ad=Math.abs(d);if(!plat&&ad<iw)continue;
-      const edge=ad>=ext-(t<.42?1:0)||(iw>0&&ad<iw+1.2)||plat;
-      const lattice=(d+y)%4===0||(d-y)%4===0;
-      if(!edge&&!lattice&&t<.9)continue;
-      px(cx+d,Y,plat?Dk:edge?(d<0?Lt:Dk):(d<0?Lt:Md));
-      if(edge&&y%3===0&&ad>=ext-1)edges.push([cx+d,Y]);
+  // proportions relevées sur photo : 1er étage ~17 %, 2e ~38 %, 3e ~88 % de la hauteur ; grande arche, pieds écartés, fût en treillis
+  const C=hex(col),Lt=rgb(mix(C,[255,236,210],.32)),Md=rgb(C),Dk=rgb(mix(C,[24,18,24],.35)),Vd=rgb(mix(C,[24,18,24],.55));
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},glowPts=[];
+  const outer=t=>t<.17?h*(.15+.065*Math.pow(1-t/.17,1.8)):t<.215?h*.158:t<.38?h*(.076+.054*Math.pow(1-(t-.215)/.165,1.25)):t<.41?h*.088:t<.88?h*(.017+.046*Math.pow(1-(t-.41)/.47,1.55)):t<.93?h*.03:h*.012*(1-(t-.93)/.07)+.5;
+  const gap=t=>{if(t<.115)return h*.142*Math.sqrt(1-Math.pow(t/.115,2));if(t>=.215&&t<.37){const lw=h*(.042-.014*(t-.215)/.155),g0=outer(t)-lw,k=t<.33?1:Math.sqrt(Math.max(0,1-Math.pow((t-.33)/.04,2)));return g0*k}return -1};
+  const P=Math.max(3,Math.round(h*.028));
+  for(let y=0;y<=Math.round(h);y++){
+    const t=y/h,o=outer(t),gp=gap(t),Y=base-y,ro=Math.round(o);
+    // étages : garde-corps, frise d'arcades, plancher sombre
+    if(t>=.17&&t<.215||t>=.38&&t<.41||t>=.88&&t<.93){
+      const t0=t<.3?.17:t<.6?.38:.88,t1=t<.3?.215:t<.6?.41:.93,ry=Math.round((t-t0)*h),rh=Math.round((t1-t0)*h);
+      for(let d=-ro-1;d<=ro+1;d++){let c;
+        if(t0===.88)c=(ry===rh-1)?Dk:(d%3===0&&ry>1&&ry<rh-2)?'#ffe6a0':(d<0?Lt:Md);
+        else if(ry===rh-1)c=(d%2===0)?Dk:null;else if(ry===rh-2)c=Dk;else if(ry===0)c=Vd;else c=((Math.abs(d)%4===0)||(ry===1&&Math.abs(d)%4===2))?Dk:(d<0?Lt:Md);
+        if(c)px(cx+d,Y,c);if(glow&&ry===rh-2&&d%3===0)glowPts.push([cx+d,Y])}
+      continue}
+    for(let d=-ro;d<=ro;d++){
+      const ad=Math.abs(d);if(gp>0&&ad<gp)continue;
+      const outerEdge=ad>=ro-1,innerEdge=gp>0&&ad<gp+1.5,u=ad,brace=((u+y)%P===0)||((u-y+400*P)%P===0),tie=y%(P*2)===0;
+      if(!(outerEdge||innerEdge||brace||tie))continue;
+      px(cx+d,Y,outerEdge||innerEdge?(d<0?Lt:Dk):(d<0?Md:Dk));
+      if(glow&&outerEdge&&y%3===0)glowPts.push([cx+d,Y]);
     }
   }
-  for(let y=Math.round(h*.95);y<h+5;y++)px(cx,base-y,Dk);
-  px(cx-1,base-Math.round(h*.95),Dk);px(cx+1,base-Math.round(h*.95),Dk);
-  if(glow){for(const[x,y]of edges)lights.push({x,y,c:'#ffd070',ph:0,lamp:1,win:1});lights.push({x:cx,y:base-h-4,c:'#fff6c0',ph:0,lamp:1})}
+  for(let y=Math.round(h);y<h*1.06;y++)px(cx,base-y,Dk);
+  if(glow){for(const[x,y]of glowPts)lights.push({x,y,c:'#ffd070',ph:0,lamp:1,win:1});lights.push({x:cx,y:Math.round(base-h*1.06),c:'#fff6c0',ph:0,lamp:1})}
 }
 function drawRoofs(g,r){
   const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};
   // Sacré-Cœur sur sa butte, tour Eiffel au loin
   for(let x=0;x<W*.4;x++){const t=Math.round(GT-WY*.28*Math.exp(-Math.pow((x-W*.16)/(W*.12),2)));for(let y=t;y<=GT;y++)px(x,y,'#c8c4c8')}
   {const cx=Math.round(W*.16),b=Math.round(GT-WY*.28)+2;rect(cx-9,b-8,18,8,'#ece8e4');for(const[dx,rr]of[[0,6],[-7,3],[7,3]])for(let y=-rr;y<=0;y++){const hw=Math.round(Math.sqrt(rr*rr-y*y));rect(cx+dx-hw,b-8+y-1,hw*2+1,1,'#f4f2ee')}rect(cx,b-17,1,3,'#f4f2ee')}
-  drawEiffel(g,Math.round(W*.72),GT,Math.round(WY*.58),'#8a6e5a',true);
+  const ex=Math.round(W*.72),eh=Math.round(WY*.5),ebase=Math.round(GT-WY*.07);drawEiffel(g,ex,ebase,eh,'#7a5e48',true);
   // deux rangées d'immeubles haussmanniens : façades crème, toits de zinc, lucarnes, cheminées
   for(const[k,hh,fac,zinc]of[[0,.13,'#ddd0bc','#9aa4b0'],[1,.08,'#e8dcc4','#7e8c9c']]){
     let x=-4;while(x<W+4){const w=18+(r()*16|0),fh=Math.round(WY*hh*(.6+r()*.4))+(k?0:Math.round(WY*.05)),rh=7+k*3,top=GT-fh;
+      if(!k&&x+w>ex-eh*.24&&x<ex+eh*.24){for(let tx=x;tx<x+w;tx+=4){const tr=3+r()*3,ty=ebase+1;for(let yy=-tr;yy<=tr*.6;yy++)for(let dd=-tr;dd<=tr;dd++){if(Math.hypot(dd,yy)>tr)continue;g.fillStyle=yy<-tr*.3&&dd<0?'#7aa058':'#4e7a40';g.fillRect(Math.round(tx+dd),Math.round(ty+yy),1,1)}g.fillStyle='#5a8a4a';g.fillRect(tx-2,ty,6,GT-ty)}x+=w;continue}
       rect(x,top,w,fh,fac);
       for(let fy=top+rh+3;fy<GT-2;fy+=5)for(let d=2;d<w-2;d+=4){const lit=r()<.18;rect(x+d,fy,2,3,k?'#4a5464':'#6a7484');if(lit)lights.push({x:x+d,y:fy+1,c:'#ffd88a',ph:0,lamp:1,win:1});if(k)rect(x+d-1,fy+3,4,1,'#3a3a3e')}
       for(let j=0;j<rh;j++){const ins=Math.round(j*.5);rect(x+ins,top-rh+j,w-ins*2,1,j===0?'#c4ccd6':j%2?zinc:'#8a96a4')}
