@@ -1244,12 +1244,11 @@ function openLetter(){
 }
 function drawIslands(g,r,L){
   for(let i=0;i<5;i++){
-    const cx=r()*L,w=24+r()*70,h=4+r()*12,palm=r()<.6;
+    const cx=r()*L,w=24+r()*70,h=4+r()*12;
     for(let x=Math.round(-w/2);x<w/2;x++){
       const u=x/(w/2),top=Math.round(WY-2-h*(1-u*u)*(.85+.15*Math.sin(x*.3+i))),X=((Math.round(cx+x))%L+L)%L;
       for(let y=top;y<WY;y++){const c=y>=WY-2?'#e8dcb0':y===top?'#a4c0a0':'#86a690';g.fillStyle=rgb(mix(hex(c),[200,222,226],.35));g.fillRect(X,y,1,1)}
     }
-    if(palm){const P=makePalm(Math.round(14+h),(r()*1e9)|0,true);g.drawImage(P,Math.round(cx)-(P.width>>1),Math.round(WY-2-h)-P.height+3)}
   }
 }
 function makeWillow(h,seed,back){
