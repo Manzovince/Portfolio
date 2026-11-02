@@ -1322,34 +1322,68 @@ function drawTaigaFront(g,r){
 }
 function drawTerraces(g,r){
   const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},ph=r()*6,m2=(a,b,t)=>rgb(mix(hex(a),hex(b),t));
-  // pitons karstiques dans la brume
-  for(const[k,col,hh]of[[0,'#b8ccc4',.62],[1,'#96b2a8',.46]]){
-    const peaks=[];for(let x=-20;x<W+20;x+=16+r()*30)peaks.push([x,hh*(.5+r()*.5),7+r()*12]);
-    for(let x=0;x<W;x++){let top=GT;for(const[cx,hp,rw]of peaks){const d=Math.abs(x-cx)/rw;if(d<1)top=Math.min(top,Math.round(GT-WY*hp*Math.pow(1-d*d,.35)))}
-      for(let y=top;y<=GT;y++)px(x,y,y<top+2?m2(col,'#ffffff',.3):k&&(x*3+y)%9===0?m2(col,'#5a7a6a',.18):col)}
-    const fy=GT-WY*(k?.16:.3);for(let y=Math.round(fy-10);y<=GT;y++){g.globalAlpha=Math.min(1,(y-fy+10)/26)*.6;g.fillStyle='#eaf2ec';g.fillRect(0,y,W,1)}g.globalAlpha=1;
+  const RICE={printemps:['#9ad462','#7ab84a','#e8f4f0'],ete:['#6aa840','#4e8a32','#d8eae6'],automne:['#e0bc4c','#c4982e','#e8e4cc'],hiver:['#a8946a','#86744e','#dfe6e6']}[SEASON];
+  // pitons karstiques : trois plans, sommets boisés, parois striées, versant gauche éclairé
+  for(const[k,col,hh]of[[0,'#cddcd6',.7],[1,'#b0c6be',.56],[2,'#8eaaa0',.42]]){
+    const peaks=[];for(let x=-20;x<W+20;x+=14+r()*28)peaks.push([x,hh*(.45+r()*.55),6+r()*11]);
+    for(let x=0;x<W;x++){
+      let top=GT,P=null;for(const p of peaks){const d=Math.abs(x-p[0])/p[2];if(d<1){const t=Math.round(GT-WY*p[1]*Math.pow(1-d*d,.3));if(t<top){top=t;P=p}}}
+      if(!P)continue;const lit=x<P[0];
+      for(let y=top;y<=GT;y++){
+        let c=hex(col);if(!lit)c=mix(c,[60,80,76],.12+k*.04);
+        if(k>0&&(x+Math.round(Math.sin(y*.2)*1.5))%4===0)c=mix(c,[50,70,64],.12);
+        if(y<top+2+k&&k>0)c=mix(c,hex('#5e8a52'),.35+k*.15);
+        if(k===2&&(x*7+y*5)%23===0&&y<top+12)c=hex('#5e8a52');
+        px(x,y,rgb(c));
+      }
+      if(k===2&&lit&&r()<.08)px(x,top-1,'#6a9a5a');
+    }
+    const fy=GT-WY*(.32-k*.08);for(let y=Math.round(fy-10);y<=GT;y++){g.globalAlpha=Math.min(1,(y-fy+10)/26)*.55;g.fillStyle='#eaf2ec';g.fillRect(0,y,W,1)}g.globalAlpha=1;
   }
-  // colline en terrasses : lèvre, champ (inondé ou vert), talus
+  // petit temple sur un piton lointain
+  // collines en terrasses : lèvre, champ (inondé ou planté selon la saison), talus
   const hill=x=>GT-WY*.42*(.42+.33*Math.sin(x*.009+ph)+.25*Math.sin(x*.023+ph*2));
+  const floodRow=s=>SEASON==='printemps'||SEASON==='hiver'?s%3!==2:s%3===0;
   for(let x=0;x<W;x++){
     const top=Math.round(hill(x));
     for(let y=top;y<=GT;y++){
-      const st=Math.floor((GT-y)/6),yy=y+Math.sin(x*.035+ph+st*.9)*2.5,s=Math.floor((GT-yy)/6),ry=Math.floor(GT-yy)%6,flood=s%3!==1;
+      const st=Math.floor((GT-y)/6),yy=y+Math.sin(x*.035+ph+st*.9)*2.5,s=Math.floor((GT-yy)/6),ry=Math.floor(GT-yy)%6,fl=floodRow(s);
       let c;
       if(ry===5)c='#c8e492';
-      else if(ry>=2){if(flood){c=ry===4?'#eef6f2':'#cfe2e2';if((x+s*3)%4===0&&ry<4)c=ry===3?'#86bc58':'#6aa048';else if((x*7+y*3)%29===0)c='#ffffff'}else c=(x+s*2)%3===0?'#76aa48':ry===4?'#a8d46a':'#90c25e'}
+      else if(ry>=2){if(fl){c=ry===4?'#f2f8f6':RICE[2];if((x+s*3)%4===0&&ry<4)c=RICE[0];else if((x*7+y*3)%29===0)c='#ffffff'}else c=(x+s*2)%3===0?RICE[1]:ry===4?m2(RICE[0],'#ffffff',.25):RICE[0]}
       else c=ry===1?'#5e8a3e':'#46682e';
       if(y===top)c='#dcf0a8';
       px(x,y,c);
     }
   }
-  // maison sur pilotis, palmiers, aigrettes et un buffle
+  {let tx=Math.round(W*.3),best=GT;for(let x=Math.round(W*.2);x<W*.45;x++){const y=hill(x);if(y<best){best=y;tx=x}}const pg=makePagoda(Math.round(H*.07));g.drawImage(pg,tx-(pg.width>>1),Math.round(best)+3-pg.height)}
+  // sentier de pierres en zigzag sur la colline de droite
+  {let x=Math.round(W*.72),y=Math.round(hill(x))+4,dir=1;while(y<GT-2){for(let i=0;i<6&&y<GT-2;i++){px(x,y,'#e4dccb');px(x+1,y,'#c8beaa');x+=dir;if(i%2)y+=1}dir=-dir;y+=2}}
+  // maison sur pilotis, bambous, palmiers, paysans, aigrettes, buffle, épouvantail
   const hx=Math.round(W*.64),hy=Math.round(hill(hx))+8;
   g.drawImage(mapSprite(["....yy....","..yyyyyy..",".yyYyyYyy.","yyyyyyyyyy",".wwkwwkww.",".wwkwwkww.",".b......b.",".b......b."],{y:'#c8a050',Y:'#a88038',w:'#d8c4a0',k:'#4a3a2a',b:'#6a4a34'}),hx-6,hy-12);
+  for(let i=0;i<6;i++){const bx=hx+10+i*2,bh=14+r()*10;for(let j=0;j<bh;j++){px(bx,Math.round(hill(bx))+6-j,j%5===0?'#5a8a3a':'#7aaa48');if(j>bh*.6&&j%3===0)px(bx+(i%2?1:-1),Math.round(hill(bx))+6-j,'#9ac860')}}
   for(const bx of[W*.12,W*.79,W*.86]){const pm=makePalm(Math.round(H*(.09+r()*.04)),(r()*1e9)|0,true),x=Math.round(bx);g.drawImage(pm,x-(pm.width>>1),Math.round(hill(x))+4-pm.height)}
+  const FARM=mapSprite(["..yyy..","yyyyyyy","...s...","..bbb..",".bbbb..","..b.b.."],{y:'#e8c870',s:'#e0b090',b:'#3a5a8a'});
+  for(let i=0;i<4;i++){const x=Math.round(W*(i<2?.08+r()*.22:.7+r()*.25)),y=Math.round(hill(x)+10+r()*24);if(y<GT-6)g.drawImage(FARM,x,y-FARM.height)}
   for(let i=0;i<6;i++){const x=Math.round(W*(.3+r()*.6)),y=Math.round(hill(x)+8+r()*30);if(y>=GT-3)continue;px(x,y,'#ffffff');px(x,y-1,'#ffffff');px(x+1,y-2,'#ffffff');px(x+1,y-3,'#ffffff');px(x,y+1,'#e8a040')}
   {const bx=Math.round(W*.5),by=Math.round(hill(bx)+20);if(by<GT-6)g.drawImage(mapSprite(["k.......","kkkkkk.k",".kkkkkkk",".k.k.k.k"],{k:'#4a4448'},false),bx,by)}
+  {const sx=Math.round(W*.25),sy=Math.round(hill(sx)+14);if(sy<GT-8)g.drawImage(mapSprite(["..y..","yyyyy","..b..","bbbbb","..b..",".b.b."],{y:'#e0c070',b:'#8a6a4a'}),sx,sy-6)}
   for(let y=Math.round(GT-WY*.08);y<=GT;y++){g.globalAlpha=Math.pow((y-GT+WY*.08)/(WY*.08),2)*.55;g.fillStyle='#eef4ee';g.fillRect(0,y,W,1)}g.globalAlpha=1;
+}
+function drawRiceFront(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)};
+  const head=SEASON==='automne'?'#e8c050':SEASON==='hiver'?'#a8946a':'#a8d870',stem=SEASON==='automne'?'#b8a040':SEASON==='hiver'?'#86744e':'#5e9a3a';
+  // tiges de riz hautes, épis penchés
+  for(const B of[LB,RB])for(let x=Math.max(B.x0,0)+2;x<Math.min(B.x1,W)-2;x+=2+(r()*3|0)){
+    if(B===LB&&x>rab.x-14&&x<rab.x+16)continue;const h=6+r()*7,lean=r()<.5?-1:1;
+    for(let j=0;j<h;j++)px(Math.round(x+lean*Math.pow(j/h,2)*2),GT-j,stem);
+    for(let j=0;j<3;j++)px(Math.round(x+lean*(2+j*.6)),GT-h+1+j,head);
+  }
+  // grandes feuilles de bananier qui encadrent le bas de l'écran
+  const leaf=(x0,y0,ang,len,wd,dir)=>{for(let t=0;t<len;t++){const k=t/len,cx=x0+Math.cos(ang)*t*dir,cy=y0-Math.sin(ang)*t+k*k*len*.35,w=Math.sin(Math.PI*Math.min(1,k*1.05))*wd;
+    for(let d=-w;d<=w;d++){const yy=Math.round(cy+d),xx=Math.round(cx),edge=Math.abs(d)>w-1,rip=Math.abs(d)>1&&((t+Math.round(d))%7===0);if(rip)continue;px(xx,yy,Math.abs(d)<.6?'#c8e08a':edge?'#2e5a28':d<0?'#5e9a3a':'#467e30')}}};
+  leaf(-6,GT+2,.9,46,6,1);leaf(-4,GT-6,.45,40,5,1);leaf(W+6,GT+2,.9,46,6,-1);leaf(W+4,GT-8,.5,42,5,-1);
 }
 const CACTUS=mapSprite(["..g..","..gG.","g.gG.","gGgG.","gggGg","..gGg","..gGg","..gG.","..gG.","..gG."],{g:'#5a8a48',G:'#76a860'});
 const AGAVE=mapSprite(["..g...","g.g.g.",".gGg..","gGgGgg"],{g:'#7aa078',G:'#5a8060'});
@@ -1706,6 +1740,7 @@ function buildLand(){
   if(WORLD.taiga)drawTaigaFront(g,r);
   if(WORLD.meadow||WORLD.bushes)drawBushes(g,r);
   if(WORLD.meadow)drawClearingFront(g,r);
+  if(WORLD.terraces)drawRiceFront(g,r);
   if(WORLD.city)drawCity(g,r);
   if(WORLD.fjord){const cx0=Math.round(LB.x0>0?LB.x0+20:rab.x-60);for(const[wx,wy]of[[4,7],[5,7],[4,8],[5,8],[13,7],[14,7],[13,8],[14,8]])lights.push({x:cx0+wx,y:GT-12+wy,c:'#ffd88a',ph:0,lamp:1,win:1})}
   if(SEASON==='automne'&&!WORLD.sea&&!WORLD.boat&&!WORLD.city&&!WORLD.ice&&WORLD.id!=='tropique')g.drawImage(PUMPKIN,rab.x-22,GT+1-PUMPKIN.height);
