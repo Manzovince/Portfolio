@@ -128,10 +128,13 @@ main{display:flex;flex-direction:column;align-items:center;margin-top:0;width:10
 .poems{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
 .poem{white-space:pre-line;font-style:italic;font-size:12px;line-height:1.6;background:#fff;border:2px solid var(--line);border-radius:12px;padding:10px 12px}
 .haiku{display:block;font-style:italic;line-height:1.5;color:var(--panel-ink)}
-.meteo{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 14px}
-.meteo span{font-weight:800;font-size:12px;margin-right:4px}
-.meteo button{border:2px solid var(--line);border-radius:999px;padding:5px 10px;background:#fff;font:600 12px 'JetBrains Mono',monospace;cursor:pointer;color:var(--panel-ink)}
-.meteo button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.meteo{margin:0 0 14px}
+.meteo .seg{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:rgba(59,42,53,.07);padding:4px;border-radius:14px}
+.meteo button{border:0;border-radius:10px;padding:7px 2px 6px;background:transparent;font:700 11px 'JetBrains Mono',monospace;cursor:pointer;color:var(--panel-ink);display:flex;flex-direction:column;align-items:center;gap:2px;opacity:.7}
+.meteo button i{font-style:normal;font-size:18px;line-height:1}
+.meteo button:hover{opacity:1}
+.meteo button.on{background:#fff;opacity:1;box-shadow:0 0 0 2px var(--line)}
+.meteo small{display:block;margin:6px 4px 0;opacity:.6;font-size:11px}
 .wcard{display:flex;gap:14px;align-items:center;text-align:left;border:2px solid var(--line);border-radius:12px;padding:10px;background:#fff;cursor:pointer;font:13px 'JetBrains Mono',monospace;color:var(--panel-ink)}
 .wcard small{opacity:.7;font-size:11px;line-height:1.5}
 .wcard.lock{opacity:.55;cursor:default}
@@ -372,9 +375,11 @@ let WX='beau',SEASON='automne',LEAVES=false;
 const SEASONS={printemps:'Printemps',ete:'Été',automne:'Automne',hiver:'Hiver'};
 function season(){const q=Q.get('saison')||(ADMIN()?store.get('saison','auto'):'auto');if(SEASONS[q])return q;const m=new Date().getMonth();return m>=2&&m<=4?'printemps':m>=5&&m<=7?'ete':m>=8&&m<=10?'automne':'hiver'}
 const bare=(x,y)=>SEASON==='hiver'&&Math.sin(x*.9+y*.43)*Math.sin(x*.31-y*.77)>-.3;
+// choix simplifié proposé à tous dans l'onglet Mondes
+const WXCHOICE=[['auto','✨','Auto'],['beau','☀️','Soleil'],['couvert','☁️','Nuages'],['pluie','🌧️','Pluie'],['neige','❄️','Neige']];
 function dayWeather(){
   if(Q.has('ciel')&&SKIES[Q.get('ciel')])return Q.get('ciel');
-  const pick=ADMIN()?store.get('ciel','auto'):'auto';if(SKIES[pick])return pick;
+  const pick=store.get('ciel','auto');if(SKIES[pick])return pick;
   const k=[...today()].reduce((a,ch)=>(a*31+ch.charCodeAt(0))|0,7),r=rng(k),t=r();
   return t<.14?'clair':t<.42?'beau':t<.55?'voile':t<.68?'moutons':t<.8?'tour':t<.92?'couvert':'pluie';
 }
@@ -1842,13 +1847,36 @@ function drawSeine(g,r,L){
   const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(((x%L)+L)%L,y,1,1)},rect=(x,y,w,h,c)=>{for(let i=0;i<w;i++){g.fillStyle=c;g.fillRect((((x+i)%L)+L)%L,y,1,h)}};
   drawEiffel(g,Math.round(L*.3),WY-10,Math.round(WY*.62),'#9a8c80');
   {const cx=Math.round(L*.78),b=WY-10;rect(cx-12,b-30,8,30,'#b8b0a4');rect(cx+4,b-30,8,30,'#b8b0a4');rect(cx-4,b-20,8,20,'#c8c0b4');for(let y=0;y<14;y++)px(cx,b-20-y,'#a8a094');rect(cx-14,b-31,12,1,'#a8a094');rect(cx+2,b-31,12,1,'#a8a094')}
-  // immeubles haussmanniens en continu
-  let x=0;while(x<L){const w=20+(r()*16|0),fh=Math.round(WY*(.17+r()*.06)),rh=7,b=WY-10,top=b-fh,fac=r()<.5?'#e8dcc4':'#e0d2b8';
-    rect(x,top,w,fh,fac);
-    for(let fy=top+4,fl=0;fy<b-3;fy+=6,fl++)for(let d=2;d<w-2;d+=4){rect(x+d,fy,2,4,'#5a6474');if(fl===1||fl===4)rect(x+d-1,fy+4,4,1,'#2e2e34')}
-    for(let j=0;j<rh;j++){const ins=Math.round(j*.5);rect(x+ins,top-rh+j,w-ins*2,1,j===0?'#c4ccd6':j%2?'#8a96a4':'#7a8898')}
-    for(let d=4;d<w-4;d+=7){rect(x+d,top-rh-3,3,4,'#f0eae0');rect(x+d,top-rh-4,3,1,'#7a8898')}
-    const cs=x+3+(r()*(w-8)|0);rect(cs,top-rh-5,4,5,'#b8705a');rect(cs,top-rh-7,1,2,'#d87a50');rect(cs+2,top-rh-7,1,2,'#d87a50');
+  // immeubles variés : haussmannien, vieil immeuble à volets, brique, angle à dôme, boutiques à auvents
+  const FAC=['#e8dcc4','#e0d2b8','#ece4d2','#d8ccb4','#e6d6b0','#dcd8cc','#e8d0b8'],SHUT=['#5a7a8a','#6a8a6a','#8a5a4a','#4a5a7a','#7a7a6a'],AWN=[['#b83a32','#f0e6d6'],['#2e5a3a','#e8e0c8'],['#2a4a7a','#f0ece0'],['#c87a2a','#f6ead0']];
+  let x=0,last=-1;while(x<L){
+    let kind=r();kind=kind<.38?0:kind<.6?1:kind<.75?2:kind<.87?3:4;if(kind===last&&kind)kind=0;last=kind;
+    const b=WY-10,w=kind===1?14+(r()*8|0):kind===3?18+(r()*6|0):22+(r()*16|0),fh=Math.round(WY*(kind===1?.12+r()*.03:kind===2?.13+r()*.04:kind===3?.16+r()*.04:.14+r()*.07)),top=b-fh;
+    const fac=kind===2?'#a8604a':FAC[(r()*FAC.length)|0],dk=rgb(mix(hex(fac),[60,50,50],.25)),win=r()<.5?'#5a6474':'#4e5866',fl=kind===1?7:6;
+    rect(x,top,w,fh,fac);rect(x,top,1,fh,dk);
+    // soubassement : boutiques, café à auvent ou porte cochère
+    const gh=6;rect(x,b-gh,w,gh,kind===2?'#8a4a3a':dk);
+    if(kind===4||r()<.35){const A=AWN[(r()*AWN.length)|0];for(let d=1;d<w-1;d++){rect(x+d,b-gh,1,2,(d>>1)%2?A[0]:A[1]);if(d%2)px(x+d,b-gh+2,A[0])}rect(x+2,b-3,w-4,3,'#3a3a40');for(let d=3;d<w-3;d+=5)rect(x+d,b-3,3,2,'#e8d8a0')}
+    else{const dw=4,dx=x+((w-dw)>>1);rect(dx,b-5,dw,5,'#3a3034');px(dx+1,b-5,'#5a4a44');px(dx+2,b-5,'#5a4a44');for(let d=2;d<w-2;d+=5)if(Math.abs(d-(dx-x))>4)rect(x+d,b-4,2,3,win)}
+    // étages
+    const step=kind===1?5:4,arched=kind===0&&r()<.4;
+    for(let fy=top+4,f=0;fy<b-gh-3;fy+=fl,f++)for(let d=2;d<w-2;d+=step){
+      if(kind===1){rect(x+d,fy,2,4,win);px(x+d-1,fy,SHUT[(x>>3)%SHUT.length]);for(let k=0;k<4;k++){px(x+d-1,fy+k,SHUT[(x>>3)%SHUT.length]);px(x+d+2,fy+k,SHUT[(x>>3)%SHUT.length])}continue}
+      rect(x+d,fy,2,4,win);if(arched)px(x+d,fy,fac),px(x+d+1,fy,fac),rect(x+d,fy+1,2,1,win);
+      if(kind===2){rect(x+d-1,fy-1,4,1,'#e8e0d0');rect(x+d-1,fy+4,4,1,'#e8e0d0')}
+      if(kind!==2&&(f===1||f===4))rect(x+d-1,fy+4,4,1,'#2e2e34');
+      if(r()<.06)rect(x+d,fy+3,2,1,['#e8504a','#f08ab0','#5a9a46'][(r()*3)|0]);
+    }
+    if(kind===0||kind===3)for(const f of[1,4]){const yy=top+4+f*fl+4;if(yy<b-gh)rect(x+1,yy,w-2,1,'#2e2e34')}
+    // toits : mansarde de zinc, toit d'ardoise pentu, ou dôme d'angle
+    if(kind===1){const rh=6;for(let j=0;j<rh;j++){const ins=rh-1-j;rect(x+ins,top-rh+j,Math.max(1,w-ins*2),1,j%2?'#5a5a66':'#4a4a56')}
+      const cs=x+(w>>1);rect(cs,top-rh-3,3,4,'#a8604a')}
+    else if(kind===2){rect(x,top-1,w,1,'#e8e0d0');rect(x,top-3,w,2,'#7a3a2e');for(let d=2;d<w-2;d+=6)rect(x+d,top-6,3,3,'#8a4a3a')}
+    else{const rh=kind===4?5:7;for(let j=0;j<rh;j++){const ins=Math.round(j*.5);rect(x+ins,top-rh+j,w-ins*2,1,j===0?'#c4ccd6':j%2?'#8a96a4':'#7a8898')}
+      for(let d=4;d<w-4;d+=7){rect(x+d,top-rh-3,3,4,'#f0eae0');rect(x+d,top-rh-4,3,1,'#7a8898');px(x+d+1,top-rh-2,win)}
+      if(kind===3){const cx=x+(w>>1),R=Math.max(5,(w>>2));for(let y=0;y<=R;y++){const hw=Math.round(Math.sqrt(R*R-y*y));rect(cx-hw,top-rh-y,hw*2+1,1,y>R*.7?'#9aa6b4':(y%2?'#7a8898':'#8a96a4'))}
+        rect(cx,top-rh-R-3,1,3,'#c8a048');px(cx,top-rh-R-4,'#e8c860');for(let d=-R+2;d<R-1;d+=3)rect(cx+d,top-rh-2,1,2,'#5a6474')}
+      const cs=x+3+(r()*(w-8)|0);rect(cs,top-rh-5,4,5,'#b8705a');rect(cs,top-rh-7,1,2,'#d87a50');rect(cs+2,top-rh-7,1,2,'#d87a50');}
     x+=w;}
   // platanes du quai haut
   for(let x=4;x<L;x+=14+(r()*6|0)){const cy=WY-18,rr=6+r()*3;for(let y=-rr;y<=rr*.6;y++)for(let d=-rr*1.2;d<=rr*1.2;d++){const dd=Math.hypot(d/(rr*1.2),y/rr);if(dd>1)continue;const l=-d/rr*.4-y/rr*.7+Math.sin(d*1.7+y)*.2;px(Math.round(x+d),Math.round(cy+y),l>.45?'#8ab85a':l<-.2?'#3e6a34':'#5e9046')}rect(x,cy+4,1,8,'#6a5a48')}
@@ -2741,6 +2769,9 @@ function showTab(tab){
     for(const k of pg){const d=document.createElement('div');d.className='poem';d.textContent=POEMS[k];PG.appendChild(d)}
     for(const w of WORLDS)if(!unlocked(w)){const p=document.createElement('p');p.className='lockl';p.textContent=`🔒 ${w.n} — se débloque à ${w.need} découvertes`;B.appendChild(p)}
   }else if(tab==='mondes'){
+    {const cur=store.get('ciel','auto'),sel=WXCHOICE.some(c=>c[0]===cur)?cur:'auto',mt=document.createElement('div');mt.className='meteo';
+     mt.innerHTML='<div class="seg">'+WXCHOICE.map(([k,ic,n])=>`<button data-k="${k}" class="${k===sel?'on':''}" title="${n}"><i>${ic}</i>${n}</button>`).join('')+'</div>'+`<small>${sel==='auto'?`Météo du jour : ${SKIES[WX]||'—'}. Elle change chaque jour.`:'Le ciel reste comme ça jusqu’à ce que tu repasses en Auto.'}</small>`;
+     mt.onclick=e=>{const bt=e.target.closest('button');if(!bt)return;store.set('ciel',bt.dataset.k);buildLand();showTab('mondes')};B.appendChild(mt)}
     B.insertAdjacentHTML('beforeend',`<p class="lockl" style="margin:0 0 10px">${WORLDS.filter(unlocked).length}/${WORLDS.length} mondes. Un monde au hasard parmi les tiens à chaque nouvel onglet. Les autres arrivent par la poste : guette l’oiseau qui porte une lettre.</p>`);
     const L=loadLog(),got=discovered(),wl=document.createElement('div');wl.className='wl';B.appendChild(wl);
     for(const w of WORLDS){
@@ -2773,9 +2804,6 @@ function showTab(tab){
       }
     }
   }else if(tab==='admin'){
-    const mt=document.createElement('div');mt.className='meteo';const cur=store.get('ciel','auto');
-    mt.innerHTML='<span>Météo</span>'+[['auto','Auto'],...Object.entries(SKIES)].map(([k,n])=>`<button data-k="${k}" class="${k===cur?'on':''}">${n}</button>`).join('');
-    mt.onclick=e=>{const k=e.target.dataset&&e.target.dataset.k;if(!k)return;store.set('ciel',k);buildLand();showTab('admin')};B.appendChild(mt);
     B.insertAdjacentHTML('beforeend',`<div class="set">
       <label>Saison des arbres <select id="sSaison"><option value="auto">Auto (date réelle)</option><option value="printemps">Printemps</option><option value="ete">Été</option><option value="automne">Automne</option><option value="hiver">Hiver</option></select></label>
       <label>Thème de Noël <select id="sNoel"><option value="auto">Auto (décembre)</option><option value="on">Toujours</option><option value="off">Jamais</option></select></label>
@@ -2783,7 +2811,7 @@ function showTab(tab){
     </div>`);
     $('#sSaison').value=store.get('saison','auto');$('#sSaison').onchange=e=>{store.set('saison',e.target.value);buildLand()};
     $('#sNoel').value=store.get('noel','auto');$('#sNoel').onchange=e=>{store.set('noel',e.target.value);applyNoel()};
-    $('#sAdmin').onclick=()=>{for(const k of['admin','ciel','saison','noel'])store.set(k,null);$('#tAdmin').hidden=true;buildLand();applyNoel();showTab('reglages')};
+    $('#sAdmin').onclick=()=>{for(const k of['admin','saison','noel'])store.set(k,null);$('#tAdmin').hidden=true;buildLand();applyNoel();showTab('reglages')};
   }else{
     B.innerHTML=`<div class="set">
       <label>Moteur de recherche <select id="sEng">${Object.entries(ENG).map(([k,v])=>`<option value="${k}"${k===eng?' selected':''}>${v[0]}</option>`).join('')}</select></label>
