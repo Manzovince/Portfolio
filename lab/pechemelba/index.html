@@ -73,6 +73,14 @@ main{display:flex;flex-direction:column;align-items:center;margin-top:0;width:10
 .tag{display:inline-block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:3px 7px;border-radius:999px;color:#fff;margin-left:6px;vertical-align:2px}
 .new{background:var(--accent)}
 /* carnet */
+#postcard{position:fixed;inset:0;background:rgba(20,30,34,.45);display:none;align-items:center;justify-content:center;z-index:12;padding:16px}
+#postcard.on{display:flex}
+#postcard .pc{background:#fbf6ea;color:#3a3230;border:2px solid var(--line);box-shadow:6px 6px 0 var(--line);border-radius:6px;padding:12px;width:min(640px,100%);transform:rotate(-1.2deg);display:flex;flex-direction:column;gap:10px;font:13px 'JetBrains Mono',monospace}
+#postcard .pcimg{width:100%;display:block;image-rendering:pixelated;border:6px solid #fff;outline:1px solid #d8cfbf;box-sizing:border-box}
+#postcard .pctx{position:relative;padding:4px 70px 0 4px}
+#postcard .pctx b{font-size:16px}#postcard .pctx p{margin:6px 0;font-style:italic}#postcard .pctx small{opacity:.6}
+#postcard .stamp{position:absolute;right:4px;top:4px;width:48px;height:58px;border:3px dotted #fff;outline:2px solid #c8bfa8;transform:rotate(4deg)}
+#postcard .pcb{display:flex;gap:8px;margin-top:10px}
 #modal{position:fixed;inset:0;background:rgba(20,30,34,.4);display:none;align-items:center;justify-content:center;z-index:10;padding:16px}
 #modal.on{display:flex}
 .panel{background:var(--panel);color:var(--panel-ink);border:2px solid var(--line);box-shadow:6px 6px 0 var(--line);border-radius:16px;width:min(720px,100%);max-height:min(86vh,760px);display:flex;flex-direction:column;overflow:hidden}
@@ -926,12 +934,14 @@ const WORLDS=[
 ];
 const WI=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
 const discovered=()=>Object.keys(loadLog().sp).filter(id=>SPI[id]).length;
-const unlocked=()=>true; // tous les mondes sont ouverts
+// mondes débloqués : le lac au départ, les autres arrivent par oiseau postal
+const openWorlds=()=>store.get('worlds',['lac']);
+const unlocked=w=>Q.get('monde')===w.id||openWorlds().includes(w.id);
 // ?tout : débloque tous les mondes et remplit le carnet (espèces + poèmes), puis nettoie l'URL
 if(Q.has('tout')){
   const L=loadLog();
   for(const sp of SP)if(!L.sp[sp.id]||!L.sp[sp.id].n)L.sp[sp.id]={n:1,best:0,first:Date.now()};
-  L.poems=POEMS.map((_,i)=>i);store.set('log',L);store.set('all',true);
+  L.poems=POEMS.map((_,i)=>i);store.set('log',L);store.set('all',true);store.set('worlds',WORLDS.map(w=>w.id));
   const cl=store.get('closet',null)||{own:['rouge'],wear:{corps:'rouge'}};for(const it of SHOP)if(!cl.own.includes(it.id))cl.own.push(it.id);store.set('closet',cl);closet=cl;
   Q.delete('tout');history.replaceState(null,'',location.pathname+(Q.toString()?'?'+Q:''));
   setTimeout(()=>toast(null,'Tout est débloqué','Mondes, carnet et boutique : tout est à toi.',null,6000,'carnet'),800);
@@ -944,7 +954,7 @@ function noelOn(){
 }
 let NOEL=false;
 // un monde au hasard à chaque chargement (jamais le même que la dernière fois), ou ?monde=…
-let WORLD=WI[Q.get('monde')]||(()=>{const last=store.get('world','');const pool=WORLDS.filter(w=>w.id!==last);const w=pool[Math.random()*pool.length|0];store.set('world',w.id);return w})();
+let WORLD=WI[Q.get('monde')]||(()=>{const last=store.get('world',''),open=WORLDS.filter(unlocked);const pool=open.length>1?open.filter(w=>w.id!==last):open;const w=pool[Math.random()*pool.length|0];store.set('world',w.id);return w})();
 function setWorld(id){
   WORLD=WI[id];store.set('world',id);resize();setSt('idle');F.wait0=1;F.first=true;F.tx=0;F.hold=null;hint('');
   $('#wName').textContent=WORLD.n;
@@ -1096,6 +1106,43 @@ function openGift(){
     const c=Math.round(rnd(15,60));addCoins(c);
     toast(b.spr,'Cadeau : '+c+' pièces','Le ballon a éclaté de joie.',null,4500,'boutique');
   }
+}
+/* ---------- oiseau postal : apporte la carte d'un nouveau monde ---------- */
+const BIRDP=[["w.........w","ww.......ww",".www...www.","..wwwwwwwky","...wwwww...","....eee....","....eEe...."],["...........","...........","..wwwwwwwky",".www.ww.ww.","ww..www..ww","....eee....","....eEe...."]].map(m=>mapSprite(m,{w:'#f6f6f2',k:OUT,y:'#e0a040',e:'#efe2bc',E:'#d8403a'}));
+const BIRDL=BIRDP.map(c=>{const[k,g]=canvasOf(c.width,c.height);g.translate(c.width,0);g.scale(-1,1);g.drawImage(c,0,0);return k});
+let letter=null,letterT=Q.has('oiseau')?2:rnd(180,420);
+const lockedWorlds=()=>WORLDS.filter(w=>!openWorlds().includes(w.id));
+function spawnLetter(){const d=R()<.5?1:-1;letter={x:d>0?-14:W+2,y:rnd(WY*.45,WY*.6),d,ph:R()*6}}
+function letterHit(x,y){if(!letter)return false;const by=letter.y+Math.sin(T*2+letter.ph)*3;return x>=letter.x-3&&x<=letter.x+15&&y>=by-3&&y<=by+12}
+const PC_MSG=['Il fait un temps magnifique ici. Viens pêcher avec moi !','Les poissons mordent bien, tu devrais venir voir.','J’ai pensé à toi en voyant ce paysage. À bientôt !','Je t’ai gardé une place au bord de l’eau.','On m’a dit qu’un poisson rare vit par ici…'];
+function renderPostcard(w){
+  // dessine le monde dans une image, puis revient au monde actuel
+  const prev=WORLD;WORLD=w;resize();
+  const sk=worldSky(skyAt(sunElev(now()))),[c,g]=canvasOf(W,H);
+  for(let y=0;y<WY;y++){g.fillStyle=rgb(mix(sk.top,sk.bot,Math.pow(y/WY,1.3)));g.fillRect(0,y,W,1)}
+  for(const cl of clouds)g.drawImage(cl.spr,Math.round(cl.x),Math.round(cl.y));
+  g.drawImage(land,0,0);
+  for(let y=WY;y<H;y++){g.fillStyle=rgb(mix(sk.water,[10,20,40],(y-WY)/(H-WY)*.3));g.fillRect(0,y,W,1)}
+  g.fillStyle=rgb(sk.hi);for(let i=0;i<W/6;i++)g.fillRect(Math.round(R()*W),Math.round(WY+2+R()*(H-WY-3)),2+(R()*5|0),1);
+  if(sk.ta>0){g.globalCompositeOperation='source-atop';g.globalAlpha=sk.ta;g.fillStyle=rgb(sk.tint);g.fillRect(0,0,W,H);g.globalCompositeOperation='source-over';g.globalAlpha=1}
+  WORLD=prev;resize();
+  const y0=Math.round(WY*.3),[k,kg]=canvasOf(W,H-y0);kg.drawImage(c,0,-y0);return k;
+}
+function showPostcard(w){
+  let el=$('#postcard');if(!el){el=document.createElement('div');el.id='postcard';document.body.appendChild(el)}
+  el.innerHTML=`<div class="pc"><div class="pcpic"></div><div class="pctx"><span class="stamp" style="background:linear-gradient(${w.sw[0]} 55%,${w.sw[1]} 55%)"></span><b>Bienvenue à ${w.n} !</b><p>${PC_MSG[R()*PC_MSG.length|0]}</p><small>Nouveau monde débloqué</small><div class="pcb"><button class="pill acc" id="pcGo">Y aller</button><button class="pill" id="pcLater">Plus tard</button></div></div></div>`;
+  const pic=renderPostcard(w);pic.className='pcimg';el.querySelector('.pcpic').appendChild(pic);
+  el.classList.add('on');
+  el.querySelector('#pcGo').onclick=()=>{el.classList.remove('on');setWorld(w.id)};
+  el.querySelector('#pcLater').onclick=()=>el.classList.remove('on');
+  el.onclick=e=>{if(e.target===el)el.classList.remove('on')};
+}
+function openLetter(){
+  const b=letter;letter=null;const by=b.y+Math.sin(T*2+b.ph)*3;
+  for(let i=0;i<16;i++)parts.push({x:b.x+5,y:by+6,vx:rnd(-16,16),vy:rnd(-20,4),l:rnd(.5,1),c:i%2?'#ffffff':'#efe2bc',g:20});
+  const pool=lockedWorlds();if(!pool.length)return;
+  const w=pool[R()*pool.length|0];store.set('worlds',[...openWorlds(),w.id]);
+  showPostcard(w);
 }
 function drawIslands(g,r,L){
   for(let i=0;i<5;i++){
@@ -2244,6 +2291,8 @@ function update(dt){
   for(const c of clouds){c.x+=c.v*dt*(WORLD.boat?-2:1);if(c.x>W)c.x=-c.spr.width;if(c.x<-c.spr.width)c.x=W}
   if(!plane&&(planeT-=dt)<0){planeT=rnd(180,480);spawnPlane()}
   if(plane){plane.x+=plane.d*dt*11;if(plane.x<-plane.banner.width-30||plane.x>W+plane.banner.width+30)plane=null}
+  if(!letter&&(letterT-=dt)<0){letterT=rnd(420,900);if(lockedWorlds().length)spawnLetter()}
+  if(letter){letter.x+=letter.d*dt*11;if(letter.x<-18||letter.x>W+18)letter=null}
   if(!balloon&&(balloonT-=dt)<0){balloonT=NOEL?rnd(70,200):rnd(150,420);spawnBalloon()}
   if(balloon){balloon.x+=balloon.d*dt*5;if(balloon.x<-16||balloon.x>W+16)balloon=null}
   if(false){for(const b of sails)b.x+=b.v*dt;sails=sails.filter(b=>b.x>-b.spr.width-4&&b.x<W+4)}
@@ -2333,6 +2382,7 @@ function draw(){
   }
   if(star){const tw=.7+.3*Math.sin(T*3);ctx.fillStyle='#ffd84a';ctx.globalAlpha=tw;ctx.fillRect(star.x-2,star.y,5,1);ctx.fillRect(star.x,star.y-2,1,5);ctx.fillRect(star.x-1,star.y-1,3,3);ctx.fillStyle='#fff6c0';ctx.fillRect(star.x,star.y,1,1);
     if(sk.dark>.3){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.2*sk.dark;ctx.beginPath();ctx.arc(star.x+.5,star.y+.5,6,0,7);ctx.fill();ctx.globalCompositeOperation='source-over'}ctx.globalAlpha=1}
+  if(letter){const fr=Math.sin(T*9+letter.ph)>0?0:1,sp=(letter.d>0?BIRDP:BIRDL)[fr];ctx.globalAlpha=1-sk.dark*.3;ctx.drawImage(sp,Math.round(letter.x),Math.round(letter.y+Math.sin(T*2+letter.ph)*3));ctx.globalAlpha=1}
   if(balloon){const sw=Math.round(Math.sin(T*1.2+balloon.ph)*2);ctx.globalAlpha=1-sk.dark*.35;ctx.drawImage(balloon.spr,Math.round(balloon.x),Math.round(balloon.y)+sw);ctx.globalAlpha=1}
   // eau + reflets
   for(let y=WY;y<H;y++){ctx.fillStyle=rgb(mix(sk.water,[20,30,40],(y-WY)/(H-WY)*.12));ctx.fillRect(0,y,W,1)}
@@ -2476,10 +2526,10 @@ function act(x,y){
   if((F.st==='wait'||F.st==='idle')&&(x==null||(y>=WY-8&&x>=castMin()-6&&x<=castMax()+6)))cast(x==null?null:clamp(x,castMin(),castMax()));
 }
 function heart(){const el=document.createElement('div');el.textContent='♥';Object.assign(el.style,{position:'fixed',left:(rab.x+6)*S+'px',top:(rab.y-4)*S+'px',color:'#e8605a',fontSize:S*5+'px',transition:'transform 1s,opacity 1s',pointerEvents:'none',zIndex:4});document.body.appendChild(el);requestAnimationFrame(()=>{el.style.transform='translateY(-40px)';el.style.opacity='0'});setTimeout(()=>el.remove(),1100)}
-cv.addEventListener('pointerdown',e=>{const x=e.clientX/S,y=e.clientY/S;if(balloonHit(x,y))return openGift();act(x,y)});
+cv.addEventListener('pointerdown',e=>{const x=e.clientX/S,y=e.clientY/S;if(letterHit(x,y))return openLetter();if(balloonHit(x,y))return openGift();act(x,y)});
 addEventListener('pointerup',release);addEventListener('pointercancel',release);addEventListener('blur',release);
 function release(){if(F.st==='reel')tryHook()}
-cv.addEventListener('pointermove',e=>{const x=e.clientX/S,y=e.clientY/S;cv.style.cursor=balloonHit(x,y)?'pointer':'';cv.classList.toggle('cible',F.st==='bite'||F.st==='reel'||((F.st==='wait'||F.st==='idle')&&y>=WY-8&&x>=castMin()-6&&x<=castMax()+6))});
+cv.addEventListener('pointermove',e=>{const x=e.clientX/S,y=e.clientY/S;cv.style.cursor=balloonHit(x,y)||letterHit(x,y)?'pointer':'';cv.classList.toggle('cible',F.st==='bite'||F.st==='reel'||((F.st==='wait'||F.st==='idle')&&y>=WY-8&&x>=castMin()-6&&x<=castMax()+6))});
 addEventListener('keydown',e=>{
   if(e.key==='Escape'){closeModal();return}
   const typing=/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
@@ -2604,11 +2654,12 @@ function showTab(tab){
     const mt=document.createElement('div');mt.className='meteo';const cur=store.get('ciel','auto');
     mt.innerHTML='<span>Météo</span>'+[['auto','Auto'],...Object.entries(SKIES)].map(([k,n])=>`<button data-k="${k}" class="${k===cur?'on':''}">${n}</button>`).join('');
     mt.onclick=e=>{const k=e.target.dataset&&e.target.dataset.k;if(!k)return;store.set('ciel',k);buildLand();showTab('mondes')};B.appendChild(mt);
-    B.insertAdjacentHTML('beforeend','<p class="lockl" style="margin:0 0 10px">Un monde au hasard à chaque nouvel onglet. Tu peux aussi en choisir un ici.</p>');
+    B.insertAdjacentHTML('beforeend',`<p class="lockl" style="margin:0 0 10px">${WORLDS.filter(unlocked).length}/${WORLDS.length} mondes. Un monde au hasard parmi les tiens à chaque nouvel onglet. Les autres arrivent par la poste : guette l’oiseau qui porte une lettre.</p>`);
     const L=loadLog(),got=discovered(),wl=document.createElement('div');wl.className='wl';B.appendChild(wl);
     for(const w of WORLDS){
       const ok=unlocked(w),list=SP.filter(s=>(s.wd||'lac')===w.id),f=list.filter(s=>L.sp[s.id]).length;
       const c=document.createElement('button');c.className='wcard'+(ok?'':' lock')+(w===WORLD?' cur':'');
+      if(!ok){c.innerHTML=`<span class="sw" style="background:#d8d8d4"></span><span><b>🔒 Monde inconnu</b><br><small>Un oiseau postal t’apportera peut-être sa carte.</small></span>`;wl.appendChild(c);continue}
       c.innerHTML=`<span class="sw" style="background:linear-gradient(${w.sw[0]} 55%,${w.sw[1]} 55%)"></span><span><b>${ok?'':'🔒 '}${w.n}</b>${w===WORLD?'<span class="tag new">ici</span>':''}<br><small>${ok?`${w.d}<br>${f}/${list.length} espèces trouvées`:`Se débloque à ${w.need} découvertes (tu en as ${got}).`}</small></span>`;
       if(ok&&w!==WORLD)c.onclick=()=>{setWorld(w.id);closeModal()};
       wl.appendChild(c);
