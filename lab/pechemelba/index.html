@@ -219,7 +219,9 @@ const store={
 /* ---------- temps & soleil (debug : ?h=21.5 fige l'heure de départ, ?speed=600 accélère) ---------- */
 const Q=new URLSearchParams(location.search);
 // ?zen : seulement la scène, sans horloge, recherche, raccourcis ni boutons
-if(Q.has('zen'))document.documentElement.classList.add('zen');
+// ?image : une simple image figée du lapin qui pêche, dans un monde au hasard (ou ?monde=…)
+const IMAGE=Q.has('image');
+if(Q.has('zen')||IMAGE)document.documentElement.classList.add('zen');
 // onglet Admin (météo, saison, Noël) : seulement après un passage par ?tout
 const ADMIN=()=>Q.has('tout')||store.get('admin',false);
 const T0=Date.now(), FH=Q.has('h')?parseFloat(Q.get('h')):null, SPEED=parseFloat(Q.get('speed')||'1');
@@ -578,7 +580,7 @@ const PAL_LINES={
 function petPal(){const b=palBox();palHop=.35;for(let i=0;i<6;i++)parts.push({x:b.x+b.w/2+rnd(-3,3),y:b.y+PAD_T,vx:rnd(-6,6),vy:rnd(-18,-8),l:rnd(.6,1),c:i%2?'#f07a8a':'#ffb0c0',g:4});
   const ls=PAL_LINES[PAL.id];if(ls){let k=Math.random()*ls.length|0;if(k===petPal.last)k=(k+1)%ls.length;petPal.last=k;toast(PALSPR[0],PAL.n,ls[k],null,3500,'pass')}}
 function meetPal(){
-  if(!PAL)return;const met=store.get('met',[]);if(met.includes(PAL.id))return;store.set('met',[...met,PAL.id]);
+  if(!PAL||IMAGE)return;const met=store.get('met',[]);if(met.includes(PAL.id))return;store.set('met',[...met,PAL.id]);
   setTimeout(()=>toast(PALSPR[0],`${PAL.n} te rejoint !`,'Ton compagnon dans ce monde.',null,6000),1800);
 }
 function rabbitSprite(ear,blink,corps,an){
@@ -1055,7 +1057,7 @@ function noelOn(){
 }
 let NOEL=false;
 // un monde au hasard à chaque chargement (jamais le même que la dernière fois), ou ?monde=…
-let WORLD=WI[Q.get('monde')]||(()=>{const last=store.get('world',''),open=WORLDS.filter(unlocked);const pool=open.length>1?open.filter(w=>w.id!==last):open;const w=pool[Math.random()*pool.length|0];store.set('world',w.id);return w})();
+let WORLD=WI[Q.get('monde')]||(IMAGE?WORLDS[Math.random()*WORLDS.length|0]:null)||(()=>{const last=store.get('world',''),open=WORLDS.filter(unlocked);const pool=open.length>1?open.filter(w=>w.id!==last):open;const w=pool[Math.random()*pool.length|0];store.set('world',w.id);return w})();
 function setWorld(id){
   WORLD=WI[id];store.set('world',id);resize();setSt('idle');F.wait0=1;F.first=true;F.tx=0;F.hold=null;hint('');
   $('#wName').textContent=WORLD.n;meetPal();meetMonet();
@@ -2044,7 +2046,7 @@ function drawMonet(ctx){
 function monetHit(x,y){return monet&&WORLD.giverny&&x>=monet.x-16&&x<=monet.x+14&&y>=monet.y-4&&y<=GT+1}
 const MONET_LINES=['Il ne lève pas les yeux de sa toile.','« Encore un peu de lumière sur l’eau… »','Il te fait un petit signe du pinceau.','Il plisse les yeux vers les nymphéas.','« Revenez quand le soleil sera plus bas. »'];
 function petMonet(){monetHop=.35;for(let i=0;i<6;i++)parts.push({x:monet.x+6+rnd(-3,3),y:monet.y,vx:rnd(-6,6),vy:rnd(-18,-8),l:rnd(.6,1),c:i%2?'#c8a8f0':'#f2a6c0',g:4});toast(MONET[0],'Claude Monet',MONET_LINES[Math.random()*MONET_LINES.length|0],null,3500,'pass')}
-function meetMonet(){if(!WORLD.giverny)return;const met=store.get('met',[]);if(met.includes('monet'))return;store.set('met',[...met,'monet']);setTimeout(()=>toast(MONET[0],'Claude Monet peint sur l’autre rive','Il ne pêche pas : il peint les nymphéas.',null,6000),1800)}
+function meetMonet(){if(!WORLD.giverny||IMAGE)return;const met=store.get('met',[]);if(met.includes('monet'))return;store.set('met',[...met,'monet']);setTimeout(()=>toast(MONET[0],'Claude Monet peint sur l’autre rive','Il ne pêche pas : il peint les nymphéas.',null,6000),1800)}
 /* ----- Oasis ----- */
 function drawDunes(g,r){
   const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)};
@@ -2948,7 +2950,9 @@ function drawSunMoon(d,e,sk){
 
 /* ---------- boucle ---------- */
 let last=0;
+let FROZEN=false;
 function frame(ts){
+  if(FROZEN)return;
   requestAnimationFrame(frame);
   if(ts-last<32)return;
   update(Math.min(.1,(ts-last)/1000));last=ts;draw();
@@ -3284,11 +3288,12 @@ function awayCatch(ms){
   const best=Object.keys(got).map(id=>SPI[id]).sort((a,b)=>'jcuerl'.indexOf(b.rar)-'jcuerl'.indexOf(a.rar))[0];
   setTimeout(()=>toast(best.spr,`+${k} prise${k>1?'s':''} pendant ton absence`,`${h} : ${list} · +${coins} pièces`,null,6000),700);
 }
-const seen=store.get('seen',0);
+const seen=IMAGE?0:store.get('seen',0);
 if(seen)awayCatch(Math.min(Date.now()-seen,12*36e5));
-store.set('seen',Date.now());setInterval(()=>store.set('seen',Date.now()),2e4);
+if(!IMAGE){store.set('seen',Date.now());setInterval(()=>store.set('seen',Date.now()),2e4)}
 let hiddenAt=0;
 document.addEventListener('visibilitychange',()=>{
+  if(IMAGE)return;
   if(document.hidden){hiddenAt=Date.now();return}
   if(hiddenAt&&Date.now()-hiddenAt>90e3){awayCatch(Math.min(Date.now()-hiddenAt,12*36e5));if(F.st!=='catch'){setSt('idle');F.wait0=1;hint('')}}
   store.set('seen',Date.now());
@@ -3306,6 +3311,12 @@ function applyNoel(){
 applyNoel();
 buildRabbit();resize();meetPal();meetMonet();renderLinks();refreshCount();tick();setInterval(tick,1000);
 requestAnimationFrame(frame);
+if(IMAGE){
+  // ligne déjà à l'eau, flotteur posé, puis on fige l'image (clic droit → enregistrer)
+  cast();setSt('wait');F.t=1;F.wd=1e9;F.first=false;
+  setTimeout(()=>{FROZEN=true;const k=Math.max(2,Math.ceil(innerWidth*devicePixelRatio/cv.width)),[big,bg]=canvasOf(cv.width*k,cv.height*k);bg.drawImage(cv,0,0,big.width,big.height);const im=new Image();im.src=big.toDataURL('image/png');im.alt=`Le lapin pêche : ${WORLD.n}`;
+    im.style.cssText='position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated;z-index:5';document.body.appendChild(im);cv.style.visibility='hidden'},900);
+}
 </script>
 </body>
 </html>
