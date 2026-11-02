@@ -833,7 +833,7 @@ addEventListener('storage',e=>{if(e.key==='ponton.ciel'&&typeof land!=='undefine
 
 /* ---------- mondes ---------- */
 const WORLDS=[
-  {id:'lac',n:'Lac',d:'Le ponton du début, entre les sapins.',need:0,tree:'pine',sw:['#c4ddd6','#8fb6ae']},
+  {id:'lac',n:'Lac',d:'Le ponton du début, entre les sapins.',need:0,tree:'pine',bushes:1,sw:['#c4ddd6','#8fb6ae']},
   {id:'riviere',n:'Rivière de montagne',d:'Une eau vive qui descend des sommets.',need:6,tree:'pineDark',mount:1,flow:11,water:['#5f9fb4',.4],sw:['#b8d0dc','#5f9fb4']},
   {id:'marais',n:'Marais brumeux',d:'Des roseaux, de la brume et des choses qui bougent.',need:12,tree:'willow',reeds:1,fog:1,pads:1,water:['#5f6f40',.5],sky:['#c6cbb4',.25],sw:['#c8ccb4','#5f6f40']},
   {id:'glace',n:'Lac gelé',d:'On pêche par un trou dans la glace.',need:18,tree:'snow',mount:2,snow:1,ice:1,water:['#dce9f0',.78],sky:['#dfe8f0',.25],sw:['#e4ecf2','#cfe2ec']},
@@ -1628,7 +1628,7 @@ function buildLand(){
       const spr=make(h,(r()*1e9)|0,back),w=spr.width;
       if(x+w*.35>x1)break;
       trees.push({x:Math.round(x),back,spr});
-      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?.5:kind==='sakura'?.7:kind==='oak'||kind==='autumn'?.42:1)+r()*8;
+      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?.5:kind==='sakura'?.7:kind==='oak'||kind==='autumn'?.42:WORLD.id==='lac'?.58:1)+r()*(WORLD.id==='lac'?4:8);
     }
   };
   if(kind!=='none'){
@@ -1656,7 +1656,7 @@ function buildLand(){
   LH=null;
   sails=[];if(WORLD.sea){drawPier(g);drawJetty(g,r)}else if(!WORLD.boat)for(const b of[LB,RB])drawBank(g,b,r,P);
   if(WORLD.taiga)drawTaigaFront(g,r);
-  if(WORLD.meadow)drawBushes(g,r);
+  if(WORLD.meadow||WORLD.bushes)drawBushes(g,r);
   if(WORLD.city)drawCity(g,r);
   if(WORLD.fjord){const cx0=Math.round(LB.x0>0?LB.x0+20:rab.x-60);for(const[wx,wy]of[[4,7],[5,7],[4,8],[5,8],[13,7],[14,7],[13,8],[14,8]])lights.push({x:cx0+wx,y:GT-12+wy,c:'#ffd88a',ph:0,lamp:1,win:1})}
   if(SEASON==='automne'&&!WORLD.sea&&!WORLD.boat&&!WORLD.city&&!WORLD.ice&&WORLD.id!=='tropique')g.drawImage(PUMPKIN,rab.x-22,GT+1-PUMPKIN.height);
