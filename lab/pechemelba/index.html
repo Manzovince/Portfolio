@@ -543,7 +543,8 @@ function palStep(dt){
   else{pw.wait-=dt;if(pw.wait<=0){pw.walk=rnd(1.5,5);if(Math.random()<.5||pw.x<=a+2||pw.x>=b-2)pw.dir=pw.x<=a+2?1:pw.x>=b-2?-1:-pw.dir}}
 }
 // dans la petite barque du large, la mouette se perche à l'arrière
-function palBox(){if(!PAL)return null;const s=PALSPR[0];if(!WORLD.boat)return{x:Math.round(pw.x),y:GT+1-s.height,w:s.width,h:s.height};const o=WORLD.id==='large'?[10,-1]:[0,0];return{x:rab.x-23-s.width+o[0],y:rab.gy-s.height+1+o[1],w:s.width,h:s.height}}
+function palBox(){if(!PAL)return null;const s=PALSPR[0];if(!WORLD.boat)return{x:Math.round(pw.x),y:GT+1-s.height,w:s.width,h:s.height};if(WORLD.id==='large')return{x:rab.x-17,y:rab.gy-s.height,w:s.width,h:s.height}; // pattes sur le plat-bord arrière
+  return{x:rab.x-23-s.width,y:rab.gy-s.height+1,w:s.width,h:s.height}}
 function palHit(x,y){const b=palBox();return b&&x>=b.x+PAD_X&&x<=b.x+b.w-PAD_X&&y>=b.y-2&&y<=b.y+b.h}
 let palHop=0;
 // une petite phrase par compagnon quand on le caresse
