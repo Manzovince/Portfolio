@@ -414,6 +414,17 @@ const SHOP=[
   {id:'rose',slot:'corps',n:'Pull rose',p:60,pal:['#f2a6b4','#d4808e']},
   {id:'cire',slot:'corps',n:'Ciré jaune',p:120,pal:['#f2c64a','#d4a42a']},
   {id:'mariniere',slot:'corps',n:'Marinière',p:150,pal:['#f4f0e6','#d8d2c8'],stripe:'#3a5a8a'},
+  {id:'moutarde',slot:'corps',n:'Pull moutarde',p:50,pal:['#e8b83a','#c8962a']},
+  {id:'violet',slot:'corps',n:'Pull violet',p:50,pal:['#9a6ac8','#7a4aa8']},
+  {id:'orange',slot:'corps',n:'Pull orange',p:50,pal:['#f0904a','#d0702a']},
+  {id:'turquoise',slot:'corps',n:'Pull turquoise',p:60,pal:['#4ac0b8','#2a9a92']},
+  {id:'noir',slot:'corps',n:'Pull noir',p:70,pal:['#3a3a44','#26262e']},
+  {id:'ecru',slot:'corps',n:'Pull écru',p:70,pal:['#f0ead8','#d0c8b4']},
+  {id:'sweat',slot:'corps',n:'Sweat gris',p:90,pal:['#9a9ea6','#74787e']},
+  {id:'rayerouge',slot:'corps',n:'Pull à rayures rouges',p:150,pal:['#f4f0e6','#d8d2c8'],stripe:'#e8504a'},
+  {id:'foret',slot:'corps',n:'Pull forêt',p:120,pal:['#4a7a4a','#345a34'],stripe:'#e8c870'},
+  {id:'arcenciel',slot:'corps',n:'Pull arc-en-ciel',p:300,pal:['#e8504a','#c8383a'],rows:{6:'#e8504a',7:'#f0904a',8:'#f2d24a',9:'#6ab86a',10:'#5a8ad0'}},
+  {id:'pullnoel',slot:'corps',n:'Pull de Noël',p:80,noel:1,pal:['#d8303a','#a8202a'],stripe:'#ffffff'},
   {id:'bob',slot:'tete',n:'Bob de pêcheur',p:80,at:[0,5],map:["..hhhhhhhh..","..hHHHHHHh..","hhhhhhhhhhhhh"],pal:{h:'#d8c8a0',H:'#a08a60'}},
   {id:'casquette',slot:'tete',n:'Casquette',p:70,at:[1,6],map:["..bbbbbbb....",".bbbbbbbbbbbb"],pal:{b:'#3a6a9a'}},
   {id:'bonnet',slot:'tete',n:'Bonnet à pompon',p:90,at:[0,2],map:["....w.....","...rrrr...","..rrrrrrr.",".rrrrrrrrr",".wwwwwwwww"],pal:{r:'#e8605a',w:'#f4f0e6'}},
@@ -477,7 +488,8 @@ function rabbitSprite(ear,blink,corps,an){
   if(blink)body[2]=body[2].replace('e','o');
   if(an&&an.ears)body[11]=body[11].replace(/w/g,'l');
   if(corps&&corps.stripe)for(const i of[7,9])body[i]=body[i].replace(/[rR]/g,'n');
-  const pal={...RAB_PAL,...(an&&an.pal),n:corps&&corps.stripe||'#000'};if(corps){pal.r=corps.pal[0];pal.R=corps.pal[1]}
+  if(corps&&corps.rows)for(const i in corps.rows)body[i]=body[i].replace(/[rR]/g,String(i%10));
+  const pal={...RAB_PAL,...(an&&an.pal),n:corps&&corps.stripe||'#000'};if(corps&&corps.rows)for(const i in corps.rows)pal[String(i%10)]=corps.rows[i];if(corps){pal.r=corps.pal[0];pal.R=corps.pal[1]}
   if(!an||!an.ears)return mapSprite(EARS[ear].concat(body),pal,false);
   // autre animal : oreilles contourées automatiquement, puis le corps du lapin par-dessus
   if(!an.pal.h)pal.h=pal.w;pal.l=an.leg||pal.w;
