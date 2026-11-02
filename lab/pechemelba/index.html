@@ -726,14 +726,6 @@ const SP=[
   {id:'scarabee',n:'Scarabée d’or',rar:'l',w:.3,wd:'canyon',quip:'Il brille comme le soleil de midi.',map:["..y.y..",".yyyyy.","yYyyyYy","yyYyYyy","yyyyyyy",".y.y.y."],pal:{y:'#e0b030',Y:'#fff0a0'}},
   {id:'cranevache',n:'Crâne de vache',rar:'j',w:3,wd:'canyon',quip:'Le désert garde tout.',map:["w.......w","ww.....ww",".wwwwwww.","..wkwkw..","..wwwww..","...www...","...w.w..."],pal:{w:'#f0e8d8',k:OUT}},
   {id:'sablecolore',n:'Bouteille de sable',rar:'j',w:2,wd:'canyon',quip:'Sept couleurs de sable, sans un grain de travers.',map:["..k..",".gkg.","yyyyy","rrrrr","bbbbb","ppppp",".ggg."],pal:{k:'#8a5a3a',g:'#c8e0e0',y:'#f2c64a',r:'#e8604a',b:'#5a8ad0',p:'#c86ab0'}},
-  {id:'archer',n:'Poisson-archer',rar:'c',w:8,cm:[10,20],wd:'mangrove',quip:'Il crache sur les insectes. Avec précision.',look:{len:10,h:5,body:'#e8e0b0',back:'#3a3a2a',belly:'#fffcf0',fin:'#c8c090',pat:'stripes'}},
-  {id:'barramundi',n:'Barramundi',rar:'c',w:7,cm:[40,90],wd:'mangrove',look:{len:15,h:5,body:'#b8c0b8',back:'#6a7a70',belly:'#f0f2ea',fin:'#98a098'}},
-  {id:'periophtalme',n:'Périophtalme',rar:'u',w:4,cm:[8,15],wd:'mangrove',quip:'Un poisson qui marche. Il en est fier.',map:["...kk.kk..","..gGggGg..",".gggggggg.","gggggggggg","..ffg.ff.."],pal:{g:'#8a7a5a',G:'#c8b890',k:OUT,f:'#6a5a3a'}},
-  {id:'crabeviolon',n:'Crabe violoniste',rar:'u',w:4,cm:[3,5],wd:'mangrove',quip:'Il agite sa grosse pince pour dire bonjour.',map:["rr.......","rrr.k.k..","rr.yyyyy.",".yyyyyyy.","..y.y.y.."],pal:{r:'#e8a030',y:'#5a6a8a',k:OUT}},
-  {id:'hippopygmee',n:'Hippocampe pygmée',rar:'r',w:2.5,cm:[1,2],wd:'mangrove',quip:'Plus petit qu’un ongle.',map:[".pp.","pPpk",".pp.",".pp.","..pp",".p.p","..p."],pal:{p:'#f0a0b0',P:'#ffd0d8',k:OUT}},
-  {id:'crocodilebebe',n:'Bébé crocodile',rar:'e',w:1,cm:[25,40],wd:'mangrove',quip:'Il fait semblant de dormir.',map:["............kk..","..gggggggggggggg","gggGgGgGgggwgwgw","..g..g....g..g.."],pal:{g:'#5a7a3a',G:'#3a5228',w:'#f4f0e6',k:OUT}},
-  {id:'lamantin',n:'Lamantin',rar:'l',w:.3,cm:[250,400],wd:'mangrove',quip:'Il a l’air de te sourire.',look:{len:22,h:8,body:'#8a8e94',back:'#6a6e74',belly:'#a8acb0',fin:'#7a7e84'}},
-  {id:'tong',n:'Tong perdue',rar:'j',w:3,wd:'mangrove',quip:'L’autre est sûrement à Bali.',map:["..rr..",".bbbb.","bbbbbb","bbbbbb",".bbbb."],pal:{r:'#e8504a',b:'#5a8ad0'}},
   {id:'morue',n:'Morue',rar:'c',w:9,cm:[30,80],wd:'fjord',look:{len:14,h:5,body:'#b0a070',back:'#7a6a44',belly:'#ece4cc',fin:'#9a8a5e',pat:'spots'}},
   {id:'hareng',n:'Hareng',rar:'c',w:9,cm:[20,35],wd:'fjord',look:{len:10,h:4,body:'#c8d4dc',back:'#4a6a8a',belly:'#f4f8fa',fin:'#9ab0c0',pat:'shine'}},
   {id:'fletan',n:'Flétan',rar:'u',w:4,cm:[60,150],wd:'fjord',quip:'Les deux yeux du même côté. Pratique.',map:["....bbbbbb....","..bbBbbbBbbb..","bbbbbbbbbbbbbk","..bbbBbbBbbb..","....bbbbbb...."],pal:{b:'#7a6a5a',B:'#5a4a3e',k:OUT}},
@@ -855,10 +847,9 @@ const WORLDS=[
   {id:'brume',n:'Forêt brumeuse',d:'Des sapins à perte de vue, noyés dans la brume.',need:64,tree:'none',taiga:1,water:['#5a948a',.5],sky:['#bcd4c8',.35],sw:['#bcd4c8','#4a7a72']},
   {id:'rizieres',n:'Rizières',d:'Des terrasses de riz qui reflètent le ciel, dans la brume du matin.',need:72,tree:'none',terraces:1,water:['#7aa89a',.4],sky:['#dfe8d4',.25],sw:['#dfe8d4','#6a9a7a']},
   {id:'canyon',n:'Canyon',d:'Une oasis au fond d’une gorge de roche rouge.',need:80,tree:'none',canyon:1,water:['#3a9a9a',.45],sky:['#f4dcc0',.28],sw:['#f0c8a0','#3a9a9a']},
-  {id:'mangrove',n:'Mangrove',d:'Des racines sur pilotis dans une eau tiède et brune.',need:88,tree:'mangrove',reeds:1,water:['#6a7a48',.55],sky:['#dcead0',.2],sw:['#dcead0','#6a7a48']},
-  {id:'fjord',n:'Fjord',d:'Des falaises vertigineuses, une cascade, et des aurores la nuit.',need:96,tree:'none',fjord:1,water:['#2a5a6a',.5],sky:['#d4e2ea',.2],sw:['#d4e2ea','#2a5a6a']},
-  {id:'ville',n:'Ville la nuit',d:'Un quai de canal, des réverbères et des fenêtres allumées.',need:104,tree:'none',city:1,night:1,water:['#2a3450',.5],sw:['#2a3450','#141a2c']},
-  {id:'automne',n:'Automne',d:'Le lac en octobre, sous les érables flamboyants.',need:112,tree:'autumn',leaves:1,water:['#7a8a7a',.35],sky:['#f0dcc0',.22],sw:['#f0dcc0','#8a9a7a']},
+  {id:'fjord',n:'Fjord',d:'Des falaises vertigineuses, une cascade, et des aurores la nuit.',need:88,tree:'none',fjord:1,water:['#2a5a6a',.5],sky:['#d4e2ea',.2],sw:['#d4e2ea','#2a5a6a']},
+  {id:'ville',n:'Ville',d:'Un quai de canal en ville. Les fenêtres s’allument quand le soir tombe.',need:96,tree:'none',city:1,water:['#4a6a80',.45],sky:['#d8dce4',.2],sw:['#c8d0dc','#4a6a80']},
+  {id:'automne',n:'Automne',d:'Le lac en octobre, sous les érables flamboyants.',need:104,tree:'autumn',leaves:1,water:['#7a8a7a',.35],sky:['#f0dcc0',.22],sw:['#f0dcc0','#8a9a7a']},
   {id:'aquarium',n:'Aquarium',d:'Tes plus belles prises dans un grand bassin. Ici, on ne pêche pas.',need:0,tree:'none',aquarium:1,sw:['#d8e4de','#3a9ab8']}
 ];
 const WI=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
@@ -902,7 +893,6 @@ const BANKS={
   brume:{grass:['#5a7a48','#7a9a58'],earth:['#3e3a34','#2e2a26','#4e4840'],base:'#24201c'},
   rizieres:{grass:['#7aa850','#9cc868'],earth:['#7a6448','#64503a','#8a7458'],base:'#4a3a2a'},
   canyon:{grass:['#d8b878','#e8cc90'],earth:['#b8603a','#9a4a2e','#cc7448'],base:'#7a3420',snow:1},
-  mangrove:{grass:['#5a7a3a','#7a9a4a'],earth:['#4a3a28','#3a2c1e','#5a4830'],base:'#2a2018'},
   fjord:{grass:['#6a8a5a','#8aa870'],earth:['#5a6068','#484e56','#6e747c'],base:'#34383e'},
   ville:{grass:['#8a8a92','#a4a4ac'],earth:['#5a5a66','#4a4a54','#6a6a76'],base:'#2e2e38'},
   automne:{grass:['#a8903a','#c8a848'],earth:['#8a6450','#745040','#9a7460'],base:'#5a3a30'},
@@ -1300,23 +1290,6 @@ function drawTaigaFront(g,r){
       g.fillStyle=l>.55?'#d4c470':l>.15?'#8a9a50':'#3e5236';g.fillRect(Math.round(x+dx),GT+1+y,1,1)}
   }
 }
-function makeMangrove(h,seed,back){
-  const r=rng(seed),w=Math.round(h*1.25)|1,cx=w>>1,cy=Math.round(h*.28),rx=w/2-2,ry=h*.2;
-  const pal=['#14301c','#22502a','#357a30','#5c9e38','#94c652'].map(c=>back?rgb(mix(hex(c),[204,224,196],.38)):c);
-  const lobes=[];for(let i=0;i<14;i++){const a=r()*Math.PI*2,d=Math.sqrt(r())*.7;lobes.push({x:cx+Math.cos(a)*rx*d,y:cy+Math.sin(a)*ry*d,rx:rx*(.22+r()*.12),ry:ry*(.4+r()*.2)})}
-  lobes.sort((a,b)=>a.y-b.y);
-  const wood=new Map(),put=(x,y,u)=>wood.set(Math.round(x)+','+Math.round(y),u);
-  const tb=h*.6;for(let y=cy;y<tb;y++)for(let d=-1;d<=1;d++)put(cx+d,y,(d+1)/2);
-  // racines-échasses en arceaux
-  for(let i=0;i<7;i++){const ex=cx+(i-3)*w*.13+(r()-.5)*3,sy=tb-2+r()*3,lift=h*(.08+r()*.08);
-    for(let t=0;t<=1;t+=.02){const x=lerp(cx+(i-3)*.6,ex,t),y=lerp(sy,h-1,t)-Math.sin(t*Math.PI)*lift;put(x,y,t<.5?.2:.6)}}
-  return gridSprite(w,h,(x,y)=>{
-    let L=null;for(const B of lobes){const dx=(x-B.x)/B.rx,dy=(y-B.y)/B.ry,d=dx*dx+dy*dy;if(d<1)L={dx,dy,d}}
-    if(L){if(L.d>.8&&L.dy>.2)return pal[0];let l=-(L.dx*.5+L.dy*.8)+(r()-.5)*.25;return pal[l>.6?4:l>.15?3:l>-.3?2:1]}
-    const u=wood.get(x+','+y);if(u!=null)return u<.3?'#8a7254':u>.7?'#3e3024':'#5e4a36';
-    return null;
-  });
-}
 function drawTerraces(g,r){
   const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},ph=r()*6;
   for(const[k,hh,col]of[[0,.5,'#9cbcae'],[1,.36,null]]){
@@ -1370,15 +1343,15 @@ function drawFjord(g,r){
   for(let i=0;i<14;i++){const bx=wx-6+((i*7)%18),by=GT-(i%3);px(bx,by,'#ffffff');px(bx+1,by,'#dfeef2')}
 }
 function drawCity(g,r){
-  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},WC=['#ffd88a','#ffeaa0','#ffc870','#a8d0ff'];
-  for(const[k,col,hh]of[[0,'#2a3450',.42],[1,'#1c2236',.3]]){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},WC=['#ffd88a','#ffeaa0','#ffc870','#a8d0ff'],BC=[['#a8b4c4','#c8d4e0'],['#8a7a78','#b8a8a0'],['#9a9488','#c4bcae'],['#7a8a9a','#a8b8c8']];
+  for(const[k,col0,hh]of[[0,'#a8b4c4',.42],[1,'#7a8698',.3]]){
     let x=-4;while(x<W+4){
-      const bw=10+(r()*18|0),bh=Math.round(WY*hh*(.4+r()*.6)),top=GT-bh,roof=r();
-      for(let y=top;y<=GT;y++)for(let d=0;d<bw;d++)px(x+d,y,d===0&&k?'#2a3048':col);
+      const bw=10+(r()*18|0),bh=Math.round(WY*hh*(.4+r()*.6)),top=GT-bh,roof=r(),bc=k?BC[(r()*4)|0]:[col0,'#c4ceda'],col=bc[0];
+      for(let y=top;y<=GT;y++)for(let d=0;d<bw;d++)px(x+d,y,d===0?bc[1]:d===bw-1&&k?rgb(mix(hex(col),[40,44,60],.25)):col);
       if(roof<.3)for(let d=0;d<bw;d++)for(let y=0;y<Math.min(d,bw-d)/2;y++)px(x+d,top-y,col);
       else if(roof<.5){px(x+3,top-3,col);px(x+3,top-2,col);px(x+3,top-1,col);px(x+4,top-3,col)}
       for(let y=top+3;y<GT-3;y+=5+k)for(let d=2;d<bw-2;d+=4){
-        if(r()<(k?.28:.14))lights.push({x:x+d,y,c:WC[(r()*4)|0],ph:0,lamp:1,win:1});else px(x+d,y,k?'#2a3048':'#38425e');
+        px(x+d,y,k?'#4e5e74':'#7a8aa0');if(k&&(y+d)%3===0)px(x+d,y,'#c8dcec');if(r()<(k?.3:.16))lights.push({x:x+d,y,c:WC[(r()*4)|0],ph:0,lamp:1,win:1});
       }
       x+=bw+(k?1:-2)+(r()*3|0);
     }
@@ -1613,15 +1586,15 @@ function buildLand(){
   // arbres : rang du fond puis rang de devant
   trees=[];
   const AUT=['#4a2414','#8a3a18','#c8642a','#e8983a','#f6c860','#fff0a8'];
-  const make=(h,seed,back)=>kind==='autumn'?(seed%3===0?makeSakura(h,seed,back,true):makeOak(h,seed,back,AUT)):kind==='mangrove'?makeMangrove(h,seed,back):kind==='oak'?makeOak(h,seed,back):kind==='sakura'?makeSakura(h,seed,back,seed%4===0):kind==='palm'?makePalm(h,seed,back):kind==='willow'?makeWillow(h,seed,back):makePine(h,seed,back,kind==='pineDark'?DARK_PAL:TREE_PAL,kind==='snow');
+  const make=(h,seed,back)=>kind==='autumn'?(seed%3===0?makeSakura(h,seed,back,true):makeOak(h,seed,back,AUT)):kind==='oak'?makeOak(h,seed,back):kind==='sakura'?makeSakura(h,seed,back,seed%4===0):kind==='palm'?makePalm(h,seed,back):kind==='willow'?makeWillow(h,seed,back):makePine(h,seed,back,kind==='pineDark'?DARK_PAL:TREE_PAL,kind==='snow');
   const plant=(x0,x1,back)=>{
     let x=x0+r()*6;
     while(true){
-      const h=Math.round(clamp(H*(back?.4:.32)*(.75+r()*.45)*(kind==='willow'?.8:kind==='pineDark'?1.12:kind==='palm'?1.05:kind==='sakura'?.85:kind==='oak'||kind==='autumn'?1.1:kind==='mangrove'?.8:1),24,150));
+      const h=Math.round(clamp(H*(back?.4:.32)*(.75+r()*.45)*(kind==='willow'?.8:kind==='pineDark'?1.12:kind==='palm'?1.05:kind==='sakura'?.85:kind==='oak'||kind==='autumn'?1.1:1),24,150));
       const spr=make(h,(r()*1e9)|0,back),w=spr.width;
       if(x+w*.35>x1)break;
       trees.push({x:Math.round(x),back,spr});
-      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?.5:kind==='sakura'?.7:kind==='oak'||kind==='autumn'?.42:kind==='mangrove'?.55:1)+r()*8;
+      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?.5:kind==='sakura'?.7:kind==='oak'||kind==='autumn'?.42:1)+r()*8;
     }
   };
   if(kind!=='none'){
@@ -1873,7 +1846,7 @@ function draw(){
   ctx.drawImage(fg,0,0);
   if(lights.length){
     const k=sk.dark,glow=clamp((k-.2)/.5,0,1);
-    for(const l of lights){const on=l.lamp?1:.55+.45*Math.sin(T*2.2+l.ph);ctx.globalAlpha=(.55+.45*glow)*on;ctx.fillStyle=l.c;ctx.fillRect(l.x,l.y,1,1)}
+    for(const l of lights){const on=l.lamp?1:.55+.45*Math.sin(T*2.2+l.ph);ctx.globalAlpha=l.win?glow:l.lamp?.2+.8*glow:(.55+.45*glow)*on;if(!ctx.globalAlpha)continue;ctx.fillStyle=l.c;ctx.fillRect(l.x,l.y,1,1)}
     if(glow>0){ctx.globalCompositeOperation='lighter';for(const l of lights){ctx.globalAlpha=(l.lamp?.5:.22)*glow*(l.lamp?1:.55+.45*Math.sin(T*2.2+l.ph));ctx.fillStyle=l.c;ctx.fillRect(l.x-1,l.y-1,3,3)}ctx.globalCompositeOperation='source-over'}
     ctx.globalAlpha=1;
   }
