@@ -61,6 +61,11 @@ main{display:flex;flex-direction:column;align-items:center;margin-top:0;width:10
 #addf{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
 #addf input{border:2px solid var(--field-b);background:var(--field);color:var(--ink);border-radius:999px;padding:7px 12px;font:13px 'JetBrains Mono',monospace;width:150px;outline:none}
 #addf input[name=u]{width:220px}
+#addf input[name=e]{width:58px;text-align:center}
+#addf .emos{flex-basis:100%;display:flex;gap:2px;justify-content:center;flex-wrap:wrap}
+#addf .emos button{border:0;background:none;font-size:16px;padding:3px;border-radius:8px;cursor:pointer}
+#addf .emos button:hover{background:var(--field)}
+.lk .ic.emo{background:transparent!important;font-size:16px;font-weight:400}
 #hint{position:fixed;left:50%;bottom:3.2vh;transform:translateX(-50%);font-size:12px;font-weight:600;color:#fff;background:rgba(30,40,46,.55);padding:7px 14px;border-radius:999px;opacity:0;transition:opacity .25s;white-space:nowrap;pointer-events:none}
 #hint.on{opacity:1}
 #hint.fort{background:var(--accent);animation:pulse .5s infinite alternate}
@@ -1197,6 +1202,40 @@ function makeWillow(h,seed,back){
     return null;
   });
 }
+// cerisier somei-yoshino : tronc sombre à lenticelles, grosses branches étalées, fleurs en bouquets séparés (ou rameaux pleureurs)
+function makeCherry(h,seed,back,weep){
+  const r=rng(seed),w=Math.round(h*(weep?1.25:1.6))|1,cx=w>>1,tw=Math.max(2,Math.round(h*.055));
+  const P=SEASON==='printemps'?['#7a3a54','#b25a78','#d8849e','#eeacc0','#f9cfdb','#fff2f5']:SEASON==='automne'?['#4a1e14','#8a2e1e','#c0502a','#e07a38','#f0a650','#fad27a']:['#183a22','#28562a','#3e7a30','#64a03c','#9ac858','#cde68a'];
+  const pal=P.map(c=>back?rgb(mix(hex(c),[232,222,228],.38)):c),W0=back?['#5e5258','#7a6c70','#988a8c']:['#2a2026','#46383c','#6a5a5c'];
+  const blos=new Map(),wood=new Map(),put=(x,y,k)=>{if(x>=0&&y>=0&&x<w&&y<h)blos.set(x+','+y,k)};
+  const line=(x0,y0,x1,y1,t0,t1)=>{const n=Math.ceil(Math.hypot(x1-x0,y1-y0))*2;for(let i=0;i<=n;i++){const k=i/n,x=lerp(x0,x1,k),y=lerp(y0,y1,k),t=lerp(t0,t1,k);
+    for(let dx=-t;dx<=t+.01;dx+=.5){const X=Math.round(x+dx),Y=Math.round(y),u=(dx+t)/(2*t+.01);if(X>=0&&X<w&&Y>=0&&Y<h)wood.set(X+','+Y,t>1.2&&Y%3===0&&u>.3&&u<.8?3:u<.3?2:u>.7?0:1)}}};
+  const lean=(r()-.5)*w*.08,fork=[cx+lean,Math.round(h*(weep?.5:.6))],tips=[];
+  line(cx+lean*.3,h-1,...fork,tw*1.3,tw);
+  for(const sg of[-1,1])line(cx+lean*.3+sg*tw*.6,h-2,cx+lean*.3+sg*tw*2.2,h-1,tw*.6,.5);
+  // grosses branches : en éventail, qui s'étalent loin et montent peu
+  const nb=weep?4:5;
+  for(let i=0;i<nb;i++){
+    const a=Math.PI*(.06+.88*(i+.15+r()*.7)/nb),len=h*(weep?.32:.42)*(.75+r()*.35)*(1.15-Math.sin(a)*.3);
+    let x=fork[0],y=fork[1],t=tw*.75,ang=a;
+    for(let s=0;s<3;s++){
+      const L=len/3,nx=x-Math.cos(ang)*L*1.35,ny=y-Math.sin(ang)*L*.9;line(x,y,nx,ny,t,t*.65);
+      tips.push([nx,ny,s]);
+      if(s>0){const sa=ang+(r()<.5?-.6:.6),sx=nx-Math.cos(sa)*L*.8,sy=ny-Math.sin(sa)*L*.6;line(nx,ny,sx,sy,t*.5,.3);tips.push([sx,sy,2])}
+      x=nx;y=ny;t*=.65;ang+=(Math.PI/2-ang)*.25+(r()-.5)*.3;
+    }
+  }
+  if(SEASON==='hiver'){ // brindilles nues
+    for(const[x,y]of tips)for(let k=0;k<3;k++){const a=-Math.PI*(.15+r()*.7),l=3+r()*4;line(x,y,x+Math.cos(a)*l,y+Math.sin(a)*l,.3,.2)}
+  }else{
+    const sc=h/60;
+    for(const[x,y,s]of tips){const n=s===0?1:2;for(let k=0;k<n;k++)leafy(put,{x:x+(r()-.5)*5*sc,y:y+(r()-.5)*3*sc,rx:(4.5+r()*3.5)*sc*(s===0?.8:1),ry:(3.2+r()*2.4)*sc},pal.length,r)}
+    if(weep)for(const[x,y,st]of tips)for(let k=0;k<(st===2?2:1);k++){let xx=x+(r()-.5)*8*sc,yy=y;const len=(5+r()*12)*sc;for(let j=0;j<len&&yy<h-2;j++,yy++){xx+=Math.sin(j*.4+k)*.25;put(Math.round(xx),Math.round(yy),j%3===0?2:j>len*.7?1:3);if(j%3===0)put(Math.round(xx)+1,Math.round(yy),2)}}
+  }
+  return gridSprite(w,h,(x,y)=>{const k=x+','+y,b=blos.get(k),d=wood.get(k);
+    if(b!=null&&!(d!=null&&((x*7+y*13)%5===0)))return pal[b];
+    return d!=null?W0[Math.min(2,d)]:null});
+}
 function makeSakura(h,seed,back,maple,oak){
   const r=rng(seed),w=Math.round(h*(oak?1.05:1.15))|1,cx=w>>1,cy=Math.round(h*(oak?.36:.34)),rx=w/2-2,ry=h*(oak?.34:.26),tw=Math.max(2,Math.round(w*(oak?.1:.06)));
   const GREEN=['#1e4424','#2e6a2e','#4a8e38','#76b24a','#a8d070'],BRN=['#3a2a22','#5a3e2e','#7a5a40','#9a7a58','#b8a080'];
@@ -1627,9 +1666,17 @@ function drawKyoto(g,r){
   // collines boisées au loin
   for(let x=0;x<W;x++){const t=Math.round(GT-WY*.3*(.6+.25*Math.sin(x*.012)+.15*Math.sin(x*.041)));for(let y=t;y<=GT;y++)px(x,y,y<t+2?'#b4c8b0':(x+y)%6===0?'#98b094':'#a6bca2')}
   // rangée de machiya : rez-de-chaussée en treillis de bois, étage en plâtre, toits de tuiles
+  const bc=Math.round((LB.x1+RB.x0)/2),span=Math.min(96,Math.round((RB.x0-LB.x1)*1.15)),gL=bc-(span>>1)-3,gR=bc+(span>>1)+3;
+  // au fond de la trouée : le canal qui continue, et des maisons plus petites dans la brume
+  for(let xx=gL;xx<gR;xx++){
+    for(let y=GT-3;y<=GT;y++)px(xx,y,(xx+y*3)%9===0?'#a8c8c8':'#78a4a8');
+    const hh=7+((xx-gL)/9|0)%2*2;for(let y=GT-3-hh;y<GT-3;y++)px(xx,y,y<GT-3-hh+3?'#8a8e98':(xx%5===0||y===GT-6)?'#a89c8c':'#c8c0b4');
+  }
   let x=-6;
   while(x<W+6){
-    const w=28+(r()*16|0),h1=15+(r()*3|0),h2=12+(r()*4|0),base=GT,top1=base-h1,top2=top1-3-h2,rt=top2-5;
+    if(x>=gL&&x<gR){x=gR;continue}
+    let w=28+(r()*16|0);const h1=15+(r()*3|0),h2=12+(r()*4|0),base=GT,top1=base-h1,top2=top1-3-h2,rt=top2-5;
+    if(x<gL&&x+w>gL-1){w=gL-2-x;if(w<10){x=gR;continue}}
     rect(x,top1,w,h1,'#4a3428');for(let d=1;d<w;d+=2)rect(x+d,top1+1,1,h1-1,'#6e4c36');
     const door=x+3+(r()*(w-12)|0);rect(door,top1+2,6,h1-2,'#2a3a6a');rect(door,top1+2,6,1,'#1e2a50');px(door+2,top1+5,'#e8e0d0');px(door+3,top1+5,'#e8e0d0');
     for(let d=-2;d<w+2;d++){px(x+d,top1-2,'#5a5a62');px(x+d,top1-1,d%2?'#3e3e46':'#4a4a52');px(x+d,top1,'#2e2e34')}
@@ -1641,6 +1688,28 @@ function drawKyoto(g,r){
     if(r()<.6){const lx=x+2+(r()*(w-6)|0);rect(lx,top1-1,1,1,'#2a2a2a');for(let k=0;k<4;k++)rect(lx-1,top1+k,3,1,k===0||k===3?'#2a2a2a':'#d8402e');px(lx,top1+1,'#f6e0a0');lights.push({x:lx,y:top1+1,c:'#ff9a5a',ph:0,lamp:1})}
     x+=w+1;
   }
+  drawTaiko(g,bc,GT,span);
+}
+// taikobashi : pont en arc vermillon, garde-corps à giboshi de bronze, piles dans l'eau
+function drawTaiko(g,cx,base,span){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},half=span/2,rise=Math.round(span*.2);
+  const deck=x=>{const t=(x-cx)/half;return base-2-Math.round(rise*Math.cos(t*Math.PI/2)**1.4)};
+  // piles
+  for(const t of[-.62,-.3,.3,.62]){const x=Math.round(cx+t*half);for(let y=deck(x)+3;y<=base;y++){px(x,y,'#b8362a');px(x+1,y,'#7a2018')}for(let y=deck(x)+5;y<=base;y+=4)for(let d=-1;d<=2;d++)px(x+d,y,'#5a3a2e')}
+  // tablier : poutre vermillon avec arête claire, dessous sombre
+  for(let x=Math.round(cx-half);x<=Math.round(cx+half);x++){const y=deck(x);
+    px(x,y-1,'#f08a6a');px(x,y,'#d8482e');px(x,y+1,'#c03a28');px(x,y+2,'#7a2018');
+    if(x%3===0)px(x,y+1,'#a8301e');}
+  // garde-corps : poteaux, lisses, et giboshi aux extrémités et au centre
+  const post=Math.max(5,Math.round(span*.07));
+  for(let x=Math.round(cx-half)+2;x<=Math.round(cx+half)-2;x++){const y=deck(x)-1;px(x,y-post,'#d8482e');px(x,y-post+1,'#a8301e');px(x,y-Math.round(post*.45),'#c03a28')}
+  const nP=Math.round(span/7);
+  for(let i=0;i<=nP;i++){const x=Math.round(cx-half+2+(span-4)*i/nP),y=deck(x)-1,gb=i===0||i===nP||i===nP>>1;
+    for(let j=1;j<=post+(gb?1:0);j++){px(x,y-j,'#c03a28');if(gb)px(x+1,y-j,'#8a2418')}
+    if(gb){const ty=y-post-1;px(x,ty-1,'#6a8a6a');px(x+1,ty-1,'#4a6a50');px(x-1,ty-1,'#8aa888');px(x,ty-2,'#8aa888');px(x+1,ty-2,'#6a8a6a');px(x,ty-3,'#c8a048');
+      lights.push({x,y:ty-1,c:'#ffd27a',ph:0,lamp:1,win:1})}}
+  // marches de pierre aux deux bouts
+  for(const sg of[-1,1])for(let k=0;k<3;k++)for(let d=0;d<4;d++)px(Math.round(cx+sg*(half+1+d)),base-k+(d>k?1:0)-0,k===0?'#8a8a86':'#a2a29c');
 }
 /* ----- Oasis ----- */
 function drawDunes(g,r){
@@ -2103,7 +2172,7 @@ function buildLand(){
   trees=[];
   const AUT=['#4a2414','#8a3a18','#c8642a','#e8983a','#f6c860','#fff0a8'];
   const AUT2=['#3e2a12','#7a5a1a','#b8902a','#e0b83a','#f6dc6a','#fff4b0'],SPR=['#1e4a26','#2e6a2e','#4e9a3a','#80c84a','#b8e46a','#e8f8a8'];
-  const make=(h,seed,back)=>kind==='parasol'?makeUmbrellaPine(h,seed,back):kind==='oak'?makeOak(h,seed,back,SEASON==='automne'?(seed%2?AUT:AUT2):SEASON==='printemps'?SPR:SEASON==='hiver'?['#2e2a24','#4a4034','#6a5a44','#86765a','#a8987a','#c8bca0']:null):kind==='sakura'?makeSakura(h,seed,back,!WORLD.kyoto&&seed%4===0):kind==='palm'?makePalm(h,seed,back):kind==='willow'?makeWillow(h,seed,back):makePine(h,seed,back,kind==='pineDark'?DARK_PAL:TREE_PAL,kind==='snow');
+  const make=(h,seed,back)=>kind==='parasol'?makeUmbrellaPine(h,seed,back):kind==='oak'?makeOak(h,seed,back,SEASON==='automne'?(seed%2?AUT:AUT2):SEASON==='printemps'?SPR:SEASON==='hiver'?['#2e2a24','#4a4034','#6a5a44','#86765a','#a8987a','#c8bca0']:null):kind==='sakura'?(WORLD.kyoto?makeCherry(h,seed,back,seed%3===0):makeSakura(h,seed,back,seed%4===0)):kind==='palm'?makePalm(h,seed,back):kind==='willow'?makeWillow(h,seed,back):makePine(h,seed,back,kind==='pineDark'?DARK_PAL:TREE_PAL,kind==='snow');
   const plant=(x0,x1,back)=>{
     let x=x0+r()*6;
     while(true){
@@ -2111,7 +2180,7 @@ function buildLand(){
       const spr=make(h,(r()*1e9)|0,back),w=spr.width;
       if(x+w*.35>x1)break;
       trees.push({x:Math.round(x),back,spr});
-      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?(WORLD.desert?1.1:.5):kind==='parasol'?.75:kind==='sakura'?.7:kind==='oak'||kind==='autumn'?.3:WORLD.id==='lac'?.58:1)+r()*(WORLD.id==='lac'?4:8);
+      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?(WORLD.desert?1.1:.5):kind==='parasol'?.75:kind==='sakura'?(WORLD.kyoto?.48:.7):kind==='oak'||kind==='autumn'?.3:WORLD.id==='lac'?.58:1)+r()*(WORLD.id==='lac'?4:8);
     }
   };
   if(kind!=='none'){
@@ -2582,15 +2651,19 @@ $('#search').onsubmit=e=>{
 };
 
 /* ---------- raccourcis ---------- */
-const DEF_LINKS=[{n:'Manzovince',u:'https://manzovince.com'},{n:'GitHub',u:'https://github.com'},{n:'YouTube',u:'https://www.youtube.com'},{n:'Outlook',u:'https://outlook.live.com'},{n:'Claude',u:'https://claude.ai'}];
+const DEF_LINKS=[{n:'YouTube',u:'https://www.youtube.com'},{n:'Outlook',u:'https://outlook.live.com'},{n:'Claude',u:'https://claude.ai'}];
+// retire une fois Manzovince et GitHub des sauvegardes existantes
+if(!store.get('links2',0)){const L=store.get('links',null);if(L)store.set('links',L.filter(l=>!/\/\/(www\.)?(manzovince\.com|github\.com)\/?$/.test(l.u)));store.set('links2',1)}
 const ICO=['#e8605a','#5f9a8e','#d9a441','#7a8fc4','#a26cc4','#5f8f6a','#c4706a','#4f8fb8'];
 let editLinks=false;
 const PEN='<svg viewBox="0 0 9 9" width="14" height="14" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M6 0h1v1h1v1h1v1H8v1H7V3H6V2H5V1h1zM4 2h1v1h1v1h1v1H6v1H5v1H4v1H3v1H0V6h1V5h1V4h1V3h1zM1 6v2h2V7H2V6z"/></svg>';
+const EMOS=['📧','📅','🎵','🎬','📺','💬','🛒','📰','💼','🎮','📷','🗺️','🍳','💡','⭐','❤️','🐟','🤖'];
 function linkForm(l,onSave){
   const f=document.createElement('form');f.id='addf';
-  f.innerHTML='<input name="n" placeholder="Nom" required><input name="u" placeholder="adresse.com" required><button class="lk add">OK</button>';
-  if(l){f.n.value=l.n;f.u.value=l.u.replace(/^https:\/\//,'')}
-  f.onsubmit=e=>{e.preventDefault();let u=f.u.value.trim();if(!/^[a-z]+:\/\//i.test(u))u='https://'+u;onSave({n:f.n.value.trim(),u});renderLinks()};
+  f.innerHTML='<input name="e" placeholder="🙂" title="Emoji (facultatif, sinon la première lettre)" autocomplete="off"><input name="n" placeholder="Nom" required><input name="u" placeholder="adresse.com" required><button class="lk add">OK</button><div class="emos"></div>';
+  for(const em of EMOS){const b=document.createElement('button');b.type='button';b.textContent=em;b.onclick=()=>{f.e.value=f.e.value===em?'':em};f.querySelector('.emos').appendChild(b)}
+  if(l){f.n.value=l.n;f.u.value=l.u.replace(/^https:\/\//,'');f.e.value=l.e||''}
+  f.onsubmit=e=>{e.preventDefault();let u=f.u.value.trim();if(!/^[a-z]+:\/\//i.test(u))u='https://'+u;const em=[...new Intl.Segmenter().segment(f.e.value.trim())][0]?.segment||'';onSave(em?{n:f.n.value.trim(),u,e:em}:{n:f.n.value.trim(),u});renderLinks()};
   f.addEventListener('keydown',e=>{if(e.key==='Escape')renderLinks()});
   return f;
 }
@@ -2601,7 +2674,7 @@ function renderLinks(){
     const a=document.createElement('a');a.className='lk';a.href=l.u;a.target='_top';
     const h=[...l.n].reduce((s,c)=>s+c.charCodeAt(0),0);
     a.innerHTML=`<span class="ic" style="background:${ICO[h%ICO.length]}"></span><span></span><button class="x" title="Retirer">✕</button>`;
-    a.querySelector('.ic').textContent=l.n[0].toUpperCase();a.children[1].textContent=l.n;
+    const ic=a.querySelector('.ic');ic.textContent=l.e||l.n[0].toUpperCase();if(l.e)ic.classList.add('emo');a.children[1].textContent=l.n;
     a.querySelector('.x').onclick=e=>{e.preventDefault();e.stopPropagation();const L=store.get('links',DEF_LINKS);L.splice(i,1);store.set('links',L);renderLinks()};
     // en mode édition : un clic modifie le raccourci au lieu de l'ouvrir
     a.onclick=e=>{if(!editLinks)return;e.preventDefault();const f=linkForm(l,v=>{const L=store.get('links',DEF_LINKS);L[i]=v;store.set('links',L)});a.replaceWith(f);f.n.focus()};
