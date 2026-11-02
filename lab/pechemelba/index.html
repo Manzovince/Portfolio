@@ -1820,6 +1820,17 @@ function drawJardin(g,r){
 }
 // saule pleureur : tronc qui se divise en grosses branches arquées, et des « rideaux » étagés
 // (une calotte de feuilles d'où pendent des mèches en faisceaux, claires en haut, sombres dedans)
+// peuplier d'Italie : silhouette en fuseau, feuillage en petites touffes qui frémissent
+function makePoplar(h,seed,back){
+  const r=rng(seed),w=Math.max(7,Math.round(h*.24))|1,cx=w>>1;
+  const P0=SEASON==='automne'?['#4a3410','#7a5a18','#b08a24','#d8b438','#f0d860','#fff0a0']:SEASON==='hiver'?['#2e2a24','#4a4034','#6a5a44','#86765a','#a8987a','#c8bca0']:['#16361e','#24502a','#3a7a32','#5ea23c','#94c850','#cce680'];
+  const P=P0.map(c=>back?rgb(mix(hex(c),[184,214,190],.42)):c);
+  const px=new Map(),put=(x,y,k)=>{if(x>=0&&y>=0&&x<w&&y<h)px.set(x+','+y,k)};
+  const tw=Math.max(1,Math.round(w*.09));
+  for(let i=0;i<10;i++){const t=i/9,y=h*(.06+t*.74),half=w*.48*Math.sin(Math.PI*Math.min(1,.12+t*.95))*(.85+r()*.2);leafy(put,{x:cx+(r()-.5)*w*.12,y,rx:Math.max(2,half),ry:h*.07},P.length,r)}
+  return gridSprite(w,h,(x,y)=>{const k=px.get(x+','+y);if(k!=null&&!(SEASON==='hiver'&&hsh(x,y)%3===0))return P[k];
+    if(y>h*.7&&Math.abs(x-cx)<=tw)return x<cx?(back?'#8a7e76':'#6e5446'):(back?'#6e6460':'#4a362e');return null});
+}
 function makeWeeping(h,seed,P0){
   const r=rng(seed),w=Math.round(h*1.25),[c,g]=canvasOf(w,h),px=(x,y,col)=>{x=Math.round(x);y=Math.round(y);if(x>=0&&y>=0&&x<w&&y<h){g.fillStyle=col;g.fillRect(x,y,1,1)}};
   const P=P0&&(SEASON==='ete'||SEASON==='printemps')?P0:SEASON==='automne'?['#3a2a10','#5a4416','#7a6420','#a88a2a','#cdb040','#e8d060','#f6ea98']:SEASON==='hiver'?['#2e2a24','#3e3a30','#4e4a3e','#625e4e','#7a7460','#948e76','#aca68c']:['#0c2a20','#1e5a34','#2e7a36','#4a9e38','#78c23c','#a8dc48','#d8f080'];
@@ -1928,8 +1939,8 @@ function drawGiverny(g,r){
     const top=canopyLine(r,GT-WY*hh,WY*hh*.25);
     for(let x=0;x<W;x++){const t=top[x];for(let y=t;y<=GT;y++){const n=hsh(x,y+k*999)%23;px(x,y,y<t+1?C[0]:n===0?dab[(x+y)%dab.length]:n<4?C[0]:y>GT-3?C[2]:C[1])}}
   }
-  // saules du fond, plus pâles
-  for(let i=0;i<2;i++){const h=Math.round(clamp(H*.19,28,70)),s=makeWeeping(h,r()*1e9|0,GIV_WILLOW.map(c=>rgb(mix(hex(c),[150,200,150],.3))));g.drawImage(s,Math.round(W*(.3+i*.42)+(r()-.5)*W*.06)-(s.width>>1),GT-h+2)}
+  // au fond : des peupliers (Monet en a peint toute une série) et des arbres ronds, dans la brume
+  for(let i=0;i<5;i++){const fx=Math.round(W*(.08+i*.21)+(r()-.5)*W*.06),back=true;if(i%2===0){const hp=Math.round(clamp(H*.3,40,120)),sp=makePoplar(hp,r()*1e9|0,back);g.drawImage(sp,fx-(sp.width>>1),GT+2-hp)}else{const ho=Math.round(clamp(H*.2,28,80)),so=makeOak(ho,r()*1e9|0,back);g.drawImage(so,fx-(so.width>>1),GT+2-ho)}}
   // le pont japonais au-dessus de l'étang, couvert de glycine
   const bc=Math.round((LB.x1+RB.x0)/2),span=Math.max(40,Math.min(180,Math.round((RB.x0-LB.x1)*1.5))),half=span/2,rise=Math.round(span*.14)+3;
   for(let x=bc-half-10;x<bc+half+10;x++)for(let y=GT-3;y<=GT;y++)px(x,y,(x*3+y*5)%7===0?'#a8cc70':(x+y)%5===0?'#c8e0f0':'#5a9aa8');
@@ -1945,10 +1956,11 @@ function drawGiverny(g,r){
   // glycine : grappes mauves qui pendent de la rambarde
   for(let x=Math.round(bc-half)-2;x<=Math.round(bc+half)+2;x+=2+(r()*3|0)){if(r()<.35)continue;const y=deck(clamp(x,bc-half,bc+half))-rail-1;
     px(x,y,'#5a8a3a');px(x+1,y-1,'#7aa848');const L=2+(r()*4|0);for(let j=1;j<=L;j++)px(x+(j>2&&r()<.3?1:0),y+j,j===L?'#e0c8f8':j%2?'#9a7ad0':'#b898e4')}
-  // grands saules qui encadrent la scène
+  // un seul grand saule à gauche, un chêne et un peuplier à droite
   const wh=Math.round(clamp(H*.46,56,170)),rx1=Math.min(RB.x1,W);
   const a=makeWeeping(wh,r()*1e9|0,GIV_WILLOW);g.drawImage(a,Math.max(LB.x0,0)+Math.round(W*.04)-Math.round(a.width*.4),GT+3-wh);
-  const b=makeWeeping(Math.round(wh*.95),r()*1e9|0,GIV_WILLOW);g.drawImage(b,rx1-Math.round(b.width*.62),GT+3-b.height);
+  const pp=makePoplar(Math.round(wh*1.05),r()*1e9|0,false);g.drawImage(pp,rx1-Math.round(W*.05)-(pp.width>>1),GT+3-pp.height);
+  const ok=makeOak(Math.round(wh*.78),r()*1e9|0,false);g.drawImage(ok,rx1-Math.round(W*.14)-(ok.width>>1),GT+3-ok.height);
 }
 function drawGivernyFront(g,r){
   flowerBed(g,r,Math.max(LB.x0,0)+2,rab.x-10,GIV_FLOW);flowerBed(g,r,RB.x0+30,Math.min(RB.x1,W)-4,GIV_FLOW);
