@@ -818,42 +818,43 @@ const LIGHTHOUSE=(()=>{
   return mapSprite(m,{r:'#d8504a',w:'#f4f0e6',g:'#4a4a52',y:'#f8e8a0',Y:'#ffffff'});
 })();
 function makePalm(h,seed,back){
-  const r=rng(seed),w=Math.round(h*1.6)|1,px=new Map(),base=w>>1,th=h*.66;
+  const r=rng(seed),w=Math.round(h*1.5)|1,px=new Map(),base=w>>1,th=h*.62;
   const set=(x,y,c)=>{x=Math.round(x);y=Math.round(y);if(x>=0&&y>=0&&x<w&&y<h)px.set(x+','+y,back?rgb(mix(hex(c),[214,236,230],.3)):c)};
-  const lean=(r()<.5?-1:1)*(.08+r()*.14)*h,trunk=[];let tx=base,ty=h-1;
-  for(let i=0;i<th;i++){const x=base+lean*Math.pow(i/th,1.6),y=h-1-i;trunk.push([x,y]);tx=x;ty=y}
-  // palettes : arrière (ombre), milieu, avant (au soleil, lumière d'en haut à gauche)
+  const lean=(r()<.5?-1:1)*(.06+r()*.12)*h,tw=Math.max(4,Math.round(h*.07)),seg=Math.max(4,Math.round(tw*.9));
+  const tpos=i=>base+lean*Math.pow(i/th,1.7);
+  const tx=tpos(th),ty=h-1-th;
+  // couronne : palmes qui montent puis retombent, folioles qui pendent comme une frange
   const PAL={
-    back:{rib:'#244428',up:['#3e6e3c','#2f5a32','#244628'],dn:['#2a4c2c','#203e24','#1a3420']},
-    mid:{rib:'#3a6430',up:['#7ab452','#5a9a44','#3e7a38'],dn:['#4a8a3e','#3a7034','#2c5a2c']},
-    front:{rib:'#4e7a34',up:['#c4e884','#8cc65c','#5a9e46'],dn:['#6aa84c','#4e8a3e','#3a6e34']},
-    dead:{rib:'#8a6a38',up:['#d8b868','#b89448','#8a6a34'],dn:['#a88444','#8a6a34','#6a5028']}
+    back:['#3c7a28','#2e6424','#26502a','#1e4022'],
+    mid:['#7cc23a','#5fa832','#468a2c','#336c26'],
+    front:['#c4ee6a','#9ad845','#6cb434','#4a8c2c']
   };
   const frond=(a,L,droop,P)=>{
-    const dx=Math.cos(a),dy=Math.sin(a);
+    const dx=Math.cos(a),up=-Math.sin(a),out=dx<0?-1:1;
     for(let st=1;st<L;st++){
-      const k=st/L,x=tx+dx*st,y=ty+dy*st*.7+k*k*L*droop;
-      let gx=dx,gy=dy*.7+2*k*droop;const gl=Math.hypot(gx,gy)||1;gx/=gl;gy/=gl;
-      if(st%2===0)for(const side of[-1,1]){
-        let nx=-gy*side,ny=gx*side;
-        let lx=nx*.8+gx*.55,ly=ny*.8+gy*.55+.55;const l2=Math.hypot(lx,ly);lx/=l2;ly/=l2;
-        const ll=Math.max(1,Math.round(Math.sin(Math.PI*Math.min(1,k*1.05+.05))*L*.2)),upSide=ny<0,pal=upSide?P.up:P.dn;
-        for(let j=1;j<=ll;j++){const t=j/ll;set(x+lx*j,y+ly*j,pal[t<.34?0:t<.7?1:2])}
-      }
-      set(x,y,P.rib);
+      const k=st/L,x=tx+dx*st*1.05,y=ty-up*st*.85+k*k*L*droop*(1-Math.max(0,up)*.55);
+      set(x,y-1,P[0]);set(x,y,P[1]);
+      const ll=Math.round((1+Math.sin(Math.PI*Math.min(1,k*1.1+.08))*L*.17)*(.75+.35*Math.sin(st*.9))*(st%2?1:.7)*(.85+r()*.3));
+      for(let j=1;j<=ll;j++){const t=j/ll;set(x+out*j*.55,y+j*.85,P[t<.35?1:t<.75?2:3])}
+      if(up>.2&&st%2)for(let j=1;j<=ll>>1;j++)set(x-out*j*.5,y+j*.7,P[j<2?1:2]);
     }
   };
-  const N=13,list=[];
-  for(let f=0;f<N;f++){const a=Math.PI-.5+f/(N-1)*(Math.PI+1)+(r()-.5)*.18;list.push({a,L:h*(.3+r()*.13),droop:.55+r()*.5,layer:f%3===1?'back':f%3===2?'mid':'front'})}
-  list.push({a:Math.PI/2+(r()-.5)*.6,L:h*.24,droop:.2,layer:'dead'});
-  for(const f of list.filter(f=>f.layer==='back'||f.layer==='dead'))frond(f.a,f.L,f.droop,PAL[f.layer]);
-  trunk.forEach(([x,y],i)=>{
-    const shade=th-i<6,ring=i%3===0,thin=i>th*.65;
-    set(x-1,y,shade?'#7a5a3e':ring?'#a07e54':'#dcc08e');
-    set(x,y,shade?'#5e4430':ring?'#7e6040':'#b08e60');
-    if(!thin)set(x+1,y,shade?'#4a3424':ring?'#5e4430':'#7e5e3e');
-  });
-  for(const[cx,cy,c]of[[-1,2,'#6a4a30'],[1,2,'#5a3a24'],[0,3,'#6a4a30'],[-1,1,'#a07e54'],[0,2,'#7a5a3a']])set(tx+cx,ty+cy,c);
+  const N=20,list=[];
+  for(let f=0;f<N;f++){const a=Math.PI*(1.12-f/(N-1)*1.24)+(r()-.5)*.22;list.push({a,L:h*(.28+r()*.12),droop:.35+r()*.35,layer:f%3===0?'back':f%3===1?'mid':'front'})}
+  for(const f of list.filter(f=>f.layer==='back'))frond(f.a,f.L,f.droop,PAL.back);
+  // tronc en anneaux bombés, éclairé à gauche
+  const TC=['#f0b878','#d88c4c','#b86a36','#8a4a28','#5e3220'];
+  for(let i=0;i<=th-2;i++){
+    const x=tpos(i),y=h-1-i,ph=i%seg,bul=ph>0&&ph<seg-1?1:0,hw=(tw-(i>th*.6?1:0))/2+bul*.5,edge=ph===0;
+    for(let d=-Math.ceil(hw);d<=Math.ceil(hw);d++){
+      if(Math.abs(d)>hw+.01)continue;const u=(d+hw)/(2*hw);
+      set(x+d,y,edge?(u<.25?TC[2]:TC[4]):TC[u<.22?0:u<.55?1:u<.82?2:3]);
+    }
+    if(edge)set(x+Math.ceil(hw),y,TC[4]);
+  }
+  // ombre au cœur de la couronne et noix de coco
+  for(let y=-2;y<=3;y++)for(let x=-5;x<=5;x++)if(x*x/30+y*y/9<1)set(tx+x,ty+y,'#26502a');
+  for(const[cx,cy]of[[-2,2],[1,3],[2,1]]){set(tx+cx,ty+cy,'#7a4a24');set(tx+cx+1,ty+cy,'#5a3418');set(tx+cx,ty+cy-1,'#a8703a')}
   for(const f of list.filter(f=>f.layer==='mid'))frond(f.a,f.L,f.droop,PAL.mid);
   for(const f of list.filter(f=>f.layer==='front').sort((a,b)=>Math.sin(b.a)-Math.sin(a.a)))frond(f.a,f.L,f.droop,PAL.front);
   return gridSprite(w,h,(x,y)=>px.get(x+','+y)||null);
