@@ -1175,7 +1175,7 @@ function makeBanner(text){
   return c;
 }
 const PLANE=[1,-1].map(d=>{const m=["r.........","rr..wwwkk.",".wwwwwwwww","...rrr...."].map(row=>d>0?row:[...row].reverse().join(''));return mapSprite(m,{r:'#e8605a',w:'#f4f0e6',k:'#5a8ad0'})});
-let plane=null,planeT=rnd(180,480);
+let plane=null,planeT=rnd(900,1500);
 function spawnPlane(){
   const d=R()<.5?1:-1,list=NOEL?BANNERS.concat(['JOYEUX NOEL !','BONNES FETES ♥']):BANNERS,banner=makeBanner(list[R()*list.length|0]);
   plane={d,banner,x:d>0?-PLANE[0].width-8:W+banner.width+8,y:Math.round(rnd(WY*.5,WY*.6))};
@@ -2716,7 +2716,7 @@ function update(dt){
   F.ang=lerp(F.ang,ang,F.st==='cast'?1:Math.min(1,dt*8));F.bend=lerp(F.bend,bend,Math.min(1,dt*10));
   // ambiance
   for(const c of clouds){c.x+=c.v*dt*(WORLD.boat?-2:1);if(c.x>W)c.x=-c.spr.width;if(c.x<-c.spr.width)c.x=W}
-  if(!plane&&(planeT-=dt)<0){planeT=rnd(360,900);spawnPlane()}
+  if(!plane&&(planeT-=dt)<0){planeT=rnd(900,1500);spawnPlane()}
   if(plane){plane.x+=plane.d*dt*11;if(plane.x<-plane.banner.width-30||plane.x>W+plane.banner.width+30)plane=null}
   if(!letter&&(letterT-=dt)<0){letterT=rnd(420,900);if(lockedWorlds().length)spawnLetter()}
   if(letter){letter.x+=letter.d*dt*11;if(letter.x<-18||letter.x>W+18)letter=null}
