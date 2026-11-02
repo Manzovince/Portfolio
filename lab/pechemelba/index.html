@@ -28,7 +28,7 @@ body{background:#cfe0d8;font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas
 #ui{position:fixed;inset:0;pointer-events:none;display:flex;flex-direction:column;align-items:center}
 #ui a,#ui button,#ui input,#ui form,#ui select,.toast,#hint.clic{pointer-events:auto}
 header{width:100%;display:flex;justify-content:space-between;align-items:center;padding:18px 24px;gap:12px}
-.brand{display:flex;gap:9px;align-items:center;font:600 14px 'JetBrains Mono',monospace;color:var(--ink);text-shadow:var(--glow);background:none;border:0;padding:8px 12px;margin:-8px -12px;border-radius:999px;cursor:pointer;transition:background .2s}
+.brand{display:flex;gap:9px;align-items:center;font:600 14px 'JetBrains Mono',monospace;color:var(--ink);text-shadow:var(--glow);background:var(--chip);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border:0;padding:8px 14px;margin:-4px 0 0 -6px;border-radius:999px;cursor:pointer;transition:background .2s}
 .brand:hover{background:var(--chip)}
 .brand svg{width:16px;height:18px}
 .hd-r{display:flex;gap:8px}
@@ -688,6 +688,15 @@ const SP=[
   {id:'fario',n:'Truite fario',rar:'e',w:1.4,cm:[25,60],wd:'clairiere',when:'jour',look:{len:15,h:5,body:'#c8a868',back:'#7a6a3a',belly:'#f4e8c8',fin:'#a89060',pat:'spots'}},
   {id:'glandor',n:'Gland d’or',rar:'l',w:.3,wd:'clairiere',quip:'Un écureuil le cherche encore.',map:["...s....",".bBbBbb.","bBbBbBbb",".yyyyyy.",".yYyyyy.",".yyyyyy.","..yyyy..","...yy..."],pal:{s:'#6a4a2a',b:'#8a6a3a',B:'#6a4a2a',y:'#f2c64a',Y:'#fff2a0'}},
   {id:'couronnefleurs',n:'Couronne de fleurs',rar:'j',w:3,wd:'clairiere',quip:'Quelqu’un l’a tressée en pensant à toi.',map:["..rgwgy..",".g.....g.","w.......p",".g.....g.","..ygrgw.."],pal:{r:'#e8504a',g:'#5fa832',w:'#ffffff',y:'#f6d24a',p:'#f08ac0'}},
+  {id:'chabot',n:'Chabot',rar:'c',w:9,cm:[8,15],wd:'brume',look:{len:9,h:4,body:'#7a6a50',back:'#4e4232',belly:'#c8b898',fin:'#6a5a44',pat:'spots'}},
+  {id:'gremille',n:'Grémille',rar:'c',w:8,cm:[10,20],wd:'brume',look:{len:10,h:4,body:'#9aa078',back:'#5e6448',belly:'#e4e2c8',fin:'#a8a080',pat:'spots'}},
+  {id:'fontaine',n:'Omble de fontaine',rar:'u',w:5,cm:[20,40],wd:'brume',look:{len:13,h:5,body:'#6a7a5a',back:'#3a4a34',belly:'#e8784a',fin:'#d86a4a',pat:'light'}},
+  {id:'truitelac',n:'Truite de lac',rar:'u',w:4,cm:[35,75],wd:'brume',look:{len:16,h:5,body:'#8a9aa0',back:'#4e5e66',belly:'#eef0ee',fin:'#7a8a90',pat:'light'}},
+  {id:'huchon',n:'Huchon',rar:'r',w:2.5,cm:[60,130],wd:'brume',quip:'Le roi des rivières froides.',look:{len:20,h:5,body:'#b49a84',back:'#6e5a4e',belly:'#f0e6dc',fin:'#9a7e6e',shape:'long',pat:'spots'}},
+  {id:'fantome',n:'Truite fantôme',rar:'e',w:1,cm:[30,60],wd:'brume',when:'nuit',quip:'On voit à travers. Presque.',look:{len:15,h:5,body:'#dce8ec',back:'#b4c8d0',belly:'#ffffff',fin:'#e4f0f4',pat:'shine'}},
+  {id:'luciole',n:'Lanterne-luciole',rar:'l',w:.3,wd:'brume',when:'nuit',quip:'Toutes les lucioles de la forêt l’ont suivie.',map:["..kkk..",".kyYyk.","kyYWYyk","kyYYYyk",".kyyyk.","..kkk.."],pal:{k:'#4a4a3a',y:'#e6f27a',Y:'#f6fab0',W:'#ffffff'}},
+  {id:'pommepin',n:'Pomme de pin',rar:'j',w:4,wd:'brume',quip:'Elle s’est ouverte en séchant.',map:["..g..",".bBb.","bBbBb",".bBb.","bBbBb",".bBb.","..b.."],pal:{g:'#5a7a48',b:'#8a5a32',B:'#5e3a22'}},
+  {id:'boussole',n:'Boussole',rar:'j',w:2,wd:'brume',quip:'Elle indique toujours le lac.',map:["..yyy..",".ywwwy.","ywwrwwy","ywwkwwy","ywwbwwy",".ywwwy.","..yyy.."],pal:{y:'#c8a040',w:'#f4f0e6',r:'#e8504a',k:OUT,b:'#3a5a8a'}},
   {id:'boule',n:'Boule de Noël',rar:'j',w:5,wd:'*',noel:1,quip:'Elle brille encore.',map:["..y..",".rrr.","rWrrr","rrrrr",".rrr."],pal:{y:'#f2c64a',r:'#d8303a',W:'#ffffff'}},
   {id:'sucredorge',n:'Sucre d’orge',rar:'r',w:3,wd:'*',noel:1,quip:'Le lapin l’a léché. Juste un peu.',map:[".rww.","w..r.","r..w.","...r.","...w.","...r."],pal:{r:'#d8303a',w:'#ffffff'}},
   {id:'painepice',n:'Bonhomme pain d’épice',rar:'e',w:1.2,wd:'*',noel:1,quip:'Il court plus vite que toi.',map:[".bbb.",".bwb.","bbbbb","b.w.b",".bbb.",".b.b."],pal:{b:'#b87a40',w:'#ffffff'}},
@@ -778,7 +787,8 @@ const WORLDS=[
   {id:'large',n:'Au large',d:'Une petite barque qui dérive doucement sur l’océan.',need:32,tree:'none',boat:1,water:['#1f6f96',.5],sw:['#cfe4ec','#1f6f96']},
   {id:'tropique',n:'Plage tropicale',d:'Sable blanc, palmiers et eau turquoise.',need:40,tree:'palm',water:['#1ccfc4',.72],sky:['#d8f0ec',.2],sw:['#d8f0ec','#2ec4c0']},
   {id:'jardin',n:'Jardin zen',d:'Un étang à koïs sous les cerisiers, face au mont Fuji.',need:48,tree:'sakura',fuji:1,pads:1,petals:1,water:['#4f8f86',.45],sky:['#f6dce0',.22],sw:['#f6dce0','#4f8f86']},
-  {id:'clairiere',n:'Clairière',d:'Un petit étang au cœur de la forêt, entre les fleurs et les papillons.',need:56,tree:'oak',forest:1,rays:1,meadow:1,water:['#3f8a78',.42],sky:['#d4ecc4',.25],sw:['#d4ecc4','#3f8a78']}
+  {id:'clairiere',n:'Clairière',d:'Un petit étang au cœur de la forêt, entre les fleurs et les papillons.',need:56,tree:'oak',forest:1,rays:1,meadow:1,water:['#3f8a78',.42],sky:['#d4ecc4',.25],sw:['#d4ecc4','#3f8a78']},
+  {id:'brume',n:'Forêt brumeuse',d:'Des sapins à perte de vue, noyés dans la brume.',need:64,tree:'none',taiga:1,water:['#5a948a',.5],sky:['#bcd4c8',.35],sw:['#bcd4c8','#4a7a72']}
 ];
 const WI=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
 const discovered=()=>Object.keys(loadLog().sp).filter(id=>SPI[id]).length;
@@ -818,6 +828,7 @@ const BANKS={
   marais:{grass:['#6f8a5a','#8ea472'],earth:['#6a5a48','#584a3a','#7e6c56'],base:'#463a2e'},
   glace:{grass:['#eef3f6','#ffffff'],earth:['#b8c6d0','#9fb0bc','#d2dde4'],base:'#7e909e',snow:1},
   clairiere:{grass:['#5fa832','#8ccc3c'],earth:['#5a4632','#4a3826','#6e5840'],base:'#3a2c1e'},
+  brume:{grass:['#5a7a48','#7a9a58'],earth:['#3e3a34','#2e2a26','#4e4840'],base:'#24201c'},
   jardin:{grass:['#6f9a5e','#8fb874'],earth:['#d8d2c4','#c0b8a8','#ece8de'],base:'#8a8274'},
   tropique:{grass:['#f2e2a8','#faf0cc'],earth:['#e6cc90','#d4b878','#f4e4b4'],base:'#c8a868',snow:1}
 };
@@ -1112,6 +1123,52 @@ function drawForest(g,r){
     if(k)for(const[cx,cy,rr]of crowns)if(r()<.5){g.fillStyle=rgb(mix(D,[60,40,30],.35));g.fillRect(Math.round(cx),Math.round(cy+rr*1.6),1+(k>1?1:0),Math.round(GT-cy-rr*1.6))}
   }
 }
+function drawTaiga(g,r){
+  // perspective atmosphérique : rangées de sapins de plus en plus sombres et nettes, séparées par des nappes de brume
+  const HAZE=hex('#b4ccc2'),NEAR=hex('#1e3632'),px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)};
+  for(const[k,hh]of[[0,.36],[1,.28]]){const c=rgb(mix(HAZE,hex('#7e9aa0'),.35+k*.2)),ph=r()*6;
+    for(let x=0;x<W;x++){const t=Math.round(GT-WY*hh*(.55+.3*Math.abs(Math.sin(x*.012+ph))+.15*Math.sin(x*.05+ph)));for(let y=t;y<=GT;y++)px(x,y,c)}}
+  const L=6;
+  for(let k=0;k<L;k++){
+    const f=1-k/(L-1),col=mix(NEAR,HAZE,.12+f*.72),dk=mix(col,NEAR,.25),lit=mix(col,[214,226,170],.18),hmax=WY*(.2+.38*(k/(L-1)));
+    let x=-6+r()*6;
+    while(x<W+8){
+      const h=hmax*(.5+r()*.5),top=GT-h,tiers=Math.max(3,Math.round(h/7)),bw=h*(.16+r()*.05);
+      for(let y=Math.round(top);y<=GT;y++){
+        const t=(y-top)/h,tp=t*tiers,fr=tp-Math.floor(tp),half=Math.max(.5,bw*(.12+.88*t)*(.55+.45*fr));
+        for(let dx=-Math.ceil(half);dx<=Math.ceil(half);dx++){if(Math.abs(dx)>half)continue;
+          const c=k>=L-3?(dx<-half*.35&&fr<.6?lit:dx>half*.3?dk:col):col;px(Math.round(x+dx),y,rgb(c))}
+      }
+      x+=bw*(k<2?.9:1.3)+r()*bw*1.2;
+    }
+    // nappe de brume au pied de la rangée
+    if(k<L-1){const fh=Math.round(WY*(.05+.04*f));for(let y=GT-fh;y<=GT;y++){g.globalAlpha=Math.pow((y-GT+fh)/fh,1.6)*.75;g.fillStyle=rgb(HAZE);g.fillRect(0,y,W,1)}g.globalAlpha=1}
+  }
+}
+function drawTaigaFront(g,r){
+  // grands troncs sombres qui encadrent la scène, avec des touffes de branches éclairées
+  const sides=[[0,Math.round(W*.1)],[Math.round(W*.89),W]];
+  for(const[a,b]of sides){const left=a<W/2;for(let x=a+r()*3;x<b;x+=10+r()*9){
+    const tw=4+(r()*5|0),xx=Math.round(x);
+    for(let y=0;y<=GT+2;y++)for(let d=0;d<tw;d++){const u=d/(tw-1),rim=left?u<.25:u>.75,dark=left?u>.75:u<.25;g.fillStyle=rim?'#7a5448':dark?'#221c22':((y*3+d*5)%11===0?'#2a2228':'#36292c');g.fillRect(xx+d,y,1,1)}
+    for(let i=0;i<3+r()*3;i++){
+      const cy0=GT*(.04+r()*.75),side=r()<.65?(left?1:-1):(left?-1:1);
+      for(let b=0;b<3;b++){
+        const rx=4+r()*6,ry=3+r()*3,cx=xx+tw/2+side*(rx*.5+b*rx*.7),cy=cy0+b*1.5+(r()-.5)*3;
+        for(let y=Math.floor(cy-ry);y<=cy+ry;y++)for(let x2=Math.floor(cx-rx);x2<=cx+rx;x2++){
+          const d=Math.hypot((x2-cx)/rx,(y-cy)/ry)+Math.sin(x2*1.9+y*1.3)*.12;if(d>1)continue;
+          const l=-(x2-cx)/rx*.35-(y-cy)/ry*.8;g.fillStyle=l>.7?'#b4bc6a':l>.25?'#6a8a50':l<-.45?'#1e2c26':'#2e4436';g.fillRect(x2,y,1,1)}
+      }
+    }
+  }}
+  // buissons dorés sur les berges
+  for(const B of[LB,RB])for(let x=Math.max(B.x0,0)+2;x<Math.min(B.x1,W)-2;x+=4+r()*8){
+    if(B===LB&&x>rab.x-14&&x<rab.x+16)continue;const rr=2+r()*3.5;
+    for(let y=-Math.ceil(rr);y<=0;y++)for(let dx=-Math.ceil(rr*1.4);dx<=Math.ceil(rr*1.4);dx++){
+      const d=Math.hypot(dx/1.4,y)/rr;if(d>1)continue;const l=-dx/rr*.4-y/rr*.7;
+      g.fillStyle=l>.55?'#d4c470':l>.15?'#8a9a50':'#3e5236';g.fillRect(Math.round(x+dx),GT+1+y,1,1)}
+  }
+}
 function drawFuji(g,r){
   const cx=Math.round(W*.52),hm=Math.round(WY*.46),bw=hm*3.5,sy=GT-hm,ph=r()*6,haze=hex('#c8d4de');
   const C={snowL:hex('#ffffff'),snowR:hex('#dce6f0'),snowG:hex('#c4d2e2'),rockL:hex('#a2b0c4'),rockR:hex('#8694aa'),gully:hex('#74829a')};
@@ -1253,6 +1310,7 @@ function buildLand(){
   if(WORLD.mount)drawMountains(g,r,WORLD.mount===2);
   if(WORLD.fuji)drawFuji(g,r);
   if(WORLD.forest)drawForest(g,r);
+  if(WORLD.taiga)drawTaiga(g,r);
   if(WORLD.id==='jardin'){drawBamboo(g,r,Math.max(LB.x0,0)+4,Math.max(LB.x0,0)+Math.round(W*.08),H*.4,true,GT+1);drawBamboo(g,r,Math.min(RB.x1,W)-Math.round(W*.07),Math.min(RB.x1,W)-2,H*.42,true,GT+1)}
   // arbres : rang du fond puis rang de devant
   trees=[];
@@ -1291,6 +1349,7 @@ function buildLand(){
   // berges (ou ponton + falaise au bord de mer)
   LH=null;
   sails=[];if(WORLD.sea){drawPier(g);drawJetty(g,r)}else if(!WORLD.boat)for(const b of[LB,RB])drawBank(g,b,r,P);
+  if(WORLD.taiga)drawTaigaFront(g,r);
   if(WORLD.id==='tropique'){const pa=makeParasol(Math.round(H*.085)+12),bx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.42);g.drawImage(pa,bx-(pa.width>>1),GT+2-pa.height);g.drawImage(TRANSAT,bx-4,GT+2-TRANSAT.height)}
   if(WORLD.id==='jardin'){const t=makeTorii(Math.round(H*.34)),tx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.3);g.drawImage(t,tx-(t.width>>1),GT+2-t.height);g.drawImage(TORO,rab.x-26,GT+2-TORO.height);drawBamboo(g,r,Math.min(RB.x1,W)-22,Math.min(RB.x1,W)-4,H*.38,false,GT);drawBamboo(g,r,Math.max(LB.x0,0)+2,Math.max(LB.x0,0)+16,H*.36,false,GT)}
   // herbes, roseaux et fleurs (animés)
