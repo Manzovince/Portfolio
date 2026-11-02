@@ -1807,12 +1807,33 @@ function drawCrique(g,r){
 }
 const CABANON=mapSprite(["....rrrrrrrrrrrr....","..rrRrrRrrRrrRrrrr..","rrrrrrrrrrrrrrrrrrrr","wwwwwwwwwwwwwwwwwwww","wwbbbwwwwwwwwwbbbwww","wwbkbwwwwwwwwwbkbwww","wwbbbwwwdddwwwbbbwww","wwwwwwwwdddwwwwwwwww","wwwwwwwwdddwwwwwwwww"],{r:'#c8643a',R:'#a84e2e',w:'#f0e2c4',b:'#4a8ac0',k:'#2a4a6a',d:'#3a6aa0'});
 const POINTU=mapSprite(["................k...","..............kkk...","bbbbbbbbbbbbbbbbbbbb",".rrrrrrrrrrrrrrrrrr.","..wwwwwwwwwwwwwwww..","...gggggggggggggg..."],{k:'#4a3a2e',b:'#8a6040',r:'#e8604a',w:'#f4f0e6',g:'#2a8a7a'});
+function drawProvHouse(g,x0,base,w,hh,floors,wall,shut,r){
+  // maison provençale : façade crépie, tuiles canal, volets persiennés, génoise sous le toit
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},W2=hex(wall),Wl=rgb(mix(W2,[255,250,236],.25)),Wd=rgb(mix(W2,[90,70,50],.18)),top=base-hh;
+  for(let y=top;y<=base;y++)for(let x=0;x<w;x++){const n=Math.sin((x0+x)*1.7+y*.9)*Math.sin((x0+x)*.43-y*1.3);px(x0+x,y,x===w-1?Wd:n>.6?Wl:n<-.65?Wd:wall)}
+  for(let x=-1;x<=w;x++){px(x0+x,top-1,'#e8dcc4');px(x0+x,top-2,'#c8b89a')}
+  const rh=6;for(let k=0;k<rh;k++){const ov=3-Math.floor(k/2);for(let x=-ov+k;x<w+ov-k;x++){const tile=(x+k)%3;px(x0+x,top-3-k,k===0?'#7a3a22':tile===0?'#a84e2e':tile===1?'#c8643a':'#d87a4a')}}
+  {const cx=x0+w-7;for(let y=top-rh-6;y<top-2;y++){px(cx,y,'#e8dcc4');px(cx+1,y,'#e8dcc4');px(cx+2,y,'#c8b89a')}for(let d=-1;d<4;d++)px(cx+d,top-rh-7,'#a84e2e')}
+  const fh=Math.floor(hh/floors);
+  for(let f=0;f<floors;f++){const fy=top+2+f*fh,last=f===floors-1;
+    for(let wx=x0+3;wx<x0+w-7;wx+=10){
+      if(last&&wx>x0+w/2-6&&wx<x0+w/2+4){for(let y=fy+1;y<base;y++)for(let d=0;d<4;d++)px(wx+d,y,d===0?'#3a5a80':'#4a7aa8');px(wx+3,fy+Math.round(fh/2),'#e0c060');continue}
+      const wh=Math.min(fh-3,7);for(let y=0;y<wh;y++){px(wx,fy+1+y,'#3a2a24');px(wx+1,fy+1+y,'#5a6a7a');px(wx+2,fy+1+y,'#5a6a7a');px(wx+3,fy+1+y,'#3a2a24')}
+      for(let y=0;y<wh;y++){px(wx-2,fy+1+y,y%2?shut:rgb(mix(hex(shut),[20,30,60],.25)));px(wx-1,fy+1+y,shut);px(wx+4,fy+1+y,shut);px(wx+5,fy+1+y,y%2?shut:rgb(mix(hex(shut),[20,30,60],.25)))}
+      if(!last&&r()<.7){for(let d=-2;d<6;d++)px(wx+d,fy+wh+1,'#2a2a2a');for(let d=-1;d<5;d+=2){px(wx+d,fy+wh,'#5a9a3a');px(wx+d+1,fy+wh,['#e8504a','#f08ab0','#ffffff'][(wx+d)%3])}}
+      lights.push({x:wx+1,y:fy+3,c:'#ffd88a',ph:0,lamp:1,win:1});
+    }}
+  // bougainvillée qui grimpe sur un coin
+  const bx=r()<.5?x0+1:x0+w-6;for(let i=0;i<40;i++){const y=base-Math.round(r()*hh*.9),x=bx+Math.round(r()*5);px(x,y,r()<.6?'#d8407a':'#3e7a34')}
+}
 function drawCriqueFront(g,r){
-  const cx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.45);g.drawImage(CABANON,cx,GT+1-CABANON.height);
-  g.drawImage(POINTU,cx+26,GT+1-POINTU.height);
+  const cx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.3);
+  drawProvHouse(g,cx,GT,40,Math.round(H*.13),2,'#e8c890','#4a8ac0',r);
+  drawProvHouse(g,cx+44,GT,30,Math.round(H*.09),1,'#f0e2c4','#5a9a8a',r);
+  g.drawImage(POINTU,cx+78,GT+1-POINTU.height);
   // lavande et agaves près du lapin, rochers blancs
   for(let i=0;i<5;i++){const x=Math.round(rab.x-30+i*4);for(let j=0;j<5;j++){g.fillStyle=j<2?'#9a7ad0':'#6a8a5a';g.fillRect(x+(j%2),GT-j,1,1)}}
-  for(const B of[LB,RB])for(let x=Math.max(B.x0,0)+8;x<Math.min(B.x1,W)-6;x+=16+r()*26){if(B===LB&&x>rab.x-34&&x<rab.x+16)continue;if(B===RB&&x>cx-4&&x<cx+50)continue;
+  for(const B of[LB,RB])for(let x=Math.max(B.x0,0)+8;x<Math.min(B.x1,W)-6;x+=16+r()*26){if(B===LB&&x>rab.x-34&&x<rab.x+16)continue;if(B===RB&&x>cx-4&&x<cx+100)continue;
     const rx=3+r()*4,ry=2+r()*2;for(let y=-Math.ceil(ry);y<=0;y++)for(let d=-Math.ceil(rx);d<=rx;d++){if(Math.hypot(d/rx,y/ry)>1)continue;g.fillStyle=y<-ry*.4&&d<0?'#fffaf0':d>rx*.4?'#c8bea8':'#e4dccb';g.fillRect(Math.round(x+d),GT+1+y,1,1)}}
 }
 function drawFuji(g,r){
