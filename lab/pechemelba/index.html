@@ -833,7 +833,6 @@ function loadLog(){
 }
 function addCatch(id,cm,perfect){
   const L=loadLog(),before=Object.keys(L.sp).filter(k=>SPI[k]).length,e=L.sp[id]||(L.sp[id]={n:0,best:0,first:Date.now()}),isNew=e.n===0;
-  if(isNew&&typeof WORLDS!=='undefined')for(const w of WORLDS)if(w.need>before&&w.need<=before+1)setTimeout(()=>toast(null,'Nouveau monde : '+w.n,'Ouvre l’onglet Mondes pour y aller.',null,7000,'mondes'),4300);
   e.n++;if(cm&&cm>e.best)e.best=cm;if(perfect)e.perfect=(e.perfect||0)+1;
   const coins=id==='loterie'?[0,0,2,5,10,20,50,100,250,500][Math.min(9,Math.floor(Math.pow(Math.random(),1.8)*10))]:coinOf(SPI[id],perfect);L.coins+=coins;
   L.total++;L.today++;store.set('log',L);refreshCount();
@@ -861,7 +860,7 @@ const WORLDS=[
 ];
 const WI=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
 const discovered=()=>Object.keys(loadLog().sp).filter(id=>SPI[id]).length;
-const unlocked=w=>Q.get('monde')===w.id||store.get('all',false)||discovered()>=w.need;
+const unlocked=()=>true; // tous les mondes sont ouverts
 // ?tout : débloque tous les mondes et remplit le carnet (espèces + poèmes), puis nettoie l'URL
 if(Q.has('tout')){
   const L=loadLog();
@@ -878,8 +877,8 @@ function noelOn(){
   const d=now();return d.getMonth()===11||(d.getMonth()===0&&d.getDate()<=6);
 }
 let NOEL=false;
-let WORLD=WI[Q.get('monde')]||WI[store.get('world','lac')]||WI.lac;
-if(!unlocked(WORLD))WORLD=WI.lac;
+// un monde au hasard à chaque chargement (jamais le même que la dernière fois), ou ?monde=…
+let WORLD=WI[Q.get('monde')]||(()=>{const last=store.get('world','');const pool=WORLDS.filter(w=>w.id!==last);const w=pool[Math.random()*pool.length|0];store.set('world',w.id);return w})();
 function setWorld(id){
   WORLD=WI[id];store.set('world',id);resize();setSt('idle');F.wait0=1;F.first=true;F.tx=0;F.hold=null;hint('');
   $('#wName').textContent=WORLD.n;
@@ -2202,6 +2201,7 @@ function showTab(tab){
     const mt=document.createElement('div');mt.className='meteo';const cur=store.get('ciel','auto');
     mt.innerHTML='<span>Météo</span>'+[['auto','Auto'],...Object.entries(SKIES)].map(([k,n])=>`<button data-k="${k}" class="${k===cur?'on':''}">${n}</button>`).join('');
     mt.onclick=e=>{const k=e.target.dataset&&e.target.dataset.k;if(!k)return;store.set('ciel',k);buildLand();showTab('mondes')};B.appendChild(mt);
+    B.insertAdjacentHTML('beforeend','<p class="lockl" style="margin:0 0 10px">Un monde au hasard à chaque nouvel onglet. Tu peux aussi en choisir un ici.</p>');
     const L=loadLog(),got=discovered(),wl=document.createElement('div');wl.className='wl';B.appendChild(wl);
     for(const w of WORLDS){
       const ok=unlocked(w),list=SP.filter(s=>(s.wd||'lac')===w.id),f=list.filter(s=>L.sp[s.id]).length;
