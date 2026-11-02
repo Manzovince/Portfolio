@@ -145,6 +145,9 @@ main{display:flex;flex-direction:column;align-items:center;margin-top:0;width:10
 .wcard .sw{width:64px;height:44px;border-radius:8px;border:2px solid var(--line);flex:none}
 .wmap{position:relative;border:2px solid var(--line);border-radius:12px;overflow:hidden;background:#5cc4c8;line-height:0}
 .wmap canvas{width:100%;height:auto;image-rendering:pixelated;display:block;touch-action:manipulation}
+.wlab{position:absolute;transform:translate(-50%,0);font:800 9px/1.2 'JetBrains Mono',monospace;color:#fff;text-shadow:0 0 2px var(--line),0 1px 0 var(--line),1px 0 0 var(--line),-1px 0 0 var(--line),0 -1px 0 var(--line);white-space:nowrap;pointer-events:none;letter-spacing:-.2px}
+.wlab.lock{opacity:.75;color:#e8eaec}
+.wlab.cur{color:#ffd8d4}
 .wtip{position:absolute;transform:translate(-50%,0);background:var(--line);color:#fff;font:700 11px/1.4 'JetBrains Mono',monospace;padding:2px 7px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .12s}
 .wtip.on{opacity:1}
 .wsel{display:flex;gap:12px;align-items:center;margin-top:10px;border:2px solid var(--line);border-radius:12px;padding:10px;background:#fff;font:13px 'JetBrains Mono',monospace;color:var(--panel-ink)}
@@ -543,7 +546,32 @@ function palStep(dt){
 function palBox(){if(!PAL)return null;const s=PALSPR[0];if(!WORLD.boat)return{x:Math.round(pw.x),y:GT+1-s.height,w:s.width,h:s.height};const o=WORLD.id==='large'?[10,-1]:[0,0];return{x:rab.x-23-s.width+o[0],y:rab.gy-s.height+1+o[1],w:s.width,h:s.height}}
 function palHit(x,y){const b=palBox();return b&&x>=b.x+PAD_X&&x<=b.x+b.w-PAD_X&&y>=b.y-2&&y<=b.y+b.h}
 let palHop=0;
-function petPal(){const b=palBox();palHop=.35;for(let i=0;i<6;i++)parts.push({x:b.x+b.w/2+rnd(-3,3),y:b.y+PAD_T,vx:rnd(-6,6),vy:rnd(-18,-8),l:rnd(.6,1),c:i%2?'#f07a8a':'#ffb0c0',g:4})}
+// une petite phrase par compagnon quand on le caresse
+const PAL_LINES={
+  colvert:['Coin. Coin coin. (Il a l’air d’avoir un avis.)','Il te montre où mordent les gardons.','Il lisse ses plumes, très fier de son reflet.'],
+  marmotte:['Elle siffle pour prévenir que tout va bien.','« Encore cinq minutes et j’hiberne. »','Elle a trouvé une fleur de gentiane.'],
+  heron:['Il ne bouge pas d’un poil. Le pro, c’est lui.','Il te regarde pêcher avec un air critique.','« La patience, petit lapin. »'],
+  hermine:['Elle disparaît dans la neige, puis réapparaît.','Sa queue noire frétille de plaisir.','Elle a froid aux pattes, mais elle reste.'],
+  crabe:['Il te fait coucou d’une pince.','Il marche de côté, par principe.','« Pas les orteils, hein. »'],
+  mouette:['Elle lorgne sur ton seau de poissons.','Kiaaa ! (Elle a vu un bateau.)','Elle se laisse porter par le vent.'],
+  perroquet:['« Pêche Melba ! Pêche Melba ! »','Il répète ton dernier soupir.','Il réclame un bout de mangue.'],
+  tanuki:['Il fait semblant de dormir.','Il a ramassé une feuille, pour plus tard.','« Les koïs, c’est moi qui les ai nommées. »'],
+  biche:['Elle remue les oreilles, toute douce.','Elle te souffle sur le museau.','Elle garde un œil sur les papillons.'],
+  hibou:['Hou… hou. Il connaît tous les secrets de la forêt.','Il tourne la tête presque entièrement.','« Reviens à la nuit, ça mord mieux. »'],
+  grenouille:['Croâ ! Elle saute dans la rizière et revient.','Elle a attrapé une mouche. Bravo.','Elle chante pour faire venir la pluie.'],
+  fennec:['Ses grandes oreilles entendent les poissons.','Il creuse un petit trou, puis le rebouche.','Il cherche un coin d’ombre près de toi.'],
+  macareux:['Il a le bec plein de petits poissons.','Il atterrit un peu maladroitement.','« Le fjord est à nous. »'],
+  chat:['Il fait semblant de ne pas t’avoir vu.','Ronron. Il attend sa part de la pêche.','Il fixe un pigeon au loin.'],
+  manchot:['Il glisse sur le ventre jusqu’à toi.','Il te tend un petit caillou. C’est un cadeau.','Il se dandine pour se réchauffer.'],
+  pandaroux:['Il s’enroule dans sa queue rayée.','Il grignote une feuille de bambou.','Il se dresse sur ses pattes pour faire peur. Raté, il est mignon.'],
+  dromadaire:['Il mâchonne, l’air très philosophe.','« De l’eau ? Non merci, j’ai ce qu’il faut. »','Il cligne de ses longs cils.'],
+  mouton:['Bêêê. Il aime bien le bruit des moulins.','Il a une tulipe coincée dans la laine.','Il te prête un peu de chaleur.'],
+  pigeon:['Rrou rrou. Il connaît tous les toits de Paris.','Il gonfle son jabot, très chic.','« Une miette ? Une seule ? »'],
+  caniche:['Il fait le beau. Il veut une caresse.','Il aboie après une mouette, pour la forme.','Il a eu sa coupe ce matin.'],
+  chevre:['Elle grignote une branche de thym.','Elle grimpe sur un rocher pour mieux voir.','Mêêê. Elle a mangé un bout de ta ligne ?']
+};
+function petPal(){const b=palBox();palHop=.35;for(let i=0;i<6;i++)parts.push({x:b.x+b.w/2+rnd(-3,3),y:b.y+PAD_T,vx:rnd(-6,6),vy:rnd(-18,-8),l:rnd(.6,1),c:i%2?'#f07a8a':'#ffb0c0',g:4});
+  const ls=PAL_LINES[PAL.id];if(ls){let k=Math.random()*ls.length|0;if(k===petPal.last)k=(k+1)%ls.length;petPal.last=k;toast(PALSPR[0],PAL.n,ls[k],null,3500)}}
 function meetPal(){
   if(!PAL)return;const met=store.get('met',[]);if(met.includes(PAL.id))return;store.set('met',[...met,PAL.id]);
   setTimeout(()=>toast(PALSPR[0],`${PAL.n} te rejoint !`,'Ton compagnon dans ce monde.',null,6000),1800);
@@ -3054,13 +3082,17 @@ document.querySelectorAll('.ph .tab').forEach(b=>b.onclick=()=>showTab(b.dataset
 const HINTS={nuit:'se montre la nuit',jour:'se montre le jour'};
 /* ---------- carte des mondes (onglet Mondes) ---------- */
 // un îlot par monde ; x,y = centre sur une carte de 220×300, r = rayon, g = sol
-const MAPI={
-  banquise:[30,30,13,'S'],glace:[80,42,12,'S'],fjord:[132,28,12,'F'],brume:[184,46,13,'M'],
-  lac:[50,94,14,'G'],riviere:[106,80,13,'G'],mer:[146,122,11,'B'],large:[194,108,0,'-'],
-  clairiere:[84,134,13,'G'],marais:[30,154,11,'W'],jardin:[190,162,12,'J'],kyoto:[158,190,12,'J'],
-  rizieres:[200,214,11,'J'],ville:[106,178,12,'G'],peniche:[66,206,12,'G'],toit:[118,226,10,'G'],
-  moulin:[26,224,11,'G'],giverny:[136,154,10,'V'],crique:[58,262,12,'C'],canyon:[110,270,13,'D'],oasis:[160,266,12,'D'],tropique:[204,268,10,'T']
-};
+// îles par région ; chaque monde est une zone de son île (position du repère, sol)
+const MAPR=[
+  {banquise:[28,26,'S'],glace:[74,36,'S'],fjord:[122,26,'F']},
+  {lac:[44,98,'G'],riviere:[92,84,'G'],brume:[140,82,'M'],clairiere:[80,128,'G'],marais:[34,146,'W'],mer:[128,126,'B']},
+  {jardin:[190,162,'J'],kyoto:[164,190,'J'],rizieres:[198,210,'J']},
+  {giverny:[58,184,'V'],ville:[104,180,'G'],moulin:[24,222,'G'],peniche:[66,222,'G'],toit:[108,220,'G'],crique:[62,262,'C']},
+  {canyon:[146,270,'D'],oasis:[192,266,'D']},
+  {tropique:[202,112,'T']},
+  {large:[166,130,'-']}
+];
+const MLBL={banquise:'Banquise',glace:'Lac gelé',fjord:'Fjord',lac:'Lac',riviere:'Rivière',brume:'Forêt brumeuse',clairiere:'Clairière',marais:'Marais',mer:'Bord de mer',jardin:'Jardin zen',kyoto:'Kyoto',rizieres:'Rizières',giverny:'Giverny',ville:'Ville',moulin:'Moulins',peniche:'Péniche',toit:'Toits de Paris',crique:'Crique',canyon:'Canyon',oasis:'Oasis',tropique:'Tropiques',large:'Au large'};
 const MGROUND={ // dessus, bord, falaise, bas de falaise
   G:['#8cc66a','#e8d49a','#a0643c','#7a4a2e'],M:['#6a9a6a','#c8c09a','#7a5a42','#5a4232'],W:['#8a9a5a','#b8b08a','#7a6a42','#5a4e32'],
   S:['#f2f6f8','#dce8ee','#9ab8cc','#7a98ae'],F:['#7aa070','#e4eee8','#7a8a94','#5a6a74'],J:['#9fd082','#ecd8b0','#9a5a48','#743e32'],
@@ -3071,23 +3103,25 @@ const MGROUND={ // dessus, bord, falaise, bas de falaise
 function worldMap(B){
   const MW=220,MH=300,L=loadLog();
   const wrap=document.createElement('div');wrap.className='wmap';
-  const cv=document.createElement('canvas');cv.width=MW;cv.height=MH;const tip=document.createElement('div');tip.className='wtip';
-  wrap.append(cv,tip);B.appendChild(wrap);
+  const cv=document.createElement('canvas');cv.width=MW;cv.height=MH;
+  wrap.append(cv);B.appendChild(wrap);
   const card=document.createElement('div');card.className='wsel';B.appendChild(card);
-  const isl=WORLDS.map((w,i)=>{const[x,y,r0,gd]=MAPI[w.id]||[110,150,10,"G"],r=Math.round(r0*1.3);return{w,i,x,y,r,gd,ok:unlocked(w)}});
-  const inside=(I,dx,dy,pad=0)=>{const a=Math.atan2(dy/.72,dx),d=Math.hypot(dx,dy/.72);return d<I.r*(1+.14*Math.sin(3*a+I.i*1.7)+.08*Math.sin(5*a+I.i*2.3))+pad};
-  // couche fixe : îlots, falaises, décor
+  const isl=[];MAPR.forEach((reg,ri)=>{for(const id in reg){const w=WI[id];if(!w)continue;const[x,y,gd]=reg[id];isl.push({w,i:WORLDS.indexOf(w),x,y,gd,ri,r:gd==='-'?0:1,ok:unlocked(w)})}});
+  // silhouette de chaque île : un cercle par monde + des ponts de terre entre voisins proches
+  const circ=MAPR.map((reg,ri)=>{const m=isl.filter(I=>I.ri===ri&&I.r),c=m.map(I=>({x:I.x,y:I.y,r:m.length>1?20:14}));
+    for(let a=0;a<m.length;a++)for(let b=a+1;b<m.length;b++){const d=Math.hypot(m[a].x-m[b].x,m[a].y-m[b].y);if(d<64)c.push({x:(m[a].x+m[b].x)/2,y:(m[a].y+m[b].y)/2,r:15})}return c});
+  const landAt=(x,y,pad=0)=>{for(let ri=0;ri<circ.length;ri++)for(let k=0;k<circ[ri].length;k++){const C=circ[ri][k],dx=x-C.x,dy=(y-C.y)/.72,a=Math.atan2(dy,dx),d=Math.hypot(dx,dy);if(d<C.r*(1+.1*Math.sin(3*a+k*1.3+ri)+.06*Math.sin(7*a+k*.7))+pad)return ri}return -1};
+  const zoneAt=(x,y,ri)=>{let b=null,bd=1e9;for(const I of isl)if(I.ri===ri&&I.r){const d=(x-I.x)**2+((y-I.y)/.8)**2;if(d<bd){bd=d;b=I}}return b};
+  // couche fixe : îles, falaises, zones, décor
   const st=document.createElement('canvas');st.width=MW;st.height=MH;const s=st.getContext('2d');
   const im=s.createImageData(MW,MH),D=im.data;
   const put=(x,y,c)=>{if(x<0||y<0||x>=MW||y>=MH)return;const k=(y*MW+x)*4,v=parseInt(c.slice(1),16);D[k]=v>>16;D[k+1]=v>>8&255;D[k+2]=v&255;D[k+3]=255};
-  const each=(I,pad,f)=>{const R=I.r+pad+3;for(let y=-R;y<=R;y++)for(let x=-R-2;x<=R+2;x++)if(inside(I,x,y,pad))f(I.x+x,I.y+y,x,y)};
-  const land=isl.filter(I=>I.r);
-  for(const I of land)each(I,3,(x,y)=>put(x,y+2,'#8fdcd6'));
-  for(const I of [...land].sort((a,b)=>a.y-b.y)){
-    const P=MGROUND[I.ok?I.gd:'X'];
-    each(I,0,(x,y)=>{put(x,y+4,P[3]);for(let k=1;k<4;k++)put(x,y+k,P[2])});
-    each(I,0,(x,y,dx,dy)=>put(x,y,inside(I,dx,dy,-2)?P[0]:P[1]));
-  }
+  const RI=new Int8Array(MW*MH).fill(-1),Z=new Array(MW*MH);
+  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(landAt(x,y,3)>=0)put(x,y+2,'#8fdcd6');const ri=landAt(x,y);if(ri>=0){RI[y*MW+x]=ri;Z[y*MW+x]=zoneAt(x,y,ri)}}
+  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const z=Z[y*MW+x];if(!z)continue;const P=MGROUND[z.ok?z.gd:'X'];put(x,y+4,P[3]);for(let k=1;k<4;k++)put(x,y+k,P[2])}
+  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const z=Z[y*MW+x];if(!z)continue;const P=MGROUND[z.ok?z.gd:'X'],edge=landAt(x,y,-2)<0;
+    const nb=[Z[y*MW+x+1],Z[(y+1)*MW+x]].some(o=>o&&o!==z);
+    put(x,y,edge?P[1]:nb&&(x+y)%2===0?'#6a8a5a':P[0])}
   s.putImageData(im,0,0);
   const R=(x,y,w,h,c)=>{s.fillStyle=c;s.fillRect(Math.round(x),Math.round(y),w,h)};
   const pine=(x,y,c='#2f6a3e',sn)=>{R(x,y-1,1,2,'#5a3a2a');R(x,y-7,1,1,c);R(x-1,y-6,3,2,c);R(x-2,y-4,5,3,c);if(sn){R(x,y-7,1,1,'#fff');R(x-1,y-6,1,1,'#fff');R(x-2,y-4,2,1,'#fff')}};
@@ -3119,7 +3153,7 @@ function worldMap(B){
     giverny:(x,y)=>{R(x-8,y-1,16,4,'#4a8aa0');for(const[a,b]of[[-6,1],[-2,2],[3,0],[6,2]]){R(x+a,y+b,2,1,'#7ab858')}R(x+3,y-1,1,1,'#f2a6c0');R(x-1,y+2,1,1,'#fff');for(let k=-6;k<=6;k++){const yy=y-3-Math.round(2*Math.cos(k/6*Math.PI/2));R(x+k,yy,1,1,'#b890c8');R(x+k,yy-3,1,1,'#d8b0dc')}for(const k of[-6,-2,2,6])R(x+k,y-6-Math.round(2*Math.cos(k/6*Math.PI/2)),1,3,'#9070a8');R(x-11,y-9,3,6,'#64a034');R(x+8,y-9,3,6,'#64a034')},
     crique:(x,y)=>{pool(x,y+2,8,3,'#2ab8c8');R(x-7,y-1,4,3,'#c8c0b4');R(x-7,y-2,3,1,'#f2ece0');R(x+4,y-6,1,6,'#6a4a3a');R(x+2,y-8,6,2,'#3a6a3a');R(x+3,y-9,4,1,'#4a7a4a')}
   };
-  for(const I of land){
+  for(const I of isl.filter(I=>I.r)){
     if(I.ok&&LM[I.w.id])LM[I.w.id](I.x,I.y);
     else if(!I.ok){const c='#9aa0a6',x=I.x-1,y=I.y-4;R(x,y,3,1,c);R(x+2,y+1,1,2,c);R(x+1,y+3,1,1,c);R(x+1,y+5,1,1,c)}
   }
@@ -3138,16 +3172,15 @@ function worldMap(B){
       if(!I.ok){const dx=Math.sin(t*.4+I.i)*2;g.globalAlpha=.85;P(I.x-8+dx,I.y-9,12,4,'#fff');P(I.x-5+dx,I.y-11,7,2,'#fff');P(I.x-1+dx,I.y-7,9,3,'#f0f4f6');g.globalAlpha=1}
     }
     // drapeau sur le monde actuel, flèche sur la sélection
-    const C=isl.find(I=>I.w===WORLD);if(C){const x=C.x+(C.r?C.r*.5:6),y=C.y-(C.r?6:4);P(x,y-9,1,10,'#3b2a35');const f=Math.sin(t*5)>0?1:0;P(x+1,y-9,4,3,'#e8605a');P(x+5,y-9+f,1,2,'#e8605a')}
-    const S=isl.find(I=>I.w===sel);if(S&&S.w!==WORLD){const y=S.y-(S.r?S.r*.72+14:16)+Math.round(Math.sin(t*4)*1.5);P(S.x-2,y,5,1,'#fff');P(S.x-1,y+1,3,1,'#fff');P(S.x,y+2,1,1,'#fff');P(S.x-3,y-1,7,1,'#3b2a35');P(S.x-2,y+2,1,1,'#3b2a35');P(S.x+2,y+2,1,1,'#3b2a35');P(S.x-1,y+3,3,1,'#3b2a35')}
+    const C=isl.find(I=>I.w===WORLD);if(C){const x=C.x+7,y=C.y-5;P(x,y-9,1,10,'#3b2a35');const f=Math.sin(t*5)>0?1:0;P(x+1,y-9,4,3,'#e8605a');P(x+5,y-9+f,1,2,'#e8605a')}
+    const S=isl.find(I=>I.w===sel);if(S&&S.w!==WORLD){const y=S.y-20+Math.round(Math.sin(t*4)*1.5);P(S.x-2,y,5,1,'#fff');P(S.x-1,y+1,3,1,'#fff');P(S.x,y+2,1,1,'#fff');P(S.x-3,y-1,7,1,'#3b2a35');P(S.x-2,y+2,1,1,'#3b2a35');P(S.x+2,y+2,1,1,'#3b2a35');P(S.x-1,y+3,3,1,'#3b2a35')}
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
   const hit=e=>{const b=cv.getBoundingClientRect(),x=(e.clientX-b.left)*MW/b.width,y=(e.clientY-b.top)*MH/b.height;let best=null,bd=1e9;
-    for(const I of isl){const dx=x-I.x,dy=y-I.y+2,d=I.r?(inside(I,dx,dy,4)?Math.hypot(dx,dy):1e9):Math.hypot(dx,dy)<11?Math.hypot(dx,dy):1e9;if(d<bd){bd=d;best=I}}return best};
-  cv.onpointermove=e=>{const I=hit(e);cv.style.cursor=I?'pointer':'';if(I===hov)return;hov=I;
-    if(!I){tip.classList.remove('on');return}tip.textContent=I.ok?I.w.n:'???';tip.style.left=I.x/MW*100+'%';tip.style.top=(I.y+(I.r?I.r*.72+7:8))/MH*100+'%';tip.classList.add('on')};
-  cv.onpointerleave=()=>{hov=null;tip.classList.remove('on')};
+    for(const I of isl){const d=Math.hypot(x-I.x,(y-I.y+3)*1.1);if(d<20&&d<bd){bd=d;best=I}}return best};
+  cv.onpointermove=e=>{cv.style.cursor=hit(e)?'pointer':''};
+  const labs=isl.map(I=>{const l=document.createElement('span');l.className='wlab'+(I.ok?'':' lock')+(I.w===WORLD?' cur':'');l.textContent=I.ok?(MLBL[I.w.id]||I.w.n):'???';l.style.left=I.x/MW*100+'%';l.style.top=(I.y+(I.r?6:5))/MH*100+'%';wrap.appendChild(l);return l});
   cv.onclick=e=>{const I=hit(e);if(I){sel=I.w;info()}};
   function info(){
     const w=sel,ok=unlocked(w),list=SP.filter(s=>(s.wd||'lac')===w.id),f=list.filter(s=>L.sp[s.id]).length;
