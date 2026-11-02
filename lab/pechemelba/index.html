@@ -471,7 +471,6 @@ const SHOP=[
 ];
 const SHOPI=Object.fromEntries(SHOP.map(i=>[i.id,i]));
 SHOP.forEach(i=>{if(i.map)i.spr=mapSprite(i.map,i.pal,!i.flat);if(i.ears)i.ears=i.ears.map(r=>r.padStart(r.length+1,'.'))});
-let dressWho='lapin';
 let closet=store.get('closet',null)||{own:['rouge'],wear:{corps:'rouge'}};
 const saveCloset=()=>store.set('closet',closet);
 const OX=3,OY=3;
@@ -483,8 +482,8 @@ function dressed(ear,blink,wear){
 }
 let RAB=[];
 function buildRabbit(){RAB=[0,1].flatMap(e=>[0,1].map(b=>dressed(e,b,closet.wear)))}
-/* ---------- compagnons : un par monde, habillables comme le lapin ---------- */
-// cartes tournées vers la droite ; hat = haut de la tête (centre), eye = œil, neck = cou
+/* ---------- compagnons : un par monde ---------- */
+// cartes tournées vers la droite ; eye = œil (clignement)
 const PALS=[
   {wd:'lac',id:'colvert',n:'Colvert',map:[".......ggg...","......ggggg..","......ggkgyy.","......gggggyy",".......www...",".......bbbb..","k.ssssbbbbb..","kssSSBBsbbb..",".ssSSSSssbb..","..sssssssb...","...o...o.....","..oo..oo....."],pal:{g:'#2e7a4a',k:'#1e1e22',y:'#e8c84a',w:'#f4f0e6',b:'#8a4a32',s:'#b8a890',S:'#8a7a64',B:'#3a6ab8',o:'#f0a040'},hat:[8,0],eye:[8,2],neck:[8,4]},
   {wd:'riviere',id:'marmotte',n:'Marmotte',map:["...b..b.....","...bbbbbb...","..bbbbkbbb..","..bbbbbbmmn.","...bbbbmmm..","...bmmmmb...","..bbmmmmbb..","..bbmmmmbbb.","..bbmmmmbb..",".bbbmmmmbb..","tbbbbbbbbb..","tt.bb..bb..."],pal:{b:'#9a6a44',m:'#d8b890',n:'#2a2224',k:'#1e1e22',t:'#6a4a30'},hat:[6,1],eye:[6,2],neck:[6,5]},
@@ -516,26 +515,17 @@ for(const p of PALS){
   for(const e of[p.eye,p.eye2])if(e){const k=p.map[e[1]-1]?.[e[0]];g.fillStyle=k&&k!=='.'?p.pal[k]:OUT;g.fillRect(e[0]+1,e[1]+1,1,1)}
   p.blink=c;
 }
-const PAD_X=7,PAD_T=8;
-function dressedPal(p,wear,blink){
-  const s=blink?p.blink:p.spr,[c,g]=canvasOf(s.width+PAD_X*2,s.height+PAD_T);g.drawImage(s,PAD_X,PAD_T);
-  // mêmes accessoires que le lapin, recalés sur la tête, l'œil et le cou du compagnon
-  const ax=PAD_X+1,ay=PAD_T+1;
-  const at={cou:it=>[p.neck[0]+it.at[0]-6,p.neck[1]+it.at[1]-13],yeux:it=>[p.eye[0]+it.at[0]-9,p.eye[1]+it.at[1]-9],tete:it=>[p.hat[0]+Math.round(it.at[0]+it.map[0].length/2-6.5)-Math.round(it.map[0].length/2),p.hat[1]-it.map.length+1]};
-  for(const slot of['cou','yeux','tete']){const it=SHOPI[wear[slot]];if(!it)continue;const[x,y]=at[slot](it);g.drawImage(it.spr,ax+x-(it.flat?0:1),ay+y-(it.flat?0:1))}
-  return c;
-}
-const palWear=id=>(closet.pals||(closet.pals={}))[id]||(closet.pals[id]={});
+const PAD_X=0,PAD_T=0;
 let PAL=null,PALSPR=[];
-function buildPal(){PAL=PALI[WORLD.id]||null;PALSPR=PAL?[0,1].map(b=>dressedPal(PAL,palWear(PAL.id),b)):[]}
+function buildPal(){PAL=PALI[WORLD.id]||null;PALSPR=PAL?[PAL.spr,PAL.blink]:[]}
 // dans la petite barque du large, la mouette se perche à l'arrière
 function palBox(){if(!PAL)return null;const s=PALSPR[0],o=WORLD.id==='large'?[10,-1]:[0,0];return{x:rab.x-23-(s.width-PAD_X)+o[0],y:rab.gy-s.height+1+o[1],w:s.width,h:s.height}}
-function palHit(x,y){const b=palBox();return b&&x>=b.x+PAD_X&&x<=b.x+b.w-PAD_X&&y>=b.y+PAD_T-2&&y<=b.y+b.h}
+function palHit(x,y){const b=palBox();return b&&x>=b.x+PAD_X&&x<=b.x+b.w-PAD_X&&y>=b.y-2&&y<=b.y+b.h}
 let palHop=0;
 function petPal(){const b=palBox();palHop=.35;for(let i=0;i<6;i++)parts.push({x:b.x+b.w/2+rnd(-3,3),y:b.y+PAD_T,vx:rnd(-6,6),vy:rnd(-18,-8),l:rnd(.6,1),c:i%2?'#f07a8a':'#ffb0c0',g:4})}
 function meetPal(){
   if(!PAL)return;const met=store.get('met',[]);if(met.includes(PAL.id))return;store.set('met',[...met,PAL.id]);
-  setTimeout(()=>toast(PALSPR[0],`${PAL.n} te rejoint !`,'Ton compagnon dans ce monde. Tu peux l’habiller dans la boutique.',null,6000,'boutique'),1800);
+  setTimeout(()=>toast(PALSPR[0],`${PAL.n} te rejoint !`,'Ton compagnon dans ce monde.',null,6000),1800);
 }
 function rabbitSprite(ear,blink,corps,an){
   const body=RAB_BODY.slice();
@@ -953,7 +943,7 @@ function addCatch(id,cm,perfect){
   return{isNew,record:cm&&cm===e.best&&e.n>1,coins};
 }
 function refreshCount(){const L=loadLog();$('#nCoin').textContent=L.coins}
-addEventListener('storage',e=>{if(e.key==='ponton.ciel'&&typeof land!=='undefined')buildLand();if(e.key==='ponton.closet'){closet=store.get('closet',closet);buildRabbit();buildPal()}if(e.key==='ponton.log')refreshCount();if(e.key==='ponton.links')renderLinks()});
+addEventListener('storage',e=>{if(e.key==='ponton.ciel'&&typeof land!=='undefined')buildLand();if(e.key==='ponton.closet'){closet=store.get('closet',closet);buildRabbit()}if(e.key==='ponton.log')refreshCount();if(e.key==='ponton.links')renderLinks()});
 
 /* ---------- mondes ---------- */
 const WORLDS=[
@@ -2830,27 +2820,20 @@ function showTab(tab){
   }else if(tab==='boutique'){
     const L=loadLog();
     B.innerHTML=`<div class="stats"><div class="stat"><b class="price">${L.coins}</b>pièces</div></div><p class="lockl" style="margin:0 0 6px">Chaque prise rapporte des pièces : plus elle est rare, plus elle vaut cher. Les ballons cadeaux qui passent dans le ciel aussi.</p>`;
-    // qui habiller : le lapin ou le compagnon du monde
-    if(PAL){if(dressWho!=='lapin'&&dressWho!==PAL.id)dressWho='lapin';const sw=document.createElement('div');sw.className='meteo';
-      sw.innerHTML=`<div class="seg" style="grid-template-columns:1fr 1fr">${[['lapin','Lapin'],[PAL.id,PAL.n]].map(([k,n])=>`<button data-k="${k}" class="${k===dressWho?'on':''}">${n}</button>`).join('')}</div><small>${dressWho==='lapin'?'Les pulls ne vont qu’au lapin.':`${PAL.n} vit dans ce monde. Les accessoires achetés servent à tout le monde.`}</small>`;
-      sw.onclick=e=>{const bt=e.target.closest('button');if(bt){dressWho=bt.dataset.k;showTab('boutique')}};B.appendChild(sw);
-      [...sw.querySelectorAll('button')].forEach((bt,i)=>bt.prepend(bigSprite(i?PALSPR[0]:RAB[0],2)))}
-    const who=PAL&&dressWho===PAL.id?PAL:null,wearOf=who?palWear(who.id):closet.wear;
     for(const[slot,name]of[['tete','Chapeaux'],['yeux','Lunettes'],['cou','Autour du cou'],['corps','Pulls']]){
-      if(who&&slot==='corps')continue;
       const h=document.createElement('h3');h.className='wh';h.textContent=name;B.appendChild(h);
       const G=document.createElement('div');G.className='grid';B.appendChild(G);
       for(const it of SHOP.filter(i=>i.slot===slot&&(!i.noel||NOEL||closet.own.includes(i.id)))){
-        const own=closet.own.includes(it.id),worn=wearOf[slot]===it.id,c=document.createElement('div');
+        const own=closet.own.includes(it.id),worn=closet.wear[slot]===it.id,c=document.createElement('div');
         c.className='card shop'+(worn?' worn':'')+(!own&&L.coins<it.p?' poor':'');
-        c.appendChild(bigSprite(who?dressedPal(who,{...wearOf,[slot]:it.id}):dressed(0,0,{...closet.wear,[slot]:it.id}),3));
+        c.appendChild(bigSprite(dressed(0,0,{...closet.wear,[slot]:it.id}),3));
         const info=document.createElement('div');
         info.innerHTML=`<div class="nm">${it.n}</div><div class="ms">${worn?(slot==='corps'||slot==='animal'?'porté':'porté · cliquer pour enlever'):own?'à toi · cliquer pour porter':`<span class="price">${it.p} pièces</span>`}</div>`;
         c.appendChild(info);
         c.onclick=()=>{
           if(!own){const L2=loadLog();if(L2.coins<it.p)return;L2.coins-=it.p;store.set('log',L2);refreshCount();closet.own.push(it.id)}
-          if(worn&&slot!=='corps')delete wearOf[slot];else wearOf[slot]=it.id;
-          saveCloset();buildRabbit();buildPal();showTab('boutique');
+          if(worn&&slot!=='corps')delete closet.wear[slot];else closet.wear[slot]=it.id;
+          saveCloset();buildRabbit();showTab('boutique');
         };
         G.appendChild(c);
       }
