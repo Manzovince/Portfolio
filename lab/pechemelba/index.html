@@ -759,6 +759,55 @@ const SP=[
   {id:'carpeneon',n:'Carpe néon',rar:'e',w:1,cm:[40,80],wd:'ville',quip:'Elle brille comme une enseigne.',look:{len:16,h:6,body:'#3a2a5a',back:'#ff4ab0',belly:'#4af0ff',fin:'#ff4ab0',pat:'rainbow'}},
   {id:'cleville',n:'Clé de la ville',rar:'l',w:.3,wd:'ville',quip:'Elle ouvre toutes les portes de la ville.',map:["yyy......","y.y......","yyyyyyyyy","......y.y","......y.."],pal:{y:'#f2c64a'}},
   {id:'caddie',n:'Caddie',rar:'j',w:3,wd:'ville',quip:'Toujours une roue qui tire à gauche.',map:["k.........","kkkkkkkkk.",".kgkgkgkk.",".kkkkkkk..","..kgkgk...","..kkkkk...","..o...o..."],pal:{k:'#9aa0a8',g:'#5a6068',o:OUT}},
+  {id:'capelan',n:'Capelan',rar:'c',w:9,cm:[12,20],wd:'banquise',look:{len:9,h:3,body:'#c8d4dc',back:'#5a7a8a',belly:'#f4f8fa',fin:'#9ab0bc',pat:'shine'}},
+  {id:'moruepolaire',n:'Morue polaire',rar:'c',w:8,cm:[15,35],wd:'banquise',look:{len:12,h:4,body:'#a8a890',back:'#6a6a58',belly:'#e8e8dc',fin:'#8a8a74',pat:'spots'}},
+  {id:'lompe',n:'Lompe',rar:'u',w:4,cm:[25,50],wd:'banquise',quip:'Ronde comme un caillou, et aussi bavarde.',map:["...ggggg...",".gggGgGggg.","ggGggggGggk","ggggggggggg",".gggggggg..","...g...g..."],pal:{g:'#7a9a6a',G:'#5a7a4a',k:OUT}},
+  {id:'crabeneige',n:'Crabe des neiges',rar:'u',w:4,cm:[10,20],wd:'banquise',map:["r.......r","rr.k.k.rr",".rrrrrrr.","r.rrrrr.r","r.r.r.r.r"],pal:{r:'#e8804a',k:OUT}},
+  {id:'phoque',n:'Bébé phoque',rar:'r',w:2.5,cm:[60,90],wd:'banquise',quip:'Il t’a regardé avec ses grands yeux. Tu l’as relâché.',map:["....wwww..","..wwwwkwk.","wwwwwwwwwn","wwWWWwwww.","ww.wwwwww."],pal:{w:'#f4f4f0',W:'#dce0e4',k:OUT,n:'#3a3a40'}},
+  {id:'beluga',n:'Béluga',rar:'e',w:1,cm:[300,450],wd:'banquise',quip:'Il a chanté une petite mélodie avant de repartir.',look:{len:20,h:7,body:'#f0f4f6',back:'#d8e2e8',belly:'#ffffff',fin:'#e0e8ec'}},
+  {id:'narval',n:'Narval',rar:'l',w:.3,cm:[400,550],wd:'banquise',quip:'La licorne des mers existe. Tu l’as vue.',map:["..................w","................ww.","....ggggggggggggk..","gggGgGggGgggGgggg..","..ggggggggggggg....","...g.......g......."],pal:{g:'#8a98a4',G:'#5a6874',k:OUT,w:'#f4f0e0'}},
+  {id:'gantexplo',n:'Moufle d’explorateur',rar:'j',w:3,wd:'banquise',quip:'Perdue pendant l’expédition de 1911.',map:["..rrr.","rrrrr.","rrrrrr","rrrrr.","wwwww."],pal:{r:'#c8402e',w:'#f4f0e6'}},
+  {id:'ayu',n:'Ayu',rar:'c',w:9,cm:[15,25],wd:'kyoto',quip:'Il sent la pastèque, paraît-il.',look:{len:11,h:4,body:'#c8c0a0',back:'#6a7a5a',belly:'#f4f0e0',fin:'#e8c860'}},
+  {id:'ugui',n:'Ugui',rar:'c',w:8,cm:[15,30],wd:'kyoto',look:{len:11,h:4,body:'#b8b8a8',back:'#5a6a68',belly:'#f0f0e8',fin:'#e86a5a',pat:'stripes'}},
+  {id:'carpenoire',n:'Carpe noire',rar:'u',w:5,cm:[40,80],wd:'kyoto',look:{len:16,h:6,body:'#3a3a3e',back:'#222226',belly:'#6a6a6e',fin:'#2e2e32',pat:'scales'}},
+  {id:'asagi',n:'Koï Asagi',rar:'u',w:4,cm:[35,70],wd:'kyoto',look:{len:15,h:6,body:'#9ab0c8',back:'#6a84a4',belly:'#e8603a',fin:'#e88a5a',pat:'scales'}},
+  {id:'kujaku',n:'Koï Kujaku',rar:'r',w:2.5,cm:[40,75],wd:'kyoto',quip:'Ses écailles brillent comme des pièces.',look:{len:15,h:6,body:'#f4e8d8',back:'#e8803a',belly:'#ffffff',fin:'#f0d0b0',pat:'koi'}},
+  {id:'tortuemolle',n:'Tortue à carapace molle',rar:'e',w:1,cm:[20,40],wd:'kyoto',quip:'Elle a un nez en trompette.',map:["....gggg.....","..gGgggGgg...","ggggggggggggk",".gggggggggg..","..g.....g...."],pal:{g:'#8a9a6a',G:'#6a7a4a',k:OUT}},
+  {id:'koipapillon',n:'Koï papillon',rar:'l',w:.3,cm:[50,80],wd:'kyoto',quip:'Ses nageoires flottent comme de la soie.',look:{len:15,h:5,body:'#fff6ea',back:'#f0a04a',belly:'#ffffff',fin:'#fbe0c8',pat:'shine',shape:'wing'}},
+  {id:'lanternepapier',n:'Lanterne en papier',rar:'j',w:3,wd:'kyoto',quip:'Encore tiède.',map:["..kkk..",".rrrrr.","rrRrrRr","rrrrrrr","rrRrrRr",".rrrrr.","..kkk..","...k..."],pal:{k:'#2a2a2a',r:'#d8402e',R:'#f6e0a0'}},
+  {id:'omamori',n:'Omamori',rar:'j',w:2,wd:'kyoto',quip:'Un porte-bonheur. Ça marche, visiblement.',map:["..y..","rrrrr","ryyyr","rrrrr","ryyyr","rrrrr"],pal:{r:'#c83a6a',y:'#f2c64a'}},
+  {id:'aphanius',n:'Aphanius',rar:'c',w:9,cm:[3,6],wd:'oasis',look:{len:7,h:4,body:'#b0c8d0',back:'#5a7a8a',belly:'#eef4f4',fin:'#e8c050',pat:'stripes'}},
+  {id:'garra',n:'Garra',rar:'c',w:8,cm:[8,14],wd:'oasis',quip:'Il te fait une petite manucure si tu le laisses.',look:{len:9,h:3,body:'#a8a490',back:'#6a6858',belly:'#e8e4d4',fin:'#8a8874'}},
+  {id:'barbeaudesert',n:'Barbeau du désert',rar:'u',w:5,cm:[20,40],wd:'oasis',look:{len:13,h:5,body:'#d8c088',back:'#9a8050',belly:'#f6ecd0',fin:'#c8a060'}},
+  {id:'poissonelephant',n:'Poisson-éléphant',rar:'r',w:2.5,cm:[15,30],wd:'oasis',quip:'Il parle avec de petites décharges électriques.',map:["....bbbbbb.....","..bbbbbbbbbbk..","bbbbBbbbbbbbbbb","..bbbbbbbbbb..b","....bbbbbb....."],pal:{b:'#6a5a6a',B:'#8a7a8a',k:OUT}},
+  {id:'perchenil',n:'Perche du Nil',rar:'e',w:1,cm:[80,180],wd:'oasis',quip:'Elle a des yeux qui brillent dans le noir.',look:{len:20,h:7,body:'#b8c0b8',back:'#6a7a74',belly:'#eef0ea',fin:'#8a9a90'}},
+  {id:'lampe',n:'Lampe merveilleuse',rar:'l',w:.3,wd:'oasis',quip:'Tu l’as frottée. Il ne s’est rien passé. Pour l’instant.',map:["......y...","....yyy...","yy.yyYyy..",".yyyYYyyyy",".yyyyyyy..","...yyy....","..yyyyy..."],pal:{y:'#e0b030',Y:'#fff0a0'}},
+  {id:'datte',n:'Datte',rar:'j',w:4,wd:'oasis',quip:'Sucrée comme du miel.',map:[".bb.","bBbb","bbbb","bbbb",".bb."],pal:{b:'#8a4a24',B:'#b86a3a'}},
+  {id:'babouche',n:'Babouche',rar:'j',w:3,wd:'oasis',quip:'Brodée à la main, et un peu trempée.',map:["yy.......","yyyyyyy..","yrryyyyyy","yyyyyyyyy"],pal:{y:'#e8b83a',r:'#c8402e'}},
+  {id:'bordeliere',n:'Brème bordelière',rar:'c',w:9,cm:[15,30],wd:'moulin',look:{len:12,h:6,body:'#c8c4b0',back:'#7a7a68',belly:'#f0eee4',fin:'#e08a6a'}},
+  {id:'epinochepolder',n:'Épinoche des polders',rar:'c',w:8,cm:[4,7],wd:'moulin',look:{len:7,h:3,body:'#8aa070',back:'#4e6a44',belly:'#f06a4a',fin:'#9aa878'}},
+  {id:'anguillepolder',n:'Anguille des polders',rar:'u',w:5,cm:[40,90],wd:'moulin',when:'nuit',look:{len:22,h:3,body:'#6a6a48',back:'#3e3e2c',belly:'#cec8a0',fin:'#565638',shape:'eel'}},
+  {id:'idedoree',n:'Ide dorée',rar:'u',w:4,cm:[25,45],wd:'moulin',look:{len:13,h:5,body:'#f0a040',back:'#d0782a',belly:'#fce0b0',fin:'#f08a4a'}},
+  {id:'brochetroyal',n:'Brochet royal',rar:'e',w:1.2,cm:[70,120],wd:'moulin',quip:'Il porte presque une couronne orange.',look:{len:21,h:5,body:'#8a9a5a',back:'#4a5a34',belly:'#f0e8c8',fin:'#f08a2a',shape:'long',pat:'light'}},
+  {id:'tulipenoire',n:'Tulipe noire',rar:'l',w:.3,wd:'moulin',quip:'La légende dit qu’elle valait une maison.',map:["k.k.k",".kkk.","kkKkk",".kkk.","..g..","..gg.",".gg..","..g.."],pal:{k:'#2a1a2e',K:'#5a3a5e',g:'#4a8a3a'}},
+  {id:'sabot',n:'Sabot en bois',rar:'j',w:3,wd:'moulin',quip:'Taille 38, et bien ciré.',map:["....yyyy","..yyyyyy","yyyyyyyy","yyyyyyy.",".yyyyy.."],pal:{y:'#f0d8a0'}},
+  {id:'gouda',n:'Meule de gouda',rar:'j',w:2,wd:'moulin',quip:'Un peu mouillée, mais toujours bonne.',map:[".yyyyyy.","yyyyyyyy","yYyyyyYy","yyyyyyyy",".rrrrrr."],pal:{y:'#f2c64a',Y:'#fff0a0',r:'#e8604a'}},
+  {id:'gardontoit',n:'Gardon des toits',rar:'c',w:9,cm:[10,20],wd:'toit',look:{len:10,h:4,body:'#c0c8c8',back:'#6a7a7a',belly:'#f0f2f0',fin:'#e86a4a'}},
+  {id:'carpegouttiere',n:'Carpe des gouttières',rar:'u',w:5,cm:[25,50],wd:'toit',quip:'Elle est arrivée par la gouttière un jour d’orage.',look:{len:14,h:6,body:'#9a9a8a',back:'#5a5a50',belly:'#d8d8cc',fin:'#7a7a6a',pat:'scales'}},
+  {id:'pigeon',n:'Pigeon',rar:'u',w:4,cm:[25,35],wd:'toit',quip:'Il voulait juste ton croissant.',map:["...gg..","..gkgy.","gggGg..","ggGGgg.",".ggggg.","..y.y.."],pal:{g:'#8a8e9a',G:'#7a6a9a',k:OUT,y:'#e0a040'}},
+  {id:'croissant',n:'Croissant',rar:'j',w:4,wd:'toit',quip:'Encore croustillant, miraculeusement.',map:["y......y","yy.yy.yy",".yyYYyy.","..yyyy.."],pal:{y:'#d8902a',Y:'#f0c060'}},
+  {id:'beret',n:'Béret',rar:'j',w:3,wd:'toit',quip:'Il te va très bien.',map:["...k...",".kkkkk.","kkkkkkk",".kkkkk."],pal:{k:'#2a2a3a'}},
+  {id:'gargouille',n:'Gargouille',rar:'e',w:1,wd:'toit',quip:'Elle crache de l’eau depuis 800 ans. Elle méritait une pause.',map:["k...k....","kkkkk....","kgkgkkkkk","kkkkkkkkk",".k..kk.kk"],pal:{k:'#8a8a84',g:'#f2c64a'}},
+  {id:'toureiffel',n:'Tour Eiffel miniature',rar:'l',w:.3,wd:'toit',quip:'Elle scintille un peu le soir, à l’heure pile.',map:["..y..","..y..",".yyy.",".y.y.","yyyyy","y...y","y...y"],pal:{y:'#d8a840'}},
+  {id:'bouchon',n:'Bouchon de champagne',rar:'j',w:3,wd:'toit',quip:'Quelqu’un a fêté quelque chose, là-haut.',map:[".kk.","kkkk",".yy.",".yy."],pal:{k:'#c8a060',y:'#f2c64a'}},
+  {id:'goujon',n:'Goujon',rar:'c',w:9,cm:[8,15],wd:'peniche',look:{len:9,h:3,body:'#b8b0a0',back:'#6a6458',belly:'#ece8e0',fin:'#9a9488',pat:'spots'}},
+  {id:'percheseine',n:'Perche de Seine',rar:'c',w:8,cm:[15,35],wd:'peniche',look:{len:11,h:5,body:'#a8b070',back:'#4e5a34',belly:'#eee8c8',fin:'#e8703a',pat:'stripes'}},
+  {id:'sandreseine',n:'Sandre de Seine',rar:'u',w:5,cm:[40,80],wd:'peniche',when:'nuit',look:{len:17,h:5,body:'#a2aa92',back:'#5e6a5a',belly:'#e2e6da',fin:'#8a907a',pat:'stripes'}},
+  {id:'velo',n:'Vélo de location',rar:'u',w:3,wd:'peniche',quip:'Il est encore loué. Ça va coûter cher.',map:[".......kk.","...k...k..","kkkkkkkk..","k.k...k.k.",".k.....k.."],pal:{k:'#8ab84a'}},
+  {id:'silureseine',n:'Silure de Seine',rar:'r',w:2.5,cm:[100,220],wd:'peniche',quip:'Il vit sous le pont des Arts depuis toujours.',look:{len:24,h:6,body:'#5c5c56',back:'#34342e',belly:'#bab6a6',fin:'#4a4a44',shape:'cat'}},
+  {id:'esturgeonseine',n:'Esturgeon de Seine',rar:'e',w:1,cm:[120,220],wd:'peniche',quip:'On le croyait disparu de Paris.',look:{len:22,h:5,body:'#8a8e84',back:'#4a4e44',belly:'#d8dace',fin:'#6a6e64',shape:'sword',pat:'plates'}},
+  {id:'joconde',n:'Joconde miniature',rar:'l',w:.3,wd:'peniche',quip:'Elle sourit. Elle a toujours souri.',map:["yyyyyyy","yggssgy","ygsffsy","yggssgy","ygbbbgy","yyyyyyy"],pal:{y:'#c8a040',g:'#5a6a3a',s:'#3a2a1a',f:'#e8c090',b:'#2a2a24'}},
+  {id:'cadenas',n:'Cadenas d’amoureux',rar:'j',w:3,wd:'peniche',quip:'« L + M, pour toujours ».',map:[".kkk.","k...k","yyyyy","yRyRy","yyyyy"],pal:{k:'#9aa0a8',y:'#e0b030',R:'#e8504a'}},
   {id:'loterie',n:'Ticket de loterie',rar:'j',w:1.2,wd:'*',quip:'Gratté sur place : on verra bien.',map:["yyyyyyyy","ykykykyy","yyyyyyyy","yrrrrrry","yyyyyyyy"],pal:{y:'#f6e6a8',k:OUT,r:'#e8504a'}},
   {id:'messagecode',n:'Message codé',rar:'r',w:.8,wd:'*',quip:'« Oh vhfuhw, f’hvw od sdwlhqfh. » (décale chaque lettre de 3)',map:[".pppppp.","pPkPkkPp","pPkkPkPp",".pppppp."],pal:{p:'#e8d8b0',P:'#f6ecd0',k:'#5a4a3a'}},
   {id:'nain',n:'Nain de jardin',rar:'u',w:1,wd:'*',quip:'Il a l’air content d’être là.',map:["...r...","..rrr..",".rrrrr.","..sks..","..www..",".bwwwb.","bbbbbbb",".k...k."],pal:{r:'#e8504a',w:'#f4f0e6',s:'#f0c0a0',k:OUT,b:'#3a6ac0'}},
@@ -856,7 +905,13 @@ const WORLDS=[
   {id:'rizieres',n:'Rizières',d:'Des terrasses de riz qui reflètent le ciel, dans la brume du matin.',need:72,tree:'none',terraces:1,water:['#7aa89a',.4],sky:['#dfe8d4',.25],sw:['#dfe8d4','#6a9a7a']},
   {id:'canyon',n:'Canyon',d:'Une oasis au fond d’une gorge de roche rouge.',need:80,tree:'none',canyon:1,water:['#3a9a9a',.45],sky:['#f4dcc0',.28],sw:['#f0c8a0','#3a9a9a']},
   {id:'fjord',n:'Fjord',d:'Des falaises vertigineuses, une cascade, et des aurores la nuit.',need:88,tree:'none',fjord:1,water:['#2a5a6a',.5],sky:['#d4e2ea',.2],sw:['#d4e2ea','#2a5a6a']},
-  {id:'ville',n:'Ville',d:'Un quai de canal en ville. Les fenêtres s’allument quand le soir tombe.',need:96,tree:'none',city:1,water:['#4a6a80',.45],sky:['#d8dce4',.2],sw:['#c8d0dc','#4a6a80']}
+  {id:'ville',n:'Ville',d:'Un quai de canal en ville. Les fenêtres s’allument quand le soir tombe.',need:96,tree:'none',city:1,water:['#4a6a80',.45],sky:['#d8dce4',.2],sw:['#c8d0dc','#4a6a80']},
+  {id:'banquise',n:'Banquise',d:'Des plaques de glace, des icebergs et des pingouins curieux.',need:112,tree:'none',polar:1,snow:1,aurora:1,water:['#2a6a8a',.5],sky:['#dcecf4',.25],sw:['#e4f0f6','#2a6a8a']},
+  {id:'kyoto',n:'Canal de Kyoto',d:'Un canal bordé de cerisiers et de vieilles maisons de bois.',need:120,tree:'sakura',kyoto:1,petals:1,water:['#4a7a80',.45],sky:['#f0e0e4',.18],sw:['#f4dce4','#4a7a80']},
+  {id:'oasis',n:'Oasis',d:'Une source turquoise au milieu des dunes.',need:128,tree:'palm',desert:1,water:['#2ab0b0',.6],sky:['#f6e2c4',.28],sw:['#f4dcb8','#2ab0b0']},
+  {id:'moulin',n:'Moulins',d:'Des polders, des tulipes et des moulins qui tournent au vent.',need:136,tree:'none',dutch:1,reeds:1,water:['#5a8aa0',.4],sky:['#dce8f0',.2],sw:['#dce8f0','#5a8aa0']},
+  {id:'toit',n:'Toits de Paris',d:'Une citerne de pluie sur les toits de zinc, face à la tour Eiffel.',need:144,tree:'none',roofs:1,water:['#6a7a8a',.5],sky:['#ecdcd0',.22],sw:['#e4d8d0','#6a7a8a']},
+  {id:'peniche',n:'Péniche sur la Seine',d:'On glisse doucement le long des quais de Paris.',need:152,tree:'none',boat:1,seine:1,water:['#5a7a7a',.45],sky:['#e4e0d8',.15],sw:['#e4e0d8','#5a7a7a']}
 ];
 const WI=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
 const discovered=()=>Object.keys(loadLog().sp).filter(id=>SPI[id]).length;
@@ -901,6 +956,11 @@ const BANKS={
   canyon:{grass:['#d8b878','#e8cc90'],earth:['#b8603a','#9a4a2e','#cc7448'],base:'#7a3420',snow:1},
   fjord:{grass:['#6a8a5a','#8aa870'],earth:['#5a6068','#484e56','#6e747c'],base:'#34383e'},
   ville:{grass:['#8a8a92','#a4a4ac'],earth:['#5a5a66','#4a4a54','#6a6a76'],base:'#2e2e38'},
+  banquise:{grass:['#f4f8fa','#ffffff'],earth:['#bcdcec','#9cc4dc','#d8ecf6'],base:'#6aa0c0',snow:1},
+  kyoto:{grass:['#b8b0a2','#cac2b4'],earth:['#8a8a86','#6e6e6a','#a2a29c'],base:'#4a4a46'},
+  oasis:{grass:['#e8d2a0','#f4e2b8'],earth:['#d8b880','#c4a068','#e8cc98'],base:'#a8844c',snow:1},
+  moulin:{grass:['#6aa048','#8ac060'],earth:['#6a5440','#584432','#7a6450'],base:'#3e3024'},
+  toit:{grass:['#9aa8b8','#c4ced8'],earth:['#7a8898','#6a7888','#8a98a8'],base:'#4a5664'},
   jardin:{grass:['#6f9a5e','#8fb874'],earth:['#d8d2c4','#c0b8a8','#ece8de'],base:'#8a8274'},
   tropique:{grass:['#f2e2a8','#faf0cc'],earth:['#e6cc90','#d4b878','#f4e4b4'],base:'#c8a868',snow:1}
 };
@@ -1479,6 +1539,178 @@ function drawCity(g,r){
   }
 }
 const PUMPKIN=mapSprite(["..g..",".oOo.","oOoOo","oOoOo",".ooo."],{g:'#4a7a2a',o:'#e8802a',O:'#c8601a'});
+/* ----- Banquise ----- */
+function drawPolar(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},ph=r()*6;
+  for(let x=0;x<W;x++){const t=Math.round(GT-WY*.24*(.5+.3*Math.sin(x*.015+ph)+.2*Math.abs(Math.sin(x*.05+ph))));for(let y=t;y<=GT;y++)px(x,y,y<t+2?'#ffffff':(Math.sin(x*.3+y*.1)>.7&&y<t+14)?'#d0e2ee':'#e2edf4')}
+  // front de glacier : falaise de glace, crevasses bleues, corniche de neige
+  const gx0=Math.round(W*.58);
+  for(let x=gx0;x<W+2;x++){const u=(x-gx0)/(W-gx0),top=Math.round(GT-WY*(.1+.12*Math.pow(u,.6))-Math.abs(Math.sin(x*.35))*2);
+    for(let y=top;y<=GT;y++){const d=y-top,crev=(x*7)%23===0&&Math.sin(y*.13+x)>-.4||(x*11)%37===0&&y>top+6;px(x,y,d<2?'#ffffff':d<4?'#eef6fa':crev?'#6aa8cc':x<gx0+3?'#a8cce0':(x+y)%5===0?'#c8e2ee':'#d8ecf6')}}
+  // icebergs au large, face éclairée à gauche
+  for(let i=0;i<6;i++){const cx=r()*W*.8,w=8+r()*24,h=5+r()*13;
+    for(let x=Math.round(-w/2);x<w/2;x++){const u=Math.abs(x)/(w/2),top=Math.round(GT-h*(1-Math.pow(u,1.4))*(.8+.2*Math.sin(x*.7+i))-(x>-2&&x<3?2:0));
+      for(let y=top;y<=GT;y++)px(Math.round(cx+x),y,y===top?'#ffffff':x<0?'#f2f8fc':(y-top)%4===0?'#a8cce0':'#c4dcec')}}
+}
+const PENG=mapSprite(["...kkk...","..kkkkky.","..kkwkyy.",".kkwwwk..","kkwwwwwk.","kkwwwwwkk","kkwwwwwk.",".kwwwwwk.",".kkwwwkk.","..kkkkk..","..yy.yy.."],{k:'#2a2a34',w:'#f4f0e6',y:'#f0a030'});
+const SEAL=mapSprite(["......gg..","....gggkg.","..gggggggn","gggGGGgg..","ggggggggg."],{g:'#8a8e96',G:'#a8acb4',k:OUT,n:'#3a3a40'});
+const IGLOO=(()=>{const R0=11,w=R0*2+5,h=R0+1;return gridSprite(w,h,(x,y)=>{const dx=x-R0,dy=h-1-y,d=Math.hypot(dx,dy*1.05);
+    if(x>=R0*2-1&&x<w&&y>=h-6){const ex=x-(R0*2-1),ey=y-(h-6);if(ex<5){if(ey>=2&&ex>=1&&ex<4)return '#2e4a60';return ey%3===0||ex%3===0?'#c8dcea':'#f0f6fa'}}
+    if(d>R0)return null;const row=Math.floor(dy/3),brick=dy%3===0||((x+row*3)%6===0);return brick?'#c8dcea':dx<0?'#ffffff':'#e4eef6'})})();
+function drawPolarFront(g,r){
+  g.drawImage(IGLOO,Math.round(rab.x-40),GT+1-IGLOO.height);g.drawImage(PENG,Math.round(rab.x-24),GT+1-PENG.height);
+  for(const B of[LB,RB])for(let x=Math.max(B.x0,0)+12;x<Math.min(B.x1,W)-8;x+=40+r()*60){if(B===LB&&x>rab.x-44&&x<rab.x+18)continue;
+    if(r()<.3)g.drawImage(SEAL,Math.round(x),GT+1-SEAL.height);else{const n=1+(r()*3|0);for(let k=0;k<n;k++)g.drawImage(PENG,Math.round(x+k*7+(r()-.5)*3),GT+1-PENG.height)}}
+}
+/* ----- Canal de Kyoto ----- */
+function drawKyoto(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};
+  // collines boisées au loin
+  for(let x=0;x<W;x++){const t=Math.round(GT-WY*.3*(.6+.25*Math.sin(x*.012)+.15*Math.sin(x*.041)));for(let y=t;y<=GT;y++)px(x,y,y<t+2?'#b4c8b0':(x+y)%6===0?'#98b094':'#a6bca2')}
+  // rangée de machiya : rez-de-chaussée en treillis de bois, étage en plâtre, toits de tuiles
+  let x=-6;
+  while(x<W+6){
+    const w=28+(r()*16|0),h1=15+(r()*3|0),h2=12+(r()*4|0),base=GT,top1=base-h1,top2=top1-3-h2,rt=top2-5;
+    rect(x,top1,w,h1,'#4a3428');for(let d=1;d<w;d+=2)rect(x+d,top1+1,1,h1-1,'#6e4c36');
+    const door=x+3+(r()*(w-12)|0);rect(door,top1+2,6,h1-2,'#2a3a6a');rect(door,top1+2,6,1,'#1e2a50');px(door+2,top1+5,'#e8e0d0');px(door+3,top1+5,'#e8e0d0');
+    for(let d=-2;d<w+2;d++){px(x+d,top1-2,'#5a5a62');px(x+d,top1-1,d%2?'#3e3e46':'#4a4a52');px(x+d,top1,'#2e2e34')}
+    rect(x,top2,w,top1-2-top2,'#ece4d4');rect(x,top2,1,top1-2-top2,'#4a3428');rect(x+w-1,top2,1,top1-2-top2,'#4a3428');
+    const wx=x+4,ww=w-8;rect(wx,top2+2,ww,h2-3,'#5a4030');for(let d=0;d<ww;d+=2)rect(wx+d,top2+2,1,h2-3,'#8a6a4a');
+    if(r()<.45)for(let d=1;d<ww;d+=2)lights.push({x:wx+d,y:top2+3+(r()*(h2-5)|0),c:'#ffcf7a',ph:0,lamp:1,win:1});
+    for(let k=0;k<5;k++){const ov=3+k*.2,yy=rt+k;for(let d=-Math.round(ov)+Math.round((4-k)*.3);d<w+Math.round(ov)-Math.round((4-k)*.3);d++)px(x+d,yy,k===0?'#6a6a74':k===4?'#2a2a30':(d+k)%2?'#4a4a54':'#5a5a64')}
+    for(let d=-3;d<w+3;d++)px(x+d,rt-1,'#3a3a42');px(x-4,rt-2,'#3a3a42');px(x+w+3,rt-2,'#3a3a42');
+    if(r()<.6){const lx=x+2+(r()*(w-6)|0);rect(lx,top1-1,1,1,'#2a2a2a');for(let k=0;k<4;k++)rect(lx-1,top1+k,3,1,k===0||k===3?'#2a2a2a':'#d8402e');px(lx,top1+1,'#f6e0a0');lights.push({x:lx,y:top1+1,c:'#ff9a5a',ph:0,lamp:1})}
+    x+=w+1;
+  }
+}
+/* ----- Oasis ----- */
+function drawDunes(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)};
+  const DL=[[.32,['#f2dcb6','#e2c69c','#ecd4ac']],[.24,['#ecc890','#d4aa74','#e2bc84']],[.15,['#e6b878','#c89a5a','#dcac6c']]];
+  DL.forEach(([hh,C],k)=>{
+    const ph=r()*9,crest=x=>GT-WY*hh*(.55+.3*Math.sin(x*.011+ph)+.15*Math.sin(x*.029+ph*2));
+    for(let x=0;x<W;x++){const top=Math.round(crest(x)),lit=crest(x+1)>crest(x-1);
+      for(let y=top;y<=GT;y++){const rip=(y-top+Math.round(Math.sin(x*.08+k)*2))%5===0&&y>top+2;px(x,y,y===top?'#fff0d4':rip?C[2]:lit?C[0]:C[1])}}
+    if(k===1){const cx=Math.round(W*.62);const CAM=mapSprite(["....k..","..kkk..","kkkkkkk","k.kkkk.","..k..k.","..k..k."],{k:'#7a5a40'},false);
+      for(let i=0;i<4;i++){const xx=cx+i*10;g.drawImage(CAM,xx,Math.round(crest(xx+3))-6)}}
+  });
+}
+const TENT=mapSprite(["......k......","....rrkrr....","..rrwwkwwrr..",".rrkkkkkkkrr.","rwwwwkkkwwwwr","rkkkk...kkkkr","rwwww...wwwwr"],{r:'#b83a32',w:'#f0e2c4',k:'#3a2a24'});
+const JAR=mapSprite([".kk.","kttk","tTtt","tTtt",".tt."],{k:'#7a4a2a',t:'#c87848',T:'#e09a68'});
+function drawOasisFront(g,r){
+  const tx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.62);g.drawImage(TENT,tx,GT+1-TENT.height);lights.push({x:tx+6,y:GT-2,c:'#ffb85a',ph:0,lamp:1});
+  g.drawImage(JAR,Math.round(rab.x-12),GT+1-JAR.height);g.drawImage(JAR,Math.round(rab.x-17),GT+1-JAR.height+1);
+  for(const B of[LB,RB])for(let x=Math.max(B.x0,0)+5;x<Math.min(B.x1,W)-5;x+=9+r()*16){if(B===LB&&x>rab.x-22&&x<rab.x+16)continue;
+    const h=4+r()*5;for(let j=0;j<h;j++){g.fillStyle=j>h-2?'#c8b878':'#6a8a4a';g.fillRect(Math.round(x+(j%2?1:0)),GT-j,1,1)}}
+}
+/* ----- Moulins ----- */
+let mills=[];
+function drawSails(m){
+  const a=T*m.spd+m.ph;
+  for(let k=0;k<4;k++){const an=a+k*Math.PI/2,c=Math.cos(an),s=Math.sin(an),nx=-s,ny=c;
+    for(let t=0;t<m.len;t++){const x=m.x+c*t,y=m.y+s*t;fx.fillStyle='#3a3028';fx.fillRect(Math.round(x),Math.round(y),1,1);
+      if(t>m.len*.18)for(let o=1;o<=m.w;o++){const lat=t%3===0||o===m.w;fx.fillStyle=lat?'#5a4a3a':'#f2ece0';fx.fillRect(Math.round(x+nx*o),Math.round(y+ny*o),1,1)}}}
+  fx.fillStyle='#2a2420';fx.fillRect(Math.round(m.x)-1,Math.round(m.y)-1,3,3);
+}
+function drawMill(g,cx,base,h){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},wb=Math.round(h*.42),wt=Math.round(h*.24),capH=Math.round(h*.18),top=base-h;
+  for(let y=top+capH;y<=base;y++){const t=(y-top-capH)/(h-capH),hw=Math.round((wt+(wb-wt)*t)/2);for(let d=-hw;d<=hw;d++)px(cx+d,y,d<-hw*.4?'#5a6a58':d>hw*.4?'#2e3a30':(y%3===0?'#3a4a3c':'#465646'))}
+  const gy=Math.round(top+h*.55),gw=Math.round(wb*.75);for(let d=-gw;d<=gw;d++){px(cx+d,gy,'#4a3a2e');if(d%2===0)px(cx+d,gy-1,'#4a3a2e');px(cx+d,gy-2,'#4a3a2e')}
+  for(let y=base-Math.round(h*.16);y<=base;y++)for(let d=-1;d<=1;d++)px(cx+d,y,'#2a2018');
+  for(let y=top+capH+3;y<top+capH+6;y++)px(cx,y,'#f4f0e6');
+  for(let y=top;y<top+capH+1;y++){const t=(y-top)/capH,hw=Math.round(wt/2*Math.sqrt(t)+1);for(let d=-hw;d<=hw;d++)px(cx+d,y,d<0?'#8a7458':'#6a5844')}
+  return{x:cx+Math.round(wt*.6),y:top+Math.round(capH*.6)};
+}
+function drawPolder(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)};
+  const top=Math.round(GT-WY*.17),bloom=SEASON==='printemps'||SEASON==='ete';
+  const TUL=bloom?['#e8403a','#f2c63a','#f08ab0','#f4f0e6','#f0803a','#8a5ac0']:SEASON==='automne'?['#8a9a4a','#a08a4a','#7a8a40','#b09858']:['#7a7a5a','#8a8060','#6a7058','#9a9070'];
+  // digue lointaine avec peupliers et clocher
+  for(let x=0;x<W;x++)for(let y=top-3;y<top;y++)px(x,y,'#7a9a70');
+  for(let x=4;x<W;x+=9+(r()*7|0)){const th=6+r()*5;for(let j=0;j<th;j++){const hw=j>th*.25?1:0;for(let d=-hw;d<=hw;d++)px(x+d,top-3-j,j<2?'#5a4a3a':'#5e8452')}}
+  {const cx=Math.round(W*.36);for(let j=0;j<16;j++){const hw=j<6?0:1;for(let d=-hw;d<=hw;d++)px(cx+d,top-3-j,j>14?'#5a5a5a':'#8a5a48')}}
+  // champs de tulipes en bandes, de plus en plus larges vers nous
+  for(let y=top;y<=GT;y++){const t=(y-top)/(GT-top),band=Math.floor(Math.pow(t,.55)*12),edge=Math.floor(Math.pow((y+1-top)/(GT-top),.55)*12)!==band;
+    for(let x=0;x<W;x++){let c=edge?'#4e8a3a':TUL[band%TUL.length];if(!edge&&((x*7+y*3)%(5-Math.min(3,band>>2))===0))c='#5e9a46';px(x,y,c)}}
+  // maison à pignon à gradins
+  {const hx=Math.round(W*.08),hw=14,hh=14,b=GT;for(let y=b-hh;y<=b;y++)for(let d=0;d<hw;d++)px(hx+d,y,(y+d)%4===0?'#8a3a2a':'#a8483a');
+   for(let k=0;k<4;k++)for(let d=k*2;d<hw-k*2;d++)for(let j=0;j<3;j++)px(hx+d,b-hh-1-k*3-j,'#a8483a');
+   for(const[wx,wy]of[[3,5],[9,5],[3,10],[9,10]]){for(let j=0;j<3;j++)for(let d=0;d<2;d++)px(hx+wx+d,b-hh+wy+j,'#f4f0e6');px(hx+wx,b-hh+wy+1,'#3a4a5a');px(hx+wx+1,b-hh+wy+1,'#3a4a5a')}}
+  // trois moulins : un proche, deux au loin
+  for(const[mx,mb,mh]of[[W*.83,GT,H*.34],[W*.22,top-1,H*.15],[W*.55,top-2,H*.11]]){const hub=drawMill(g,Math.round(mx),Math.round(mb),Math.round(mh));mills.push({x:hub.x,y:hub.y,len:Math.round(mh*.62),w:Math.max(2,Math.round(mh*.12)),ph:r()*6,spd:.35+r()*.25})}
+}
+const BIKE=mapSprite([".....kk.","..k..k..","kkkkkkk.","k.k..k.k",".k....k."],{k:'#2a4a7a'},false);
+const COW=mapSprite(["k.......","kkwwkwkk","wkkwwwkk",".k.k.k.k"],{k:'#2a2a2a',w:'#f4f0e6'});
+function drawPolderFront(g,r){
+  g.drawImage(BIKE,Math.round(rab.x-16),GT+1-BIKE.height);
+  for(let i=0;i<2;i++){const x=Math.round(RB.x0+10+r()*(Math.min(RB.x1,W)-RB.x0)*.45);g.drawImage(COW,x,GT+1-COW.height)}
+}
+/* ----- Toits de Paris ----- */
+function drawEiffel(g,cx,base,h,col){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)};
+  for(let y=0;y<h;y++){const t=y/h,hw=Math.max(.5,h*.3*Math.pow(1-t,2.2)+.5),Y=base-y;
+    if(t<.14){for(const sg of[-1,1])for(let d=Math.round(hw*.55);d<=hw;d++)px(cx+sg*d,Y,col)}
+    else for(let d=-Math.round(hw);d<=Math.round(hw);d++)if(Math.abs(d)>=Math.round(hw)-1||(d+y)%3===0)px(cx+d,Y,col);
+    if(Math.abs(t-.14)<.01||Math.abs(t-.42)<.01)for(let d=-Math.round(hw)-1;d<=Math.round(hw)+1;d++)px(cx+d,Y,col)}
+  for(let y=0;y<4;y++)px(cx,base-h-y,col);
+}
+function drawRoofs(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};
+  // Sacré-Cœur sur sa butte, tour Eiffel au loin
+  for(let x=0;x<W*.4;x++){const t=Math.round(GT-WY*.28*Math.exp(-Math.pow((x-W*.16)/(W*.12),2)));for(let y=t;y<=GT;y++)px(x,y,'#c8c4c8')}
+  {const cx=Math.round(W*.16),b=Math.round(GT-WY*.28)+2;rect(cx-9,b-8,18,8,'#ece8e4');for(const[dx,rr]of[[0,6],[-7,3],[7,3]])for(let y=-rr;y<=0;y++){const hw=Math.round(Math.sqrt(rr*rr-y*y));rect(cx+dx-hw,b-8+y-1,hw*2+1,1,'#f4f2ee')}rect(cx,b-17,1,3,'#f4f2ee')}
+  drawEiffel(g,Math.round(W*.72),GT,Math.round(WY*.55),'#8a7c74');
+  // deux rangées d'immeubles haussmanniens : façades crème, toits de zinc, lucarnes, cheminées
+  for(const[k,hh,fac,zinc]of[[0,.13,'#ddd0bc','#9aa4b0'],[1,.08,'#e8dcc4','#7e8c9c']]){
+    let x=-4;while(x<W+4){const w=18+(r()*16|0),fh=Math.round(WY*hh*(.6+r()*.4))+(k?0:Math.round(WY*.05)),rh=7+k*3,top=GT-fh;
+      rect(x,top,w,fh,fac);
+      for(let fy=top+rh+3;fy<GT-2;fy+=5)for(let d=2;d<w-2;d+=4){const lit=r()<.18;rect(x+d,fy,2,3,k?'#4a5464':'#6a7484');if(lit)lights.push({x:x+d,y:fy+1,c:'#ffd88a',ph:0,lamp:1,win:1});if(k)rect(x+d-1,fy+3,4,1,'#3a3a3e')}
+      for(let j=0;j<rh;j++){const ins=Math.round(j*.5);rect(x+ins,top-rh+j,w-ins*2,1,j===0?'#c4ccd6':j%2?zinc:'#8a96a4')}
+      for(let d=4;d<w-4;d+=7){rect(x+d,top-rh-3,3,4,'#f0eae0');rect(x+d,top-rh-4,3,1,zinc);px(x+d+1,top-rh-2,'#4a5464')}
+      const cs=x+2+(r()*(w-8)|0);rect(cs,top-rh-6,5,6,'#b8705a');for(let d=0;d<5;d+=2)rect(cs+d,top-rh-8,1,2,'#d87a50');
+      x+=w;}
+  }
+}
+const PIGEON=mapSprite(["..gg.","ggkgy","gGgg.",".gg.."],{g:'#8a8e9a',G:'#a8b0c0',k:OUT,y:'#e0a040'});
+function drawRoofsFront(g,r){
+  const rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};
+  for(const[x0,n]of[[Math.round(rab.x-40),4],[Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.4),5]]){
+    rect(x0,GT-14,4+n*3,14,'#b8705a');for(let y=GT-13;y<GT;y+=3)rect(x0,y,4+n*3,1,'#9a5a48');rect(x0-1,GT-15,6+n*3,2,'#d8d0c0');
+    for(let k=0;k<n;k++){rect(x0+2+k*3,GT-19,2,4,'#d87a50');rect(x0+2+k*3,GT-19,2,1,'#a85a3a')}}
+  {const ax=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.8);rect(ax,GT-26,1,26,'#4a4a52');for(let k=0;k<4;k++)rect(ax-4+k,GT-24+k*3,9-k*2,1,'#4a4a52')}
+  for(const B of[LB,RB])for(let x=Math.max(B.x0,0)+6;x<Math.min(B.x1,W)-6;x+=22+r()*30){if(B===LB&&x>rab.x-44&&x<rab.x+16)continue;g.drawImage(PIGEON,Math.round(x),GT+1-PIGEON.height)}
+  rect(Math.round(rab.x-20),GT-6,6,6,'#6a7a3a');rect(Math.round(rab.x-21),GT-7,8,2,'#a8603a');rect(Math.round(rab.x-19),GT-10,1,3,'#6aa040');rect(Math.round(rab.x-17),GT-11,1,4,'#6aa040');rect(Math.round(rab.x-17),GT-12,1,1,'#e8504a');
+}
+/* ----- Seine (défile derrière la péniche) ----- */
+function drawSeine(g,r,L){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(((x%L)+L)%L,y,1,1)},rect=(x,y,w,h,c)=>{for(let i=0;i<w;i++){g.fillStyle=c;g.fillRect((((x+i)%L)+L)%L,y,1,h)}};
+  drawEiffel(g,Math.round(L*.3),WY-10,Math.round(WY*.62),'#9a8c80');
+  {const cx=Math.round(L*.78),b=WY-10;rect(cx-12,b-30,8,30,'#b8b0a4');rect(cx+4,b-30,8,30,'#b8b0a4');rect(cx-4,b-20,8,20,'#c8c0b4');for(let y=0;y<14;y++)px(cx,b-20-y,'#a8a094');rect(cx-14,b-31,12,1,'#a8a094');rect(cx+2,b-31,12,1,'#a8a094')}
+  // immeubles haussmanniens en continu
+  let x=0;while(x<L){const w=20+(r()*16|0),fh=Math.round(WY*(.17+r()*.06)),rh=7,b=WY-10,top=b-fh,fac=r()<.5?'#e8dcc4':'#e0d2b8';
+    rect(x,top,w,fh,fac);
+    for(let fy=top+4,fl=0;fy<b-3;fy+=6,fl++)for(let d=2;d<w-2;d+=4){rect(x+d,fy,2,4,'#5a6474');if(fl===1||fl===4)rect(x+d-1,fy+4,4,1,'#2e2e34')}
+    for(let j=0;j<rh;j++){const ins=Math.round(j*.5);rect(x+ins,top-rh+j,w-ins*2,1,j===0?'#c4ccd6':j%2?'#8a96a4':'#7a8898')}
+    for(let d=4;d<w-4;d+=7){rect(x+d,top-rh-3,3,4,'#f0eae0');rect(x+d,top-rh-4,3,1,'#7a8898')}
+    const cs=x+3+(r()*(w-8)|0);rect(cs,top-rh-5,4,5,'#b8705a');rect(cs,top-rh-7,1,2,'#d87a50');rect(cs+2,top-rh-7,1,2,'#d87a50');
+    x+=w;}
+  // platanes du quai haut
+  for(let x=4;x<L;x+=14+(r()*6|0)){const cy=WY-18,rr=6+r()*3;for(let y=-rr;y<=rr*.6;y++)for(let d=-rr*1.2;d<=rr*1.2;d++){const dd=Math.hypot(d/(rr*1.2),y/rr);if(dd>1)continue;const l=-d/rr*.4-y/rr*.7+Math.sin(d*1.7+y)*.2;px(Math.round(x+d),Math.round(cy+y),l>.45?'#8ab85a':l<-.2?'#3e6a34':'#5e9046')}rect(x,cy+4,1,8,'#6a5a48')}
+  // mur du quai en pierre, parapet et boîtes vertes des bouquinistes
+  for(let y=WY-10;y<WY;y++)for(let x=0;x<L;x++){const row=Math.floor((y-WY+10)/3),brick=(x+(row%2)*4)%8===0||(y-WY+10)%3===0;px(x,y,y===WY-10?'#e8e0d0':brick?'#a8a090':'#c8c0ae')}
+  for(let x=10;x<L;x+=30+(r()*30|0)){rect(x,WY-14,10,4,'#2e5a3a');rect(x,WY-15,10,1,'#3e6a48')}
+  // ponts de pierre à arches
+  for(const bx of[L*.12,L*.55]){const x0=Math.round(bx),bw=60;for(let x=0;x<bw;x++)for(let y=WY-16;y<WY;y++){const ax=(x%20)-10,arch=y>WY-12&&Math.hypot(ax/8,(y-WY)/9)<1;if(arch)continue;px(x0+x,y,y===WY-16?'#ece4d4':y<WY-14?'#c8bea8':(x+y)%6===0?'#a89e8a':'#bab09a')}}
+}
+const PEN_CAB=8;
+const PENICHE=(()=>{const w=68,ch=PEN_CAB,hh=7;return gridSprite(w,ch+hh,(x,y)=>{
+  if(y<ch){
+    if(x>=4&&x<26){if(y<2)return x>4&&x<25?(y===0?'#2e2a2e':'#5a4a40'):null;const win=y>=3&&y<=5&&(x-6)%5<3&&x>5&&x<25;if(win)return y===3?'#e4f0f4':'#9cc4d4';return x<7?'#2e5a4a':'#3a6a58'}
+    if(x>=28&&x<54&&y>=ch-3){if(y===ch-1)return '#6a4a34';if(y===ch-2)return['#e8504a','#f2c64a','#5a9a3a','#f08ab0'][(x>>1)%4];return x%3===0?'#4a8a3a':null}
+    if(x===60&&y>=1)return '#5a4a40';if(x>60&&x<64&&y>=1&&y<=3)return['#2a4aa8','#ffffff','#e8403a'][x-61];
+    return null}
+  const yy=y-ch,inl=yy<2?0:yy-1,inr=yy<1?0:Math.round(yy*1.5);if(x<inl||x>=w-inr)return null;
+  return yy===0?'#8a6040':yy===1?'#b83a32':yy===hh-1?'#1e2428':'#2e3438'})})();
 function drawFuji(g,r){
   const cx=Math.round(W*.52),hm=Math.round(WY*.46),bw=hm*3.5,sy=GT-hm,ph=r()*6,haze=hex('#c8d4de');
   const C={snowL:hex('#ffffff'),snowR:hex('#dce6f0'),snowG:hex('#c4d2e2'),rockL:hex('#a2b0c4'),rockR:hex('#8694aa'),gully:hex('#74829a')};
@@ -1645,14 +1877,20 @@ function resize(){
 }
 const castMin=()=>LB.x1+5, castMax=()=>Math.max(LB.x1+8,RB.x0-5);
 function buildLand(){
-  SEASON=season();LEAVES=SEASON==='automne'&&['clairiere','marais','jardin'].includes(WORLD.id);
+  lights=[];star=null;mills=[];
+  SEASON=season();LEAVES=SEASON==='automne'&&['clairiere','marais','jardin','kyoto'].includes(WORLD.id);
   const r=rng(1337+WORLD.need*31),P=BANKS[WORLD.id]||BANKS.lac,kind=WORLD.tree;
   [land]=canvasOf(WORLD.boat?W*2:W,WY);const g=land.getContext('2d');
-  if(WORLD.boat)drawIslands(g,r,W*2);
+  if(WORLD.boat)(WORLD.seine?drawSeine:drawIslands)(g,r,W*2);
   if(WORLD.mount)drawMountains(g,r,WORLD.mount===2);
   if(WORLD.fuji)drawFuji(g,r);
   if(WORLD.forest)drawForest(g,r);
   if(WORLD.taiga)drawTaiga(g,r);
+  if(WORLD.polar)drawPolar(g,r);
+  if(WORLD.kyoto)drawKyoto(g,r);
+  if(WORLD.desert)drawDunes(g,r);
+  if(WORLD.dutch)drawPolder(g,r);
+  if(WORLD.roofs)drawRoofs(g,r);
   falls=[];
   if(WORLD.terraces)drawTerraces(g,r);
   if(WORLD.canyon)drawCanyon(g,r);
@@ -1662,7 +1900,7 @@ function buildLand(){
   trees=[];
   const AUT=['#4a2414','#8a3a18','#c8642a','#e8983a','#f6c860','#fff0a8'];
   const AUT2=['#3e2a12','#7a5a1a','#b8902a','#e0b83a','#f6dc6a','#fff4b0'],SPR=['#1e4a26','#2e6a2e','#4e9a3a','#80c84a','#b8e46a','#e8f8a8'];
-  const make=(h,seed,back)=>kind==='oak'?makeOak(h,seed,back,SEASON==='automne'?(seed%2?AUT:AUT2):SEASON==='printemps'?SPR:SEASON==='hiver'?['#2e2a24','#4a4034','#6a5a44','#86765a','#a8987a','#c8bca0']:null):kind==='sakura'?makeSakura(h,seed,back,seed%4===0):kind==='palm'?makePalm(h,seed,back):kind==='willow'?makeWillow(h,seed,back):makePine(h,seed,back,kind==='pineDark'?DARK_PAL:TREE_PAL,kind==='snow');
+  const make=(h,seed,back)=>kind==='oak'?makeOak(h,seed,back,SEASON==='automne'?(seed%2?AUT:AUT2):SEASON==='printemps'?SPR:SEASON==='hiver'?['#2e2a24','#4a4034','#6a5a44','#86765a','#a8987a','#c8bca0']:null):kind==='sakura'?makeSakura(h,seed,back,!WORLD.kyoto&&seed%4===0):kind==='palm'?makePalm(h,seed,back):kind==='willow'?makeWillow(h,seed,back):makePine(h,seed,back,kind==='pineDark'?DARK_PAL:TREE_PAL,kind==='snow');
   const plant=(x0,x1,back)=>{
     let x=x0+r()*6;
     while(true){
@@ -1670,7 +1908,7 @@ function buildLand(){
       const spr=make(h,(r()*1e9)|0,back),w=spr.width;
       if(x+w*.35>x1)break;
       trees.push({x:Math.round(x),back,spr});
-      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?.5:kind==='sakura'?.7:kind==='oak'||kind==='autumn'?.3:WORLD.id==='lac'?.58:1)+r()*(WORLD.id==='lac'?4:8);
+      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?(WORLD.desert?1.1:.5):kind==='sakura'?.7:kind==='oak'||kind==='autumn'?.3:WORLD.id==='lac'?.58:1)+r()*(WORLD.id==='lac'?4:8);
     }
   };
   if(kind!=='none'){
@@ -1679,7 +1917,6 @@ function buildLand(){
     plant(RB.x0+14,RB.x1-10,true);plant(RB.x0+4,RB.x1-2,false);
   }
   for(const b of[true,false])for(const t of trees)if(t.back===b)g.drawImage(t.spr,t.x-(t.spr.width>>1),GT+3-t.spr.height);
-  lights=[];star=null;
   if(NOEL){
     const LC=['#ff5a5a','#ffd84a','#5ad2ff','#7aff8a','#ff8ad8'];let ci=0,tall=null;
     for(const t of trees){
@@ -1701,9 +1938,12 @@ function buildLand(){
   if(WORLD.meadow||WORLD.bushes)drawBushes(g,r);
   if(WORLD.meadow)drawClearingFront(g,r);
   if(WORLD.terraces)drawRiceFront(g,r);
+  if(WORLD.polar)drawPolarFront(g,r);
+  if(WORLD.desert)drawOasisFront(g,r);
+  if(WORLD.dutch)drawPolderFront(g,r);
+  if(WORLD.roofs)drawRoofsFront(g,r);
   if(WORLD.city)drawCity(g,r);
-  if(WORLD.fjord){const cx0=Math.round(LB.x0>0?LB.x0+20:rab.x-60);for(const[wx,wy]of[[4,7],[5,7],[4,8],[5,8],[13,7],[14,7],[13,8],[14,8]])lights.push({x:cx0+wx,y:GT-12+wy,c:'#ffd88a',ph:0,lamp:1,win:1})}
-  if(SEASON==='automne'&&!WORLD.sea&&!WORLD.boat&&!WORLD.city&&!WORLD.ice&&WORLD.id!=='tropique')g.drawImage(PUMPKIN,rab.x-22,GT+1-PUMPKIN.height);
+  if(SEASON==='automne'&&!WORLD.sea&&!WORLD.boat&&!WORLD.city&&!WORLD.ice&&!WORLD.polar&&!WORLD.roofs&&!WORLD.desert&&!WORLD.kyoto&&WORLD.id!=='tropique')g.drawImage(PUMPKIN,rab.x-22,GT+1-PUMPKIN.height);
   if(WORLD.id==='tropique'){const pa=makeParasol(Math.round(H*.085)+12),bx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.42);g.drawImage(pa,bx-(pa.width>>1),GT+2-pa.height);g.drawImage(TRANSAT,bx-4,GT+2-TRANSAT.height)}
   if(WORLD.id==='jardin'){const t=makeTorii(Math.round(H*.34)),tx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.3);g.drawImage(t,tx-(t.width>>1),GT+2-t.height);g.drawImage(TORO,rab.x-26,GT+2-TORO.height);drawBamboo(g,r,Math.min(RB.x1,W)-22,Math.min(RB.x1,W)-4,H*.38,false,GT);drawBamboo(g,r,Math.max(LB.x0,0)+2,Math.max(LB.x0,0)+16,H*.36,false,GT)}
   // herbes, roseaux et fleurs (animés)
@@ -1711,7 +1951,10 @@ function buildLand(){
   if(!WORLD.sea&&!WORLD.boat)for(const b of[LB,RB])for(let x=Math.max(b.x0,0)+1;x<Math.min(b.x1,W)-1;x+=1+(r()*3|0)){
     if(b===LB&&x>rab.x-12&&x<rab.x+14)continue;
     if(WORLD.city)continue;
-    if(WORLD.canyon){if(r()<.12)tufts.push({x,h:1+(r()*3|0),c:'#a89a5a',top:'#c8b878',p:r()*6});continue}
+    if(WORLD.polar||WORLD.roofs)continue;
+    if(WORLD.kyoto){if(r()<.12)tufts.push({x,h:1+(r()*2|0),c:'#6a8a5a',top:'#8aa870',p:r()*6});continue}
+    if(WORLD.dutch&&r()<.18)flowers.push({x,h:3+(r()*3|0),c:['#e8403a','#f2c63a','#f08ab0','#ffffff'][(r()*4)|0],p:r()*6});
+    if(WORLD.canyon||WORLD.desert){if(r()<.12)tufts.push({x,h:1+(r()*3|0),c:'#a89a5a',top:'#c8b878',p:r()*6});continue}
     if(LEAVES&&r()<.1)flowers.push({x,h:1,c:['#d8602a','#e8a83a','#b8402a'][(r()*3)|0],p:r()*6});
     if(WORLD.terraces){tufts.push({x,h:3+(r()*5|0),c:r()<.5?'#6aa048':'#86b85a',top:'#b8d878',p:r()*6});continue}
     if(WORLD.reeds&&r()<.45){tufts.push({x,h:5+(r()*9|0),c:r()<.5?'#5f7a44':'#7f9a5a',top:'#9ab070',p:r()*6,cat:r()<.4});continue}
@@ -1729,7 +1972,8 @@ function buildLand(){
   bflies=[];if(WORLD.meadow)for(let i=0;i<6;i++)bflies.push({x:r()*W,y:GT-6-r()*WY*.3,p:r()*6,vx:(r()-.5)*8,vy:0,c:['#f08a3a','#f6d24a','#ffffff','#8ab4f0','#e8504a'][r()*5|0]});
   flies=[];for(let i=0;i<(WORLD.reeds?26:WORLD.sea||WORLD.boat?0:14);i++){const b=r()<.5?LB:RB;flies.push({x:lerp(Math.max(b.x0,0),Math.min(b.x1,W),r()),y:GT-4-r()*30,p:r()*6,vx:0,vy:0})}
   rocks=[];if(flow)for(const b of[LB,RB])rocks.push({x:Math.round(lerp(Math.max(b.x0,0)+8,Math.min(b.x1,W)-8,r())),w:4+(r()*4|0),h:2+(r()*2|0)});
-  pads=[];if(WORLD.pads)for(let i=0;i<Math.round(W/22);i++){const x=r()*W|0;if(x>castMin()-8&&x<castMax()+8)continue;pads.push({x,y:WY+3+(r()*(H-WY-6)|0),w:2+(r()*2|0),f:r()<.35})}
+  pads=[];if(WORLD.polar)for(let i=0;i<Math.round(W/30);i++){const x=r()*W|0;if(x>castMin()-10&&x<castMax()+10)continue;pads.push({x,y:WY+3+(r()*(H-WY-6)|0),w:3+(r()*4|0),ice:1})}
+  if(WORLD.pads)for(let i=0;i<Math.round(W/22);i++){const x=r()*W|0;if(x>castMin()-8&&x<castMax()+8)continue;pads.push({x,y:WY+3+(r()*(H-WY-6)|0),w:2+(r()*2|0),f:r()<.35})}
   cracks=[];if(WORLD.ice)for(let i=0;i<Math.round(W/30);i++){let x=r()*W,y=WY+2+r()*(H-WY-4);const pts=[];for(let k=0;k<6+r()*8;k++){pts.push([x|0,y|0]);x+=1+r()*2;y=clamp(y+(r()-.5)*1.6,WY+1,H-1)}cracks.push(pts)}
   flakes=[];if(WX==='pluie'&&!WORLD.snow)for(let i=0;i<Math.round(W*H/260);i++)flakes.push({x:r()*W,y:r()*H,v:110+r()*50,p:r()*6,c:'#c8d6e0',rain:1});
   else if(WORLD.snow||NOEL||WX==='neige')for(let i=0;i<Math.round(W*H/(WORLD.snow?350:600));i++)flakes.push({x:r()*W,y:r()*H,v:4+r()*8,p:r()*6,c:'#ffffff'});
@@ -1846,7 +2090,7 @@ function update(dt){
   if(balloon){balloon.x+=balloon.d*dt*5;if(balloon.x<-16||balloon.x>W+16)balloon=null}
   if(false){for(const b of sails)b.x+=b.v*dt;sails=sails.filter(b=>b.x>-b.spr.width-4&&b.x<W+4)}
   if(WORLD.boat){scrollX+=dt*3;const b=Math.sin(T*1.6)>.35?1:0;rab.y=rab.y0+b;rab.gy=rab.gy0+b;
-    if((buoyT-=dt)<0){buoyT=rnd(20,50);buoys.push({x:W+4,y:WY+3+R()*(H-WY-8),k:R()<.5})}
+    if(!WORLD.seine&&(buoyT-=dt)<0){buoyT=rnd(20,50);buoys.push({x:W+4,y:WY+3+R()*(H-WY-8),k:R()<.5})}
     for(const b of buoys)b.x-=dt*7;buoys=buoys.filter(b=>b.x>-6)}
   for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=(p.g??40)*dt;p.l-=dt}
   parts=parts.filter(p=>p.l>0);
@@ -1888,6 +2132,7 @@ function draw(){
   for(const c of clouds)fx.drawImage(c.spr,Math.round(c.x),Math.round(c.y));
   for(const b of birds){const up=Math.sin(T*10+b.p)>0;fx.fillStyle=Wd.sea||Wd.boat?'#fbfbf6':OUT;fx.fillRect(Math.round(b.x),Math.round(b.y),1,1);fx.fillRect(Math.round(b.x)-1,Math.round(b.y)-(up?1:0),1,1);fx.fillRect(Math.round(b.x)+1,Math.round(b.y)-(up?1:0),1,1)}
   if(Wd.boat){const L=land.width,o=Math.round(scrollX)%L;fx.drawImage(land,-o,0);fx.drawImage(land,L-o,0)}else fx.drawImage(land,0,0);
+  for(const m of mills)drawSails(m);
   if(Wd.tree==='palm'&&sk.dark<.85){
     // ombres portées des palmiers sur le sable, opposées au soleil, avec des taches de lumière
     const day=new Date(d);day.setHours(0,0,0,0);const fr=clamp(((d-day)/864e5-.25)/.5,0,1);
@@ -1949,8 +2194,8 @@ function draw(){
     ctx.fillStyle='#f4f8f6';for(let i=0;i<4;i++)if(Math.sin(T*9+i*2+k.x)>0)ctx.fillRect(k.x-(k.w>>1)-2-(i%2),WY+(i>>1),1,1);
   }
   for(const p of pads){
-    ctx.fillStyle=nightMix('#4f7a3a');ctx.fillRect(p.x-p.w,p.y,p.w*2+1,1);ctx.fillRect(p.x-p.w+1,p.y-1,p.w*2-1,1);
-    ctx.fillStyle=nightMix('#6f9a50');ctx.fillRect(p.x-p.w+1,p.y-1,p.w,1);
+    ctx.fillStyle=nightMix(p.ice?'#9cc4dc':'#4f7a3a');ctx.fillRect(p.x-p.w,p.y,p.w*2+1,1);ctx.fillRect(p.x-p.w+1,p.y-1,p.w*2-1,1);
+    ctx.fillStyle=nightMix(p.ice?'#ffffff':'#6f9a50');ctx.fillRect(p.x-p.w+1,p.y-1,p.w,1);
     if(p.f){ctx.fillStyle=nightMix('#f2a6b4');ctx.fillRect(p.x,p.y-2,1,1)}
   }
   // voiliers au loin
@@ -1970,10 +2215,10 @@ function draw(){
   // barque, bouées et sillage
   if(Wd.boat){
     for(const b of buoys){const by2=Math.round(b.y+Math.sin(T*2+b.x)*.6);ctx.fillStyle=OUT;ctx.fillRect(Math.round(b.x)-1,by2-4,3,5);ctx.fillStyle=nightMix(b.k?'#e8605a':'#f2c64a');ctx.fillRect(Math.round(b.x),by2-3,1,2);ctx.fillStyle=nightMix('#f4f0e6');ctx.fillRect(Math.round(b.x),by2-1,1,1)}
-    const bx0=rab.x-17,byy=rab.gy-2;
+    const BS=Wd.seine?PENICHE:BOAT,bx0=Wd.seine?rab.x-BS.width+22:rab.x-17,byy=Wd.seine?rab.gy-2-PEN_CAB:rab.gy-2;
     ctx.fillStyle='#f4f8f6';for(let i=0;i<6;i++)if(Math.sin(T*6+i*1.3)>0)ctx.fillRect(bx0-2-i*3,WY+1+(i%2),2,1);
-    ctx.drawImage(BOAT,bx0,byy);
-    if(sk.ta>0){ctx.globalAlpha=sk.ta;ctx.fillStyle=rgb(sk.tint);ctx.fillRect(bx0+1,byy+1,BOAT.width-2,BOAT.height-3);ctx.globalAlpha=1}
+    ctx.drawImage(BS,bx0,byy);
+    if(sk.ta>0){ctx.globalAlpha=sk.ta;ctx.fillStyle=rgb(sk.tint);ctx.fillRect(bx0+1,byy+1,BS.width-2,BS.height-3);ctx.globalAlpha=1}
   }
   // trou dans la glace
   if(Wd.ice&&F.tx>0){ctx.fillStyle='#f4f8fa';ctx.fillRect(F.tx-4,WY+1,9,3);ctx.fillRect(F.tx-3,WY,7,5);ctx.fillStyle='#1d3644';ctx.fillRect(F.tx-3,WY+1,7,3);ctx.fillRect(F.tx-2,WY+1,5,4)}
@@ -2008,7 +2253,7 @@ function draw(){
   if(bflies.length&&sk.dark<.6)for(const b of bflies){const x=Math.round(b.x),y=Math.round(b.y),up=Math.sin(T*14+b.p)>0;ctx.fillStyle=nightMix(b.c);ctx.fillRect(x-1,y-(up?1:0),1,up?1:2);ctx.fillRect(x+1,y-(up?1:0),1,up?1:2);ctx.fillStyle=nightMix('#3a2a2a');ctx.fillRect(x,y,1,1)}
   for(const fl of falls){for(let i=0;i<14;i++){const y=fl.y0+((T*60+i*37)%(fl.y1-fl.y0)),x=fl.x+(i%4);ctx.fillStyle=nightMix('#ffffff');ctx.globalAlpha=.8;ctx.fillRect(x,Math.round(y),1,2)}
     ctx.globalAlpha=.35;ctx.fillStyle=nightMix('#ffffff');for(let i=0;i<6;i++)ctx.fillRect(fl.x-3+((T*7+i*3)%10|0),fl.y1-1-(i%3),2,1);ctx.globalAlpha=1}
-  if(Wd.fjord&&sk.dark>.45){ // aurores boréales
+  if((Wd.fjord||Wd.aurora)&&sk.dark>.45){ // aurores boréales
     ctx.globalCompositeOperation='lighter';const k=clamp((sk.dark-.45)/.3,0,1);
     for(let x=0;x<W;x+=1){const y0=WY*.08+Math.sin(x*.018+T*.15)*12+Math.sin(x*.05-T*.3)*5,hh=22+Math.sin(x*.03+T*.2)*10;
       for(let j=0;j<hh;j+=2){const t=j/hh;ctx.globalAlpha=k*.16*(1-t)*(.6+.4*Math.sin(x*.2+T));ctx.fillStyle=t<.3?'#c890ff':'#5af0a0';ctx.fillRect(x,Math.round(y0+j),1,2)}}
