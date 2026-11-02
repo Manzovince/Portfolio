@@ -1646,20 +1646,34 @@ function drawPolderFront(g,r){
   for(let i=0;i<2;i++){const x=Math.round(RB.x0+10+r()*(Math.min(RB.x1,W)-RB.x0)*.45);g.drawImage(COW,x,GT+1-COW.height)}
 }
 /* ----- Toits de Paris ----- */
-function drawEiffel(g,cx,base,h,col){
-  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)};
-  for(let y=0;y<h;y++){const t=y/h,hw=Math.max(.5,h*.3*Math.pow(1-t,2.2)+.5),Y=base-y;
-    if(t<.14){for(const sg of[-1,1])for(let d=Math.round(hw*.55);d<=hw;d++)px(cx+sg*d,Y,col)}
-    else for(let d=-Math.round(hw);d<=Math.round(hw);d++)if(Math.abs(d)>=Math.round(hw)-1||(d+y)%3===0)px(cx+d,Y,col);
-    if(Math.abs(t-.14)<.01||Math.abs(t-.42)<.01)for(let d=-Math.round(hw)-1;d<=Math.round(hw)+1;d++)px(cx+d,Y,col)}
-  for(let y=0;y<4;y++)px(cx,base-h-y,col);
+function drawEiffel(g,cx,base,h,col,glow){
+  // pieds en arche, 1er et 2e étages, flèche effilée ; treillis ajouré, côté gauche éclairé
+  const C=hex(col),Lt=rgb(mix(C,[255,240,220],.28)),Dk=rgb(mix(C,[30,24,30],.3)),Md=rgb(C);
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},edges=[];
+  const outer=t=>t<.18?h*.15+h*.13*Math.pow(1-t/.18,1.7):t<.42?lerp(h*.135,h*.06,(t-.18)/.24):Math.max(.6,h*.055*Math.pow(1-(t-.42)/.53,1.35));
+  for(let y=0;y<=Math.round(h*.95);y++){
+    const t=y/h,hw=outer(t),Y=base-y,iw=t<.14?h*.165*Math.sqrt(Math.max(0,1-Math.pow(t/.14,2))):-1;
+    const plat=Math.abs(t-.18)<.012||Math.abs(t-.42)<.009;
+    const ext=plat?Math.round(hw+(t<.3?2:1)):Math.round(hw);
+    for(let d=-ext;d<=ext;d++){
+      const ad=Math.abs(d);if(!plat&&ad<iw)continue;
+      const edge=ad>=ext-(t<.42?1:0)||(iw>0&&ad<iw+1.2)||plat;
+      const lattice=(d+y)%4===0||(d-y)%4===0;
+      if(!edge&&!lattice&&t<.9)continue;
+      px(cx+d,Y,plat?Dk:edge?(d<0?Lt:Dk):(d<0?Lt:Md));
+      if(edge&&y%3===0&&ad>=ext-1)edges.push([cx+d,Y]);
+    }
+  }
+  for(let y=Math.round(h*.95);y<h+5;y++)px(cx,base-y,Dk);
+  px(cx-1,base-Math.round(h*.95),Dk);px(cx+1,base-Math.round(h*.95),Dk);
+  if(glow){for(const[x,y]of edges)lights.push({x,y,c:'#ffd070',ph:0,lamp:1,win:1});lights.push({x:cx,y:base-h-4,c:'#fff6c0',ph:0,lamp:1})}
 }
 function drawRoofs(g,r){
   const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};
   // Sacré-Cœur sur sa butte, tour Eiffel au loin
   for(let x=0;x<W*.4;x++){const t=Math.round(GT-WY*.28*Math.exp(-Math.pow((x-W*.16)/(W*.12),2)));for(let y=t;y<=GT;y++)px(x,y,'#c8c4c8')}
   {const cx=Math.round(W*.16),b=Math.round(GT-WY*.28)+2;rect(cx-9,b-8,18,8,'#ece8e4');for(const[dx,rr]of[[0,6],[-7,3],[7,3]])for(let y=-rr;y<=0;y++){const hw=Math.round(Math.sqrt(rr*rr-y*y));rect(cx+dx-hw,b-8+y-1,hw*2+1,1,'#f4f2ee')}rect(cx,b-17,1,3,'#f4f2ee')}
-  drawEiffel(g,Math.round(W*.72),GT,Math.round(WY*.55),'#8a7c74');
+  drawEiffel(g,Math.round(W*.72),GT,Math.round(WY*.58),'#8a6e5a',true);
   // deux rangées d'immeubles haussmanniens : façades crème, toits de zinc, lucarnes, cheminées
   for(const[k,hh,fac,zinc]of[[0,.13,'#ddd0bc','#9aa4b0'],[1,.08,'#e8dcc4','#7e8c9c']]){
     let x=-4;while(x<W+4){const w=18+(r()*16|0),fh=Math.round(WY*hh*(.6+r()*.4))+(k?0:Math.round(WY*.05)),rh=7+k*3,top=GT-fh;
@@ -1702,15 +1716,38 @@ function drawSeine(g,r,L){
   // ponts de pierre à arches
   for(const bx of[L*.12,L*.55]){const x0=Math.round(bx),bw=60;for(let x=0;x<bw;x++)for(let y=WY-16;y<WY;y++){const ax=(x%20)-10,arch=y>WY-12&&Math.hypot(ax/8,(y-WY)/9)<1;if(arch)continue;px(x0+x,y,y===WY-16?'#ece4d4':y<WY-14?'#c8bea8':(x+y)%6===0?'#a89e8a':'#bab09a')}}
 }
-const PEN_CAB=8;
-const PENICHE=(()=>{const w=68,ch=PEN_CAB,hh=7;return gridSprite(w,ch+hh,(x,y)=>{
+const PEN_CAB=14;
+const PENICHE=(()=>{const w=104,ch=PEN_CAB,hh=10;return gridSprite(w,ch+hh,(x,y)=>{
   if(y<ch){
-    if(x>=4&&x<26){if(y<2)return x>4&&x<25?(y===0?'#2e2a2e':'#5a4a40'):null;const win=y>=3&&y<=5&&(x-6)%5<3&&x>5&&x<25;if(win)return y===3?'#e4f0f4':'#9cc4d4';return x<7?'#2e5a4a':'#3a6a58'}
-    if(x>=28&&x<54&&y>=ch-3){if(y===ch-1)return '#6a4a34';if(y===ch-2)return['#e8504a','#f2c64a','#5a9a3a','#f08ab0'][(x>>1)%4];return x%3===0?'#4a8a3a':null}
-    if(x===60&&y>=1)return '#5a4a40';if(x>60&&x<64&&y>=1&&y<=3)return['#2a4aa8','#ffffff','#e8403a'][x-61];
+    // drapeau à la poupe
+    if(x===2)return '#5a4a40';if(x>2&&x<9&&y>=1&&y<=4)return['#2a4aa8','#2a4aa8','#ffffff','#ffffff','#e8403a','#e8403a'][x-3];
+    // cheminée
+    if(x>=22&&x<=24&&y<4)return y===1?'#d8402e':'#2a2628';
+    // timonerie : toit débordant, fenêtres encadrées, porte, bouée
+    if(y>=3&&y<=4&&x>=6&&x<=37)return y===3?'#2e2a2e':'#4a4044';
+    if(y>4&&x>=8&&x<=35){
+      if(x>=30&&x<=33&&y>=7)return x===30?'#3a2418':'#6a4430';
+      if(y>=6&&y<=9&&x<=28){const k=(x-10)%6;if(x>=10&&k<=4){if(k===0||k===4||y===6||y===9)return '#ece8e0';return y===7&&k===1?'#e4f2f6':'#8cbccc'}}
+      if(y>=10&&y<=13&&x>=12&&x<=15){const d=Math.hypot(x-13.5,y-11.5);if(d<1)return null;return (x+y)%2?'#e8403a':'#ffffff'}
+      return x<10?'#4a7a68':y===ch-1?'#2e5a4a':'#3a6a58';
+    }
+    // écoutilles de cale en bois
+    if(x>=40&&x<=62&&y>=ch-4){if(y===ch-4)return x===40||x===62?null:'#a8784e';return x%4===0?'#6a4430':'#8a6040'}
+    // transat rayé sur l'écoutille
+    if(x>=48&&x<=53&&y>=ch-8&&y<ch-4){const dy=y-(ch-8);if(x===48+dy||x===49+dy)return(x+y)%2?'#3a8ac0':'#f4f0e6';if(dy===3&&x>51)return '#8a6040';return null}
+    // jardinière fleurie
+    if(x>=66&&x<=76&&y>=ch-6){if(y>=ch-2)return y===ch-2?'#d07a50':'#a85a3a';if(y===ch-3)return x%2?'#4a8a3a':'#5a9a46';return (x*3+y)%5===0?['#e8504a','#f2c64a','#f08ab0'][(x+y)%3]:(x+y)%2?'#4a8a3a':null}
+    // bitte d'amarrage et cordage à la proue
+    if(x>=94&&x<=96&&y>=ch-3)return y===ch-3?'#2a2628':'#4a4448';
+    if(y===ch-1&&x>=88&&x<=93)return (x%2)?'#c8a870':'#a88850';
     return null}
-  const yy=y-ch,inl=yy<2?0:yy-1,inr=yy<1?0:Math.round(yy*1.5);if(x<inl||x>=w-inr)return null;
-  return yy===0?'#8a6040':yy===1?'#b83a32':yy===hh-1?'#1e2428':'#2e3438'})})();
+  const yy=y-ch,inl=yy<3?0:Math.round((yy-2)*.8),inr=yy<1?0:Math.round(yy*1.25);if(x<inl||x>=w-inr)return null;
+  if(yy===0)return x%5===0?'#6a4430':'#8a6040';
+  if(yy===1)return '#f0ece4';
+  if(yy===2)return '#b83a32';
+  if(yy===5&&(x-8)%12<2&&x>6&&x<w-14)return (x-8)%12===0?'#cfe4ec':'#7aa4b4';
+  if(yy===3&&x%6===3)return '#4a525a';
+  return yy===hh-1?'#1a1e22':x<inl+2?'#252a2e':'#2e3438'})})();
 function drawFuji(g,r){
   const cx=Math.round(W*.52),hm=Math.round(WY*.46),bw=hm*3.5,sy=GT-hm,ph=r()*6,haze=hex('#c8d4de');
   const C={snowL:hex('#ffffff'),snowR:hex('#dce6f0'),snowG:hex('#c4d2e2'),rockL:hex('#a2b0c4'),rockR:hex('#8694aa'),gully:hex('#74829a')};
@@ -2215,7 +2252,7 @@ function draw(){
   // barque, bouées et sillage
   if(Wd.boat){
     for(const b of buoys){const by2=Math.round(b.y+Math.sin(T*2+b.x)*.6);ctx.fillStyle=OUT;ctx.fillRect(Math.round(b.x)-1,by2-4,3,5);ctx.fillStyle=nightMix(b.k?'#e8605a':'#f2c64a');ctx.fillRect(Math.round(b.x),by2-3,1,2);ctx.fillStyle=nightMix('#f4f0e6');ctx.fillRect(Math.round(b.x),by2-1,1,1)}
-    const BS=Wd.seine?PENICHE:BOAT,bx0=Wd.seine?rab.x-BS.width+22:rab.x-17,byy=Wd.seine?rab.gy-2-PEN_CAB:rab.gy-2;
+    const BS=Wd.seine?PENICHE:BOAT,bx0=Wd.seine?rab.x-BS.width+24:rab.x-17,byy=Wd.seine?rab.gy-2-PEN_CAB:rab.gy-2;
     ctx.fillStyle='#f4f8f6';for(let i=0;i<6;i++)if(Math.sin(T*6+i*1.3)>0)ctx.fillRect(bx0-2-i*3,WY+1+(i%2),2,1);
     ctx.drawImage(BS,bx0,byy);
     if(sk.ta>0){ctx.globalAlpha=sk.ta;ctx.fillStyle=rgb(sk.tint);ctx.fillRect(bx0+1,byy+1,BS.width-2,BS.height-3);ctx.globalAlpha=1}
