@@ -151,6 +151,7 @@ main{display:flex;flex-direction:column;align-items:center;margin-top:0;width:10
   <div class="ph">
     <button class="tab on" data-tab="carnet">Carnet</button>
     <button class="tab" data-tab="mondes">Mondes</button>
+    <button class="tab" data-tab="aquarium">Aquarium</button>
     <button class="tab" data-tab="boutique">Boutique</button>
     <button class="tab" data-tab="reglages">Réglages</button>
     <span class="sp"></span>
@@ -857,7 +858,8 @@ const WORLDS=[
   {id:'mangrove',n:'Mangrove',d:'Des racines sur pilotis dans une eau tiède et brune.',need:88,tree:'mangrove',reeds:1,water:['#6a7a48',.55],sky:['#dcead0',.2],sw:['#dcead0','#6a7a48']},
   {id:'fjord',n:'Fjord',d:'Des falaises vertigineuses, une cascade, et des aurores la nuit.',need:96,tree:'none',fjord:1,water:['#2a5a6a',.5],sky:['#d4e2ea',.2],sw:['#d4e2ea','#2a5a6a']},
   {id:'ville',n:'Ville la nuit',d:'Un quai de canal, des réverbères et des fenêtres allumées.',need:104,tree:'none',city:1,night:1,water:['#2a3450',.5],sw:['#2a3450','#141a2c']},
-  {id:'automne',n:'Automne',d:'Le lac en octobre, sous les érables flamboyants.',need:112,tree:'autumn',leaves:1,water:['#7a8a7a',.35],sky:['#f0dcc0',.22],sw:['#f0dcc0','#8a9a7a']}
+  {id:'automne',n:'Automne',d:'Le lac en octobre, sous les érables flamboyants.',need:112,tree:'autumn',leaves:1,water:['#7a8a7a',.35],sky:['#f0dcc0',.22],sw:['#f0dcc0','#8a9a7a']},
+  {id:'aquarium',n:'Aquarium',d:'Tes plus belles prises dans un grand bassin. Ici, on ne pêche pas.',need:0,tree:'none',aquarium:1,sw:['#d8e4de','#3a9ab8']}
 ];
 const WI=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
 const discovered=()=>Object.keys(loadLog().sp).filter(id=>SPI[id]).length;
@@ -1538,7 +1540,64 @@ function resize(){
   if(F.st==='wait'||F.st==='bite'||F.st==='reel')F.tx=clamp(F.tx,castMin(),castMax());
 }
 const castMin=()=>LB.x1+5, castMax=()=>Math.max(LB.x1+8,RB.x0-5);
+/* ---------- aquarium : pas de pêche, les prises choisies nagent ---------- */
+const AQMAX=12;let aqua=[],aquaDeco=null;
+function aquaCaught(){const L=loadLog();return Object.keys(L.sp).filter(id=>SPI[id]&&L.sp[id].n)}
+function aquaList(){
+  const got=aquaCaught(),ord='ljeruc';let ids=store.get('aqua',null);
+  if(!ids)ids=got.filter(id=>SPI[id].rar!=='j').sort((a,b)=>ord.indexOf(SPI[a].rar)-ord.indexOf(SPI[b].rar)).slice(0,8);
+  return ids.filter(id=>got.includes(id)).slice(0,AQMAX);
+}
+const flipCache=new Map();
+function flipped(c){if(flipCache.has(c))return flipCache.get(c);const[k,g]=canvasOf(c.width,c.height);g.translate(c.width,0);g.scale(-1,1);g.drawImage(c,0,0);flipCache.set(c,k);return k}
+const AQZ=()=>W>320?2:1;
+const tank=()=>({x0:Math.round(W*.2),x1:Math.round(W*.94),y0:Math.round(H*.44),y1:H-14});
+function buildAqua(){
+  const t=tank(),r=rng(77);
+  aqua=aquaList().map(id=>{const sp=SPI[id],spr=sp.spr,sink=sp.rar==='j'||!!sp.map&&/crabe|crane|tong|caddie|casque|cle|chapeau|sable|chataigne|feuille|citrouille|pomme|boussole|loterie|message|nain|trottinette|scarabee|glandor|couronne|perle|coffre|bouee|coquillage|conque|etoile|oursin/.test(id);
+    const z=AQZ(),sw=spr.width*z,sh=spr.height*z;
+    return{sp,spr,sw,sh,x:t.x0+4+r()*Math.max(1,t.x1-t.x0-10-sw),y:sink?t.y1-4-sh:t.y0+10+r()*Math.max(1,t.y1-t.y0-30-sh),v:sink?0:(3+r()*6)*(r()<.5?-1:1),ph:r()*6,sink}});
+  const plants=[],rocks=[];
+  for(let x=t.x0+6+r()*10;x<t.x1-6;x+=10+r()*28)plants.push({x:Math.round(x),h:8+r()*(t.y1-t.y0)*.55,ph:r()*6,c:r()<.5?['#2e7a44','#4aa05a']:['#5a8a2e','#86b04a']});
+  for(let i=0;i<4;i++)rocks.push({x:t.x0+10+r()*(t.x1-t.x0-30),w:6+r()*10,h:4+r()*6});
+  aquaDeco={plants,rocks,bubbles:[]};
+}
+function aquaUpdate(dt){
+  const t=tank();if(!aquaDeco)buildAqua();
+  for(const f of aqua){if(f.sink)continue;f.x+=f.v*dt;const max=t.x1-3-f.sw;if(f.x<t.x0+3){f.x=t.x0+3;f.v=Math.abs(f.v)}if(f.x>max){f.x=max;f.v=-Math.abs(f.v)}if(R()<dt*.08)f.v=-f.v}
+  const B=aquaDeco.bubbles;if(R()<dt*6)B.push({x:t.x1-14+R()*4,y:t.y1-4,v:10+R()*8});
+  for(const b of B){b.y-=b.v*dt;b.x+=Math.sin(T*3+b.y)*dt*2}aquaDeco.bubbles=B.filter(b=>b.y>t.y0+2);
+}
+function drawAquarium(sk){
+  const t=tank(),dk=sk.dark,dim=c=>rgb(mix(hex(c),[16,22,36],dk*.6));
+  for(let y=0;y<H;y++){ctx.fillStyle=rgb(mix(mix(hex('#e4ece6'),hex('#c4d4d0'),y/H),[22,30,44],dk*.75));ctx.fillRect(0,y,W,1)}
+  // parquet et meuble sous le bassin
+  for(let y=H-6;y<H;y++)for(let x=0;x<W;x+=1){ctx.fillStyle=dim((x+(y%2)*7)%14===0?'#6a4a34':y===H-6?'#b08860':'#9a7450');ctx.fillRect(x,y,1,1)}
+  ctx.fillStyle=dim('#5a4030');ctx.fillRect(t.x0-3,t.y1+1,t.x1-t.x0+6,H-6-t.y1-1);ctx.fillStyle=dim('#7a5a40');ctx.fillRect(t.x0-3,t.y1+1,t.x1-t.x0+6,1);
+  // eau
+  for(let y=t.y0;y<t.y1;y++){const k=(y-t.y0)/(t.y1-t.y0);ctx.fillStyle=rgb(mix(mix(hex('#8ad4e0'),hex('#1e5a7a'),k),[10,20,40],dk*.45));ctx.fillRect(t.x0,y,t.x1-t.x0,1)}
+  ctx.globalCompositeOperation='lighter';ctx.fillStyle='#fff6d0';
+  for(let i=0;i<5;i++){const x=t.x0+((i*.21+T*.01)%1)*(t.x1-t.x0),w=6+i%3*5;ctx.globalAlpha=.05+.03*Math.sin(T*.7+i);ctx.beginPath();ctx.moveTo(x,t.y0);ctx.lineTo(x+w,t.y0);ctx.lineTo(x+w-14,t.y1);ctx.lineTo(x-14,t.y1);ctx.fill()}
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+  const D=aquaDeco||{plants:[],rocks:[],bubbles:[]};
+  // sable, rochers, plantes
+  for(let y=t.y1-5;y<t.y1;y++)for(let x=t.x0;x<t.x1;x++){ctx.fillStyle=dim((x*7+y*3)%11===0?'#c8b47a':y===t.y1-5?'#f2e4b8':'#e4d29c');ctx.fillRect(x,y,1,1)}
+  for(const rk of D.rocks)for(let y=0;y<rk.h;y++){const hw=rk.w/2*Math.sqrt(1-Math.pow(1-y/rk.h,2));ctx.fillStyle=dim(y<2?'#a8b0b4':'#7a8288');ctx.fillRect(Math.round(rk.x-hw),Math.round(t.y1-4-rk.h+y),Math.round(hw*2),1)}
+  for(const pl of D.plants)for(let j=0;j<pl.h;j++){const x=Math.round(pl.x+Math.sin(T*1.1+pl.ph+j*.18)*j*.09);ctx.fillStyle=dim(pl.c[j%5===0?1:0]);ctx.fillRect(x,t.y1-5-j,j%7===3?3:2,1)}
+  // poissons
+  for(const f of aqua){const y=Math.round(f.y+(f.sink?0:Math.sin(T*1.3+f.ph)*2));ctx.globalAlpha=1-dk*.35;ctx.drawImage(f.v<0?flipped(f.spr):f.spr,Math.round(f.x),y,f.sw,f.sh)}
+  ctx.globalAlpha=1;
+  ctx.fillStyle='rgba(255,255,255,.7)';for(const b of D.bubbles)ctx.fillRect(Math.round(b.x),Math.round(b.y),1,1);
+  // vitre, cadre et couvercle lumineux
+  ctx.globalAlpha=.18;ctx.fillStyle='#ffffff';ctx.fillRect(t.x0+3,t.y0+2,1,t.y1-t.y0-4);ctx.beginPath();ctx.moveTo(t.x1-30,t.y0);ctx.lineTo(t.x1-22,t.y0);ctx.lineTo(t.x1-46,t.y1);ctx.lineTo(t.x1-54,t.y1);ctx.fill();ctx.globalAlpha=1;
+  ctx.fillStyle=OUT;ctx.fillRect(t.x0-2,t.y0-5,t.x1-t.x0+4,4);ctx.fillRect(t.x0-2,t.y0,2,t.y1-t.y0+1);ctx.fillRect(t.x1,t.y0,2,t.y1-t.y0+1);ctx.fillRect(t.x0-2,t.y1,t.x1-t.x0+4,2);
+  ctx.fillStyle='#fff2c0';ctx.globalAlpha=.8;ctx.fillRect(t.x0,t.y0-1,t.x1-t.x0,1);ctx.globalAlpha=1;
+  // le lapin regarde
+  const sp=RAB[F.ear*2+F.blink];ctx.drawImage(sp,Math.max(2,t.x0-sp.width-4),H-6-sp.height+OY+1);
+  if(!aqua.length){ctx.fillStyle=dim('#2a4a5a');ctx.font='8px monospace';ctx.textAlign='center';ctx.fillText('clique sur le bassin pour choisir tes poissons',(t.x0+t.x1)/2,(t.y0+t.y1)/2);ctx.textAlign='left'}
+}
 function buildLand(){
+  aquaDeco=null;if(WORLD.aquarium)buildAqua();
   const r=rng(1337+WORLD.need*31),P=BANKS[WORLD.id]||BANKS.lac,kind=WORLD.tree;
   [land]=canvasOf(WORLD.boat?W*2:W,WY);const g=land.getContext('2d');
   if(WORLD.boat)drawIslands(g,r,W*2);
@@ -1712,6 +1771,7 @@ function update(dt){
   // vie du lapin
   if((F.earT-=dt)<0){F.ear=1-F.ear;F.earT=F.ear?.35:rnd(3,9)}
   if((F.blinkT-=dt)<0){F.blink=1-F.blink;F.blinkT=F.blink?.12:rnd(2,5)}
+  if(WORLD.aquarium){aquaUpdate(dt);return}
   let ang=-1,bend=0;
   switch(F.st){
     case'idle':ang=-1.05;if(F.t>F.wait0)cast();break;
@@ -1763,6 +1823,7 @@ function line(g,x0,y0,x1,y1,sag,c){
 }
 function draw(){
   const d=now(),e=sunE(d),sk=worldSky(skyAt(e)),Wd=WORLD;
+  if(Wd.aquarium)return drawAquarium(sk);
   // ciel
   for(let y=0;y<WY;y++){ctx.fillStyle=rgb(mix(sk.top,sk.bot,Math.pow(y/WY,1.3)));ctx.fillRect(0,y,W,1)}
   // étoiles
@@ -1956,6 +2017,7 @@ function frame(ts){
 
 /* ---------- interactions ---------- */
 function act(x,y){
+  if(WORLD.aquarium){if(x!=null)openModal('aquarium');return}
   if(F.st==='bite')return strike();
   if(x!=null&&x>=rab.x-1&&x<=rab.x+13&&y>=rab.y&&y<=rab.y+RAB_H){F.hop=.25;heart();return}
   if((F.st==='wait'||F.st==='idle')&&(x==null||(y>=WY-8&&x>=castMin()-6&&x<=castMax()+6)))cast(x==null?null:clamp(x,castMin(),castMax()));
@@ -2056,7 +2118,7 @@ function showTab(tab){
     const big=Object.entries(L.sp).filter(([id,e])=>e.best&&SPI[id]).sort((a,b)=>b[1].best-a[1].best)[0];
     B.innerHTML=`<div class="stats"><div class="stat"><b>${L.total}</b>prises</div><div class="stat"><b>${L.today}</b>aujourd’hui</div><div class="stat"><b>${got}/${SP.length}</b>découvertes</div>${big?`<div class="stat"><b>${big[1].best} cm</b>${SPI[big[0]].n.toLowerCase()}</div>`:''}</div>`;
     const ws=[WORLD,...WORLDS.filter(w=>w!==WORLD&&unlocked(w))];
-    const groups=[...ws.map(w=>[w.n,SP.filter(s=>(s.wd||'lac')===w.id)]),['Partout',SP.filter(s=>s.wd==='*'&&!s.noel)],...(NOEL||SP.some(s=>s.noel&&L.sp[s.id])?[['Noël',SP.filter(s=>s.noel)]]:[])];
+    const groups=[...ws.filter(w=>!w.aquarium).map(w=>[w.n,SP.filter(s=>(s.wd||'lac')===w.id)]),['Partout',SP.filter(s=>s.wd==='*'&&!s.noel)],...(NOEL||SP.some(s=>s.noel&&L.sp[s.id])?[['Noël',SP.filter(s=>s.noel)]]:[])];
     for(const[name,list]of groups){
       const h=document.createElement('h3');h.className='wh';h.textContent=`${name} · ${list.filter(s=>L.sp[s.id]).length}/${list.length}`;B.appendChild(h);
       const G=document.createElement('div');G.className='grid';B.appendChild(G);
@@ -2082,10 +2144,23 @@ function showTab(tab){
     for(const w of WORLDS){
       const ok=unlocked(w),list=SP.filter(s=>(s.wd||'lac')===w.id),f=list.filter(s=>L.sp[s.id]).length;
       const c=document.createElement('button');c.className='wcard'+(ok?'':' lock')+(w===WORLD?' cur':'');
-      c.innerHTML=`<span class="sw" style="background:linear-gradient(${w.sw[0]} 55%,${w.sw[1]} 55%)"></span><span><b>${ok?'':'🔒 '}${w.n}</b>${w===WORLD?'<span class="tag new">ici</span>':''}<br><small>${ok?`${w.d}<br>${f}/${list.length} espèces trouvées`:`Se débloque à ${w.need} découvertes (tu en as ${got}).`}</small></span>`;
+      c.innerHTML=`<span class="sw" style="background:linear-gradient(${w.sw[0]} 55%,${w.sw[1]} 55%)"></span><span><b>${ok?'':'🔒 '}${w.n}</b>${w===WORLD?'<span class="tag new">ici</span>':''}<br><small>${ok?`${w.d}${w.aquarium?'':`<br>${f}/${list.length} espèces trouvées`}`:`Se débloque à ${w.need} découvertes (tu en as ${got}).`}</small></span>`;
       if(ok&&w!==WORLD)c.onclick=()=>{setWorld(w.id);closeModal()};
       wl.appendChild(c);
     }
+  }else if(tab==='aquarium'){
+    const got=aquaCaught(),sel=aquaList(),ord='ljeruc';
+    B.innerHTML=`<p class="lockl" style="margin:0 0 10px">Choisis jusqu’à ${AQMAX} prises à admirer dans l’aquarium (${sel.length}/${AQMAX}). Les objets se posent sur le sable.</p>`;
+    if(!WORLD.aquarium){const go=document.createElement('button');go.className='pill acc';go.textContent='Aller à l’aquarium';go.style.marginBottom='12px';go.onclick=()=>{setWorld('aquarium');closeModal()};B.appendChild(go)}
+    const G=document.createElement('div');G.className='grid';B.appendChild(G);
+    for(const id of got.slice().sort((a,b)=>ord.indexOf(SPI[a].rar)-ord.indexOf(SPI[b].rar))){
+      const sp=SPI[id],on=sel.includes(id),c=document.createElement('div');c.className='card shop'+(on?' worn':'')+(!on&&sel.length>=AQMAX?' poor':'');
+      c.appendChild(bigSprite(sp.spr,3));const info=document.createElement('div');
+      info.innerHTML=`<div class="nm">${sp.n}</div><div class="ms" style="color:${RAR[sp.rar].col}">${RAR[sp.rar].n}${on?' · dans l’aquarium':''}</div>`;c.appendChild(info);
+      c.onclick=()=>{let ids=aquaList();if(on)ids=ids.filter(x=>x!==id);else if(ids.length<AQMAX)ids.push(id);else return;store.set('aqua',ids);if(WORLD.aquarium)buildAqua();showTab('aquarium')};
+      G.appendChild(c);
+    }
+    if(!got.length)B.insertAdjacentHTML('beforeend','<p class="lockl">Pêche d’abord quelque chose dans un autre monde.</p>');
   }else if(tab==='boutique'){
     const L=loadLog();
     B.innerHTML=`<div class="stats"><div class="stat"><b class="price">${L.coins}</b>pièces</div></div><p class="lockl" style="margin:0 0 6px">Chaque prise rapporte des pièces : plus elle est rare, plus elle vaut cher. Les ballons cadeaux qui passent dans le ciel aussi.</p>`;
@@ -2126,6 +2201,7 @@ function showTab(tab){
 
 /* ---------- pêche pendant l'absence ---------- */
 function awayCatch(ms){
+  if(WORLD.aquarium)return;
   const n=Math.min(14,Math.floor(ms/150e3));if(n<1)return;
   const got={};let k=0,coins=0;
   for(let i=0;i<n;i++){const s=pickFish();if(R()<RAR[s.rar].auto){coins+=addCatch(s.id,sizeOf(s,false),false).coins;got[s.id]=(got[s.id]||0)+1;k++}}
