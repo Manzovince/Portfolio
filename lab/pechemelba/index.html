@@ -608,12 +608,12 @@ const LANTERN=[0,1].map(lit=>mapSprite([
 
 /* ---------- poissons ---------- */
 const RAR={
-  c:{n:'commun',auto:.85,zw:.30,v:.6,col:'#6f9a86'},
-  u:{n:'peu commun',auto:.55,zw:.23,v:.8,col:'#4f8fb8'},
-  r:{n:'rare',auto:.16,zw:.17,v:1.05,col:'#9a62c4'},
-  e:{n:'épique',auto:.03,zw:.125,v:1.3,col:'#d9792e'},
+  c:{n:'commun',auto:.4,zw:.30,v:.6,col:'#6f9a86'},
+  u:{n:'peu commun',auto:.22,zw:.23,v:.8,col:'#4f8fb8'},
+  r:{n:'rare',auto:.06,zw:.17,v:1.05,col:'#9a62c4'},
+  e:{n:'épique',auto:.01,zw:.125,v:1.3,col:'#d9792e'},
   l:{n:'légendaire',auto:0,zw:.09,v:1.55,col:'#d6a514'},
-  j:{n:'trouvaille',auto:.9,zw:.32,v:.55,col:'#9a8478'}
+  j:{n:'trouvaille',auto:.45,zw:.32,v:.55,col:'#9a8478'}
 };
 const SP=[
   {id:'gardon',n:'Gardon',rar:'c',w:22,cm:[10,32],look:{len:12,h:5,body:'#c8cfcd',back:'#7c928d',belly:'#eef0ea',fin:'#d8574a'}},
@@ -3259,7 +3259,7 @@ function showTab(tab){
     B.innerHTML=`<div class="set">
       <label>Moteur de recherche <select id="sEng">${Object.entries(ENG).map(([k,v])=>`<option value="${k}"${k===eng?' selected':''}>${v[0]}</option>`).join('')}</select></label>
       <label>Remettre le carnet à zéro <button class="danger" id="sReset">Effacer</button></label>
-      <p>Le lapin pêche tout seul, même quand l’onglet est fermé : il ferre les poissons communs, mais les rares, épiques et légendaires ne se prennent qu’à la main. Quand le flotteur plonge, maintiens Espace (ou le clic) : la jauge apparaît, et tu relâches quand l’aiguille est dans la zone verte — au centre doré pour un ferrage parfait. Clique sur l’eau pour lancer ailleurs, sur le lapin pour un câlin. Les prises rapportent des pièces pour la boutique, et un ballon cadeau passe parfois dans le ciel : clique dessus.</p>
+      <p>Le lapin pêche tout seul, même quand l’onglet est fermé : il rate souvent son coup et ne ramène que de temps en temps un poisson commun ; les rares, épiques et légendaires se prennent à la main. Quand le flotteur plonge, maintiens Espace (ou le clic) : la jauge apparaît, et tu relâches quand l’aiguille est dans la zone verte — au centre doré pour un ferrage parfait. Clique sur l’eau pour lancer ailleurs, sur le lapin pour un câlin. Les prises rapportent des pièces pour la boutique, et un ballon cadeau passe parfois dans le ciel : clique dessus.</p>
       <p>Le ciel suit l’heure et la position du soleil réelles. Certaines espèces ne mordent que la nuit, d’autres le jour. Chaque monde a ses propres poissons ; on en débloque de nouveaux en découvrant des espèces.</p>
     </div>`;
     $('#sEng').onchange=e=>setEng(e.target.value);
@@ -3269,7 +3269,7 @@ function showTab(tab){
 
 /* ---------- pêche pendant l'absence ---------- */
 function awayCatch(ms){
-  const n=Math.min(14,Math.floor(ms/150e3));if(n<1)return;
+  const n=Math.min(10,Math.floor(ms/300e3));if(n<1)return;
   const got={};let k=0,coins=0;
   for(let i=0;i<n;i++){const s=pickFish();if(R()<RAR[s.rar].auto){coins+=addCatch(s.id,sizeOf(s,false),false).coins;got[s.id]=(got[s.id]||0)+1;k++}}
   if(!k)return;
