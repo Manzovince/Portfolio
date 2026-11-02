@@ -1783,11 +1783,6 @@ const hsh=(x,y)=>{let h=Math.imul(x,374761393)+Math.imul(y,668265263)|0;h=Math.i
 function canopyLine(r,y0,amp){const top=new Array(W).fill(GT);let x=-10;while(x<W+10){const rr=amp*(.6+r()*.7)+4,cy=y0+(r()-.5)*amp;for(let d=-Math.ceil(rr);d<=rr;d++){const xx=Math.round(x+d);if(xx>=0&&xx<W)top[xx]=Math.min(top[xx],Math.round(cy+rr*.45-Math.sqrt(rr*rr-d*d)*.75))}x+=rr*(.9+r()*.6)}return top}
 function drawJardin(g,r){
   const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),1,1)},rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
-  // deux rangs d'arbres dans la brume bleutée
-  for(const[k,hh,C]of[[0,.3,['#c6e2dc','#b2d4d0','#a2c8c6']],[1,.19,['#acd0c4','#94bcb2','#86b0a8']]]){
-    const top=canopyLine(r,GT-WY*hh,WY*hh*.22);
-    for(let x=0;x<W;x++){const t=top[x];for(let y=t;y<=GT;y++)px(x,y,y<t+2?C[0]:hsh(x,y+k*999)%11===0?C[0]:y>GT-4?C[2]:C[1])}
-  }
   // au fond de la trouée : l'étang qui continue sous un pont de pierre en arc
   const bc=Math.round((LB.x1+RB.x0)/2),span=Math.max(30,Math.min(92,Math.round((RB.x0-LB.x1)*.95))),half=span/2,rise=Math.round(span*.2);
   for(let x=bc-half-14;x<bc+half+14;x++)for(let y=GT-4;y<=GT;y++)px(x,y,(x*2+y*3)%10===0?'#cfeaf6':y===GT-4?'#b4dcf0':'#8cc4e4');
@@ -1934,36 +1929,6 @@ function drawJardinFront(g,r){
 const GIV_WILLOW=['#0c2a20','#1e5a34','#2e7a36','#4a9e38','#78c23c','#a8dc48','#d8f080'];
 function drawGiverny(g,r){
   const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),1,1)},rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
-  // frondaisons en trois profondeurs : touffes de feuilles texturées, plus bleues et pâles au loin
-  const FAR=['#7a9e98','#88aaa2','#98b6aa','#a8c2b2','#b8ceba','#c8dac4'],MID=['#2e5a34','#3e7238','#56903e','#78ac48','#a4c858','#d0e080'],NEAR=['#173a24','#22502c','#346e34','#4e8c3c','#76ac48','#a8cc60'];
-  const SUN=['#5a8a3a','#7aa840','#a0c448','#c8dc58','#e4e870','#f6f4a0'];
-  const layer=(hh,P,amp,step,extra)=>{
-    const tops=new Array(W).fill(GT),cl=[];let x=-12;
-    while(x<W+12){const rx=step*(.7+r()*.6),ry=rx*(.7+r()*.25),cy=GT-WY*hh+(r()-.5)*amp;cl.push({x,y:cy,rx,ry});x+=rx*(1+r()*.5)}
-    // fond plein sous les touffes, pour ne jamais voir le ciel au pied des arbres
-    for(const L of cl)for(let xx=Math.round(L.x-L.rx*.8);xx<=L.x+L.rx*.8;xx++)if(xx>=0&&xx<W){const t=Math.round(L.y);tops[xx]=Math.min(tops[xx],t);for(let y=t;y<=GT;y++)px(xx,y,P[(hsh(xx,y)%7===0)?2:1])}
-    for(const L of cl){const pal=extra&&r()<extra.sun?SUN:P;leafy((xx,yy,k)=>{if(yy<=GT)px(xx,yy,pal[k])},L,pal.length,r);
-      if(extra&&r()<extra.flo){const C=r()<.5?['#f2a6c0','#fbe0ea']:r()<.5?['#b898e4','#e0d0f8']:['#f4f0e8','#ffffff'];for(let k=0;k<L.rx*1.2;k++){const fx=Math.round(L.x+(r()-.5)*L.rx*1.4),fy=Math.round(L.y+(r()-.2)*L.ry*.9);px(fx,fy,C[0]);if(k%3===0)px(fx,fy-1,C[1])}}}
-    // troncs entrevus entre les touffes
-    if(extra)for(let i=0;i<W/22;i++){const tx=Math.round(r()*W),ty=tops[tx]+Math.round(WY*hh*.45);for(let y=ty;y<GT-1;y++)px(tx,y,P[0])}
-    return tops;
-  };
-  layer(.4,FAR,WY*.08,14,null);
-  // au fond : des peupliers (Monet en a peint toute une série) entre les touffes
-  for(let i=0;i<3;i++){const fx=Math.round(W*(.18+i*.32)+(r()-.5)*W*.06),hp=Math.round(clamp(H*.32,40,130)),sp=makePoplar(hp,r()*1e9|0,true);g.drawImage(sp,fx-(sp.width>>1),Math.round(GT-WY*.12)-hp)}
-  const mid=layer(.27,MID,WY*.06,11,{sun:.22,flo:.25});
-  // la maison de Monet entre les arbres : façade rose, volets verts, toit d'ardoise
-  {const hx=Math.round(W*.39),hw=Math.round(clamp(W*.11,34,70)),wh=Math.round(hw*.3),base=Math.round(mid[clamp(hx,0,W-1)]+wh*.55),x0=hx-(hw>>1),top=base-wh;
-    for(let y=top;y<base;y++)for(let x=x0;x<x0+hw;x++)px(x,y,(x-x0)%9===8?'#d4908a':'#eaaaa2');
-    for(let y=top;y<base;y++)px(x0,y,'#c88480');
-    for(const row of[top+2,top+Math.round(wh*.55)])for(let x=x0+3;x<x0+hw-4;x+=7){px(x,row,'#3e8a5a');px(x+3,row,'#3e8a5a');for(let yy=row;yy<row+3;yy++){px(x,yy,'#3e8a5a');px(x+1,yy,'#f4f0ea');px(x+2,yy,'#cfd8e0');px(x+3,yy,'#3e8a5a')}}
-    const rh=Math.round(hw*.17);for(let k=0;k<rh;k++)for(let x=x0-2+k;x<x0+hw+2-k;x++)px(x,top-1-k,k===0?'#5a5e6e':(x+k)%3===0?'#8a90a0':'#767c8c');
-    for(let x=x0+6;x<x0+hw-6;x+=Math.round(hw/3)){px(x,top-rh+1,'#f4f0ea');px(x+1,top-rh+1,'#f4f0ea');px(x,top-rh,'#5a5e6e');px(x+1,top-rh,'#5a5e6e')}
-    for(const cx of[x0+4,x0+hw-6]){for(let y=top-rh-3;y<top-rh+2;y++){px(cx,y,'#b8786a');px(cx+1,y,'#9a5e52')}}
-    lights.push({x:x0+5,y:top+Math.round(wh*.55)+1,c:'#ffcf7a',ph:0,lamp:1,win:1});lights.push({x:x0+hw-8,y:top+3,c:'#ffcf7a',ph:0,lamp:1,win:1});
-    // allée de rosiers devant la maison
-    for(let x=x0-4;x<x0+hw+4;x+=2){const y=base-1-(hsh(x,1)%2);px(x,y,'#3e7238');px(x,y-1,hsh(x,2)%3?'#e8607a':'#f2a6c0')}}
-  layer(.15,NEAR,WY*.04,9,{sun:.12,flo:.35});
   // le pont japonais au-dessus de l'étang, couvert de glycine
   const bc=Math.round((LB.x1+RB.x0)/2),span=Math.max(40,Math.min(180,Math.round((RB.x0-LB.x1)*1.5))),half=span/2,rise=Math.round(span*.14)+3;
   for(let x=bc-half-10;x<bc+half+10;x++)for(let y=GT-3;y<=GT;y++)px(x,y,(x*3+y*5)%7===0?'#a8cc70':(x+y)%5===0?'#c8e0f0':'#5a9aa8');
