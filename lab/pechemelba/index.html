@@ -77,10 +77,9 @@ main{display:flex;flex-direction:column;align-items:center;margin-top:0;width:10
 @keyframes pulse{to{transform:translateX(-50%) scale(1.06)}}
 .toast{position:fixed;left:50%;bottom:14px;transform:translate(-50%,12px);display:flex;align-items:center;gap:14px;background:var(--panel);color:var(--panel-ink);border:2px solid var(--line);box-shadow:4px 4px 0 var(--line);border-radius:14px;padding:10px 16px 10px 12px;opacity:0;transition:opacity .3s,transform .3s;max-width:min(560px,92vw);cursor:pointer;z-index:5}
 .toast.on{opacity:1;transform:translate(-50%,0)}
-html.zen #ui,html.zen .toast,html.zen #hint{display:none!important}
-html.zen.clockonly #ui{display:flex!important;z-index:6}
-html.clockonly header,html.clockonly #search,html.clockonly #links{display:none!important}
-html.clockonly main{margin-top:clamp(40px,12vh,120px)}
+html.zen .toast,html.zen #hint,html.zen header,html.zen #search,html.zen #links{display:none!important}
+html.zen #ui{z-index:6}
+html.zen main{margin-top:clamp(40px,12vh,120px)}
 .toast:not(.on),.toast.pass{pointer-events:none!important}
 .toast canvas{image-rendering:pixelated;flex:none}
 .toast .t1{font-weight:800;font-size:15px}
@@ -221,12 +220,10 @@ const store={
 
 /* ---------- temps & soleil (debug : ?h=21.5 fige l'heure de départ, ?speed=600 accélère) ---------- */
 const Q=new URLSearchParams(location.search);
-// ?zen : seulement la scène, sans horloge, recherche, raccourcis ni boutons
+// ?zen : la scène avec juste l'horloge et la date, sans recherche, raccourcis ni boutons
 // ?image : une simple image figée du lapin qui pêche, dans un monde au hasard (ou ?monde=…)
 const IMAGE=Q.has('image');
 if(Q.has('zen')||IMAGE)document.documentElement.classList.add('zen');
-// &heure (avec ?image ou ?zen) : garde l'horloge et la date par-dessus la scène
-if(Q.has('heure'))document.documentElement.classList.add('clockonly');
 // onglet Admin (météo, saison, Noël) : seulement après un passage par ?tout
 const ADMIN=()=>Q.has('tout')||store.get('admin',false);
 const T0=Date.now(), FH=Q.has('h')?parseFloat(Q.get('h')):null, SPEED=parseFloat(Q.get('speed')||'1');
