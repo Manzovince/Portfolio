@@ -79,7 +79,10 @@ main{display:flex;flex-direction:column;align-items:center;margin-top:0;width:10
 .toast.on{opacity:1;transform:translate(-50%,0)}
 html.zen .toast,html.zen #hint,html.zen header,html.zen #search,html.zen #links{display:none!important}
 html.zen #ui{z-index:6}
-html.zen main{margin-top:clamp(40px,12vh,120px)}
+html.zen main{margin-top:clamp(32px,10vh,110px)}
+html.zen #clock{font-size:clamp(84px,15vw,220px)}
+html.zen #date{font-size:clamp(18px,2.4vw,34px);margin-top:clamp(10px,1.6vw,22px)}
+html.zen #date svg{width:1em;height:1em}
 .toast:not(.on),.toast.pass{pointer-events:none!important}
 .toast canvas{image-rendering:pixelated;flex:none}
 .toast .t1{font-weight:800;font-size:15px}
