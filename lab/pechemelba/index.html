@@ -517,9 +517,19 @@ for(const p of PALS){
 }
 const PAD_X=0,PAD_T=0;
 let PAL=null,PALSPR=[];
-function buildPal(){PAL=PALI[WORLD.id]||null;PALSPR=PAL?[PAL.spr,PAL.blink]:[]}
+const flipX=c=>{const[k,g]=canvasOf(c.width,c.height);g.scale(-1,1);g.drawImage(c,-c.width,0);return k};
+for(const p of PALS){p.sprL=flipX(p.spr);p.blinkL=flipX(p.blink)}
+// sur l'autre berge, le compagnon flâne : il marche un peu, s'arrête, repart ; en bateau il reste à bord
+let pw={x:0,dir:1,walk:0,wait:2,go:0};
+function buildPal(){PAL=PALI[WORLD.id]||null;PALSPR=PAL?[PAL.spr,PAL.blink]:[];if(PAL&&!WORLD.boat){const[a,b]=palRange();pw={x:Math.round(lerp(a,b,.25+Math.random()*.5)),dir:Math.random()<.5?-1:1,walk:0,wait:rnd(1,4),go:0}}}
+function palRange(){const w=PAL.spr.width;return[RB.x0+8,Math.max(RB.x0+9,Math.min(RB.x1,W)-w-8)]}
+function palStep(dt){
+  if(!PAL||WORLD.boat)return;const[a,b]=palRange();
+  if(pw.walk>0){pw.walk-=dt;pw.go+=dt;pw.x+=pw.dir*7*dt;if(pw.x<a||pw.x>b){pw.x=clamp(pw.x,a,b);pw.dir*=-1}if(pw.walk<=0)pw.wait=rnd(2,7)}
+  else{pw.wait-=dt;if(pw.wait<=0){pw.walk=rnd(1.5,5);if(Math.random()<.5||pw.x<=a+2||pw.x>=b-2)pw.dir=pw.x<=a+2?1:pw.x>=b-2?-1:-pw.dir}}
+}
 // dans la petite barque du large, la mouette se perche à l'arrière
-function palBox(){if(!PAL)return null;const s=PALSPR[0],o=WORLD.id==='large'?[10,-1]:[0,0];return{x:rab.x-23-(s.width-PAD_X)+o[0],y:rab.gy-s.height+1+o[1],w:s.width,h:s.height}}
+function palBox(){if(!PAL)return null;const s=PALSPR[0];if(!WORLD.boat)return{x:Math.round(pw.x),y:GT+1-s.height,w:s.width,h:s.height};const o=WORLD.id==='large'?[10,-1]:[0,0];return{x:rab.x-23-s.width+o[0],y:rab.gy-s.height+1+o[1],w:s.width,h:s.height}}
 function palHit(x,y){const b=palBox();return b&&x>=b.x+PAD_X&&x<=b.x+b.w-PAD_X&&y>=b.y-2&&y<=b.y+b.h}
 let palHop=0;
 function petPal(){const b=palBox();palHop=.35;for(let i=0;i<6;i++)parts.push({x:b.x+b.w/2+rnd(-3,3),y:b.y+PAD_T,vx:rnd(-6,6),vy:rnd(-18,-8),l:rnd(.6,1),c:i%2?'#f07a8a':'#ffb0c0',g:4})}
@@ -2393,7 +2403,7 @@ function bobberPos(){
   return[F.tx+(F.st==='reel'?Math.round(Math.sin(T*7)):0),WY+dy,false];
 }
 function update(dt){
-  T+=dt;F.t+=dt;F.nib=Math.max(0,F.nib-dt);F.hop=Math.max(0,F.hop-dt);palHop=Math.max(0,palHop-dt);
+  T+=dt;F.t+=dt;F.nib=Math.max(0,F.nib-dt);F.hop=Math.max(0,F.hop-dt);palHop=Math.max(0,palHop-dt);palStep(dt);
   // vie du lapin
   if((F.earT-=dt)<0){F.ear=1-F.ear;F.earT=F.ear?.35:rnd(3,9)}
   if((F.blinkT-=dt)<0){F.blink=1-F.blink;F.blinkT=F.blink?.12:rnd(2,5)}
@@ -2485,7 +2495,7 @@ function draw(){
   const L=loadLogCache();
   if(L.today>0){plot(fx,rab.x-7,gy-8,'#9fb0b8');plot(fx,rab.x-8,gy-9,'#9fb0b8');plot(fx,rab.x-6,gy-9,'#9fb0b8')}
   fx.drawImage(LANTERN[lit?1:0],rab.x-17,gy-6);
-  if(PAL){const b=palBox();fx.drawImage(PALSPR[(T+1.7)%4.6<.14?1:0],b.x,b.y-(palHop>0||F.hop>0?1:0))}
+  if(PAL){const b=palBox(),bl=(T+1.7)%4.6<.14,L=pw.dir<0&&!WORLD.boat,step=pw.walk>0&&Math.floor(pw.go*6)%2;fx.drawImage(L?(bl?PAL.blinkL:PAL.sprL):(bl?PAL.blink:PAL.spr),b.x,b.y-(palHop>0||F.hop>0||step?1:0))}
   const sprite=RAB[F.ear*2+F.blink];
   fx.drawImage(sprite,rab.x-OX,rab.y-OY-(F.hop>0?1:0));
   const[hx,hy]=[rab.x+HAND[0],rab.y+HAND[1]-(F.hop>0?1:0)];
