@@ -808,6 +808,16 @@ const SP=[
   {id:'esturgeonseine',n:'Esturgeon de Seine',rar:'e',w:1,cm:[120,220],wd:'peniche',quip:'On le croyait disparu de Paris.',look:{len:22,h:5,body:'#8a8e84',back:'#4a4e44',belly:'#d8dace',fin:'#6a6e64',shape:'sword',pat:'plates'}},
   {id:'joconde',n:'Joconde miniature',rar:'l',w:.3,wd:'peniche',quip:'Elle sourit. Elle a toujours souri.',map:["yyyyyyy","yggssgy","ygsffsy","yggssgy","ygbbbgy","yyyyyyy"],pal:{y:'#c8a040',g:'#5a6a3a',s:'#3a2a1a',f:'#e8c090',b:'#2a2a24'}},
   {id:'cadenas',n:'Cadenas d’amoureux',rar:'j',w:3,wd:'peniche',quip:'« L + M, pour toujours ».',map:[".kkk.","k...k","yyyyy","yRyRy","yyyyy"],pal:{k:'#9aa0a8',y:'#e0b030',R:'#e8504a'}},
+  {id:'girelle',n:'Girelle',rar:'c',w:9,cm:[10,20],wd:'crique',quip:'Elle porte toutes les couleurs de la Méditerranée.',look:{len:10,h:3,body:'#4ab0a0',back:'#2a7a8a',belly:'#f0e8c8',fin:'#e8804a',pat:'rainbow'}},
+  {id:'saupe',n:'Saupe',rar:'c',w:8,cm:[20,35],wd:'crique',look:{len:12,h:5,body:'#c8c8b8',back:'#7a8078',belly:'#f4f2ea',fin:'#b8a888',pat:'stripes'}},
+  {id:'sar',n:'Sar',rar:'u',w:5,cm:[20,40],wd:'crique',look:{len:13,h:6,body:'#d8dcd8',back:'#8a948e',belly:'#ffffff',fin:'#a8b0aa',pat:'stripes'}},
+  {id:'rascasse',n:'Rascasse',rar:'u',w:4,cm:[15,30],wd:'crique',quip:'Indispensable pour une vraie bouillabaisse.',map:["...r.r.r....","..rrrrrrrr..","rrRrRrrRrrrk","rrrrRrRrrrrr","..rrrrrrrr.r",".r..r..r...."],pal:{r:'#d8503a',R:'#a8302a',k:OUT}},
+  {id:'merou',n:'Mérou',rar:'r',w:2.5,cm:[50,110],wd:'crique',quip:'Il t’a regardé comme un vieux sage.',look:{len:18,h:8,body:'#8a7058',back:'#5a4434',belly:'#d8c8a8',fin:'#6a5440',pat:'spots'}},
+  {id:'denti',n:'Denti',rar:'e',w:1,cm:[50,100],wd:'crique',look:{len:17,h:6,body:'#c8a8a0',back:'#8a6a7a',belly:'#f0e4e0',fin:'#b88a90',pat:'shine'}},
+  {id:'amphore',n:'Amphore antique',rar:'l',w:.3,wd:'crique',quip:'Elle a 2000 ans et sent encore un peu l’huile d’olive.',map:["..kkk..","k.ttt.k","kktttkk","..ttt..",".tTttt.","tTtttt.","tTtttt.",".tttt..","..tt...","...t..."],pal:{k:'#a8603a',t:'#c87848',T:'#e8a070'}},
+  {id:'savon',n:'Savon de Marseille',rar:'j',w:3,wd:'crique',quip:'72 % d’huile, 100 % mouillé.',map:["gggggg","gGGGGg","gggggg","gggggg"],pal:{g:'#c8b878',G:'#a89858'}},
+  {id:'petanque',n:'Boule de pétanque',rar:'j',w:2,wd:'crique',quip:'Elle tirait ou elle pointait ?',map:[".kkk.","kWkkk","kkkkk","kkkkk",".kkk."],pal:{k:'#8a8e96',W:'#e8ecf0'}},
+  {id:'lavande',n:'Brin de lavande',rar:'j',w:3,wd:'crique',quip:'Ça sent les vacances.',map:[".p.",".p.","ppp",".p.",".g.",".g.",".g."],pal:{p:'#9a7ad0',g:'#6a8a5a'}},
   {id:'loterie',n:'Ticket de loterie',rar:'j',w:1.2,wd:'*',quip:'Gratté sur place : on verra bien.',map:["yyyyyyyy","ykykykyy","yyyyyyyy","yrrrrrry","yyyyyyyy"],pal:{y:'#f6e6a8',k:OUT,r:'#e8504a'}},
   {id:'messagecode',n:'Message codé',rar:'r',w:.8,wd:'*',quip:'« Oh vhfuhw, f’hvw od sdwlhqfh. » (décale chaque lettre de 3)',map:[".pppppp.","pPkPkkPp","pPkkPkPp",".pppppp."],pal:{p:'#e8d8b0',P:'#f6ecd0',k:'#5a4a3a'}},
   {id:'nain',n:'Nain de jardin',rar:'u',w:1,wd:'*',quip:'Il a l’air content d’être là.',map:["...r...","..rrr..",".rrrrr.","..sks..","..www..",".bwwwb.","bbbbbbb",".k...k."],pal:{r:'#e8504a',w:'#f4f0e6',s:'#f0c0a0',k:OUT,b:'#3a6ac0'}},
@@ -911,7 +921,8 @@ const WORLDS=[
   {id:'oasis',n:'Oasis',d:'Une source turquoise au milieu des dunes.',need:128,tree:'palm',desert:1,water:['#2ab0b0',.6],sky:['#f6e2c4',.28],sw:['#f4dcb8','#2ab0b0']},
   {id:'moulin',n:'Moulins',d:'Des polders, des tulipes et des moulins qui tournent au vent.',need:136,tree:'none',dutch:1,reeds:1,water:['#5a8aa0',.4],sky:['#dce8f0',.2],sw:['#dce8f0','#5a8aa0']},
   {id:'toit',n:'Toits de Paris',d:'Une citerne de pluie sur les toits de zinc, face à la tour Eiffel.',need:144,tree:'none',roofs:1,water:['#6a7a8a',.5],sky:['#ecdcd0',.22],sw:['#e4d8d0','#6a7a8a']},
-  {id:'peniche',n:'Péniche sur la Seine',d:'On glisse doucement le long des quais de Paris.',need:152,tree:'none',boat:1,seine:1,water:['#5a7a7a',.45],sky:['#e4e0d8',.15],sw:['#e4e0d8','#5a7a7a']}
+  {id:'peniche',n:'Péniche sur la Seine',d:'On glisse doucement le long des quais de Paris.',need:152,tree:'none',boat:1,seine:1,water:['#5a7a7a',.45],sky:['#e4e0d8',.15],sw:['#e4e0d8','#5a7a7a']},
+  {id:'crique',n:'Crique provençale',d:'Une calanque d’eau turquoise entre les roches blanches et les pins parasols.',need:160,tree:'parasol',crique:1,water:['#2ab8c8',.62],sky:['#f4ead8',.2],sw:['#f0e6d4','#2ab8c8']}
 ];
 const WI=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
 const discovered=()=>Object.keys(loadLog().sp).filter(id=>SPI[id]).length;
@@ -960,6 +971,7 @@ const BANKS={
   kyoto:{grass:['#b8b0a2','#cac2b4'],earth:['#8a8a86','#6e6e6a','#a2a29c'],base:'#4a4a46'},
   oasis:{grass:['#e8d2a0','#f4e2b8'],earth:['#d8b880','#c4a068','#e8cc98'],base:'#a8844c',snow:1},
   moulin:{grass:['#6aa048','#8ac060'],earth:['#6a5440','#584432','#7a6450'],base:'#3e3024'},
+  crique:{grass:['#ddd6c4','#f0ebde'],earth:['#c8bfa8','#b0a690','#ddd6c4'],base:'#8a8270'},
   toit:{grass:['#9aa8b8','#c4ced8'],earth:['#7a8898','#6a7888','#8a98a8'],base:'#4a5664'},
   jardin:{grass:['#6f9a5e','#8fb874'],earth:['#d8d2c4','#c0b8a8','#ece8de'],base:'#8a8274'},
   tropique:{grass:['#f2e2a8','#faf0cc'],earth:['#e6cc90','#d4b878','#f4e4b4'],base:'#c8a868',snow:1}
@@ -1755,6 +1767,54 @@ const PENICHE=(()=>{const w=104,ch=PEN_CAB,hh=10;return gridSprite(w,ch+hh,(x,y)
   if(yy===5&&(x-8)%12<2&&x>6&&x<w-14)return (x-8)%12===0?'#cfe4ec':'#7aa4b4';
   if(yy===3&&x%6===3)return '#4a525a';
   return yy===hh-1?'#1a1e22':x<inl+2?'#252a2e':'#2e3438'})})();
+/* ----- Crique provençale ----- */
+function makeUmbrellaPine(h,seed,back){
+  // pin parasol : tronc fin et penché qui se divise, grande couronne plate
+  const r=rng(seed),w=Math.round(h*1.2)|1,cx=w>>1,lean=(r()<.5?-1:1)*(.08+r()*.1)*w,top=Math.round(h*.2),ry=h*.14,rx=w*.42;
+  const pal=['#16281a','#203820','#2e4a2c','#40623a','#5a7e4a','#86a468'].map(c=>back?rgb(mix(hex(c),[220,224,206],.38)):c);
+  const px=new Map(),put=(x,y,c)=>{if(x>=0&&y>=0&&x<w&&y<h)px.set(x+','+y,c)};
+  const line=(x0,y0,x1,y1,t0,t1)=>{const n=Math.ceil(Math.hypot(x1-x0,y1-y0))*2;for(let i=0;i<=n;i++){const k=i/n,x=lerp(x0,x1,k)+Math.sin(k*3+seed)*1.2,y=lerp(y0,y1,k),t=lerp(t0,t1,k);for(let dx=-t;dx<=t+.01;dx+=.5){const u=(dx+t)/(2*t+.01);put(Math.round(x+dx),Math.round(y),u<.3?'#b8784a':u>.7?'#3a2418':'#6a4430')}}};
+  const bx=cx+lean*.75,by=top+ry*.6;line(cx,h-1,bx,by+4,2.2,1.4);
+  for(let i=0;i<3;i++)line(bx,by+4,cx+lean*.75+(i-1)*rx*.55,top+ry*(.2+r()*.3),1,.4);
+  const lobes=[];for(let i=0;i<18;i++){const u=(r()-.5)*2;lobes.push({x:bx+u*rx*.82,y:top+ry*(.1+Math.pow(Math.abs(u),1.6)*.9)+(r()-.3)*ry*.4,rx:rx*(.18+r()*.12),ry:ry*(.45+r()*.3)})}
+  lobes.sort((a,b)=>a.y-b.y);
+  for(const L of lobes)leafy((x,y,k)=>put(x,y,pal[k]),L,pal.length,r,null);
+  return gridSprite(w,h,(x,y)=>px.get(x+','+y)||null);
+}
+function drawCrique(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},ph=r()*6,mix2c=c=>rgb(mix(hex(c),[150,140,120],.18));
+  // le large au fond de la crique, une île et un voilier
+  for(let y=GT-8;y<WY;y++)for(let x=0;x<W;x++)px(x,y,y===GT-8?'#a8d8e8':y<GT-4?'#3a8ab8':'#2a7aa8');
+  {const ix=Math.round(W*.42);for(let x=-26;x<26;x++){const tp=Math.round(GT-8-9*Math.pow(1-Math.abs(x)/26,1.6));for(let y=tp;y<GT-8;y++)px(ix+x,y,x<0?'#b8b4a8':'#a09c90')}}
+  {const sx=Math.round(W*.54),sy=GT-9;for(let j=0;j<7;j++)for(let d=0;d<=Math.round(j*.6);d++)px(sx+d,sy-7+j,'#ffffff');for(let d=-2;d<5;d++)px(sx+d,sy,'#3a4a5a')}
+  // falaises de calcaire blanc : strates, fissures, garrigue sur les corniches, pins accrochés au sommet
+  const top=x=>{const left=x<W/2,u=left?x/(W*.34):(W-1-x)/(W*.34);return u>1.05?null:Math.round(WY*.16+Math.pow(Math.max(0,u),2)*WY*.66+Math.sin(x*.21+ph)*3+Math.abs(Math.sin(x*.07))*4)};
+  for(let x=0;x<W;x++){const t=top(x);if(t==null)continue;const left=x<W/2,u=left?x/(W*.34):(W-1-x)/(W*.34);
+    for(let y=t;y<=GT;y++){
+      const tone=Math.sin(x*.045+y*.03+ph)+Math.sin(x*.11-y*.06)*.6+Math.sin(x*.023-y*.017)*.8;
+      const crack=(x*13)%41===0&&Math.sin(y*.11+x)>-.2||Math.abs(Math.sin(x*.05+y*.12+ph))<.025;
+      const ledge=Math.sin(x*.06+ph*2)>.55&&(y+Math.round(Math.sin(x*.1)*4))%23===0;
+      let c=y<t+2?'#fffaf0':tone>1.1?'#fbf6ea':tone>.2?'#ece4d2':tone>-.7?'#ddd4c0':'#cbc1aa';
+      if(left?u>.85:u>.85)c=mix2c(c);
+      if(crack)c='#a89e88';
+      if(ledge){c='#c8bea8';}
+      px(x,y,c)}}
+  // touffes de garrigue accrochées à la roche
+  const GP=['#2e4428','#3e5a34','#5a7a46','#7a9a5a','#a0b878'];
+  for(let i=0;i<70;i++){const x=Math.round(r()<.5?r()*W*.33:W-1-r()*W*.33),t=top(x);if(t==null)continue;const y=Math.round(t+4+Math.pow(r(),.8)*(GT-t-6)),rr=2+r()*3;
+    leafy((xx,yy,k)=>{if(top(xx)!=null&&yy>=top(xx))px(xx,yy,GP[k])},{x,y,rx:rr*1.3,ry:rr},5,r,null)}
+  for(let i=0;i<9;i++){const x=Math.round(r()<.5?r()*W*.26:W-1-r()*W*.26),t=top(x);if(t==null)continue;const pp=makeUmbrellaPine(Math.round(H*(.07+r()*.05)),(r()*1e9)|0,true);g.drawImage(pp,x-(pp.width>>1),t+3-pp.height)}
+}
+const CABANON=mapSprite(["....rrrrrrrrrrrr....","..rrRrrRrrRrrRrrrr..","rrrrrrrrrrrrrrrrrrrr","wwwwwwwwwwwwwwwwwwww","wwbbbwwwwwwwwwbbbwww","wwbkbwwwwwwwwwbkbwww","wwbbbwwwdddwwwbbbwww","wwwwwwwwdddwwwwwwwww","wwwwwwwwdddwwwwwwwww"],{r:'#c8643a',R:'#a84e2e',w:'#f0e2c4',b:'#4a8ac0',k:'#2a4a6a',d:'#3a6aa0'});
+const POINTU=mapSprite(["................k...","..............kkk...","bbbbbbbbbbbbbbbbbbbb",".rrrrrrrrrrrrrrrrrr.","..wwwwwwwwwwwwwwww..","...gggggggggggggg..."],{k:'#4a3a2e',b:'#8a6040',r:'#e8604a',w:'#f4f0e6',g:'#2a8a7a'});
+function drawCriqueFront(g,r){
+  const cx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.45);g.drawImage(CABANON,cx,GT+1-CABANON.height);
+  g.drawImage(POINTU,cx+26,GT+1-POINTU.height);
+  // lavande et agaves près du lapin, rochers blancs
+  for(let i=0;i<5;i++){const x=Math.round(rab.x-30+i*4);for(let j=0;j<5;j++){g.fillStyle=j<2?'#9a7ad0':'#6a8a5a';g.fillRect(x+(j%2),GT-j,1,1)}}
+  for(const B of[LB,RB])for(let x=Math.max(B.x0,0)+8;x<Math.min(B.x1,W)-6;x+=16+r()*26){if(B===LB&&x>rab.x-34&&x<rab.x+16)continue;if(B===RB&&x>cx-4&&x<cx+50)continue;
+    const rx=3+r()*4,ry=2+r()*2;for(let y=-Math.ceil(ry);y<=0;y++)for(let d=-Math.ceil(rx);d<=rx;d++){if(Math.hypot(d/rx,y/ry)>1)continue;g.fillStyle=y<-ry*.4&&d<0?'#fffaf0':d>rx*.4?'#c8bea8':'#e4dccb';g.fillRect(Math.round(x+d),GT+1+y,1,1)}}
+}
 function drawFuji(g,r){
   const cx=Math.round(W*.52),hm=Math.round(WY*.46),bw=hm*3.5,sy=GT-hm,ph=r()*6,haze=hex('#c8d4de');
   const C={snowL:hex('#ffffff'),snowR:hex('#dce6f0'),snowG:hex('#c4d2e2'),rockL:hex('#a2b0c4'),rockR:hex('#8694aa'),gully:hex('#74829a')};
@@ -1935,6 +1995,7 @@ function buildLand(){
   if(WORLD.desert)drawDunes(g,r);
   if(WORLD.dutch)drawPolder(g,r);
   if(WORLD.roofs)drawRoofs(g,r);
+  if(WORLD.crique)drawCrique(g,r);
   falls=[];
   if(WORLD.terraces)drawTerraces(g,r);
   if(WORLD.canyon)drawCanyon(g,r);
@@ -1944,7 +2005,7 @@ function buildLand(){
   trees=[];
   const AUT=['#4a2414','#8a3a18','#c8642a','#e8983a','#f6c860','#fff0a8'];
   const AUT2=['#3e2a12','#7a5a1a','#b8902a','#e0b83a','#f6dc6a','#fff4b0'],SPR=['#1e4a26','#2e6a2e','#4e9a3a','#80c84a','#b8e46a','#e8f8a8'];
-  const make=(h,seed,back)=>kind==='oak'?makeOak(h,seed,back,SEASON==='automne'?(seed%2?AUT:AUT2):SEASON==='printemps'?SPR:SEASON==='hiver'?['#2e2a24','#4a4034','#6a5a44','#86765a','#a8987a','#c8bca0']:null):kind==='sakura'?makeSakura(h,seed,back,!WORLD.kyoto&&seed%4===0):kind==='palm'?makePalm(h,seed,back):kind==='willow'?makeWillow(h,seed,back):makePine(h,seed,back,kind==='pineDark'?DARK_PAL:TREE_PAL,kind==='snow');
+  const make=(h,seed,back)=>kind==='parasol'?makeUmbrellaPine(h,seed,back):kind==='oak'?makeOak(h,seed,back,SEASON==='automne'?(seed%2?AUT:AUT2):SEASON==='printemps'?SPR:SEASON==='hiver'?['#2e2a24','#4a4034','#6a5a44','#86765a','#a8987a','#c8bca0']:null):kind==='sakura'?makeSakura(h,seed,back,!WORLD.kyoto&&seed%4===0):kind==='palm'?makePalm(h,seed,back):kind==='willow'?makeWillow(h,seed,back):makePine(h,seed,back,kind==='pineDark'?DARK_PAL:TREE_PAL,kind==='snow');
   const plant=(x0,x1,back)=>{
     let x=x0+r()*6;
     while(true){
@@ -1952,7 +2013,7 @@ function buildLand(){
       const spr=make(h,(r()*1e9)|0,back),w=spr.width;
       if(x+w*.35>x1)break;
       trees.push({x:Math.round(x),back,spr});
-      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?(WORLD.desert?1.1:.5):kind==='sakura'?.7:kind==='oak'||kind==='autumn'?.3:WORLD.id==='lac'?.58:1)+r()*(WORLD.id==='lac'?4:8);
+      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?(WORLD.desert?1.1:.5):kind==='parasol'?.75:kind==='sakura'?.7:kind==='oak'||kind==='autumn'?.3:WORLD.id==='lac'?.58:1)+r()*(WORLD.id==='lac'?4:8);
     }
   };
   if(kind!=='none'){
@@ -1986,8 +2047,9 @@ function buildLand(){
   if(WORLD.desert)drawOasisFront(g,r);
   if(WORLD.dutch)drawPolderFront(g,r);
   if(WORLD.roofs)drawRoofsFront(g,r);
+  if(WORLD.crique)drawCriqueFront(g,r);
   if(WORLD.city)drawCity(g,r);
-  if(SEASON==='automne'&&!WORLD.sea&&!WORLD.boat&&!WORLD.city&&!WORLD.ice&&!WORLD.polar&&!WORLD.roofs&&!WORLD.desert&&!WORLD.kyoto&&WORLD.id!=='tropique')g.drawImage(PUMPKIN,rab.x-22,GT+1-PUMPKIN.height);
+  if(SEASON==='automne'&&!WORLD.crique&&!WORLD.sea&&!WORLD.boat&&!WORLD.city&&!WORLD.ice&&!WORLD.polar&&!WORLD.roofs&&!WORLD.desert&&!WORLD.kyoto&&WORLD.id!=='tropique')g.drawImage(PUMPKIN,rab.x-22,GT+1-PUMPKIN.height);
   if(WORLD.id==='tropique'){const pa=makeParasol(Math.round(H*.085)+12),bx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.42);g.drawImage(pa,bx-(pa.width>>1),GT+2-pa.height);g.drawImage(TRANSAT,bx-4,GT+2-TRANSAT.height)}
   if(WORLD.id==='jardin'){const t=makeTorii(Math.round(H*.34)),tx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.3);g.drawImage(t,tx-(t.width>>1),GT+2-t.height);g.drawImage(TORO,rab.x-26,GT+2-TORO.height);drawBamboo(g,r,Math.min(RB.x1,W)-22,Math.min(RB.x1,W)-4,H*.38,false,GT);drawBamboo(g,r,Math.max(LB.x0,0)+2,Math.max(LB.x0,0)+16,H*.36,false,GT)}
   // herbes, roseaux et fleurs (animés)
@@ -1996,6 +2058,7 @@ function buildLand(){
     if(b===LB&&x>rab.x-12&&x<rab.x+14)continue;
     if(WORLD.city)continue;
     if(WORLD.polar||WORLD.roofs)continue;
+    if(WORLD.crique){if(r()<.2)tufts.push({x,h:1+(r()*3|0),c:'#8a9a5a',top:'#a8b070',p:r()*6});if(r()<.08)flowers.push({x,h:3+(r()*3|0),c:'#9a7ad0',p:r()*6});continue}
     if(WORLD.kyoto){if(r()<.12)tufts.push({x,h:1+(r()*2|0),c:'#6a8a5a',top:'#8aa870',p:r()*6});continue}
     if(WORLD.dutch&&r()<.18)flowers.push({x,h:3+(r()*3|0),c:['#e8403a','#f2c63a','#f08ab0','#ffffff'][(r()*4)|0],p:r()*6});
     if(WORLD.canyon||WORLD.desert){if(r()<.12)tufts.push({x,h:1+(r()*3|0),c:'#a89a5a',top:'#c8b878',p:r()*6});continue}
