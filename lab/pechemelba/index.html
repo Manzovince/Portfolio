@@ -34,6 +34,8 @@ header{width:100%;display:flex;justify-content:space-between;align-items:center;
 .hd-r{display:flex;gap:8px}
 .pill{border:0;border-radius:999px;padding:10px 16px;font:600 13px/1 'JetBrains Mono',monospace;cursor:pointer;color:var(--ink);background:var(--chip);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);transition:transform .12s,background .2s}
 .pill:hover{transform:translateY(-1px)}
+.flycoin{position:fixed;z-index:60;pointer-events:none;display:flex;align-items:center;gap:4px;font:800 14px 'JetBrains Mono',monospace;color:#c8901c;text-shadow:0 1px 0 #fff}
+.flycoin svg{width:20px;height:20px}
 .pill.coin{display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
 .pill.acc{background:var(--accent);color:#fff}
 .pill.acc:hover{background:var(--accent2)}
@@ -2643,11 +2645,21 @@ const setEng=k=>{eng=k;store.set('eng',k);$('#eng').textContent=ENG[k][0]};
 setEng(eng);
 $('#eng').onclick=()=>{const k=Object.keys(ENG);setEng(k[(k.indexOf(eng)+1)%k.length]);$('#q').focus()};
 function go(url){try{window.top.location.href=url}catch(e){window.open(url,'_top')}}
+// une recherche sur dix environ fait tomber une pièce (rarement plusieurs) qui file vers le compteur
+function searchCoin(){
+  if(Math.random()>=.1)return 0;
+  const n=Math.random()<.12?5:Math.random()<.3?2:1;addCoins(n);
+  const a=$('#search').getBoundingClientRect(),b=$('#nCoin').getBoundingClientRect(),c=document.createElement('div');
+  c.className='flycoin';c.innerHTML=$('#bShop svg').outerHTML+'<b>+'+n+'</b>';
+  c.style.left=(a.left+a.width/2)+'px';c.style.top=(a.top+a.height/2)+'px';document.body.appendChild(c);
+  c.animate([{transform:'translate(-50%,-50%) scale(.6)',opacity:0},{transform:'translate(-50%,-180%) scale(1.5)',opacity:1,offset:.35},{transform:`translate(calc(-50% + ${b.left-a.left-a.width/2}px),calc(-50% + ${b.top-a.top-a.height/2}px)) scale(.8)`,opacity:1}],{duration:850,easing:'cubic-bezier(.3,.6,.4,1)',fill:'forwards'});
+  setTimeout(()=>$('#bShop').animate([{transform:'scale(1)'},{transform:'scale(1.25)'},{transform:'scale(1)'}],{duration:250}),820);
+  return 1100;
+}
 $('#search').onsubmit=e=>{
   e.preventDefault();const q=$('#q').value.trim();if(!q)return;
-  if(/^[a-z]+:\/\//i.test(q))return go(q);
-  if(!/\s/.test(q)&&/^[\w-]+(\.[\w-]+)+(:\d+)?(\/.*)?$/.test(q))return go('https://'+q);
-  go(ENG[eng][1]+encodeURIComponent(q));
+  const url=/^[a-z]+:\/\//i.test(q)?q:!/\s/.test(q)&&/^[\w-]+(\.[\w-]+)+(:\d+)?(\/.*)?$/.test(q)?'https://'+q:ENG[eng][1]+encodeURIComponent(q);
+  const wait=searchCoin();wait?setTimeout(()=>go(url),wait):go(url);
 };
 
 /* ---------- raccourcis ---------- */
