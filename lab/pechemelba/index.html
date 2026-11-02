@@ -2627,19 +2627,22 @@ let sails=[],sailT=4,scrollX=0,buoyT=8,buoys=[],T=0,parts=[],ripples=[],birds=[]
 function setSt(s){F.st=s;F.t=0}
 const sunE=d=>WORLD&&WORLD.night?Math.min(sunElev(d),-14):sunElev(d);
 function isDark(){return skyAt(sunE(now())).dark>.5}
-function pickFish(){
-  const dark=isDark(),pool=SP.filter(s=>(!s.noel||NOEL)&&inWorld(s,WORLD.id)&&(!s.when||(s.when==='nuit')===dark));
-  let tot=pool.reduce((a,s)=>a+s.w,0),x=R()*tot;
-  for(const s of pool){x-=s.w;if(x<=0)return s}
+// quand on pêche soi-même (ferré ou lancé à la main il y a moins de 3 min), les espèces rares mordent plus souvent
+let lastAct=0;const ACTIVE_BOOST={c:1,j:1,u:1.6,r:2.6,e:3.2,l:3.6};
+function pickFish(active){
+  const dark=isDark(),pool=SP.filter(s=>(!s.noel||NOEL)&&inWorld(s,WORLD.id)&&(!s.when||(s.when==='nuit')===dark)),wt=s=>s.w*(active?ACTIVE_BOOST[s.rar]||1:1);
+  let tot=pool.reduce((a,s)=>a+wt(s),0),x=R()*tot;
+  for(const s of pool){x-=wt(s);if(x<=0)return s}
   return pool[0];
 }
 function sizeOf(sp,perfect){if(!sp.cm)return 0;const u=Math.pow(R(),perfect?.7:1.7);return Math.round(lerp(sp.cm[0],sp.cm[1],u))}
 function cast(x){
   F.tx=Math.round(x??rnd(castMin(),castMax()));setSt('cast');F.fish=null;F.gauge=null;F.hold=null;hint('');
 }
-function bite(){F.fish=pickFish();setSt('bite');ripple(F.tx,WY+1,7);splash(F.tx,WY,4);
+function bite(){F.fish=pickFish(Date.now()-lastAct<180e3);setSt('bite');ripple(F.tx,WY+1,7);splash(F.tx,WY,4);
   hint('Ça mord ! Maintiens Espace ou le clic',true)}
 function strike(){
+  lastAct=Date.now();
   const rr=RAR[F.fish.rar];
   F.gauge={c:rnd(.25,.75),w:rr.zw,v:rr.v,ph:R()};setSt('reel');
   hint('Relâche quand l’aiguille est dans le vert',true);
@@ -2951,7 +2954,7 @@ function frame(ts){
 function act(x,y){
   if(F.st==='bite')return strike();
   if(x!=null&&x>=rab.x-1&&x<=rab.x+13&&y>=rab.y&&y<=rab.y+RAB_H){F.hop=.25;heart();return}
-  if((F.st==='wait'||F.st==='idle')&&(x==null||(y>=WY-8&&x>=castMin()-6&&x<=castMax()+6)))cast(x==null?null:clamp(x,castMin(),castMax()));
+  if((F.st==='wait'||F.st==='idle')&&(x==null||(y>=WY-8&&x>=castMin()-6&&x<=castMax()+6))){lastAct=Date.now();cast(x==null?null:clamp(x,castMin(),castMax()))}
 }
 function heart(){const el=document.createElement('div');el.textContent='♥';Object.assign(el.style,{position:'fixed',left:(rab.x+6)*S+'px',top:(rab.y-4)*S+'px',color:'#e8605a',fontSize:S*5+'px',transition:'transform 1s,opacity 1s',pointerEvents:'none',zIndex:4});document.body.appendChild(el);requestAnimationFrame(()=>{el.style.transform='translateY(-40px)';el.style.opacity='0'});setTimeout(()=>el.remove(),1100)}
 cv.addEventListener('pointerdown',e=>{const x=e.clientX/S,y=e.clientY/S;if(letterHit(x,y))return openLetter();if(palHit(x,y))return petPal();if(monetHit(x,y))return petMonet();if(balloonHit(x,y))return openGift();act(x,y)});
@@ -3258,7 +3261,7 @@ function showTab(tab){
     B.innerHTML=`<div class="set">
       <label>Moteur de recherche <select id="sEng">${Object.entries(ENG).map(([k,v])=>`<option value="${k}"${k===eng?' selected':''}>${v[0]}</option>`).join('')}</select></label>
       <label>Remettre le carnet à zéro <button class="danger" id="sReset">Effacer</button></label>
-      <p>Le lapin pêche tout seul, même quand l’onglet est fermé : il rate souvent son coup et ne ramène que de temps en temps un poisson commun ; les rares, épiques et légendaires se prennent à la main. Quand le flotteur plonge, maintiens Espace (ou le clic) : la jauge apparaît, et tu relâches quand l’aiguille est dans la zone verte — au centre doré pour un ferrage parfait. Clique sur l’eau pour lancer ailleurs, sur le lapin pour un câlin. Les prises rapportent des pièces pour la boutique, et un ballon cadeau passe parfois dans le ciel : clique dessus.</p>
+      <p>Le lapin pêche tout seul, même quand l’onglet est fermé : il rate souvent son coup et ne ramène que de temps en temps un poisson commun ; les rares, épiques et légendaires se prennent à la main, et ils mordent plus souvent quand tu pêches toi-même. Quand le flotteur plonge, maintiens Espace (ou le clic) : la jauge apparaît, et tu relâches quand l’aiguille est dans la zone verte — au centre doré pour un ferrage parfait. Clique sur l’eau pour lancer ailleurs, sur le lapin pour un câlin. Les prises rapportent des pièces pour la boutique, et un ballon cadeau passe parfois dans le ciel : clique dessus.</p>
       <p>Le ciel suit l’heure et la position du soleil réelles. Certaines espèces ne mordent que la nuit, d’autres le jour. Chaque monde a ses propres poissons ; on en débloque de nouveaux en découvrant des espèces.</p>
     </div>`;
     $('#sEng').onchange=e=>setEng(e.target.value);
