@@ -438,6 +438,18 @@ const SHOP=[
     ears:["","","ww.......ww","wWWw...wWWw","wWWw...wWWw",".www...www.","..wwwwwww"]},
   {id:'panda',slot:'animal',n:'Panda',p:600,pal:{w:'#f6f4ee',s:'#d8d4cc',p:'#2a2a30',k:'#2a2a30',e:'#ffffff'},face:[[1,8,'k'],[1,9,'k'],[2,8,'k'],[2,10,'k'],[3,8,'k'],[3,9,'k']],leg:'#2a2a30',
     ears:["","","","",".kk.....kk",".kkk...kkk","..wwwwwww"]},
+  {id:'grenouille',slot:'animal',n:'Grenouille',p:300,pal:{w:'#7ab84a',s:'#5a9838',p:'#5a9838',k:OUT,W:'#ffffff'},leg:'#5a9838',face:[[2,9,'w'],[4,8,'k'],[4,9,'k'],[4,10,'k']],
+    ears:["","","","","..WWW.WWW","..WkW.WkW","..wwwwwww"]},
+  {id:'herisson',slot:'animal',n:'Hérisson',p:350,pal:{w:'#d8b48a',s:'#b8946a',p:'#2a2224',k:'#6a4a34'},face:[[0,3,'k'],[0,4,'k'],[0,5,'k'],[1,2,'k'],[1,3,'k'],[1,4,'k'],[2,2,'k'],[2,3,'k'],[3,3,'k'],[4,3,'k']],
+    ears:["","","","..k.k.k.k","..kkkkkkkk","..kkkkkkkkk","..kkkkkwww"]},
+  {id:'loutre',slot:'animal',n:'Loutre',p:400,pal:{w:'#8a5a3a',s:'#6a4228',p:'#2a2224',m:'#e8d4b8'},face:[[3,9,'m'],[3,10,'m'],[4,8,'m'],[4,9,'m'],[4,10,'m'],[5,7,'m'],[5,8,'m'],[5,9,'m']],
+    ears:["","","","","",".w......w","..wwwwwww"]},
+  {id:'pingouin',slot:'animal',n:'Pingouin',p:450,pal:{w:'#2a2a34',s:'#1e1e26',p:'#f0a030',m:'#f4f0e6',e:OUT,h:'#2a2a34'},leg:'#f0a030',face:[[1,7,'m'],[1,8,'m'],[1,9,'m'],[1,10,'m'],[2,7,'m'],[2,8,'m'],[2,10,'m'],[3,6,'m'],[3,7,'m'],[3,8,'m'],[3,9,'m'],[3,10,'m'],[4,6,'m'],[4,7,'m'],[4,8,'m'],[4,9,'m'],[4,10,'m'],[5,6,'m'],[5,7,'m'],[5,8,'m'],[5,9,'m']],
+    ears:["","","","","","","..wwwwwww"]},
+  {id:'capybara',slot:'animal',n:'Capybara',p:500,pal:{w:'#a07a50',s:'#80603c',p:'#3a2a22'},face:[[3,10,'p'],[4,10,'s']],
+    ears:["","","","","","..w....w","..wwwwwww"]},
+  {id:'hibou',slot:'animal',n:'Hibou',p:550,pal:{w:'#a8805a',s:'#86603e',p:'#f0b040',k:'#6a4a2a',W:'#f4e8c8'},face:[[1,7,'W'],[1,8,'W'],[1,9,'W'],[1,10,'W'],[2,7,'W'],[2,8,'W'],[2,10,'W'],[3,7,'W'],[3,8,'W'],[3,9,'W'],[3,10,'W']],
+    ears:["","","","..w.....w","..ww...ww","..wkw.wkw","..wwwwwww"]},
   {id:'foulard',slot:'cou',n:'Foulard de marin',p:90,at:[2,12],map:["fffffffff","..fffff..","...fff...","....f...."],pal:{f:'#3a8ac0'}}
 ];
 const SHOPI=Object.fromEntries(SHOP.map(i=>[i.id,i]));
@@ -642,7 +654,7 @@ const SP=[
   {id:'kraken',n:'Bébé kraken',rar:'l',w:.3,cm:[20,40],wd:'large',quip:'Un bébé. La maman n’est pas loin…',map:["...pppp...","..pppppp..",".pwkppwkp.",".pppppppp.","pp.pp.pp.p","p..p..p..p"],pal:{p:'#7a5ab0',w:'#ffffff',k:OUT}},
   {id:'carte',n:'Carte au trésor',rar:'l',w:.3,wd:'large',quip:'Le X est… quelque part par là.',map:["ppppppppp","pPPpPPPPp","pPPPPrPPp","pPpPPPPPp","ppppppppp"],pal:{p:'#c8a870',P:'#ecdcb0',r:'#e8605a'}},
   {id:'bouee',n:'Bouée',rar:'j',w:3,wd:'large',quip:'Elle flottait, comme prévu.',map:[".rwr.","r...r","w...w","r...r",".rwr."],pal:{r:'#e8605a',w:'#f4f0e6'}},
-  {id:'canard',n:'Canard en plastique',rar:'j',w:2,wd:'large',quip:'Il a vu plus de pays que toi.',map:["....yyy...","...yWyyy..","...yyykoo.","....yyyoo.","y...yyy...","yyyyyyyyy.","yyWWyyyyyy",".yyyyyyyY.","..YYYYYY.."],pal:{y:'#f6d23a',Y:'#d8a820',W:'#fff6c0',k:OUT,o:'#f08a3a'}},
+  {id:'canardlarge',n:'Canard de bain',rar:'j',w:2,wd:'large',quip:'Il a vu plus de pays que toi.',map:["....yyy...","...yWyyy..","...yyykoo.","....yyyoo.","y...yyy...","yyyyyyyyy.","yyWWyyyyyy",".yyyyyyyY.","..YYYYYY.."],pal:{y:'#f6d23a',Y:'#d8a820',W:'#fff6c0',k:OUT,o:'#f08a3a'}},
   {id:'baudroie',n:'Poisson-lanterne',rar:'e',w:1,cm:[8,20],when:'nuit',wd:'large',quip:'Il a éclairé le fond de la barque toute la nuit.',map:[".......ssss...","....bbbs...s..","..bbbBBbb...LL","bbbbBBBBbbb.LL",".bbbbBBeBbbb..","bbbbbbbbbbwtw.","bbbbbbbbbm....",".bbbbbbbbbwtw.","..bbbbbbbbb..."],pal:{b:'#3a3446',B:'#57506a',e:'#f2e27a',s:'#6a6280',L:'#fff2a0',m:'#7a2a3a',w:'#f4f0e6',t:'#7a2a3a'}},
   // ---- Plage tropicale
   {id:'clown',n:'Poisson-clown',rar:'c',w:20,cm:[6,11],wd:'tropique',look:{len:10,h:5,body:'#f08a2a',back:'#f08a2a',belly:'#f8a64a',fin:'#2a2a30',pat:'clown'}},
@@ -671,7 +683,7 @@ const SP=[
   {id:'perle',n:'Perle',rar:'l',w:.3,wd:'tropique',quip:'Parfaitement ronde.',map:["..ppp..",".pPPpp.","pPWPppp","ppPpppp","pppppps",".pppps.","..sss.."],pal:{p:'#f0ece4',P:'#fffaf4',W:'#ffffff',s:'#c8c0d0'}},
   {id:'megalodon',n:'Dent de mégalodon',rar:'l',w:.25,wd:'tropique',quip:'Le reste du requin n’est pas loin. Enfin, il y a trois millions d’années.',map:[".rrrrrrrrr.","rRRRRRRRRRr",".wWWWWWWWs.",".wWWWWWWss.","..wWWWWWs..","..wWWWWss..","...wWWWs...","...wWWss...","....wWs....","....ws....."],pal:{r:'#4a3e36',R:'#6a5a4a',w:'#c4c8cc',W:'#949aa2',s:'#62666e'}},
   {id:'coco',n:'Noix de coco',rar:'j',w:4,wd:'tropique',quip:'Il manque juste une paille.',map:[".bbbb.","bBbbbb","bbbkbb","bbbbbb",".bbbb."],pal:{b:'#6a4a30',B:'#8a6a48',k:'#3a2a1a'}},
-  {id:'poissonrouge',n:'Poisson rouge',rar:'c',w:9,cm:[6,18],wd:'jardin',look:{len:10,h:5,body:'#f08a2a',back:'#d8641a',belly:'#fbd08a',fin:'#f6a860'}},
+  {id:'poissonrougejardin',n:'Poisson rouge du bassin',rar:'c',w:9,cm:[6,18],wd:'jardin',look:{len:10,h:5,body:'#f08a2a',back:'#d8641a',belly:'#fbd08a',fin:'#f6a860'}},
   {id:'medaka',n:'Médaka',rar:'c',w:8,cm:[3,4],wd:'jardin',look:{len:8,h:3,body:'#e8d8a0',back:'#c8b070',belly:'#faf2d8',fin:'#e8dcb4'}},
   {id:'showa',n:'Koï Showa',rar:'u',w:5,cm:[30,65],wd:'jardin',look:{len:15,h:6,body:'#f6f2ec',back:'#2a2a30',belly:'#ffffff',fin:'#f4d0c0',pat:'koi'}},
   {id:'tortuebassin',n:'Tortue de bassin',rar:'u',w:4,cm:[10,25],wd:'jardin',quip:'Elle a pris son temps pour mordre.',map:["...ssss....","..sSsSss...",".sSsSsSssgg","gssssssssgk",".gg....gg.."],pal:{s:'#5a7a4a',S:'#7a9a5a',g:'#8aa070',k:OUT}},
@@ -697,6 +709,57 @@ const SP=[
   {id:'luciole',n:'Lanterne-luciole',rar:'l',w:.3,wd:'brume',when:'nuit',quip:'Toutes les lucioles de la forêt l’ont suivie.',map:["..kkk..",".kyYyk.","kyYWYyk","kyYYYyk",".kyyyk.","..kkk.."],pal:{k:'#4a4a3a',y:'#e6f27a',Y:'#f6fab0',W:'#ffffff'}},
   {id:'pommepin',n:'Pomme de pin',rar:'j',w:4,wd:'brume',quip:'Elle s’est ouverte en séchant.',map:["..g..",".bBb.","bBbBb",".bBb.","bBbBb",".bBb.","..b.."],pal:{g:'#5a7a48',b:'#8a5a32',B:'#5e3a22'}},
   {id:'boussole',n:'Boussole',rar:'j',w:2,wd:'brume',quip:'Elle indique toujours le lac.',map:["..yyy..",".ywwwy.","ywwrwwy","ywwkwwy","ywwbwwy",".ywwwy.","..yyy.."],pal:{y:'#c8a040',w:'#f4f0e6',r:'#e8504a',k:OUT,b:'#3a5a8a'}},
+  {id:'gourami',n:'Gourami',rar:'c',w:9,cm:[6,12],wd:'rizieres',look:{len:9,h:5,body:'#c8b0d0',back:'#8a6aa0',belly:'#f0e4f0',fin:'#e08ac0',pat:'stripes'}},
+  {id:'tilapia',n:'Tilapia',rar:'c',w:8,cm:[15,35],wd:'rizieres',look:{len:11,h:5,body:'#9aa890',back:'#5a6a58',belly:'#e4e8dc',fin:'#c87a6a'}},
+  {id:'anguilleriz',n:'Anguille des rizières',rar:'u',w:5,cm:[30,70],wd:'rizieres',when:'nuit',look:{len:20,h:3,body:'#8a7a4a',back:'#4e4428',belly:'#d8c890',fin:'#6a5a38',shape:'eel'}},
+  {id:'crabeeau',n:'Crabe d’eau douce',rar:'u',w:4,cm:[4,9],wd:'rizieres',quip:'Il marche de côté, par principe.',map:["r.r...r.r",".rr...rr.","..rrrrr..",".rkrrrkr.","r.r.r.r.r"],pal:{r:'#c8603a',k:OUT}},
+  {id:'carpeargentee',n:'Carpe argentée',rar:'r',w:3,cm:[40,90],wd:'rizieres',look:{len:16,h:6,body:'#d8dce0',back:'#8a949c',belly:'#ffffff',fin:'#b0b8c0',pat:'scales'}},
+  {id:'poissonserpent',n:'Poisson-serpent',rar:'e',w:1.2,cm:[40,90],wd:'rizieres',quip:'Il peut respirer hors de l’eau. Il ne s’en prive pas.',look:{len:19,h:4,body:'#5a6a3a',back:'#2e3a22',belly:'#c8c8a0',fin:'#4a5a30',shape:'long',pat:'spots'}},
+  {id:'dragonjade',n:'Petit dragon de jade',rar:'l',w:.3,wd:'rizieres',quip:'Il porte bonheur aux récoltes.',map:["....gg.....","...gGgk....","..gg.gggg..",".g....gGgg.","g...gggg.gg",".ggGg......"],pal:{g:'#4ab08a',G:'#8ae0b8',k:OUT}},
+  {id:'chapeauconique',n:'Chapeau conique',rar:'j',w:3,wd:'rizieres',quip:'Parfait contre le soleil, et la pluie.',map:["....y....","...yYy...","..yyYyy..",".yYyyyYy.","yyyyyyyyy","...b.b..."],pal:{y:'#e8c870',Y:'#c8a048',b:'#8a5a3a'}},
+  {id:'cyprinodon',n:'Cyprinodon',rar:'c',w:9,cm:[3,6],wd:'canyon',quip:'Il vit dans des sources où rien d’autre ne survit.',look:{len:7,h:4,body:'#6a90d0',back:'#3a5a9a',belly:'#e0e8f0',fin:'#2a3a6a'}},
+  {id:'gambusie',n:'Gambusie',rar:'c',w:8,cm:[3,6],wd:'canyon',look:{len:6,h:3,body:'#b8b0a0',back:'#7a7464',belly:'#ece8dc',fin:'#9a9484'}},
+  {id:'scorpioneau',n:'Scorpion d’eau',rar:'u',w:4,cm:[3,5],wd:'canyon',quip:'Il respire par la queue. Chacun ses talents.',map:[".....tt","bbbbbt.","bBbBbb.",".l.l.l."],pal:{b:'#6a5a3a',B:'#4a3e28',t:'#6a5a3a',l:'#4a3e28'}},
+  {id:'pikeminnow',n:'Ménomini du Colorado',rar:'r',w:3,cm:[50,120],wd:'canyon',look:{len:18,h:5,body:'#a8b080',back:'#5a6a44',belly:'#eee8d0',fin:'#8a9468',shape:'long'}},
+  {id:'mirage',n:'Poisson-mirage',rar:'e',w:1,cm:[20,40],wd:'canyon',when:'jour',quip:'Il disparaît quand on le regarde trop longtemps.',look:{len:13,h:5,body:'#f4d8a8',back:'#e8a868',belly:'#fff4e0',fin:'#f0c090',pat:'shine'}},
+  {id:'scarabee',n:'Scarabée d’or',rar:'l',w:.3,wd:'canyon',quip:'Il brille comme le soleil de midi.',map:["..y.y..",".yyyyy.","yYyyyYy","yyYyYyy","yyyyyyy",".y.y.y."],pal:{y:'#e0b030',Y:'#fff0a0'}},
+  {id:'cranevache',n:'Crâne de vache',rar:'j',w:3,wd:'canyon',quip:'Le désert garde tout.',map:["w.......w","ww.....ww",".wwwwwww.","..wkwkw..","..wwwww..","...www...","...w.w..."],pal:{w:'#f0e8d8',k:OUT}},
+  {id:'sablecolore',n:'Bouteille de sable',rar:'j',w:2,wd:'canyon',quip:'Sept couleurs de sable, sans un grain de travers.',map:["..k..",".gkg.","yyyyy","rrrrr","bbbbb","ppppp",".ggg."],pal:{k:'#8a5a3a',g:'#c8e0e0',y:'#f2c64a',r:'#e8604a',b:'#5a8ad0',p:'#c86ab0'}},
+  {id:'archer',n:'Poisson-archer',rar:'c',w:8,cm:[10,20],wd:'mangrove',quip:'Il crache sur les insectes. Avec précision.',look:{len:10,h:5,body:'#e8e0b0',back:'#3a3a2a',belly:'#fffcf0',fin:'#c8c090',pat:'stripes'}},
+  {id:'barramundi',n:'Barramundi',rar:'c',w:7,cm:[40,90],wd:'mangrove',look:{len:15,h:5,body:'#b8c0b8',back:'#6a7a70',belly:'#f0f2ea',fin:'#98a098'}},
+  {id:'periophtalme',n:'Périophtalme',rar:'u',w:4,cm:[8,15],wd:'mangrove',quip:'Un poisson qui marche. Il en est fier.',map:["...kk.kk..","..gGggGg..",".gggggggg.","gggggggggg","..ffg.ff.."],pal:{g:'#8a7a5a',G:'#c8b890',k:OUT,f:'#6a5a3a'}},
+  {id:'crabeviolon',n:'Crabe violoniste',rar:'u',w:4,cm:[3,5],wd:'mangrove',quip:'Il agite sa grosse pince pour dire bonjour.',map:["rr.......","rrr.k.k..","rr.yyyyy.",".yyyyyyy.","..y.y.y.."],pal:{r:'#e8a030',y:'#5a6a8a',k:OUT}},
+  {id:'hippopygmee',n:'Hippocampe pygmée',rar:'r',w:2.5,cm:[1,2],wd:'mangrove',quip:'Plus petit qu’un ongle.',map:[".pp.","pPpk",".pp.",".pp.","..pp",".p.p","..p."],pal:{p:'#f0a0b0',P:'#ffd0d8',k:OUT}},
+  {id:'crocodilebebe',n:'Bébé crocodile',rar:'e',w:1,cm:[25,40],wd:'mangrove',quip:'Il fait semblant de dormir.',map:["............kk..","..gggggggggggggg","gggGgGgGgggwgwgw","..g..g....g..g.."],pal:{g:'#5a7a3a',G:'#3a5228',w:'#f4f0e6',k:OUT}},
+  {id:'lamantin',n:'Lamantin',rar:'l',w:.3,cm:[250,400],wd:'mangrove',quip:'Il a l’air de te sourire.',look:{len:22,h:8,body:'#8a8e94',back:'#6a6e74',belly:'#a8acb0',fin:'#7a7e84'}},
+  {id:'tong',n:'Tong perdue',rar:'j',w:3,wd:'mangrove',quip:'L’autre est sûrement à Bali.',map:["..rr..",".bbbb.","bbbbbb","bbbbbb",".bbbb."],pal:{r:'#e8504a',b:'#5a8ad0'}},
+  {id:'morue',n:'Morue',rar:'c',w:9,cm:[30,80],wd:'fjord',look:{len:14,h:5,body:'#b0a070',back:'#7a6a44',belly:'#ece4cc',fin:'#9a8a5e',pat:'spots'}},
+  {id:'hareng',n:'Hareng',rar:'c',w:9,cm:[20,35],wd:'fjord',look:{len:10,h:4,body:'#c8d4dc',back:'#4a6a8a',belly:'#f4f8fa',fin:'#9ab0c0',pat:'shine'}},
+  {id:'fletan',n:'Flétan',rar:'u',w:4,cm:[60,150],wd:'fjord',quip:'Les deux yeux du même côté. Pratique.',map:["....bbbbbb....","..bbBbbbBbbb..","bbbbbbbbbbbbbk","..bbbBbbBbbb..","....bbbbbb...."],pal:{b:'#7a6a5a',B:'#5a4a3e',k:OUT}},
+  {id:'eglefin',n:'Églefin',rar:'u',w:5,cm:[30,60],wd:'fjord',look:{len:13,h:5,body:'#9aa0a8',back:'#4a5058',belly:'#e8eaec',fin:'#7a8088'}},
+  {id:'loupdemer',n:'Loup de mer',rar:'r',w:2.5,cm:[50,110],wd:'fjord',quip:'Des dents de chien et un caractère de chat.',look:{len:17,h:6,body:'#7a8a98',back:'#4a5664',belly:'#c8d0d8',fin:'#5a6674',pat:'stripes'}},
+  {id:'requingroen',n:'Requin du Groenland',rar:'e',w:1,cm:[300,500],wd:'fjord',quip:'Il a peut-être 400 ans.',look:{len:22,h:7,body:'#6a6e74',back:'#4a4e54',belly:'#9a9ea4',fin:'#55595f',shape:'long'}},
+  {id:'morse',n:'Morse',rar:'l',w:.3,cm:[250,350],wd:'fjord',quip:'Il a gardé sa moustache bien peignée.',map:["...bbbbb....","..bbbbbbbb..",".bbkbbbbbbb.","bbbbbbbbbbbb","bbwbwbbbbbbb","..w.w..bb.bb"],pal:{b:'#a8806a',k:OUT,w:'#f4f0e6'}},
+  {id:'casque',n:'Casque viking',rar:'j',w:2,wd:'fjord',quip:'Sans cornes, en vrai. Mais c’est plus joli comme ça.',map:["w.......w","w.sssss.w","wsSsssssw",".sssssss.",".k.k.k.k."],pal:{w:'#f0e8d8',s:'#9aa0a8',S:'#d8dce0',k:'#7a5a3a'}},
+  {id:'carpecanal',n:'Carpe des canaux',rar:'c',w:9,cm:[30,70],wd:'ville',look:{len:15,h:6,body:'#8a8a6a',back:'#5a5a44',belly:'#c8c4a8',fin:'#7a7a5a',pat:'scales'}},
+  {id:'evade',n:'Poisson rouge évadé',rar:'c',w:7,cm:[6,15],wd:'ville',quip:'Il a fui son bocal. Respect.',look:{len:9,h:5,body:'#f08a2a',back:'#d8641a',belly:'#fbd08a',fin:'#f6a860'}},
+  {id:'chaterrant',n:'Chat errant',rar:'u',w:3,cm:[30,45],wd:'ville',quip:'Il t’a regardé, puis il est reparti.',map:["k...k..","kk.kk..","kkkkk..","kykyk..","kkkkk.k","kkkkkk.","kkkkkk."],pal:{k:'#3a3a44',y:'#f2d24a'}},
+  {id:'trottinette',n:'Trottinette',rar:'u',w:3,wd:'ville',quip:'Elle a encore 3 % de batterie.',map:["...........k",".........kkk","..........k.","..........k.","kkkkkkkkkkk.","w.........w."],pal:{k:'#5a8ad0',w:'#2a2a2a'}},
+  {id:'brochetcanal',n:'Brochet des canaux',rar:'r',w:2.5,cm:[50,100],wd:'ville',look:{len:19,h:4,body:'#8a9a6a',back:'#4e5a3e',belly:'#e8ecd8',fin:'#7a8a5a',shape:'long',pat:'light'}},
+  {id:'carpeneon',n:'Carpe néon',rar:'e',w:1,cm:[40,80],wd:'ville',quip:'Elle brille comme une enseigne.',look:{len:16,h:6,body:'#3a2a5a',back:'#ff4ab0',belly:'#4af0ff',fin:'#ff4ab0',pat:'rainbow'}},
+  {id:'cleville',n:'Clé de la ville',rar:'l',w:.3,wd:'ville',quip:'Elle ouvre toutes les portes de la ville.',map:["yyy......","y.y......","yyyyyyyyy","......y.y","......y.."],pal:{y:'#f2c64a'}},
+  {id:'caddie',n:'Caddie',rar:'j',w:3,wd:'ville',quip:'Toujours une roue qui tire à gauche.',map:["k.........","kkkkkkkkk.",".kgkgkgkk.",".kkkkkkk..","..kgkgk...","..kkkkk...","..o...o..."],pal:{k:'#9aa0a8',g:'#5a6068',o:OUT}},
+  {id:'carperousse',n:'Carpe rousse',rar:'c',w:9,cm:[30,70],wd:'automne',look:{len:14,h:6,body:'#c8783a',back:'#8a4a22',belly:'#f0c890',fin:'#d8904a',pat:'scales'}},
+  {id:'ide',n:'Ide mélanote',rar:'c',w:8,cm:[25,50],wd:'automne',look:{len:12,h:5,body:'#e8b85a',back:'#a87a2a',belly:'#fbeac0',fin:'#e89a4a'}},
+  {id:'perchedor',n:'Perche dorée',rar:'u',w:5,cm:[15,35],wd:'automne',look:{len:11,h:5,body:'#d8b04a',back:'#6a6a2a',belly:'#f4e8c0',fin:'#e8704a',pat:'stripes'}},
+  {id:'brochetroux',n:'Brochet roux',rar:'r',w:2.5,cm:[50,100],wd:'automne',look:{len:19,h:4,body:'#a88a4a',back:'#5e4a24',belly:'#efe4c4',fin:'#c8783a',shape:'long',pat:'light'}},
+  {id:'truitedoree',n:'Truite dorée',rar:'e',w:1.2,cm:[30,60],wd:'automne',quip:'Elle a pris la couleur des feuilles.',look:{len:15,h:5,body:'#f2c64a',back:'#c88a2a',belly:'#fff0c0',fin:'#e8a83a',pat:'spots'}},
+  {id:'citrouille',n:'Citrouille enchantée',rar:'l',w:.3,wd:'automne',quip:'Elle brille un peu, le soir.',map:["...g...","..gg...",".ooOoo.","oOooOoo","ooOooOo","oOooOoo",".ooooo."],pal:{g:'#4a7a2a',o:'#e8802a',O:'#c8601a'}},
+  {id:'chataigne',n:'Châtaigne',rar:'j',w:4,wd:'automne',quip:'Encore chaude, ou presque.',map:["...w...","..bbb..",".bBbbb.","bBbbbbb",".bbbbb."],pal:{w:'#e8dcc0',b:'#7a4a28',B:'#a8703a'}},
+  {id:'feuilleerable',n:'Feuille d’érable géante',rar:'j',w:4,wd:'automne',quip:'Elle est plus grande que toi.',map:["...r...","r.rrr.r","rrrRrrr",".rrRrr.","rrrRrrr","...k..."],pal:{r:'#e8602a',R:'#b8401a',k:'#6a3a1a'}},
+  {id:'loterie',n:'Ticket de loterie',rar:'j',w:1.2,wd:'*',quip:'Gratté sur place : on verra bien.',map:["yyyyyyyy","ykykykyy","yyyyyyyy","yrrrrrry","yyyyyyyy"],pal:{y:'#f6e6a8',k:OUT,r:'#e8504a'}},
+  {id:'messagecode',n:'Message codé',rar:'r',w:.8,wd:'*',quip:'« Oh vhfuhw, f’hvw od sdwlhqfh. » (décale chaque lettre de 3)',map:[".pppppp.","pPkPkkPp","pPkkPkPp",".pppppp."],pal:{p:'#e8d8b0',P:'#f6ecd0',k:'#5a4a3a'}},
+  {id:'nain',n:'Nain de jardin',rar:'u',w:1,wd:'*',quip:'Il a l’air content d’être là.',map:["...r...","..rrr..",".rrrrr.","..sks..","..www..",".bwwwb.","bbbbbbb",".k...k."],pal:{r:'#e8504a',w:'#f4f0e6',s:'#f0c0a0',k:OUT,b:'#3a6ac0'}},
   {id:'boule',n:'Boule de Noël',rar:'j',w:5,wd:'*',noel:1,quip:'Elle brille encore.',map:["..y..",".rrr.","rWrrr","rrrrr",".rrr."],pal:{y:'#f2c64a',r:'#d8303a',W:'#ffffff'}},
   {id:'sucredorge',n:'Sucre d’orge',rar:'r',w:3,wd:'*',noel:1,quip:'Le lapin l’a léché. Juste un peu.',map:[".rww.","w..r.","r..w.","...r.","...w.","...r."],pal:{r:'#d8303a',w:'#ffffff'}},
   {id:'painepice',n:'Bonhomme pain d’épice',rar:'e',w:1.2,wd:'*',noel:1,quip:'Il court plus vite que toi.',map:[".bbb.",".bwb.","bbbbb","b.w.b",".bbb.",".b.b."],pal:{b:'#b87a40',w:'#ffffff'}},
@@ -770,7 +833,7 @@ function addCatch(id,cm,perfect){
   const L=loadLog(),before=Object.keys(L.sp).filter(k=>SPI[k]).length,e=L.sp[id]||(L.sp[id]={n:0,best:0,first:Date.now()}),isNew=e.n===0;
   if(isNew&&typeof WORLDS!=='undefined')for(const w of WORLDS)if(w.need>before&&w.need<=before+1)setTimeout(()=>toast(null,'Nouveau monde : '+w.n,'Ouvre l’onglet Mondes pour y aller.',null,7000,'mondes'),4300);
   e.n++;if(cm&&cm>e.best)e.best=cm;if(perfect)e.perfect=(e.perfect||0)+1;
-  const coins=coinOf(SPI[id],perfect);L.coins+=coins;
+  const coins=id==='loterie'?[0,0,2,5,10,20,50,100,250,500][Math.min(9,Math.floor(Math.pow(Math.random(),1.8)*10))]:coinOf(SPI[id],perfect);L.coins+=coins;
   L.total++;L.today++;store.set('log',L);refreshCount();
   return{isNew,record:cm&&cm===e.best&&e.n>1,coins};
 }
@@ -788,7 +851,13 @@ const WORLDS=[
   {id:'tropique',n:'Plage tropicale',d:'Sable blanc, palmiers et eau turquoise.',need:40,tree:'palm',water:['#1ccfc4',.72],sky:['#d8f0ec',.2],sw:['#d8f0ec','#2ec4c0']},
   {id:'jardin',n:'Jardin zen',d:'Un étang à koïs sous les cerisiers, face au mont Fuji.',need:48,tree:'sakura',fuji:1,pads:1,petals:1,water:['#4f8f86',.45],sky:['#f6dce0',.22],sw:['#f6dce0','#4f8f86']},
   {id:'clairiere',n:'Clairière',d:'Un petit étang au cœur de la forêt, entre les fleurs et les papillons.',need:56,tree:'oak',forest:1,rays:1,meadow:1,water:['#3f8a78',.42],sky:['#d4ecc4',.25],sw:['#d4ecc4','#3f8a78']},
-  {id:'brume',n:'Forêt brumeuse',d:'Des sapins à perte de vue, noyés dans la brume.',need:64,tree:'none',taiga:1,water:['#5a948a',.5],sky:['#bcd4c8',.35],sw:['#bcd4c8','#4a7a72']}
+  {id:'brume',n:'Forêt brumeuse',d:'Des sapins à perte de vue, noyés dans la brume.',need:64,tree:'none',taiga:1,water:['#5a948a',.5],sky:['#bcd4c8',.35],sw:['#bcd4c8','#4a7a72']},
+  {id:'rizieres',n:'Rizières',d:'Des terrasses de riz qui reflètent le ciel, dans la brume du matin.',need:72,tree:'none',terraces:1,water:['#7aa89a',.4],sky:['#dfe8d4',.25],sw:['#dfe8d4','#6a9a7a']},
+  {id:'canyon',n:'Canyon',d:'Une oasis au fond d’une gorge de roche rouge.',need:80,tree:'none',canyon:1,water:['#3a9a9a',.45],sky:['#f4dcc0',.28],sw:['#f0c8a0','#3a9a9a']},
+  {id:'mangrove',n:'Mangrove',d:'Des racines sur pilotis dans une eau tiède et brune.',need:88,tree:'mangrove',reeds:1,water:['#6a7a48',.55],sky:['#dcead0',.2],sw:['#dcead0','#6a7a48']},
+  {id:'fjord',n:'Fjord',d:'Des falaises vertigineuses, une cascade, et des aurores la nuit.',need:96,tree:'none',fjord:1,water:['#2a5a6a',.5],sky:['#d4e2ea',.2],sw:['#d4e2ea','#2a5a6a']},
+  {id:'ville',n:'Ville la nuit',d:'Un quai de canal, des réverbères et des fenêtres allumées.',need:104,tree:'none',city:1,night:1,water:['#2a3450',.5],sw:['#2a3450','#141a2c']},
+  {id:'automne',n:'Automne',d:'Le lac en octobre, sous les érables flamboyants.',need:112,tree:'autumn',leaves:1,water:['#7a8a7a',.35],sky:['#f0dcc0',.22],sw:['#f0dcc0','#8a9a7a']}
 ];
 const WI=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
 const discovered=()=>Object.keys(loadLog().sp).filter(id=>SPI[id]).length;
@@ -829,6 +898,12 @@ const BANKS={
   glace:{grass:['#eef3f6','#ffffff'],earth:['#b8c6d0','#9fb0bc','#d2dde4'],base:'#7e909e',snow:1},
   clairiere:{grass:['#5fa832','#8ccc3c'],earth:['#5a4632','#4a3826','#6e5840'],base:'#3a2c1e'},
   brume:{grass:['#5a7a48','#7a9a58'],earth:['#3e3a34','#2e2a26','#4e4840'],base:'#24201c'},
+  rizieres:{grass:['#7aa850','#9cc868'],earth:['#7a6448','#64503a','#8a7458'],base:'#4a3a2a'},
+  canyon:{grass:['#d8b878','#e8cc90'],earth:['#b8603a','#9a4a2e','#cc7448'],base:'#7a3420',snow:1},
+  mangrove:{grass:['#5a7a3a','#7a9a4a'],earth:['#4a3a28','#3a2c1e','#5a4830'],base:'#2a2018'},
+  fjord:{grass:['#6a8a5a','#8aa870'],earth:['#5a6068','#484e56','#6e747c'],base:'#34383e'},
+  ville:{grass:['#8a8a92','#a4a4ac'],earth:['#5a5a66','#4a4a54','#6a6a76'],base:'#2e2e38'},
+  automne:{grass:['#a8903a','#c8a848'],earth:['#8a6450','#745040','#9a7460'],base:'#5a3a30'},
   jardin:{grass:['#6f9a5e','#8fb874'],earth:['#d8d2c4','#c0b8a8','#ece8de'],base:'#8a8274'},
   tropique:{grass:['#f2e2a8','#faf0cc'],earth:['#e6cc90','#d4b878','#f4e4b4'],base:'#c8a868',snow:1}
 };
@@ -1033,9 +1108,9 @@ function makeSakura(h,seed,back,maple,oak){
     return null;
   });
 }
-function makeOak(h,seed,back){
+function makeOak(h,seed,back,P0){
   const r=rng(seed),w=Math.round(h*1.1)|1,cx=w>>1,cy=Math.round(h*.37),rx=w/2-2,ry=h*.33,tw=Math.max(3,Math.round(w*.085));
-  const pal=['#16301f','#244a2a','#3c722e','#68a638','#a8d250','#e0ee8a'].map(c=>back?rgb(mix(hex(c),[196,226,196],.38)):c);
+  const pal=(P0||['#16301f','#244a2a','#3c722e','#68a638','#a8d250','#e0ee8a']).map(c=>back?rgb(mix(hex(c),[196,226,196],.38)):c);
   const lobes=[];
   for(let i=0;i<20;i++){const a=r()*Math.PI*2,d=Math.sqrt(r())*.66;lobes.push({x:cx+Math.cos(a)*rx*d,y:cy+Math.sin(a)*ry*d*.82,rx:rx*(.24+r()*.12),ry:ry*(.26+r()*.12)})}
   lobes.sort((a,b)=>a.y-b.y);
@@ -1223,6 +1298,96 @@ function drawTaigaFront(g,r){
       g.fillStyle=l>.55?'#d4c470':l>.15?'#8a9a50':'#3e5236';g.fillRect(Math.round(x+dx),GT+1+y,1,1)}
   }
 }
+function makeMangrove(h,seed,back){
+  const r=rng(seed),w=Math.round(h*1.25)|1,cx=w>>1,cy=Math.round(h*.28),rx=w/2-2,ry=h*.2;
+  const pal=['#14301c','#22502a','#357a30','#5c9e38','#94c652'].map(c=>back?rgb(mix(hex(c),[204,224,196],.38)):c);
+  const lobes=[];for(let i=0;i<14;i++){const a=r()*Math.PI*2,d=Math.sqrt(r())*.7;lobes.push({x:cx+Math.cos(a)*rx*d,y:cy+Math.sin(a)*ry*d,rx:rx*(.22+r()*.12),ry:ry*(.4+r()*.2)})}
+  lobes.sort((a,b)=>a.y-b.y);
+  const wood=new Map(),put=(x,y,u)=>wood.set(Math.round(x)+','+Math.round(y),u);
+  const tb=h*.6;for(let y=cy;y<tb;y++)for(let d=-1;d<=1;d++)put(cx+d,y,(d+1)/2);
+  // racines-échasses en arceaux
+  for(let i=0;i<7;i++){const ex=cx+(i-3)*w*.13+(r()-.5)*3,sy=tb-2+r()*3,lift=h*(.08+r()*.08);
+    for(let t=0;t<=1;t+=.02){const x=lerp(cx+(i-3)*.6,ex,t),y=lerp(sy,h-1,t)-Math.sin(t*Math.PI)*lift;put(x,y,t<.5?.2:.6)}}
+  return gridSprite(w,h,(x,y)=>{
+    let L=null;for(const B of lobes){const dx=(x-B.x)/B.rx,dy=(y-B.y)/B.ry,d=dx*dx+dy*dy;if(d<1)L={dx,dy,d}}
+    if(L){if(L.d>.8&&L.dy>.2)return pal[0];let l=-(L.dx*.5+L.dy*.8)+(r()-.5)*.25;return pal[l>.6?4:l>.15?3:l>-.3?2:1]}
+    const u=wood.get(x+','+y);if(u!=null)return u<.3?'#8a7254':u>.7?'#3e3024':'#5e4a36';
+    return null;
+  });
+}
+function drawTerraces(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},ph=r()*6;
+  for(const[k,hh,col]of[[0,.5,'#9cbcae'],[1,.36,null]]){
+    for(let x=0;x<W;x++){
+      const top=Math.round(GT-WY*hh*(.45+.35*Math.sin(x*.011+ph+k*2)+.2*Math.sin(x*.037+ph*k)));
+      for(let y=top;y<=GT;y++){
+        if(col){px(x,y,col);continue}
+        const yy=y+Math.sin(x*.045+ph)*2.2,s=Math.floor((GT-yy)/5),ry=Math.floor(GT-yy)%5;
+        px(x,y,y===top?'#b8d890':ry===4?'#b4d88a':ry===3?(s%3===0?'#7a9a58':'#cfe4dc'):ry===2&&s%3===1?'#cfe4dc':((x+s)%4===0?'#6a9a48':'#82b05a'));
+        if(ry===3&&s%3!==0&&(x*7+s)%5===0)px(x,y,'#8ab860');
+      }
+    }
+    if(k){const hx=Math.round(W*.66),hy=Math.round(GT-WY*.36*(.45+.35*Math.sin(hx*.011+ph+2)+.2*Math.sin(hx*.037+ph)))+3;
+      g.drawImage(mapSprite(["....rr....","..rrrrrr..",".rrrrrrrr.","rrrrrrrrrr",".wwwkkwww.",".wwwkkwww."],{r:'#6a4a34',w:'#e8dcc0',k:'#4a3a2a'}),hx-6,hy-8)}
+  }
+  for(let y=Math.round(GT-WY*.12);y<=GT;y++){g.globalAlpha=Math.pow((y-GT+WY*.12)/(WY*.12),2)*.6;g.fillStyle='#e8f0e8';g.fillRect(0,y,W,1)}g.globalAlpha=1;
+}
+const CACTUS=mapSprite(["..g..","..g.g","g.ggg","ggg.g","..g..","..g..","..g.."],{g:'#5a8a48'});
+function drawCanyon(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},ph=r()*6;
+  // mesas lointaines aux sommets plats
+  for(let x=0;x<W;x++){const m=Math.sin(x*.02+ph)>.1?.42:Math.sin(x*.05+ph)>.6?.3:.18,top=Math.round(GT-WY*m);for(let y=top;y<=GT;y++)px(x,y,y===top?'#f4c8a8':(y-top)%6===0?'#d89878':'#e4aa88')}
+  // hautes falaises rouges en strates de chaque côté
+  for(let x=0;x<W;x++){
+    const u=x<W/2?x/(W*.24):(W-1-x)/(W*.24);if(u>1.05)continue;
+    const top=Math.round(WY*.12+Math.pow(Math.max(0,u),3)*WY*.7+Math.sin(x*.4)*2+Math.sin(x*.13+ph)*4),lit=x<W/2;
+    for(let y=top;y<=GT;y++){const band=Math.floor((y+Math.sin(x*.07)*3)/7)%3,edge=u>.85;
+      px(x,y,y===top?'#f0b080':edge?(lit?'#8a3a22':'#c86a40'):['#c0603a','#a84e30','#d07848'][band]);
+      if((x*5+y*3)%23===0)px(x,y,'#7a3420')}
+  }
+  for(const B of[LB,RB])for(let x=Math.max(B.x0,0)+6;x<Math.min(B.x1,W)-6;x+=18+r()*30){if(B===LB&&x>rab.x-16&&x<rab.x+18)continue;g.drawImage(CACTUS,Math.round(x),GT+1-CACTUS.height)}
+  for(const fx0 of[RB.x0+(Math.min(RB.x1,W)-RB.x0)*.35]){const pm=makePalm(Math.round(H*.24),(r()*1e9)|0,false);g.drawImage(pm,Math.round(fx0)-(pm.width>>1),GT+3-pm.height)}
+}
+let falls=null;
+function drawFjord(g,r){
+  drawMountains(g,r,true);
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},ph=r()*6;
+  for(let x=0;x<W;x++){
+    const left=x<W/2,u=left?x/(W*.3):(W-1-x)/(W*.3);if(u>1.05)continue;
+    const top=Math.round(WY*.04+Math.pow(Math.max(0,u),2.4)*WY*.85+Math.sin(x*.3+ph)*2+Math.abs(Math.sin(x*.09))*5);
+    for(let y=top;y<=GT;y++){
+      const crack=Math.sin(x*.23+Math.sin(y*.05)*3+Math.sin(y*.21)*.6)>.94,ledge=(y+Math.round(Math.sin(x*.2)*3))%17===0&&Math.sin(x*.31+y*.07)>.35;
+      const tone=Math.sin(x*.05+y*.02)*.5+Math.sin(x*.17-y*.03)*.5;let c=crack?'#3a4048':left?(u>.8?'#5a6470':tone>.3?'#8a96a4':'#7a8694'):(u>.8?'#8a96a4':tone>.3?'#56606c':'#646e7a');
+      if(y<top+2||(ledge&&y<GT*.6))c='#f4f8fa';else if(ledge)c='#5a7a4a';
+      if(y>GT-WY*.12&&(x+y)%3===0)c='#4a6a42';
+      px(x,y,c);
+    }
+  }
+  const wx=Math.round(W*.86),wu=(W-1-wx)/(W*.3),wtop=Math.round(WY*.04+Math.pow(wu,2.4)*WY*.85)+6;falls={x:wx,y0:wtop,y1:GT,w:6};
+  for(let y=wtop;y<=GT;y++){const sp=Math.min(3,(y-wtop)/25|0);for(let d=-sp;d<6+sp;d++){const edge=d<=-sp||d>=5+sp;px(wx+d,y,edge?'#9ab8c4':(d*5+y)%7===0?'#bcd6e0':'#eef6f8')}}
+  for(let i=0;i<14;i++){const bx=wx-6+((i*7)%18),by=GT-(i%3);px(bx,by,'#ffffff');px(bx+1,by,'#dfeef2')}
+}
+function drawCity(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1)},WC=['#ffd88a','#ffeaa0','#ffc870','#a8d0ff'];
+  for(const[k,col,hh]of[[0,'#2a3450',.42],[1,'#1c2236',.3]]){
+    let x=-4;while(x<W+4){
+      const bw=10+(r()*18|0),bh=Math.round(WY*hh*(.4+r()*.6)),top=GT-bh,roof=r();
+      for(let y=top;y<=GT;y++)for(let d=0;d<bw;d++)px(x+d,y,d===0&&k?'#2a3048':col);
+      if(roof<.3)for(let d=0;d<bw;d++)for(let y=0;y<Math.min(d,bw-d)/2;y++)px(x+d,top-y,col);
+      else if(roof<.5){px(x+3,top-3,col);px(x+3,top-2,col);px(x+3,top-1,col);px(x+4,top-3,col)}
+      for(let y=top+3;y<GT-3;y+=5+k)for(let d=2;d<bw-2;d+=4){
+        if(r()<(k?.28:.14))lights.push({x:x+d,y,c:WC[(r()*4)|0],ph:0,lamp:1,win:1});else px(x+d,y,k?'#2a3048':'#38425e');
+      }
+      x+=bw+(k?1:-2)+(r()*3|0);
+    }
+  }
+  for(const B of[LB,RB])for(let x=Math.max(B.x0,0)+10;x<Math.min(B.x1,W)-6;x+=40+r()*20){
+    if(B===LB&&x>rab.x-16&&x<rab.x+18)continue;const lh=Math.round(H*.09);
+    g.fillStyle='#1a1a22';g.fillRect(x,GT-lh,1,lh);g.fillRect(x-1,GT-lh-2,3,2);
+    lights.push({x,y:GT-lh-1,c:'#ffe0a0',ph:0,lamp:1});
+  }
+}
+const PUMPKIN=mapSprite(["..g..",".oOo.","oOoOo","oOoOo",".ooo."],{g:'#4a7a2a',o:'#e8802a',O:'#c8601a'});
 function drawFuji(g,r){
   const cx=Math.round(W*.52),hm=Math.round(WY*.46),bw=hm*3.5,sy=GT-hm,ph=r()*6,haze=hex('#c8d4de');
   const C={snowL:hex('#ffffff'),snowR:hex('#dce6f0'),snowG:hex('#c4d2e2'),rockL:hex('#a2b0c4'),rockR:hex('#8694aa'),gully:hex('#74829a')};
@@ -1381,18 +1546,23 @@ function buildLand(){
   if(WORLD.fuji)drawFuji(g,r);
   if(WORLD.forest)drawForest(g,r);
   if(WORLD.taiga)drawTaiga(g,r);
+  falls=null;
+  if(WORLD.terraces)drawTerraces(g,r);
+  if(WORLD.canyon)drawCanyon(g,r);
+  if(WORLD.fjord)drawFjord(g,r);
   if(WORLD.id==='jardin'){drawBamboo(g,r,Math.max(LB.x0,0)+4,Math.max(LB.x0,0)+Math.round(W*.08),H*.4,true,GT+1);drawBamboo(g,r,Math.min(RB.x1,W)-Math.round(W*.07),Math.min(RB.x1,W)-2,H*.42,true,GT+1)}
   // arbres : rang du fond puis rang de devant
   trees=[];
-  const make=(h,seed,back)=>kind==='oak'?makeOak(h,seed,back):kind==='sakura'?makeSakura(h,seed,back,seed%4===0):kind==='palm'?makePalm(h,seed,back):kind==='willow'?makeWillow(h,seed,back):makePine(h,seed,back,kind==='pineDark'?DARK_PAL:TREE_PAL,kind==='snow');
+  const AUT=['#4a2414','#8a3a18','#c8642a','#e8983a','#f6c860','#fff0a8'];
+  const make=(h,seed,back)=>kind==='autumn'?(seed%3===0?makeSakura(h,seed,back,true):makeOak(h,seed,back,AUT)):kind==='mangrove'?makeMangrove(h,seed,back):kind==='oak'?makeOak(h,seed,back):kind==='sakura'?makeSakura(h,seed,back,seed%4===0):kind==='palm'?makePalm(h,seed,back):kind==='willow'?makeWillow(h,seed,back):makePine(h,seed,back,kind==='pineDark'?DARK_PAL:TREE_PAL,kind==='snow');
   const plant=(x0,x1,back)=>{
     let x=x0+r()*6;
     while(true){
-      const h=Math.round(clamp(H*(back?.4:.32)*(.75+r()*.45)*(kind==='willow'?.8:kind==='pineDark'?1.12:kind==='palm'?1.05:kind==='sakura'?.85:kind==='oak'?1.1:1),24,150));
+      const h=Math.round(clamp(H*(back?.4:.32)*(.75+r()*.45)*(kind==='willow'?.8:kind==='pineDark'?1.12:kind==='palm'?1.05:kind==='sakura'?.85:kind==='oak'||kind==='autumn'?1.1:kind==='mangrove'?.8:1),24,150));
       const spr=make(h,(r()*1e9)|0,back),w=spr.width;
       if(x+w*.35>x1)break;
       trees.push({x:Math.round(x),back,spr});
-      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?.5:kind==='sakura'?.7:kind==='oak'?.42:1)+r()*8;
+      x+=w*(back?1.15:1.05)*(kind==='willow'?.8:kind==='palm'?.5:kind==='sakura'?.7:kind==='oak'||kind==='autumn'?.42:kind==='mangrove'?.55:1)+r()*8;
     }
   };
   if(kind!=='none'){
@@ -1421,12 +1591,17 @@ function buildLand(){
   sails=[];if(WORLD.sea){drawPier(g);drawJetty(g,r)}else if(!WORLD.boat)for(const b of[LB,RB])drawBank(g,b,r,P);
   if(WORLD.taiga)drawTaigaFront(g,r);
   if(WORLD.meadow)drawBushes(g,r);
+  if(WORLD.city)drawCity(g,r);
+  if(WORLD.leaves)g.drawImage(PUMPKIN,rab.x-22,GT+1-PUMPKIN.height);
   if(WORLD.id==='tropique'){const pa=makeParasol(Math.round(H*.085)+12),bx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.42);g.drawImage(pa,bx-(pa.width>>1),GT+2-pa.height);g.drawImage(TRANSAT,bx-4,GT+2-TRANSAT.height)}
   if(WORLD.id==='jardin'){const t=makeTorii(Math.round(H*.34)),tx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.3);g.drawImage(t,tx-(t.width>>1),GT+2-t.height);g.drawImage(TORO,rab.x-26,GT+2-TORO.height);drawBamboo(g,r,Math.min(RB.x1,W)-22,Math.min(RB.x1,W)-4,H*.38,false,GT);drawBamboo(g,r,Math.max(LB.x0,0)+2,Math.max(LB.x0,0)+16,H*.36,false,GT)}
   // herbes, roseaux et fleurs (animés)
   tufts=[];flowers=[];
   if(!WORLD.sea&&!WORLD.boat)for(const b of[LB,RB])for(let x=Math.max(b.x0,0)+1;x<Math.min(b.x1,W)-1;x+=1+(r()*3|0)){
     if(b===LB&&x>rab.x-12&&x<rab.x+14)continue;
+    if(WORLD.city)continue;
+    if(WORLD.canyon){if(r()<.12)tufts.push({x,h:1+(r()*3|0),c:'#a89a5a',top:'#c8b878',p:r()*6});continue}
+    if(WORLD.leaves){if(r()<.5)tufts.push({x,h:1+(r()*3|0),c:r()<.5?'#a8903a':'#c87a3a',top:'#e8a83a',p:r()*6});if(r()<.12)flowers.push({x,h:1,c:['#d8602a','#e8a83a','#b8402a'][(r()*3)|0],p:r()*6});continue}
     if(WORLD.reeds&&r()<.45){tufts.push({x,h:5+(r()*9|0),c:r()<.5?'#5f7a44':'#7f9a5a',top:'#9ab070',p:r()*6,cat:r()<.4});continue}
     if(WORLD.ice){tufts.push({x,h:1+(r()*2|0),c:'#dfe8ee',top:'#ffffff',p:r()*6});continue}
     if(WORLD.id!=='tropique')tufts.push({x,h:2+(r()*(r()<.2?7:4)|0),c:r()<.5?'#5f8a70':'#86ae8a',p:r()*6});
@@ -1446,6 +1621,7 @@ function buildLand(){
   cracks=[];if(WORLD.ice)for(let i=0;i<Math.round(W/30);i++){let x=r()*W,y=WY+2+r()*(H-WY-4);const pts=[];for(let k=0;k<6+r()*8;k++){pts.push([x|0,y|0]);x+=1+r()*2;y=clamp(y+(r()-.5)*1.6,WY+1,H-1)}cracks.push(pts)}
   flakes=[];if(WX==='pluie'&&!WORLD.snow)for(let i=0;i<Math.round(W*H/260);i++)flakes.push({x:r()*W,y:r()*H,v:110+r()*50,p:r()*6,c:'#c8d6e0',rain:1});
   else if(WORLD.snow||NOEL||WX==='neige')for(let i=0;i<Math.round(W*H/(WORLD.snow?350:600));i++)flakes.push({x:r()*W,y:r()*H,v:4+r()*8,p:r()*6,c:'#ffffff'});
+  else if(WORLD.leaves)for(let i=0;i<Math.round(W*H/1800);i++)flakes.push({x:r()*W,y:r()*H,v:6+r()*6,p:r()*6,c:['#d8602a','#e8983a','#b8402a','#f0c050'][(r()*4)|0]});
   else if(WORLD.petals)for(let i=0;i<Math.round(W*H/1600);i++)flakes.push({x:r()*W,y:r()*H,v:3+r()*4,p:r()*6,c:r()<.5?'#f6b4c8':'#fbdce6'});
 }
 function drawBank(g,b,r,P){
@@ -1464,7 +1640,8 @@ function drawBank(g,b,r,P){
 const F={st:'idle',t:0,wait0:1.2,tx:0,wd:0,nib:0,fish:null,gauge:null,hold:null,first:true,ang:-1,bend:0,ear:0,blink:0,earT:3,blinkT:2,hop:0};
 let sails=[],sailT=4,scrollX=0,buoyT=8,buoys=[],T=0,parts=[],ripples=[],birds=[],jump=null,jumpT=rnd(15,40),birdT=rnd(10,30),shoot=null;
 function setSt(s){F.st=s;F.t=0}
-function isDark(){return skyAt(sunElev(now())).dark>.5}
+const sunE=d=>WORLD&&WORLD.night?Math.min(sunElev(d),-14):sunElev(d);
+function isDark(){return skyAt(sunE(now())).dark>.5}
 function pickFish(){
   const dark=isDark(),pool=SP.filter(s=>(!s.noel||NOEL)&&inWorld(s,WORLD.id)&&(!s.when||(s.when==='nuit')===dark));
   let tot=pool.reduce((a,s)=>a+s.w,0),x=R()*tot;
@@ -1565,7 +1742,7 @@ function update(dt){
   ripples=ripples.filter(r=>r.l>0);
   if((jumpT-=dt)<0&&!jump&&!WORLD.ice){jumpT=rnd(18,55);const x=rnd(W*.1,W*.9);if(Math.abs(x-F.tx)>14){jump={x,t:0,d:R()<.5?1:-1};splash(x,WY,4);ripple(x,WY+1,5)}}
   if(jump){jump.t+=dt;if(jump.t>.9){splash(jump.x+jump.d*10,WY,5);ripple(jump.x+jump.d*10,WY+1,6);jump=null}}
-  const sk=skyAt(sunElev(now()));
+  const sk=skyAt(sunE(now()));
   if((birdT-=dt)<0){birdT=WORLD.sea||WORLD.boat?rnd(8,25):rnd(25,70);if(sk.dark<.3){const d=R()<.5?1:-1,y=rnd(WY*.35,WY*.6);birds=[0,1,2,3].slice(0,2+(R()*3|0)).map(i=>({x:d>0?-10-i*7:W+10+i*7,y:y+(i%2)*3+i,d,p:R()*6}))}}
   for(const b of birds)b.x+=b.d*dt*16;
   birds=birds.filter(b=>b.x>-40&&b.x<W+40);
@@ -1585,7 +1762,7 @@ function line(g,x0,y0,x1,y1,sag,c){
   for(let i=0;i<=n;i++){const s=i/n;g.fillRect(Math.round(lerp(x0,x1,s)),Math.round(lerp(y0,y1,s)+sag*4*s*(1-s)),1,1)}
 }
 function draw(){
-  const d=now(),e=sunElev(d),sk=worldSky(skyAt(e)),Wd=WORLD;
+  const d=now(),e=sunE(d),sk=worldSky(skyAt(e)),Wd=WORLD;
   // ciel
   for(let y=0;y<WY;y++){ctx.fillStyle=rgb(mix(sk.top,sk.bot,Math.pow(y/WY,1.3)));ctx.fillRect(0,y,W,1)}
   // étoiles
@@ -1717,6 +1894,13 @@ function draw(){
   }
   // neige
   if(bflies.length&&sk.dark<.6)for(const b of bflies){const x=Math.round(b.x),y=Math.round(b.y),up=Math.sin(T*14+b.p)>0;ctx.fillStyle=nightMix(b.c);ctx.fillRect(x-1,y-(up?1:0),1,up?1:2);ctx.fillRect(x+1,y-(up?1:0),1,up?1:2);ctx.fillStyle=nightMix('#3a2a2a');ctx.fillRect(x,y,1,1)}
+  if(falls){for(let i=0;i<14;i++){const y=falls.y0+((T*60+i*37)%(falls.y1-falls.y0)),x=falls.x+(i%4);ctx.fillStyle=nightMix('#ffffff');ctx.globalAlpha=.8;ctx.fillRect(x,Math.round(y),1,2)}
+    ctx.globalAlpha=.35;ctx.fillStyle=nightMix('#ffffff');for(let i=0;i<6;i++)ctx.fillRect(falls.x-3+((T*7+i*3)%10|0),falls.y1-1-(i%3),2,1);ctx.globalAlpha=1}
+  if(Wd.fjord&&sk.dark>.45){ // aurores boréales
+    ctx.globalCompositeOperation='lighter';const k=clamp((sk.dark-.45)/.3,0,1);
+    for(let x=0;x<W;x+=1){const y0=WY*.08+Math.sin(x*.018+T*.15)*12+Math.sin(x*.05-T*.3)*5,hh=22+Math.sin(x*.03+T*.2)*10;
+      for(let j=0;j<hh;j+=2){const t=j/hh;ctx.globalAlpha=k*.16*(1-t)*(.6+.4*Math.sin(x*.2+T));ctx.fillStyle=t<.3?'#c890ff':'#5af0a0';ctx.fillRect(x,Math.round(y0+j),1,2)}}
+    ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1}
   if(Wd.rays&&sk.dark<.5&&WX!=='pluie'){ // rayons de soleil entre les arbres
     ctx.globalCompositeOperation='lighter';ctx.fillStyle='#fff6c8';
     for(let i=0;i<4;i++){const x0=W*(.12+i*.2)+Math.sin(T*.05+i)*8,wd=8+i%2*10,a=(.05+.035*Math.sin(T*.3+i*1.7))*(1-sk.dark*2);ctx.globalAlpha=Math.max(0,a);
@@ -1812,7 +1996,7 @@ function tick(){
   const d=now();$('#clock').textContent=hm(d);
   const st=sunTimes(d);
   $('#date').innerHTML=`<b>${d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</b> <span class="sun" title="Lever du soleil"><svg viewBox="0 0 9 9" shape-rendering="crispEdges"><path fill="currentColor" d="M4 0h1v1H4zM3 1h3v1H3zM2 2h1v1H2zM6 2h1v1H6zM0 7h9v1H0zM2 5h5v1H2zM1 6h7v1H1zM3 4h3v1H3z"/></svg>${hm(st.rise)}</span><span class="sun" title="Coucher du soleil"><svg viewBox="0 0 9 9" shape-rendering="crispEdges"><path fill="currentColor" d="M3 0h3v1H3zM4 1h1v1H4zM2 2h1v1H2zM6 2h1v1H6zM0 7h9v1H0zM2 5h5v1H2zM1 6h7v1H1zM3 4h3v1H3z"/></svg>${hm(st.set)}</span>${NOEL?noelLine(d):''}`;
-  const sk=skyAt(sunElev(d));
+  const sk=skyAt(sunE(d));
   document.documentElement.classList.toggle('nuit',sk.dark>.45);
   document.body.style.background=rgb(sk.bot);
   if(F.st==='wait'&&loadLogCache().total<3&&!$('#hint').classList.contains('fort'))hint('Clique sur l’eau pour lancer, ou attends que ça morde');
