@@ -1818,29 +1818,66 @@ function drawJardin(g,r){
   g.drawImage(wl,tx-Math.round(wl.width*.68),GT+3-wh);
   drawPavilion(g);
 }
+// saule pleureur : tronc qui se divise en grosses branches arquées, et des « rideaux » étagés
+// (une calotte de feuilles d'où pendent des mèches en faisceaux, claires en haut, sombres dedans)
 function makeWeeping(h,seed,P0){
-  const r=rng(seed),w=Math.round(h*1.15),[c,g]=canvasOf(w,h),px=(x,y,col)=>{x=Math.round(x);y=Math.round(y);if(x>=0&&y>=0&&x<w&&y<h){g.fillStyle=col;g.fillRect(x,y,1,1)}};
-  const P=P0&&(SEASON==='ete'||SEASON==='printemps')?P0:SEASON==='automne'?['#4a3a14','#7a6420','#a88a2a','#cdb040','#e8d060','#f6ea98']:SEASON==='hiver'?['#4a4434','#5e5844','#7a745a','#948e70','#aca686','#c4be9e']:['#1e5a3a','#2e7a36','#4aa03a','#7ac43a','#b0e04a','#e2f282'];
-  const BK=['#a898b8','#7e6c90','#5a4a6e','#3e3252'];
-  // tronc gris-violet qui se divise en grosses branches
-  const line=(x0,y0,x1,y1,t0,t1)=>{const n=Math.ceil(Math.hypot(x1-x0,y1-y0))*2;for(let i=0;i<=n;i++){const k=i/n,x=lerp(x0,x1,k),y=lerp(y0,y1,k),t=lerp(t0,t1,k);
-    for(let dx=-t;dx<=t+.01;dx+=.5){const u=(dx+t)/(2*t+.01);px(x+dx,y,u<.25?BK[0]:u>.72?BK[2]:(Math.round(x+dx)*3+Math.round(y))%7===0?BK[2]:BK[1])}}};
-  const cx=w*.5+(r()-.5)*w*.08,tw=Math.max(1.5,h*.042),fork=[cx+(r()-.5)*w*.06,h*.56];
-  line(cx,h-1,fork[0],fork[1],tw*1.25,tw);for(const sg of[-1,1])line(cx+sg*tw*.5,h-2,cx+sg*tw*2.4,h-1,tw*.6,.5);
-  const nC=5,clumps=[];
-  for(let i=0;i<nC;i++){const t=i/(nC-1),a=Math.PI*(.92-.84*t),d=w*(.3+r()*.08)*(i===2?.4:1);
-    clumps.push({x:fork[0]+Math.cos(a)*d*1.15,y:fork[1]-Math.sin(a)*h*.4-(i===2?h*.06:0),rx:w*(.15+r()*.04),ry:h*(.1+r()*.03)})}
-  for(const C of clumps){line(fork[0],fork[1],C.x,C.y+C.ry*.4,tw*.7,tw*.25);if(r()<.6){const mx=lerp(fork[0],C.x,.55),my=lerp(fork[1],C.y,.55);line(mx,my,mx+(C.x-fork[0])*.25,my+h*.08,tw*.3,.3)}}
-  // touffes du haut d'abord : rideau de branches qui pend, puis le dôme de feuilles
-  const put=(x,y,k)=>px(x,y,P[k]);
-  clumps.sort((a,b)=>a.y-b.y);
-  for(const C of clumps){
-    for(const pass of[0,1])for(let x=Math.round(C.x-C.rx*.95);x<=C.x+C.rx*.95;x++){
-      if(r()<(pass?.45:.25))continue;const dx=(x-C.x)/C.rx,y0=C.y+C.ry*Math.sqrt(Math.max(0,1-dx*dx))*.75,len=h*(.16+r()*.32)*(1-dx*dx*.45);
-      for(let j=0;j<len&&y0+j<h-3;j++){const tip=j>len-2,k=pass?(tip?4:(j+x)%3===0?3:2):((j+x)%2?1:0);px(x+(pass&&j%4===3?1:0),y0+j,P[tip&&pass&&r()<.3?5:k])}
+  const r=rng(seed),w=Math.round(h*1.25),[c,g]=canvasOf(w,h),px=(x,y,col)=>{x=Math.round(x);y=Math.round(y);if(x>=0&&y>=0&&x<w&&y<h){g.fillStyle=col;g.fillRect(x,y,1,1)}};
+  const P=P0&&(SEASON==='ete'||SEASON==='printemps')?P0:SEASON==='automne'?['#3a2a10','#5a4416','#7a6420','#a88a2a','#cdb040','#e8d060','#f6ea98']:SEASON==='hiver'?['#2e2a24','#3e3a30','#4e4a3e','#625e4e','#7a7460','#948e76','#aca68c']:['#0c2a20','#1e5a34','#2e7a36','#4a9e38','#78c23c','#a8dc48','#d8f080'];
+  const BK=['#b8a8c8','#9282a6','#6e5e84','#4e4064','#352a48'];
+  const sn=(x,ph,f)=>Math.sin(x*f+ph)*.6+Math.sin(x*f*2.3+ph*1.7)*.4; // bruit doux
+  // --- squelette
+  const wood=[];const line=(x0,y0,x1,y1,t0,t1)=>{const n=Math.ceil(Math.hypot(x1-x0,y1-y0))*2;for(let i=0;i<=n;i++){const k=i/n,x=lerp(x0,x1,k),y=lerp(y0,y1,k),t=lerp(t0,t1,k);
+    for(let dx=-t;dx<=t+.01;dx+=.5){const u=(dx+t)/(2*t+.01),X=Math.round(x+dx),Y=Math.round(y);wood.push([X,Y,u<.22?0:u<.45?1:u>.8?3:((X*5+Y*3)%9===0?3:2)])}}};
+  const curve=(x0,y0,cx,cy,x1,y1,t0,t1)=>{let px0=x0,py0=y0;const n=12;for(let i=1;i<=n;i++){const k=i/n,x=(1-k)**2*x0+2*(1-k)*k*cx+k*k*x1,y=(1-k)**2*y0+2*(1-k)*k*cy+k*k*y1;line(px0,py0,x,y,lerp(t0,t1,(i-1)/n),lerp(t0,t1,k));px0=x;py0=y}};
+  const tw=Math.max(2,h*.055),bx=w*.5+(r()-.5)*w*.06,fork=[bx+(r()-.5)*w*.05,h*.6];
+  curve(bx,h-1,bx-tw*.3,h*.8,fork[0],fork[1],tw*1.35,tw*.95);
+  for(const sg of[-1,1])line(bx+sg*tw*.6,h-3,bx+sg*tw*2.6,h-1,tw*.7,.6);
+  // rideaux : 3 étages, du haut au bas, qui débordent de plus en plus
+  const drapes=[];
+  const add=(x,y,rx,len,back)=>drapes.push({x,y,rx,len:len*1.45,back,ph:r()*9});
+  add(w*.5+(r()-.5)*w*.06,h*.1,w*.2,h*.3,true);
+  add(w*.3,h*.17,w*.17,h*.32,true);add(w*.7,h*.15,w*.17,h*.34,true);
+  add(w*.38,h*.24,w*.17,h*.36,false);add(w*.64,h*.22,w*.16,h*.38,false);
+  add(w*.17,h*.36,w*.15,h*.4,false);add(w*.84,h*.34,w*.15,h*.42,false);add(w*.5+(r()-.5)*w*.08,h*.33,w*.11,h*.3,false);
+  for(const D of drapes){const mx=lerp(fork[0],D.x,.45),my=lerp(fork[1],D.y,.15)-h*.06;curve(fork[0],fork[1],mx,my,D.x,D.y+h*.03,tw*.75,tw*.22);
+    if(!D.back&&r()<.7){const sx=lerp(fork[0],D.x,.6),sy=lerp(fork[1],D.y,.45);curve(sx,sy,sx+(D.x-fork[0])*.3,sy-h*.05,sx+(D.x-fork[0])*.45,sy+h*.04,tw*.32,.4)}}
+  // --- dessin d'un rideau : voûte fine et bosselée, intérieur sombre, mèches en faisceaux rayés
+  const drawDrape=(D,shade)=>{
+    const col=k=>P[Math.max(shade?1:0,Math.min(P.length-1,Math.round(k-shade)))];
+    const arch=h*.07,x0=Math.round(D.x-D.rx),x1=Math.round(D.x+D.rx);
+    const top=x=>{const dx=(x-D.x)/D.rx;return Math.round(D.y+arch*dx*dx-1.6*Math.abs(sn(x,D.ph,.7)))};
+    for(let x=x0;x<=x1;x++){const t=top(x);for(let y=t+2;y<t+2+D.len*.3;y++)px(x,y,col(hsh(x,y)%4===0?1:0))}
+    for(let k=0;k<3;k++){let tx=D.x+(r()-.5)*D.rx*1.4,ty=top(Math.round(tx))+2;const dx=(r()-.5)*.8;for(let j=0;j<D.len*.28;j++){px(tx,ty+j,BK[3]);tx+=dx}}
+    let x=x0;
+    while(x<=x1){
+      const bw=2+(r()*3|0),gap=r()<.4&&x>x0+2&&x<x1-2;
+      if(gap){x++;continue}
+      const dxc=(x+bw/2-D.x)/D.rx,L=D.len*(.35+.65*r())*(1-dxc*dxc*.35),lit=-dxc*1.1+(r()-.5)*.6;
+      for(let i=0;i<bw&&x+i<=x1;i++){
+        const xx=x+i,t0=top(xx)+1,off=i===0?1:i===bw-1?-1.2:0,Li=L-(i===0||i===bw-1?1+(r()*3|0):0);
+        let ex=xx;
+        for(let j=0;j<Li&&t0+j<h-2;j++){const tt=j/Li;let v=3.9+lit+off-tt*3.1+((j+xx)%4===0?.5:0);if(tt>.86&&i===1)v+=1.4;ex=xx+(tt>.7&&(xx%2)?Math.round(sn(j,D.ph,.4)*.6):0);
+          if(lit>-.2&&tt<.55&&hsh(xx,j+t0)%11===0)v=6;px(ex,t0+j,col(v));
+          if((i===0||i===bw-1)&&(j+xx)%3===1&&tt>.08)px(ex+(i===0?-1:1),t0+j+1,col(v+(i===0?.7:-.4)))}
+        if(i===1&&Li>4){px(ex-1,t0+Li-1,col(4.6+lit));px(ex+1,t0+Li-1,col(3.8+lit));px(ex,t0+Li,col(5))}
+      }
+      if(r()<.25)px(x+1,top(x)+L+2+(r()*5|0),col(4));
+      x+=bw;
     }
-    leafy(put,C,P.length,r);
-  }
+    // voûte : touffes claires sur le dessus, une rangée plus sombre dessous
+    for(let x=x0;x<=x1;x++){const t=top(x),dx=(x-D.x)/D.rx;px(x,t-1,col(hsh(x,t)%3?5.6-dx*.6:4.6));px(x,t,col(5.4-dx*.8));px(x,t+1,col(4.2-dx*.6));if(hsh(x,9)%3===0)px(x,t-2,col(6))}
+  };
+  for(const D of drapes)if(D.back)drawDrape(D,1);
+  for(const[x,y,k]of wood)px(x,y,BK[k]);
+  // racines et écorce : stries, un nœud, de la mousse au pied
+  for(let y=Math.round(fork[1]+3);y<h-2;y++){const k=(y-fork[1])/(h-fork[1]),xc=lerp(fork[0],bx,k);if(hsh(7,y)%3)px(xc+tw*.35,y,BK[3]);if(hsh(9,y)%4===0)px(xc-tw*.2,y,BK[2])}
+  {const ky=Math.round(lerp(fork[1],h,.45)),kx=Math.round(lerp(fork[0],bx,.45));px(kx,ky,BK[4]);px(kx,ky+1,BK[4]);px(kx-1,ky,BK[0]);px(kx+1,ky+1,BK[3]);px(kx,ky-1,BK[1])}
+  for(const sg of[-1,1])for(let k=0;k<5;k++)px(bx+sg*(tw*1.2+k),h-1-(k<2?1:0),BK[k<2?2:3]);
+  for(let k=0;k<Math.round(tw*2.4);k++){const xx=bx-tw*1.3+k;if(hsh(xx|0,3)%3)px(xx,h-1-(hsh(xx|0,5)%3),hsh(xx|0,1)%2?'#5a8a3a':'#7aa848')}
+  for(const D of drapes)if(!D.back)drawDrape(D,0);
+  // une branche passe devant le rideau du bas, ça donne de la profondeur
+  for(const sg of[-1,1]){const D=drapes[sg<0?5:6];if(!D)continue;curve(fork[0],fork[1]-h*.02,lerp(fork[0],D.x,.5),D.y+h*.02,D.x+sg*D.rx*.3,D.y+h*.12,tw*.4,.4)}
+  for(const[x,y,k]of wood.slice(-60))px(x,y,BK[k]);
   return c;
 }
 function drawPavilion(g){
@@ -1883,7 +1920,7 @@ function drawJardinFront(g,r){
   bed(Math.max(LB.x0,0)+2,rab.x-30);bed(RB.x0+6,Math.min(RB.x1,W)-4);
 }
 /* ----- Giverny : l'étang aux nymphéas, le pont japonais, les saules, et Monet à son chevalet ----- */
-const GIV_WILLOW=['#1e5a3a','#2e7a36','#4aa03a','#7ac43a','#b0e04a','#e2f282'];
+const GIV_WILLOW=['#0c2a20','#1e5a34','#2e7a36','#4a9e38','#78c23c','#a8dc48','#d8f080'];
 function drawGiverny(g,r){
   const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),1,1)},rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
   // frondaisons en touches de couleur, du fond vers l'avant
@@ -1932,13 +1969,32 @@ const MONET=[mapSprite(MONET_MAP,MONET_PAL),mapSprite(MONET_MAP.map((l,i)=>i===1
 let monet=null,monetHop=0;
 // nymphéa en perspective : ellipse aplatie, encoche, reflet clair, fleur à l'échelle
 function drawLily(ctx,p,nightMix){
-  const{x,y,w,e}=p;
-  for(let j=-e;j<=e;j++){const hw=Math.round(w*Math.sqrt(1-(j/(e+.5))**2));if(hw<1)continue;
-    ctx.fillStyle=nightMix(j>=Math.ceil(e*.4)?'#3e6a30':j<=-Math.ceil(e*.4)?'#8ab860':'#5a8a40');ctx.fillRect(x-hw,y+j,hw*2+1,1)}
-  if(w>3){ctx.fillStyle=nightMix(WORLD.giverny?'#4a8aa0':'#4f7a3a');const n=Math.max(1,Math.round(w*.45));for(let k=0;k<n;k++)ctx.fillRect(x+p.nb*(k+1),y+Math.round(k*e/n*.6),1,1)}
-  if(p.f){const fs=Math.max(1,Math.round(w/4)),fy=y-Math.max(1,e>>1);ctx.fillStyle=nightMix(p.fc||'#f2a6c0');
-    ctx.fillRect(x-fs,fy,fs*2+1,Math.max(1,fs));ctx.fillRect(x-Math.max(0,fs-1),fy-fs,Math.max(1,fs*2-1),fs);
-    if(fs>1){ctx.fillStyle=nightMix(p.fc?'#ffffff':'#fbe0ea');ctx.fillRect(x-fs+1,fy-fs,1,fs);ctx.fillStyle=nightMix('#f0d060');ctx.fillRect(x,fy,1,1)}}
+  const{x,y,w,e}=p,big=w>=8,R=(xx,yy,ww,hh,c)=>{ctx.fillStyle=nightMix(c);ctx.fillRect(Math.round(xx),Math.round(yy),ww,hh)};
+  const hwAt=j=>Math.round(w*Math.sqrt(Math.max(0,1-(j/(e+.5))**2)));
+  // ombre dans l'eau
+  if(big)for(let j=1;j<=2;j++){const hw=hwAt(e-j+1)-1;R(x-hw+1,y+e+j-1,hw*2,1,j===1?'#2e5e6a':'#3e7484')}
+  for(let j=-e;j<=e;j++){const hw=hwAt(j);if(hw<1)continue;
+    const c=j>=Math.ceil(e*.4)?'#3e6a30':j<=-Math.ceil(e*.4)?'#8ab860':'#5a8a40';R(x-hw,y+j,hw*2+1,1,c);
+    if(big){R(x-hw,y+j,1,1,j<0?'#a8d070':'#4a7a36');R(x+hw,y+j,1,1,'#2e5226')}}
+  if(big){
+    const top=-e;R(x-hwAt(top)+1,y+top,hwAt(top)*2-1,1,'#b4dc80');R(x-hwAt(e)+1,y+e,hwAt(e)*2-1,1,'#2e5226');
+    // nervures depuis le centre
+    for(let k=0;k<8;k++){const a=k/8*Math.PI*2+.2;if(Math.cos(a)*p.nb>.7&&Math.sin(a)>-.3)continue;for(let d=2;d<w*.85;d++){const vx=x+Math.cos(a)*d,vy=y+Math.sin(a)*d*e/w;if(Math.abs(vy-y)>e-.5)break;R(vx,vy,1,1,Math.sin(a)<0?'#78a858':'#4e7e38')}}
+    R(x,y,1,1,'#a8d070');
+    // gouttes d'eau et reflet du ciel
+    if((p.x*7)%5<2){R(x-Math.round(w*.4),y-Math.round(e*.3),1,1,'#e8f6f8');R(x-Math.round(w*.4)+1,y-Math.round(e*.3),1,1,'#bfe2ea')}
+  }
+  // encoche
+  if(w>3){const n=Math.max(1,Math.round(w*.5));for(let k=0;k<n;k++){const yy=y+Math.round(k*e/n*.6),wd=big?Math.max(1,Math.round(k*.35)):1;R(p.nb>0?x+1+k:x-k-wd,yy,wd,1,WORLD.giverny?'#4a8aa0':'#4f7a3a')}}
+  if(!p.f)return;
+  const fs=Math.max(1,Math.round(w/4)),fy=y-Math.max(1,e>>1),c1=p.fc||'#f2a6c0',c2=p.fc?'#ffffff':'#fbe0ea',c3=p.fc?'#d8d0e4':'#d87898';
+  if(!big){R(x-fs,fy,fs*2+1,Math.max(1,fs),c1);R(x-Math.max(0,fs-1),fy-fs,Math.max(1,fs*2-1),fs,c1);if(fs>1){R(x-fs+1,fy-fs,1,fs,c2);R(x,fy,1,1,'#f0d060')}return}
+  // nymphéa détaillé : pétaux extérieurs couchés, pétaux pointus dressés, cœur doré
+  const s=fs;
+  for(let k=-s-1;k<=s+1;k++)R(x+k,fy+1,1,1,Math.abs(k)>s?c3:c1);
+  for(let k=-s;k<=s;k++)R(x+k,fy,1,1,k<0?c2:c1);
+  for(const[ox,hgt,c]of[[-s+1,s,c1],[-1,s+1,c2],[1,s+1,c1],[s-1,s,c3],[0,s+2,c2]]){for(let j=1;j<=hgt;j++)R(x+ox,fy-j,1,1,j===hgt?(c===c3?c3:c2):c);}
+  R(x-1,fy-1,3,1,'#f0c040');R(x,fy-2,1,1,'#ffe080');R(x-s-2,fy+1,1,1,'#2e5226');
 }
 function drawMonet(ctx){
   const m=monet,cx=m.x-14,cy=GT-21,full=m.dabs.length,cyc=(T*.6)%(full+16),shown=Math.min(full,Math.floor(cyc)),busy=cyc<full;
