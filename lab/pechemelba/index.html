@@ -171,6 +171,7 @@ main{display:flex;flex-direction:column;align-items:center;margin-top:0;width:10
     <button class="tab" data-tab="mondes">Mondes</button>
     <button class="tab" data-tab="boutique">Boutique</button>
     <button class="tab" data-tab="reglages">Réglages</button>
+    <button class="tab" data-tab="admin" id="tAdmin" hidden>Admin</button>
     <span class="sp"></span>
     <button class="close" id="mClose" aria-label="Fermer">✕</button>
   </div>
@@ -192,6 +193,8 @@ const store={
 
 /* ---------- temps & soleil (debug : ?h=21.5 fige l'heure de départ, ?speed=600 accélère) ---------- */
 const Q=new URLSearchParams(location.search);
+// onglet Admin (météo, saison, Noël) : seulement après un passage par ?tout
+const ADMIN=()=>Q.has('tout')||store.get('admin',false);
 const T0=Date.now(), FH=Q.has('h')?parseFloat(Q.get('h')):null, SPEED=parseFloat(Q.get('speed')||'1');
 function now(){
   if(FH==null&&SPEED===1)return new Date();
@@ -365,11 +368,11 @@ const makeCloud=makeCumulus;
 const SKIES={clair:'Clair',beau:'Beau temps',voile:'Voilé',moutons:'Moutons',tour:'Cumulus',couvert:'Nuageux',pluie:'Pluie',neige:'Neige'};
 let WX='beau',SEASON='automne',LEAVES=false;
 const SEASONS={printemps:'Printemps',ete:'Été',automne:'Automne',hiver:'Hiver'};
-function season(){const q=Q.get('saison')||store.get('saison','auto');if(SEASONS[q])return q;const m=new Date().getMonth();return m>=2&&m<=4?'printemps':m>=5&&m<=7?'ete':m>=8&&m<=10?'automne':'hiver'}
+function season(){const q=Q.get('saison')||(ADMIN()?store.get('saison','auto'):'auto');if(SEASONS[q])return q;const m=new Date().getMonth();return m>=2&&m<=4?'printemps':m>=5&&m<=7?'ete':m>=8&&m<=10?'automne':'hiver'}
 const bare=(x,y)=>SEASON==='hiver'&&Math.sin(x*.9+y*.43)*Math.sin(x*.31-y*.77)>-.3;
 function dayWeather(){
   if(Q.has('ciel')&&SKIES[Q.get('ciel')])return Q.get('ciel');
-  const pick=store.get('ciel','auto');if(SKIES[pick])return pick;
+  const pick=ADMIN()?store.get('ciel','auto'):'auto';if(SKIES[pick])return pick;
   const k=[...today()].reduce((a,ch)=>(a*31+ch.charCodeAt(0))|0,7),r=rng(k),t=r();
   return t<.14?'clair':t<.42?'beau':t<.55?'voile':t<.68?'moutons':t<.8?'tour':t<.92?'couvert':'pluie';
 }
@@ -948,7 +951,7 @@ const unlocked=w=>Q.get('monde')===w.id||openWorlds().includes(w.id);
 if(Q.has('tout')){
   const L=loadLog();
   for(const sp of SP)if(!L.sp[sp.id]||!L.sp[sp.id].n)L.sp[sp.id]={n:1,best:0,first:Date.now()};
-  L.poems=POEMS.map((_,i)=>i);store.set('log',L);store.set('all',true);store.set('worlds',WORLDS.map(w=>w.id));
+  L.poems=POEMS.map((_,i)=>i);store.set('log',L);store.set('all',true);store.set('worlds',WORLDS.map(w=>w.id));store.set('admin',true);
   const cl=store.get('closet',null)||{own:['rouge'],wear:{corps:'rouge'}};for(const it of SHOP)if(!cl.own.includes(it.id))cl.own.push(it.id);store.set('closet',cl);closet=cl;
   Q.delete('tout');history.replaceState(null,'',location.pathname+(Q.toString()?'?'+Q:''));
   setTimeout(()=>toast(null,'Tout est débloqué','Mondes, carnet et boutique : tout est à toi.',null,6000,'carnet'),800);
@@ -956,7 +959,7 @@ if(Q.has('tout')){
 // thème de Noël : auto = du 1er décembre au 6 janvier
 function noelOn(){
   if(Q.has('noel'))return Q.get('noel')!=='0';
-  const m=store.get('noel','auto');if(m!=='auto')return m==='on';
+  const m=ADMIN()?store.get('noel','auto'):'auto';if(m!=='auto')return m==='on';
   const d=now();return d.getMonth()===11||(d.getMonth()===0&&d.getDate()<=6);
 }
 let NOEL=false;
@@ -2706,7 +2709,7 @@ function renderLinks(){
 function openModal(tab){$('#modal').classList.add('on');showTab(tab)}
 function closeModal(){$('#modal').classList.remove('on')}
 $('#bCarnet').onclick=()=>openModal('carnet');$('#bShop').onclick=()=>openModal('boutique');$('#bWorld').onclick=()=>openModal('mondes');$('#bSet').onclick=()=>openModal('reglages');
-$('#mClose').onclick=closeModal;$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
+$('#tAdmin').hidden=!ADMIN();$('#mClose').onclick=closeModal;$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
 document.querySelectorAll('.ph .tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 const HINTS={nuit:'se montre la nuit',jour:'se montre le jour'};
 function showTab(tab){
@@ -2736,9 +2739,6 @@ function showTab(tab){
     for(const k of pg){const d=document.createElement('div');d.className='poem';d.textContent=POEMS[k];PG.appendChild(d)}
     for(const w of WORLDS)if(!unlocked(w)){const p=document.createElement('p');p.className='lockl';p.textContent=`🔒 ${w.n} — se débloque à ${w.need} découvertes`;B.appendChild(p)}
   }else if(tab==='mondes'){
-    const mt=document.createElement('div');mt.className='meteo';const cur=store.get('ciel','auto');
-    mt.innerHTML='<span>Météo</span>'+[['auto','Auto'],...Object.entries(SKIES)].map(([k,n])=>`<button data-k="${k}" class="${k===cur?'on':''}">${n}</button>`).join('');
-    mt.onclick=e=>{const k=e.target.dataset&&e.target.dataset.k;if(!k)return;store.set('ciel',k);buildLand();showTab('mondes')};B.appendChild(mt);
     B.insertAdjacentHTML('beforeend',`<p class="lockl" style="margin:0 0 10px">${WORLDS.filter(unlocked).length}/${WORLDS.length} mondes. Un monde au hasard parmi les tiens à chaque nouvel onglet. Les autres arrivent par la poste : guette l’oiseau qui porte une lettre.</p>`);
     const L=loadLog(),got=discovered(),wl=document.createElement('div');wl.className='wl';B.appendChild(wl);
     for(const w of WORLDS){
@@ -2770,21 +2770,26 @@ function showTab(tab){
         G.appendChild(c);
       }
     }
+  }else if(tab==='admin'){
+    const mt=document.createElement('div');mt.className='meteo';const cur=store.get('ciel','auto');
+    mt.innerHTML='<span>Météo</span>'+[['auto','Auto'],...Object.entries(SKIES)].map(([k,n])=>`<button data-k="${k}" class="${k===cur?'on':''}">${n}</button>`).join('');
+    mt.onclick=e=>{const k=e.target.dataset&&e.target.dataset.k;if(!k)return;store.set('ciel',k);buildLand();showTab('admin')};B.appendChild(mt);
+    B.insertAdjacentHTML('beforeend',`<div class="set">
+      <label>Saison des arbres <select id="sSaison"><option value="auto">Auto (date réelle)</option><option value="printemps">Printemps</option><option value="ete">Été</option><option value="automne">Automne</option><option value="hiver">Hiver</option></select></label>
+      <label>Thème de Noël <select id="sNoel"><option value="auto">Auto (décembre)</option><option value="on">Toujours</option><option value="off">Jamais</option></select></label>
+      <label>Quitter le mode admin <button id="sAdmin">Masquer</button></label>
+    </div>`);
+    $('#sSaison').value=store.get('saison','auto');$('#sSaison').onchange=e=>{store.set('saison',e.target.value);buildLand()};
+    $('#sNoel').value=store.get('noel','auto');$('#sNoel').onchange=e=>{store.set('noel',e.target.value);applyNoel()};
+    $('#sAdmin').onclick=()=>{for(const k of['admin','ciel','saison','noel'])store.set(k,null);$('#tAdmin').hidden=true;buildLand();applyNoel();showTab('reglages')};
   }else{
     B.innerHTML=`<div class="set">
       <label>Moteur de recherche <select id="sEng">${Object.entries(ENG).map(([k,v])=>`<option value="${k}"${k===eng?' selected':''}>${v[0]}</option>`).join('')}</select></label>
-      <label>Saison des arbres <select id="sSaison"><option value="auto">Auto (date réelle)</option><option value="printemps">Printemps</option><option value="ete">Été</option><option value="automne">Automne</option><option value="hiver">Hiver</option></select></label>
-      <label>Thème de Noël <select id="sNoel"><option value="auto">Auto (décembre)</option><option value="on">Toujours</option><option value="off">Jamais</option></select></label>
-      <label>Raccourcis par défaut <button id="sLinks">Rétablir</button></label>
       <label>Remettre le carnet à zéro <button class="danger" id="sReset">Effacer</button></label>
       <p>Le lapin pêche tout seul, même quand l’onglet est fermé : il ferre les poissons communs, mais les rares, épiques et légendaires ne se prennent qu’à la main. Quand le flotteur plonge, maintiens Espace (ou le clic) : la jauge apparaît, et tu relâches quand l’aiguille est dans la zone verte — au centre doré pour un ferrage parfait. Clique sur l’eau pour lancer ailleurs, sur le lapin pour un câlin. Les prises rapportent des pièces pour la boutique, et un ballon cadeau passe parfois dans le ciel : clique dessus.</p>
       <p>Le ciel suit l’heure et la position du soleil réelles. Certaines espèces ne mordent que la nuit, d’autres le jour. Chaque monde a ses propres poissons ; on en débloque de nouveaux en découvrant des espèces.</p>
     </div>`;
     $('#sEng').onchange=e=>setEng(e.target.value);
-    $('#sSaison').value=store.get('saison','auto');$('#sSaison').onchange=e=>{store.set('saison',e.target.value);buildLand()};
-    $('#sNoel').value=store.get('noel','auto');$('#sNoel').onchange=e=>{store.set('noel',e.target.value);applyNoel()};
-
-    $('#sLinks').onclick=()=>{store.set('links',DEF_LINKS);renderLinks()};
     $('#sReset').onclick=()=>{if(confirm('Effacer toutes les prises du carnet ?')){store.set('log',null);refreshCount();showTab('carnet')}};
   }
 }
