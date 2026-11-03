@@ -583,7 +583,9 @@ const PAL_LINES={
   chevre:['Elle grignote une branche de thym.','Elle grimpe sur un rocher pour mieux voir.','Mêêê. Elle a mangé un bout de ta ligne ?']
 };
 function petPal(){const b=palBox();palHop=.35;for(let i=0;i<6;i++)parts.push({x:b.x+b.w/2+rnd(-3,3),y:b.y+PAD_T,vx:rnd(-6,6),vy:rnd(-18,-8),l:rnd(.6,1),c:i%2?'#f07a8a':'#ffb0c0',g:4});
-  const ls=PAL_LINES[PAL.id];if(ls){let k=Math.random()*ls.length|0;if(k===petPal.last)k=(k+1)%ls.length;petPal.last=k;toast(PALSPR[0],PAL.n,ls[k],null,3500,'pass')}}
+  // il ne parle qu'à certains clics, au hasard (jamais deux fois de suite)
+  const talk=!petPal.said&&Math.random()<.35;petPal.said=talk;
+  const ls=PAL_LINES[PAL.id];if(ls&&talk){let k=Math.random()*ls.length|0;if(k===petPal.last)k=(k+1)%ls.length;petPal.last=k;toast(PALSPR[0],PAL.n,ls[k],null,3500,'pass')}}
 function meetPal(){
   if(!PAL||IMAGE)return;const met=store.get('met',[]);if(met.includes(PAL.id))return;store.set('met',[...met,PAL.id]);
   setTimeout(()=>toast(PALSPR[0],`${PAL.n} te rejoint !`,'Ton compagnon dans ce monde.',null,6000),1800);
@@ -1010,6 +1012,7 @@ function addCatch(id,cm,perfect){
   e.n++;if(cm&&cm>e.best)e.best=cm;if(perfect)e.perfect=(e.perfect||0)+1;
   const coins=id==='loterie'?[0,0,2,5,10,20,50,100,250,500][Math.min(9,Math.floor(Math.pow(Math.random(),1.8)*10))]:coinOf(SPI[id],perfect);L.coins+=coins;
   L.total++;L.today++;store.set('log',L);refreshCount();
+  qBump(q=>{q.wc[WORLD.id]=(q.wc[WORLD.id]||0)+1;if(isDark())q.night++});
   return{isNew,record:cm&&cm===e.best&&e.n>1,coins};
 }
 function refreshCount(){const L=loadLog();$('#nCoin').textContent=L.coins}
@@ -1045,6 +1048,31 @@ const discovered=()=>Object.keys(loadLog().sp).filter(id=>SPI[id]).length;
 // mondes débloqués : le lac au départ, les autres arrivent par oiseau postal
 const openWorlds=()=>store.get('worlds',['lac']);
 const unlocked=w=>Q.get('monde')===w.id||openWorlds().includes(w.id);
+// défis : certains mondes arrivent par l'oiseau postal, les autres se gagnent
+const QS=()=>{const q=store.get('quest',null)||{};q.wc=q.wc||{};q.night=q.night||0;q.srch=q.srch||0;q.ball=q.ball||0;q.days=q.days||[];return q};
+function qBump(f){if(IMAGE)return;const q=QS();f(q);store.set('quest',q)}
+const spIn=wd=>{const L=loadLog();return SP.filter(s=>(s.wd||'lac')===wd&&L.sp[s.id]).length};
+const QUEST={
+  riviere:'bird',mer:'bird',rizieres:'bird',fjord:'bird',moulin:'bird',
+  glace:{t:'Trouve 5 espèces du Lac',n:5,v:()=>spIn('lac')},
+  marais:{t:'Fais 5 prises la nuit',n:5,v:()=>QS().night},
+  large:{t:'Fais 10 prises au Bord de mer',n:10,v:()=>QS().wc.mer||0},
+  tropique:{t:'Aie 200 pièces en poche',n:200,v:()=>loadLog().coins},
+  jardin:{t:'Réussis 3 ferrages parfaits',n:3,v:()=>Object.values(loadLog().sp).reduce((a,e)=>a+(e.perfect||0),0)},
+  clairiere:{t:'Rencontre 3 compagnons',n:3,v:()=>store.get('met',[]).filter(id=>id!=='monet').length},
+  brume:{t:'Viens pêcher 3 jours différents',n:3,v:()=>QS().days.length},
+  canyon:{t:'Attrape une prise épique ou légendaire',n:1,v:()=>Object.keys(loadLog().sp).filter(id=>SPI[id]&&'el'.includes(SPI[id].rar)).length},
+  ville:{t:'Lance 20 recherches',n:20,v:()=>QS().srch},
+  banquise:{t:'Fais 8 prises au Lac gelé',n:8,v:()=>QS().wc.glace||0},
+  kyoto:{t:'Repêche 2 poèmes',n:2,v:()=>(loadLog().poems||[]).length},
+  oasis:{t:'Attrape 3 ballons cadeaux',n:3,v:()=>QS().ball},
+  toit:{t:'Fais 100 prises en tout',n:100,v:()=>loadLog().total},
+  peniche:{t:'Fais 5 prises sur les Toits de Paris',n:5,v:()=>QS().wc.toit||0},
+  crique:{t:'Viens pêcher 7 jours différents',n:7,v:()=>QS().days.length},
+  giverny:{t:'Trouve 40 espèces',n:40,v:()=>discovered()}
+};
+const questOf=w=>{const q=QUEST[w.id];return q&&q!=='bird'?q:null};
+const questTxt=w=>{const q=questOf(w);return q?`${q.t} · ${Math.min(q.n,q.v())}/${q.n}`:'Un oiseau postal t’apportera peut-être sa carte.'};
 // ?tout : débloque tous les mondes et remplit le carnet (espèces + poèmes), puis nettoie l'URL
 if(Q.has('tout')){
   const L=loadLog();
@@ -1205,7 +1233,7 @@ let balloon=null,balloonT=rnd(45,150);
 function spawnBalloon(){const d=R()<.5?1:-1,cols=NOEL?['#d8303a','#3a8a4a','#f2c64a']:GIFT_COLS,col=cols[R()*cols.length|0];balloon={x:d>0?-12:W+2,y:rnd(WY*.46,WY*.62),d,ph:R()*6,col,spr:makeBalloon(col)}}
 function balloonHit(x,y){if(!balloon)return false;const bx=balloon.x,by=balloon.y+Math.sin(T*1.2+balloon.ph)*2;return x>=bx-3&&x<=bx+14&&y>=by-3&&y<=by+24}
 function openGift(){
-  const b=balloon;balloon=null;const by=b.y+Math.sin(T*1.2+b.ph)*2;
+  const b=balloon;balloon=null;qBump(q=>q.ball++);const by=b.y+Math.sin(T*1.2+b.ph)*2;
   for(let i=0;i<20;i++)parts.push({x:b.x+5,y:by+4,vx:rnd(-20,20),vy:rnd(-24,6),l:rnd(.5,1),c:i%2?b.col:'#f2c64a',g:20});
   const pool=SHOP.filter(i=>!closet.own.includes(i.id)&&i.p<=150&&(!i.noel||NOEL));
   if(pool.length&&R()<.3){
@@ -1221,6 +1249,13 @@ const BIRDP=[["w.........w","ww.......ww",".www...www.","..wwwwwwwky","...wwwww.
 const BIRDL=BIRDP.map(c=>{const[k,g]=canvasOf(c.width,c.height);g.translate(c.width,0);g.scale(-1,1);g.drawImage(c,0,0);return k});
 let letter=null,letterT=Q.has('oiseau')?2:rnd(180,420);
 const lockedWorlds=()=>WORLDS.filter(w=>!openWorlds().includes(w.id));
+const birdWorlds=()=>lockedWorlds().filter(w=>!questOf(w));
+// vérifie les défis ; une carte postale à la fois
+function checkQuests(){
+  if(IMAGE||$('#postcard.on'))return;
+  const w=lockedWorlds().find(w=>{const q=questOf(w);return q&&q.v()>=q.n});
+  if(w){store.set('worlds',[...openWorlds(),w.id]);showPostcard(w,'Défi réussi : '+questOf(w).t.toLowerCase())}
+}
 function spawnLetter(){const d=R()<.5?1:-1;letter={x:d>0?-14:W+2,y:rnd(WY*.45,WY*.6),d,ph:R()*6}}
 function letterHit(x,y){if(!letter)return false;const by=letter.y+Math.sin(T*2+letter.ph)*3;return x>=letter.x-3&&x<=letter.x+15&&y>=by-3&&y<=by+12}
 const PC_MSG=['Il fait un temps magnifique ici. Viens pêcher avec moi !','Les poissons mordent bien, tu devrais venir voir.','J’ai pensé à toi en voyant ce paysage. À bientôt !','Je t’ai gardé une place au bord de l’eau.','On m’a dit qu’un poisson rare vit par ici…'];
@@ -1237,9 +1272,9 @@ function renderPostcard(w){
   WORLD=prev;resize();
   const y0=Math.round(WY*.3),[k,kg]=canvasOf(W,H-y0);kg.drawImage(c,0,-y0);return k;
 }
-function showPostcard(w){
+function showPostcard(w,why){
   let el=$('#postcard');if(!el){el=document.createElement('div');el.id='postcard';document.body.appendChild(el)}
-  el.innerHTML=`<div class="pc"><div class="pcpic"></div><div class="pctx"><span class="stamp" style="background:linear-gradient(${w.sw[0]} 55%,${w.sw[1]} 55%)"></span><b>Bienvenue à ${w.n} !</b><p>${PC_MSG[R()*PC_MSG.length|0]}</p><small>Nouveau monde débloqué</small><div class="pcb"><button class="pill acc" id="pcGo">Y aller</button><button class="pill" id="pcLater">Plus tard</button></div></div></div>`;
+  el.innerHTML=`<div class="pc"><div class="pcpic"></div><div class="pctx"><span class="stamp" style="background:linear-gradient(${w.sw[0]} 55%,${w.sw[1]} 55%)"></span><b>Bienvenue à ${w.n} !</b><p>${PC_MSG[R()*PC_MSG.length|0]}</p><small>${why||'Nouveau monde débloqué'}</small><div class="pcb"><button class="pill acc" id="pcGo">Y aller</button><button class="pill" id="pcLater">Plus tard</button></div></div></div>`;
   const pic=renderPostcard(w);pic.className='pcimg';el.querySelector('.pcpic').appendChild(pic);
   el.classList.add('on');
   el.querySelector('#pcGo').onclick=()=>{el.classList.remove('on');setWorld(w.id)};
@@ -1249,7 +1284,7 @@ function showPostcard(w){
 function openLetter(){
   const b=letter;letter=null;const by=b.y+Math.sin(T*2+b.ph)*3;
   for(let i=0;i<16;i++)parts.push({x:b.x+5,y:by+6,vx:rnd(-16,16),vy:rnd(-20,4),l:rnd(.5,1),c:i%2?'#ffffff':'#efe2bc',g:20});
-  const pool=lockedWorlds();if(!pool.length)return;
+  const pool=birdWorlds();if(!pool.length)return;
   const w=pool[R()*pool.length|0];store.set('worlds',[...openWorlds(),w.id]);
   showPostcard(w);
 }
@@ -2050,7 +2085,7 @@ function drawMonet(ctx){
 }
 function monetHit(x,y){return monet&&WORLD.giverny&&x>=monet.x-16&&x<=monet.x+14&&y>=monet.y-4&&y<=GT+1}
 const MONET_LINES=['Il ne lève pas les yeux de sa toile.','« Encore un peu de lumière sur l’eau… »','Il te fait un petit signe du pinceau.','Il plisse les yeux vers les nymphéas.','« Revenez quand le soleil sera plus bas. »'];
-function petMonet(){monetHop=.35;for(let i=0;i<6;i++)parts.push({x:monet.x+6+rnd(-3,3),y:monet.y,vx:rnd(-6,6),vy:rnd(-18,-8),l:rnd(.6,1),c:i%2?'#c8a8f0':'#f2a6c0',g:4});toast(MONET[0],'Claude Monet',MONET_LINES[Math.random()*MONET_LINES.length|0],null,3500,'pass')}
+function petMonet(){monetHop=.35;for(let i=0;i<6;i++)parts.push({x:monet.x+6+rnd(-3,3),y:monet.y,vx:rnd(-6,6),vy:rnd(-18,-8),l:rnd(.6,1),c:i%2?'#c8a8f0':'#f2a6c0',g:4});const talk=!petMonet.said&&Math.random()<.35;petMonet.said=talk;if(talk)toast(MONET[0],'Claude Monet',MONET_LINES[Math.random()*MONET_LINES.length|0],null,3500,'pass')}
 function meetMonet(){if(!WORLD.giverny||IMAGE)return;const met=store.get('met',[]);if(met.includes('monet'))return;store.set('met',[...met,'monet']);setTimeout(()=>toast(MONET[0],'Claude Monet peint sur l’autre rive','Il ne pêche pas : il peint les nymphéas.',null,6000),1800)}
 /* ----- Oasis ----- */
 function drawDunes(g,r){
@@ -2729,7 +2764,7 @@ function update(dt){
   for(const c of clouds){c.x+=c.v*dt*(WORLD.boat?-2:1);if(c.x>W)c.x=-c.spr.width;if(c.x<-c.spr.width)c.x=W}
   if(!plane&&(planeT-=dt)<0){planeT=rnd(900,1500);spawnPlane()}
   if(plane){plane.x+=plane.d*dt*11;if(plane.x<-plane.banner.width-30||plane.x>W+plane.banner.width+30)plane=null}
-  if(!letter&&(letterT-=dt)<0){letterT=rnd(420,900);if(lockedWorlds().length)spawnLetter()}
+  if(!letter&&(letterT-=dt)<0){letterT=rnd(420,900);if(birdWorlds().length)spawnLetter()}
   if(letter){letter.x+=letter.d*dt*11;if(letter.x<-18||letter.x>W+18)letter=null}
   if(!balloon&&(balloonT-=dt)<0){balloonT=NOEL?rnd(70,200):rnd(150,420);spawnBalloon()}
   if(balloon){balloon.x+=balloon.d*dt*5;if(balloon.x<-16||balloon.x>W+16)balloon=null}
@@ -3051,6 +3086,7 @@ $('#q').addEventListener('paste',e=>{const it=[...(e.clipboardData?.items||[])].
 $('#search').onsubmit=e=>{
   e.preventDefault();const q=$('#q').value.trim();if(!q)return;
   const url=/^https?:\/\/\S+\.(png|jpe?g|gif|webp|avif)(\?\S*)?$/i.test(q)?'https://lens.google.com/uploadbyurl?url='+encodeURIComponent(q):/^[a-z]+:\/\//i.test(q)?q:!/\s/.test(q)&&/^[\w-]+(\.[\w-]+)+(:\d+)?(\/.*)?$/.test(q)?'https://'+q:ENG[eng][1]+encodeURIComponent(q);
+  qBump(q=>q.srch++);
   const wait=searchCoin();wait?setTimeout(()=>go(url),wait):go(url);
 };
 
@@ -3206,7 +3242,7 @@ function worldMap(B){
   function info(){
     const w=sel,ok=unlocked(w),list=SP.filter(s=>(s.wd||'lac')===w.id),f=list.filter(s=>L.sp[s.id]).length;
     card.className='wsel'+(ok?'':' lock');
-    if(!ok){card.innerHTML=`<span class="sw" style="background:#d8d8d4"></span><span><b>Monde inconnu</b><br><small>Encore dans la brume. Un oiseau postal t’apportera peut-être sa carte.</small></span>`;return}
+    if(!ok){card.innerHTML=`<span class="sw" style="background:#d8d8d4"></span><span><b>Monde inconnu</b><br><small>Encore dans la brume. ${questTxt(w)}</small></span>`;return}
     card.innerHTML=`<span class="sw" style="background:linear-gradient(${w.sw[0]} 55%,${w.sw[1]} 55%)"></span><span class="tx"><b>${w.n}</b><br><small>${w.d}<br>${f}/${list.length} espèces trouvées</small></span>`+(w===WORLD?'<span class="tag new">ici</span>':'<button class="go">Y aller</button>');
     const go=card.querySelector('.go');if(go)go.onclick=()=>{setWorld(w.id);closeModal()};
   }
@@ -3238,12 +3274,12 @@ function showTab(tab){
     const PG=document.createElement('div');PG.className='poems';B.appendChild(PG);
     if(!pg.length)PG.innerHTML='<p class="lockl">Les bouteilles à la mer contiennent parfois un petit poème.</p>';
     for(const k of pg){const d=document.createElement('div');d.className='poem';d.textContent=POEMS[k];PG.appendChild(d)}
-    for(const w of WORLDS)if(!unlocked(w)){const p=document.createElement('p');p.className='lockl';p.textContent=`🔒 ${w.n} — se débloque à ${w.need} découvertes`;B.appendChild(p)}
+    for(const w of WORLDS)if(!unlocked(w)){const p=document.createElement('p');p.className='lockl';p.textContent=`🔒 Monde inconnu — ${questTxt(w)}`;B.appendChild(p)}
   }else if(tab==='mondes'){
     {const cur=store.get('ciel','auto'),sel=WXCHOICE.some(c=>c[0]===cur)?cur:'auto',mt=document.createElement('div');mt.className='meteo';
      mt.innerHTML='<div class="seg">'+WXCHOICE.map(([k,ic,n])=>`<button data-k="${k}" class="${k===sel?'on':''}" title="${n}"><i>${ic}</i>${n}</button>`).join('')+'</div>'+`<small>${sel==='auto'?`Météo du jour : ${SKIES[WX]||'—'}. Elle change chaque jour.`:'Le ciel reste comme ça jusqu’à ce que tu repasses en Auto.'}</small>`;
      mt.onclick=e=>{const bt=e.target.closest('button');if(!bt)return;store.set('ciel',bt.dataset.k);buildLand();showTab('mondes')};B.appendChild(mt)}
-    B.insertAdjacentHTML('beforeend',`<p class="lockl" style="margin:0 0 10px">${WORLDS.filter(unlocked).length}/${WORLDS.length} mondes. Un monde au hasard parmi les tiens à chaque nouvel onglet. Les autres arrivent par la poste : guette l’oiseau qui porte une lettre. Touche une île pour y aller.</p>`);
+    B.insertAdjacentHTML('beforeend',`<p class="lockl" style="margin:0 0 10px">${WORLDS.filter(unlocked).length}/${WORLDS.length} mondes. Un monde au hasard parmi les tiens à chaque nouvel onglet. Certains arrivent par la poste (guette l’oiseau qui porte une lettre), les autres se gagnent : touche une île dans la brume pour voir son défi.</p>`);
     worldMap(B);
   }else if(tab==='boutique'){
     const L=loadLog();
@@ -3320,6 +3356,7 @@ function applyNoel(){
 }
 applyNoel();
 buildRabbit();resize();meetPal();meetMonet();renderLinks();refreshCount();tick();setInterval(tick,1000);
+qBump(q=>{if(!q.days.includes(today()))q.days.push(today())});setTimeout(checkQuests,2500);setInterval(checkQuests,4000);
 requestAnimationFrame(frame);
 if(IMAGE){
   // ligne déjà à l'eau, flotteur posé, puis on fige l'image (clic droit → enregistrer)
