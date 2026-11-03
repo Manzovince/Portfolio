@@ -2978,6 +2978,8 @@ addEventListener('keydown',e=>{
   if(e.key==='Escape'){closeModal();return}
   const typing=/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
   if(e.code==='Space'&&(!typing||(F.st==='bite'||F.st==='reel')&&!$('#q').value)){e.preventDefault();if(!e.repeat)act(null,null)}
+  // taper une lettre n'importe où renvoie dans le champ de recherche
+  else if(!typing&&e.key.length===1&&e.key!==' '&&!e.ctrlKey&&!e.metaKey&&!e.altKey)$('#q').focus();
 });
 addEventListener('keyup',e=>{
   if(e.code==='Space'&&F.st==='reel'){e.preventDefault();release()}
@@ -3017,6 +3019,9 @@ let eng=store.get('eng','google');if(!ENG[eng])eng='google';
 const setEng=k=>{eng=k;store.set('eng',k);$('#eng').textContent=ENG[k][0]};
 setEng(eng);
 $('#eng').onclick=()=>{const k=Object.keys(ENG);setEng(k[(k.indexOf(eng)+1)%k.length]);$('#q').focus()};
+// focus sur la recherche dès l'arrivée (autofocus ne suffit pas dans l'iframe de l'extension)
+const focusQ=()=>{if(document.activeElement===document.body||!document.activeElement)$('#q').focus({preventScroll:true})};
+focusQ();addEventListener('load',focusQ);addEventListener('focus',focusQ);
 function go(url){try{window.top.location.href=url}catch(e){window.open(url,'_top')}}
 // une recherche sur dix environ fait tomber une pièce (rarement plusieurs) qui file vers le compteur
 function searchCoin(){
