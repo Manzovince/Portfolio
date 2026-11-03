@@ -2526,13 +2526,13 @@ function drawCliff(g,r){
 
 /* ---------- scène ---------- */
 const cv=$('#scene'),ctx=cv.getContext('2d');
-let lights=[],star=null,fg,fx,land,W,H,S,WY,GT,LB,RB,rab,LH=null,trees=[],clouds=[],stars=[],tufts=[],flowers=[],dashes=[],flies=[],bflies=[],rocks=[],pads=[],cracks=[],flakes=[];
+let lights=[],star=null,fg,fx,chg,chx,land,W,H,S,WY,GT,LB,RB,rab,LH=null,trees=[],clouds=[],stars=[],tufts=[],flowers=[],dashes=[],flies=[],bflies=[],rocks=[],pads=[],cracks=[],flakes=[];
 function resize(){
   S=clamp(Math.round(Math.min(innerWidth/420,innerHeight/245)),2,8);
   W=Math.ceil(innerWidth/S);H=Math.ceil(innerHeight/S);
   cv.width=W;cv.height=H;cv.style.width=W*S+'px';cv.style.height=H*S+'px';
   ctx.imageSmoothingEnabled=false;
-  [fg,fx]=canvasOf(W,H);
+  [fg,fx]=canvasOf(W,H);[chg,chx]=canvasOf(W,H);
   WY=H-Math.max(14,Math.round(H*.16));GT=WY-5;
   document.documentElement.style.setProperty('--wh',(H-WY)*S+'px');
   const narrow=W<300;
@@ -2827,25 +2827,6 @@ function draw(){
   }
   for(const t of tufts){const sw=Math.sin(T*1.3+t.p+t.x*.05)*.8;for(let i=0;i<t.h;i++){const k=i/t.h;fx.fillStyle=i===t.h-1?(t.top||'#b8d4a4'):t.cat&&i>=t.h-4?'#6a4430':t.c;fx.fillRect(Math.round(t.x+sw*k*k),GT-i,1,1)}}
   for(const f of flowers){const sw=Math.sin(T*1.1+f.p)*1;for(let i=0;i<f.h;i++)plot(fx,f.x+sw*(i/f.h),GT-i,'#5f8a70');const fx0=Math.round(f.x+sw),fy=GT-f.h;fx.fillStyle=f.c;fx.fillRect(fx0-1,fy,3,1);fx.fillRect(fx0,fy-1,1,3);plot(fx,fx0,fy,'#f6e28a')}
-  // seau, lanterne, lapin, canne
-  const lit=sk.dark>.35;
-  const gy=rab.gy;
-  fx.drawImage(BUCKET,rab.x-11,gy-BUCKET.height);
-  const L=loadLogCache();
-  if(L.today>0){plot(fx,rab.x-7,gy-8,'#9fb0b8');plot(fx,rab.x-8,gy-9,'#9fb0b8');plot(fx,rab.x-6,gy-9,'#9fb0b8')}
-  fx.drawImage(LANTERN[lit?1:0],rab.x-17,gy-6);
-  if(monet&&WORLD.giverny)drawMonet(fx);
-  if(PAL){const b=palBox(),bl=(T+1.7)%4.6<.14,L=pw.dir<0&&!WORLD.boat,step=pw.walk>0&&Math.floor(pw.go*6)%2;fx.drawImage(L?(bl?PAL.blinkL:PAL.sprL):(bl?PAL.blink:PAL.spr),b.x,b.y-(palHop>0||F.hop>0||step?1:0))}
-  const sprite=RAB[F.ear*2+F.blink];
-  fx.drawImage(sprite,rab.x-OX,rab.y-OY-(F.hop>0?1:0));
-  const[hx,hy]=[rab.x+HAND[0],rab.y+HAND[1]-(F.hop>0?1:0)];
-  {let x=hx,y=hy,a=F.ang;for(let i=0;i<24;i++){a+=F.bend/24;x+=Math.cos(a);y+=Math.sin(a);plot(fx,x,y,i>20?'#c8a070':'#7a4e3c')}}
-  const[tx,ty]=rodTip();
-  if(F.st==='catch'&&F.hold){
-    const s=F.hold.sp.spr,sw=Math.round(Math.sin(T*5)*1);
-    line(fx,tx,ty,tx+sw,ty+4,0,'#efe9e0');
-    fx.save();fx.translate(tx+sw-(s.height>>1),ty+4);fx.rotate(-Math.PI/2);fx.drawImage(s,-s.width,0);fx.restore();
-  }
   fx.globalCompositeOperation='source-atop';fx.globalAlpha=sk.ta;fx.fillStyle=rgb(sk.tint);fx.fillRect(0,0,W,H);
   fx.globalCompositeOperation='source-over';fx.globalAlpha=1;
   ctx.drawImage(fg,0,0);
@@ -2855,6 +2836,29 @@ function draw(){
     if(glow>0){ctx.globalCompositeOperation='lighter';for(const l of lights){ctx.globalAlpha=(l.lamp?.5:.22)*glow*(l.lamp?1:.55+.45*Math.sin(T*2.2+l.ph));ctx.fillStyle=l.c;ctx.fillRect(l.x-1,l.y-1,3,3)}ctx.globalCompositeOperation='source-over'}
     ctx.globalAlpha=1;
   }
+  // seau, lanterne, lapin, canne : calque à part, dessiné après les lumières du décor
+  chx.clearRect(0,0,W,H);
+  const lit=sk.dark>.35;
+  const gy=rab.gy;
+  chx.drawImage(BUCKET,rab.x-11,gy-BUCKET.height);
+  const L=loadLogCache();
+  if(L.today>0){plot(chx,rab.x-7,gy-8,'#9fb0b8');plot(chx,rab.x-8,gy-9,'#9fb0b8');plot(chx,rab.x-6,gy-9,'#9fb0b8')}
+  chx.drawImage(LANTERN[lit?1:0],rab.x-17,gy-6);
+  if(monet&&WORLD.giverny)drawMonet(chx);
+  if(PAL){const b=palBox(),bl=(T+1.7)%4.6<.14,L=pw.dir<0&&!WORLD.boat,step=pw.walk>0&&Math.floor(pw.go*6)%2;chx.drawImage(L?(bl?PAL.blinkL:PAL.sprL):(bl?PAL.blink:PAL.spr),b.x,b.y-(palHop>0||F.hop>0||step?1:0))}
+  const sprite=RAB[F.ear*2+F.blink];
+  chx.drawImage(sprite,rab.x-OX,rab.y-OY-(F.hop>0?1:0));
+  const[hx,hy]=[rab.x+HAND[0],rab.y+HAND[1]-(F.hop>0?1:0)];
+  {let x=hx,y=hy,a=F.ang;for(let i=0;i<24;i++){a+=F.bend/24;x+=Math.cos(a);y+=Math.sin(a);plot(chx,x,y,i>20?'#c8a070':'#7a4e3c')}}
+  const[tx,ty]=rodTip();
+  if(F.st==='catch'&&F.hold){
+    const s=F.hold.sp.spr,sw=Math.round(Math.sin(T*5)*1);
+    line(chx,tx,ty,tx+sw,ty+4,0,'#efe9e0');
+    chx.save();chx.translate(tx+sw-(s.height>>1),ty+4);chx.rotate(-Math.PI/2);chx.drawImage(s,-s.width,0);chx.restore();
+  }
+  chx.globalCompositeOperation='source-atop';chx.globalAlpha=sk.ta;chx.fillStyle=rgb(sk.tint);chx.fillRect(0,0,W,H);
+  chx.globalCompositeOperation='source-over';chx.globalAlpha=1;
+  ctx.drawImage(chg,0,0);
   if(star){const tw=.7+.3*Math.sin(T*3);ctx.fillStyle='#ffd84a';ctx.globalAlpha=tw;ctx.fillRect(star.x-2,star.y,5,1);ctx.fillRect(star.x,star.y-2,1,5);ctx.fillRect(star.x-1,star.y-1,3,3);ctx.fillStyle='#fff6c0';ctx.fillRect(star.x,star.y,1,1);
     if(sk.dark>.3){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.2*sk.dark;ctx.beginPath();ctx.arc(star.x+.5,star.y+.5,6,0,7);ctx.fill();ctx.globalCompositeOperation='source-over'}ctx.globalAlpha=1}
   if(letter){const fr=Math.sin(T*9+letter.ph)>0?0:1,sp=(letter.d>0?BIRDP:BIRDL)[fr];ctx.globalAlpha=1-sk.dark*.3;ctx.drawImage(sp,Math.round(letter.x),Math.round(letter.y+Math.sin(T*2+letter.ph)*3));ctx.globalAlpha=1}
