@@ -492,16 +492,25 @@ const SHOP=[
   {id:'perenoel',slot:'tete',n:'Bonnet de Père Noël',p:0,noel:1,at:[0,3],map:["w.........",".rr.......","..rrrrr...","..rrrrrrr.",".wwwwwwwww"],pal:{r:'#d8303a',w:'#ffffff'}},
   {id:'bois',slot:'tete',n:'Bois de renne',p:60,noel:1,at:[1,0],map:["b.b...b.b",".bb...bb.","..b...b.."],pal:{b:'#8a5a3a'}},
   {id:'echarpenoel',slot:'cou',n:'Écharpe de Noël',p:60,noel:1,at:[2,12],map:["sssssssss","sGsGsGsGs",".ss......",".sG......"],pal:{s:'#d8303a',G:'#3a8a4a'}},
-  {id:'foulard',slot:'cou',n:'Foulard de marin',p:90,at:[2,12],map:["fffffffff","..fffff..","...fff...","....f...."],pal:{f:'#3a8ac0'}}
+  {id:'foulard',slot:'cou',n:'Foulard de marin',p:90,at:[2,12],map:["fffffffff","..fffff..","...fff...","....f...."],pal:{f:'#3a8ac0'}},
+  // pelages : couleurs du lapin (crème = celui du départ)
+  {id:'creme',slot:'pelage',n:'Crème',p:0,pal:{}},
+  {id:'neige',slot:'pelage',n:'Blanc neige',p:60,pal:{w:'#ffffff',s:'#d8dce2',h:'#ffffff',p:'#f4a8b2'}},
+  {id:'gris',slot:'pelage',n:'Gris',p:80,pal:{w:'#a8aab2',s:'#84868e',h:'#a8aab2',p:'#e6a2a4'}},
+  {id:'blancgris',slot:'pelage',n:'Blanc et gris',p:120,earc:1,bicolor:1,pal:{w:'#f8f8f6',s:'#d8d8da',h:'#f8f8f6',g:'#c6c8ce',G:'#aaacb2',p:'#f0a4ac'}},
+  {id:'roux',slot:'pelage',n:'Roux',p:90,pal:{w:'#dca66e',s:'#b47e4e',h:'#dca66e',p:'#f0a890'}},
+  {id:'chocolat',slot:'pelage',n:'Chocolat',p:100,pal:{w:'#8c644a',s:'#6a4a38',h:'#8c644a',p:'#e09a8c'}}
 ];
 const SHOPI=Object.fromEntries(SHOP.map(i=>[i.id,i]));
+SHOP.filter(i=>i.bicolor).forEach(i=>{i.face=[];RAB_BODY.slice(0,6).forEach((row,y)=>[...row].forEach((ch,x)=>{
+  const back=x<=3&&y<=4,eye=y>=1&&y<=2&&x>=8&&x<=9;if((back||eye)&&ch==='w')i.face.push([y,x,'g']);else if(back&&ch==='s')i.face.push([y,x,'G'])}))});
 SHOP.forEach(i=>{if(i.map)i.spr=mapSprite(i.map,i.pal,!i.flat);if(i.ears)i.ears=i.ears.map(r=>r.padStart(r.length+1,'.'))});
 let closet=store.get('closet',null)||{own:['rouge'],wear:{corps:'rouge'}};
 const saveCloset=()=>store.set('closet',closet);
 const OX=3,OY=3;
 function dressed(ear,blink,wear){
   const[c,g]=canvasOf(13+OX*2,20+OY*2);
-  g.drawImage(rabbitSprite(ear,blink,SHOPI[wear.corps]||SHOP[0],SHOPI[wear.animal]),OX,OY);
+  g.drawImage(rabbitSprite(ear,blink,SHOPI[wear.corps]||SHOP[0],SHOPI[wear.pelage]||SHOPI[wear.animal]),OX,OY);
   for(const slot of['cou','yeux','tete']){const it=SHOPI[wear[slot]];if(it)g.drawImage(it.spr,OX+it.at[0]-(it.flat?0:1),OY+it.at[1]-(it.flat?0:1))}
   return c;
 }
@@ -598,7 +607,7 @@ function rabbitSprite(ear,blink,corps,an){
   if(corps&&corps.stripe)for(const i of[7,9])body[i]=body[i].replace(/[rR]/g,'n');
   if(corps&&corps.rows)for(const i in corps.rows)body[i]=body[i].replace(/[rR]/g,String(i%10));
   const pal={...RAB_PAL,...(an&&an.pal),n:corps&&corps.stripe||'#000'};if(corps&&corps.rows)for(const i in corps.rows)pal[String(i%10)]=corps.rows[i];if(corps){pal.r=corps.pal[0];pal.R=corps.pal[1]}
-  if(!an||!an.ears)return mapSprite(EARS[ear].concat(body),pal,false);
+  if(!an||!an.ears)return mapSprite((an&&an.earc?EARS[ear].map(r=>[...r].map((c,x)=>c==='w'&&x>=5?'g':c).join('')):EARS[ear]).concat(body),pal,false);
   // autre animal : oreilles contourées automatiquement, puis le corps du lapin par-dessus
   if(!an.pal.h)pal.h=pal.w;pal.l=an.leg||pal.w;
   const[c,g]=canvasOf(13,20);
@@ -1235,7 +1244,7 @@ function balloonHit(x,y){if(!balloon)return false;const bx=balloon.x,by=balloon.
 function openGift(){
   const b=balloon;balloon=null;qBump(q=>q.ball++);const by=b.y+Math.sin(T*1.2+b.ph)*2;
   for(let i=0;i<20;i++)parts.push({x:b.x+5,y:by+4,vx:rnd(-20,20),vy:rnd(-24,6),l:rnd(.5,1),c:i%2?b.col:'#f2c64a',g:20});
-  const pool=SHOP.filter(i=>!closet.own.includes(i.id)&&i.p<=150&&(!i.noel||NOEL));
+  const pool=SHOP.filter(i=>!closet.own.includes(i.id)&&i.p>0&&i.p<=150&&(!i.noel||NOEL));
   if(pool.length&&R()<.3){
     const it=pool[R()*pool.length|0];closet.own.push(it.id);saveCloset();
     toast(dressed(0,0,{...closet.wear,[it.slot]:it.id}),'Cadeau : '+it.n+'<span class="tag new">nouveau</span>','Il t’attend dans la boutique.',null,5500,'boutique');
@@ -3288,19 +3297,19 @@ function showTab(tab){
   }else if(tab==='boutique'){
     const L=loadLog();
     B.innerHTML=`<div class="stats"><div class="stat"><b class="price">${L.coins}</b>pièces</div></div><p class="lockl" style="margin:0 0 6px">Chaque prise rapporte des pièces : plus elle est rare, plus elle vaut cher. Les ballons cadeaux qui passent dans le ciel aussi.</p>`;
-    for(const[slot,name]of[['tete','Chapeaux'],['yeux','Lunettes'],['cou','Autour du cou'],['corps','Pulls']]){
+    for(const[slot,name]of[['tete','Chapeaux'],['yeux','Lunettes'],['cou','Autour du cou'],['corps','Pulls'],['pelage','Pelage']]){
       const h=document.createElement('h3');h.className='wh';h.textContent=name;B.appendChild(h);
       const G=document.createElement('div');G.className='grid';B.appendChild(G);
       for(const it of SHOP.filter(i=>i.slot===slot&&(!i.noel||NOEL||closet.own.includes(i.id)))){
-        const own=closet.own.includes(it.id),worn=closet.wear[slot]===it.id,c=document.createElement('div');
+        const own=closet.own.includes(it.id)||!it.p,worn=(closet.wear[slot]||(slot==='pelage'?'creme':''))===it.id,c=document.createElement('div');
         c.className='card shop'+(worn?' worn':'')+(!own&&L.coins<it.p?' poor':'');
         c.appendChild(bigSprite(dressed(0,0,{...closet.wear,[slot]:it.id}),3));
         const info=document.createElement('div');
-        info.innerHTML=`<div class="nm">${it.n}</div><div class="ms">${worn?(slot==='corps'||slot==='animal'?'porté':'porté · cliquer pour enlever'):own?'à toi · cliquer pour porter':`<span class="price">${it.p} pièces</span>`}</div>`;
+        info.innerHTML=`<div class="nm">${it.n}</div><div class="ms">${worn?(slot==='corps'||slot==='pelage'?'porté':'porté · cliquer pour enlever'):own?'à toi · cliquer pour porter':`<span class="price">${it.p} pièces</span>`}</div>`;
         c.appendChild(info);
         c.onclick=()=>{
           if(!own){const L2=loadLog();if(L2.coins<it.p)return;L2.coins-=it.p;store.set('log',L2);refreshCount();closet.own.push(it.id)}
-          if(worn&&slot!=='corps')delete closet.wear[slot];else closet.wear[slot]=it.id;
+          if(worn&&slot!=='corps'&&slot!=='pelage')delete closet.wear[slot];else closet.wear[slot]=it.id;
           saveCloset();buildRabbit();showTab('boutique');
         };
         G.appendChild(c);
