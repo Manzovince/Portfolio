@@ -134,6 +134,13 @@ html.zen #date svg{width:1em;height:1em}
 .card.shop.worn{border-color:var(--accent);box-shadow:3px 3px 0 var(--accent)}
 .card.shop.poor{opacity:.5;cursor:default}
 .card.shop canvas{height:96px}
+/* boutique : petites cartes serrées pour en voir plus d'un coup */
+.grid.shopg{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px}
+.shopg .card{padding:5px 4px 6px;gap:1px;border-radius:9px}
+.shopg .card canvas{height:54px;margin:0 0 2px}
+.shopg .card .nm{font-size:11px;line-height:1.15}
+.shopg .card .ms{font-size:10px}
+.shopg .card.shop.worn{box-shadow:2px 2px 0 var(--accent)}
 .price{display:inline-flex;align-items:center;gap:4px;font-weight:800}
 .poems{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
 .poem{white-space:pre-line;font-style:italic;font-size:12px;line-height:1.6;background:#fff;border:2px solid var(--line);border-radius:12px;padding:10px 12px}
@@ -150,6 +157,9 @@ html.zen #date svg{width:1em;height:1em}
 .wcard.lock{opacity:.55;cursor:default}
 .wcard.cur{box-shadow:3px 3px 0 var(--accent);border-color:var(--accent)}
 .wcard .sw{width:64px;height:44px;border-radius:8px;border:2px solid var(--line);flex:none}
+.mtabs{display:flex;gap:6px;margin:0 0 8px}
+.mtabs button{flex:1;border:2px solid var(--line);border-radius:10px;background:#fff;color:var(--panel-ink);font:700 11px 'JetBrains Mono',monospace;padding:6px 4px;cursor:pointer}
+.mtabs button.on{background:var(--accent);color:#fff;box-shadow:2px 2px 0 var(--line)}
 .wmap{position:relative;border:2px solid var(--line);border-radius:12px;overflow:hidden;background:#5cc4c8;line-height:0}
 .wmap canvas{width:100%;height:auto;image-rendering:pixelated;display:block;touch-action:manipulation}
 .wlab{position:absolute;transform:translate(-50%,0);font:800 9px/1.2 'JetBrains Mono',monospace;color:#fff;text-shadow:0 0 2px var(--line),0 1px 0 var(--line),1px 0 0 var(--line),-1px 0 0 var(--line),0 -1px 0 var(--line);white-space:nowrap;pointer-events:none;letter-spacing:-.2px}
@@ -493,17 +503,30 @@ const SHOP=[
   {id:'bois',slot:'tete',n:'Bois de renne',p:60,noel:1,at:[1,0],map:["b.b...b.b",".bb...bb.","..b...b.."],pal:{b:'#8a5a3a'}},
   {id:'echarpenoel',slot:'cou',n:'Écharpe de Noël',p:60,noel:1,at:[2,12],map:["sssssssss","sGsGsGsGs",".ss......",".sG......"],pal:{s:'#d8303a',G:'#3a8a4a'}},
   {id:'foulard',slot:'cou',n:'Foulard de marin',p:90,at:[2,12],map:["fffffffff","..fffff..","...fff...","....f...."],pal:{f:'#3a8ac0'}},
-  // pelages : couleurs du lapin (crème = celui du départ)
+  // pelages : couleurs du lapin, toutes disponibles dès le début (crème = celui du départ)
   {id:'creme',slot:'pelage',n:'Crème',p:0,pal:{}},
-  {id:'neige',slot:'pelage',n:'Blanc neige',p:60,pal:{w:'#ffffff',s:'#d8dce2',h:'#ffffff',p:'#f4a8b2'}},
-  {id:'gris',slot:'pelage',n:'Gris',p:80,pal:{w:'#a8aab2',s:'#84868e',h:'#a8aab2',p:'#e6a2a4'}},
-  {id:'blancgris',slot:'pelage',n:'Blanc et gris',p:120,earc:1,bicolor:1,pal:{w:'#f8f8f6',s:'#d8d8da',h:'#f8f8f6',g:'#c6c8ce',G:'#aaacb2',p:'#f0a4ac'}},
-  {id:'roux',slot:'pelage',n:'Roux',p:90,pal:{w:'#dca66e',s:'#b47e4e',h:'#dca66e',p:'#f0a890'}},
-  {id:'chocolat',slot:'pelage',n:'Chocolat',p:100,pal:{w:'#8c644a',s:'#6a4a38',h:'#8c644a',p:'#e09a8c'}}
+  {id:'neige',slot:'pelage',n:'Blanc neige',p:0,pal:{w:'#ffffff',s:'#d8dce2',h:'#ffffff',p:'#f4a8b2'}},
+  {id:'gris',slot:'pelage',n:'Gris',p:0,pal:{w:'#a8aab2',s:'#84868e',h:'#a8aab2',p:'#e6a2a4'}},
+  {id:'blancgris',slot:'pelage',n:'Blanc et gris',p:0,earc:'r',pat:'bicolor',pal:{w:'#f8f8f6',s:'#d8d8da',h:'#f8f8f6',g:'#c6c8ce',G:'#aaacb2',p:'#f0a4ac'}},
+  {id:'roux',slot:'pelage',n:'Roux',p:0,pal:{w:'#dca66e',s:'#b47e4e',h:'#dca66e',p:'#f0a890'}},
+  {id:'noir',slot:'pelage',n:'Noir',p:0,pal:{w:'#46424c',s:'#322f38',h:'#46424c',p:'#d88a94',e:'#f2ead6'}},
+  {id:'grisbleu',slot:'pelage',n:'Gris bleu',p:0,pal:{w:'#9aa6b8',s:'#7a8698',h:'#9aa6b8',p:'#e6a2aa'}},
+  {id:'noirblanc',slot:'pelage',n:'Noir et blanc',p:0,earc:'b',pat:'hollandais',pal:{w:'#f8f8f6',s:'#d8d8da',h:'#f8f8f6',g:'#46424c',G:'#322f38',p:'#f0a4ac',e:'#f2ead6'}},
+  {id:'chococreme',slot:'pelage',n:'Chocolat et crème',p:0,earc:'b',pat:'hollandais',pal:{g:'#8c644a',G:'#6a4a38'}},
+  {id:'rouxblanc',slot:'pelage',n:'Roux tacheté',p:0,earc:'l',pat:'taches',pal:{w:'#fbf8f2',s:'#ddd6cc',h:'#fbf8f2',g:'#dca66e',G:'#b47e4e'}},
+  {id:'himalaya',slot:'pelage',n:'Himalayen',p:0,earc:'b',pat:'himalaya',pal:{w:'#fbfaf6',s:'#dcdad4',h:'#fbfaf6',g:'#5a4440',G:'#4a3634'}},
+  {id:'chocolat',slot:'pelage',n:'Chocolat',p:0,pal:{w:'#8c644a',s:'#6a4a38',h:'#8c644a',p:'#e09a8c'}}
 ];
 const SHOPI=Object.fromEntries(SHOP.map(i=>[i.id,i]));
-SHOP.filter(i=>i.bicolor).forEach(i=>{i.face=[];RAB_BODY.slice(0,6).forEach((row,y)=>[...row].forEach((ch,x)=>{
-  const back=x<=3&&y<=4,eye=y>=1&&y<=2&&x>=8&&x<=9;if((back||eye)&&ch==='w')i.face.push([y,x,'g']);else if(back&&ch==='s')i.face.push([y,x,'G'])}))});
+// motifs des pelages à deux couleurs (g/G = 2e couleur) sur les 6 lignes de la tête
+const FUR_PAT={
+  bicolor:(y,x)=>x<=3&&y<=4||y>=1&&y<=2&&x>=8&&x<=9,
+  hollandais:(y,x)=>y<=1&&x<=6||y<=4&&x<=5||y>=1&&y<=3&&x>=8&&x<=10,
+  taches:(y,x)=>x>=2&&x<=4&&y>=1&&y<=3||x>=7&&x<=8&&y===0||x===9&&y===4,
+  himalaya:(y,x,ch)=>ch==='p'
+};
+SHOP.filter(i=>i.pat).forEach(i=>{i.face=[];RAB_BODY.slice(0,6).forEach((row,y)=>[...row].forEach((ch,x)=>{
+  if(!'wsp'.includes(ch)||!FUR_PAT[i.pat](y,x,ch))return;if(ch==='p'&&i.pat!=='himalaya')return;i.face.push([y,x,ch==='w'?'g':'G'])}))});
 SHOP.forEach(i=>{if(i.map)i.spr=mapSprite(i.map,i.pal,!i.flat);if(i.ears)i.ears=i.ears.map(r=>r.padStart(r.length+1,'.'))});
 let closet=store.get('closet',null)||{own:['rouge'],wear:{corps:'rouge'}};
 const saveCloset=()=>store.set('closet',closet);
@@ -539,6 +562,10 @@ const PALS=[
   {wd:'moulin',id:'mouton',n:'Mouton',map:["...www.www....",".wwwwwwwwwww..","wwwwwwwwwwppp.","wwwwwwwwwpkppp","wwwwwwwwwppppn",".wwwwwwwww.pp.",".wwwwwwwww....","..p.p..p.p....","..p.p..p.p...."],pal:{w:'#f8f4ec',p:'#f0b8b4',k:'#2a2224',n:'#c87a7a'},hat:[11,1],eye:[10,3],neck:[10,5]},
   {wd:'toit',id:'pigeon',n:'Pigeon',map:[".....ggg....","....gggggg..","....gyykgg..","....ggggggww","...BgggggG..","..lllBGggg..",".lllllllgg..","dlllllllgg..","ddllllllg...","dddddllg....","dd...p..p..."],pal:{g:'#9aa4ac',l:'#cacacf',d:'#5a5a7a',y:'#e8b060',k:'#2a2a34',w:'#e4e4e4',B:'#6a9a8a',G:'#8a6aa0',p:'#e8805a'},hat:[7,0],eye:[7,2],neck:[6,4]},
   {wd:'peniche',id:'caniche',n:'Caniche',map:[".......www..","......wwwww.","......wwkwwn",".....wwwwww.",".....ww.....","ww..wwwww...","ww.wwwwwww..",".wwwwwwwww..","..w.w..w.w..","..ww.ww.ww.w"],pal:{w:'#f2dcc4',k:'#2a2224',n:'#2a2224'},hat:[8,0],eye:[8,2],neck:[7,4]},
+  {wd:'ogre',id:'escargot',n:'Escargot',map:["....kk.k....","....k..k....","...ssssss...","..sSSssSSs..",".ssSsSSsSss.",".sSsSssSsSs.","bsSssSSsSssb","bbbbbbbbbbbb",".bbbbbbbbbb."],pal:{s:'#c8884a',S:'#8a5a2a',b:'#a8b878',k:'#3a3a2a'},hat:[5,1],eye:[7,0],neck:[6,6]},
+  {wd:'atlantide',id:'chevalmarin',n:'Cheval marin',map:["...ooo..","..oooko.","...ooooo","...oo...","..ooo...","..oOoo..","..oOoo..","...oOo..","....oo..","..o.o...","..oo...."],pal:{o:'#f0a040',O:'#f8d070',k:'#2a2224'},hat:[4,0],eye:[5,1],neck:[4,3]},
+  {wd:'plateforme',id:'gloups',n:'Gloups',map:["...gggg...","..gGGggg..",".ggkggkgg.",".gggggggg.","ggggmmgggg","gggggggggg",".gggggggg."],pal:{g:'#5ad04a',G:'#b8f0a0',k:'#1e2a22',m:'#2a6a2a'},hat:[4,0],eye:[4,2],neck:[4,4]},
+  {wd:'medieval',id:'ane',n:'Âne',map:[".........g.g","........gggg","........gkgg","........ggmm","...ggggggmm.",".grrrrrrgg..","ggrRrRrrgg..",".ggggggggg..","..g.g..g.g..","..k.k..k.k.."],pal:{g:'#9a948e',m:'#e8e0d4',r:'#c8383a',R:'#f2c64a',k:'#4a4038'},hat:[9,1],eye:[9,2],neck:[9,4]},
   {wd:'crique',id:'chevre',n:'Chèvre',map:[".........kk.","........k.k.","........bbbb","........bkbb","........bbbbb","....bbbbbb.w","..bbbbbbbbb.",".bbbbbbbbb..","..b.b..b.b..","..k.k..k.k.."],pal:{b:'#f0e6d4',k:'#5a4a3a'},hat:[9,2],eye:[9,3],neck:[9,5]},
 ];
 const PALI=Object.fromEntries(PALS.map(p=>[p.wd,p]));
@@ -589,6 +616,10 @@ const PAL_LINES={
   mouton:['Bêêê. Il aime bien le bruit des moulins.','Il a une tulipe coincée dans la laine.','Il te prête un peu de chaleur.'],
   pigeon:['Rrou rrou. Il connaît tous les toits de Paris.','Il gonfle son jabot, très chic.','« Une miette ? Une seule ? »'],
   caniche:['Il fait le beau. Il veut une caresse.','Il aboie après une mouette, pour la forme.','Il a eu sa coupe ce matin.'],
+  escargot:['Il avance à son rythme. Le marais n’est pas pressé.','Il laisse une petite traînée qui brille au clair de lune.','Il rentre dans sa coquille quand l’ogre ronfle trop fort.'],
+  chevalmarin:['Il fait des bulles en forme de cœur.','Il te montre le chemin du temple.','Il s’accroche à ta ligne avec sa queue.'],
+  gloups:['Gloups ! Il rebondit sur place.','Il a avalé une pièce. Il la recrache, gêné.','Il essaie de sauter sur un bloc. Raté.'],
+  ane:['Hi-han ! Il porte fièrement le blason du village.','Il a l’air de connaître le chemin du château.','Il renifle ton seau. Pas de carottes ici, désolé.'],
   chevre:['Elle grignote une branche de thym.','Elle grimpe sur un rocher pour mieux voir.','Mêêê. Elle a mangé un bout de ta ligne ?']
 };
 function petPal(){const b=palBox();palHop=.35;for(let i=0;i<6;i++)parts.push({x:b.x+b.w/2+rnd(-3,3),y:b.y+PAD_T,vx:rnd(-6,6),vy:rnd(-18,-8),l:rnd(.6,1),c:i%2?'#f07a8a':'#ffb0c0',g:4});
@@ -607,7 +638,7 @@ function rabbitSprite(ear,blink,corps,an){
   if(corps&&corps.stripe)for(const i of[7,9])body[i]=body[i].replace(/[rR]/g,'n');
   if(corps&&corps.rows)for(const i in corps.rows)body[i]=body[i].replace(/[rR]/g,String(i%10));
   const pal={...RAB_PAL,...(an&&an.pal),n:corps&&corps.stripe||'#000'};if(corps&&corps.rows)for(const i in corps.rows)pal[String(i%10)]=corps.rows[i];if(corps){pal.r=corps.pal[0];pal.R=corps.pal[1]}
-  if(!an||!an.ears)return mapSprite((an&&an.earc?EARS[ear].map(r=>[...r].map((c,x)=>c==='w'&&x>=5?'g':c).join('')):EARS[ear]).concat(body),pal,false);
+  if(!an||!an.ears)return mapSprite((an&&an.earc?EARS[ear].map(r=>[...r].map((c,x)=>c==='w'&&(an.earc==='b'||(an.earc==='r')===(x>=5))?'g':c).join('')):EARS[ear]).concat(body),pal,false);
   // autre animal : oreilles contourées automatiquement, puis le corps du lapin par-dessus
   if(!an.pal.h)pal.h=pal.w;pal.l=an.leg||pal.w;
   const[c,g]=canvasOf(13,20);
@@ -925,6 +956,40 @@ const SP=[
   {id:'esturgeonseine',n:'Esturgeon de Seine',rar:'e',w:1,cm:[120,220],wd:'peniche',quip:'On le croyait disparu de Paris.',look:{len:22,h:5,body:'#8a8e84',back:'#4a4e44',belly:'#d8dace',fin:'#6a6e64',shape:'sword',pat:'plates'}},
   {id:'joconde',n:'Joconde miniature',rar:'l',w:.3,wd:'peniche',quip:'Elle sourit. Elle a toujours souri.',map:["yyyyyyy","yggssgy","ygsffsy","yggssgy","ygbbbgy","yyyyyyy"],pal:{y:'#c8a040',g:'#5a6a3a',s:'#3a2a1a',f:'#e8c090',b:'#2a2a24'}},
   {id:'cadenas',n:'Cadenas d’amoureux',rar:'j',w:3,wd:'peniche',quip:'« L + M, pour toujours ».',map:[".kkk.","k...k","yyyyy","yRyRy","yyyyy"],pal:{k:'#9aa0a8',y:'#e0b030',R:'#e8504a'}},
+  {id:'gardonvase',n:'Gardon de vase',rar:'c',w:9,cm:[10,22],wd:'ogre',look:{len:10,h:4,body:'#8a8a5a',back:'#4a4a2a',belly:'#c8c4a0',fin:'#8a6a3a',pat:'spots'}},
+  {id:'perchetroll',n:'Perche des trolls',rar:'c',w:8,cm:[15,35],wd:'ogre',quip:'Elle grogne quand on la décroche.',look:{len:12,h:5,body:'#7a9a3a',back:'#3a5a1a',belly:'#d8d890',fin:'#c85a2a',pat:'stripes'}},
+  {id:'grenouilleprince',n:'Grenouille couronnée',rar:'u',w:4,wd:'ogre',quip:'Elle attend un bisou. Tu la remets à l’eau poliment.',map:["..y.y.y..","..yyyyy..",".gwkgkwg.","ggggggggg","g.gGGGg.g","gg.....gg"],pal:{g:'#5a9a3a',G:'#a8d070',w:'#f4f0e6',k:'#1e1e22',y:'#f2c64a'}},
+  {id:'silureogre',n:'Silure de l’ogre',rar:'r',w:2.5,cm:[80,180],wd:'ogre',quip:'Il a des moustaches plus longues que tes oreilles.',look:{len:20,h:6,body:'#5a5a4a',back:'#2e2e26',belly:'#a8a48a',fin:'#4a4a3a',pat:'spots'}},
+  {id:'follet',n:'Feu follet',rar:'e',w:1,wd:'ogre',when:'nuit',quip:'Il brille un instant, puis file entre les roseaux.',map:["..y..",".yWy.","yWWWy",".yWy.","..y.."],pal:{y:'#8af0c8',W:'#f0fff8'}},
+  {id:'fiole',n:'Fiole enchantée',rar:'l',w:.3,wd:'ogre',quip:'Une potion verte qui fait des bulles. Mieux vaut ne pas la boire.',map:["..kk..","..cc..",".cggc.","cgGggc","cggggc",".cccc."],pal:{k:'#7a5a3a',c:'#d8e8e0',g:'#6ad04a',G:'#c8ffa8'}},
+  {id:'oignon',n:'Oignon des marais',rar:'j',w:3,wd:'ogre',quip:'Il fait pleurer rien qu’à le regarder.',map:["..g..","..g..",".ooo.","oOooo","ooooo",".ooo."],pal:{g:'#6a9a3a',o:'#c8a060',O:'#e8c890'}},
+  {id:'chaussetteogre',n:'Chaussette d’ogre',rar:'j',w:2,wd:'ogre',quip:'Taille 58. Elle sent fort.',map:["ww..","ss..","ss..","ss..","sss.","ssss"],pal:{w:'#f4f0e6',s:'#8a9a5a'}},
+  {id:'scintille',n:'Scintille',rar:'c',w:9,cm:[6,12],wd:'atlantide',quip:'Ses écailles reflètent les dômes d’or.',look:{len:8,h:3,body:'#8ad8f0',back:'#3a8ab8',belly:'#e8f8ff',fin:'#f0d070',pat:'shine'}},
+  {id:'castagnoleor',n:'Castagnole dorée',rar:'c',w:8,cm:[8,16],wd:'atlantide',look:{len:9,h:5,body:'#f0c040',back:'#c88a20',belly:'#fff0b0',fin:'#e8a020',pat:'shine'}},
+  {id:'murenebleue',n:'Murène bleue',rar:'u',w:5,cm:[60,120],wd:'atlantide',quip:'Elle garde l’entrée du temple.',look:{len:20,h:3,body:'#3a6ad0',back:'#1a3a8a',belly:'#8ab0f0',fin:'#f0d050',pat:'spots'}},
+  {id:'hippocampedore',n:'Hippocampe doré',rar:'u',w:4,cm:[8,15],wd:'atlantide',map:["..oo.",".ooko","..ooo","..oo.",".oOo.",".oOo.","..oo.","...o.",".oo.."],pal:{o:'#e8b030',O:'#f8e090',k:'#2a2224'}},
+  {id:'raieroyale',n:'Raie royale',rar:'r',w:2.5,cm:[60,140],wd:'atlantide',quip:'Elle porte un diadème de coquillages.',map:["......y.y......","....bbbbbbb....","..bbbBBBBBbbb..","bbbBBkBBkBBBbbb","..bbbBBBBBbbb..","....bbbbbbb....","......bb.......",".......b.......",".......b......."],pal:{b:'#4a7ab8',B:'#7aa8e0',k:'#1e1e2a',y:'#f2d24a'}},
+  {id:'krakenbleu',n:'Petit kraken',rar:'e',w:1,cm:[40,90],wd:'atlantide',when:'nuit',quip:'Il est petit. Pour l’instant.',map:["...ppp...","..ppppp..",".pwkpwkp.",".ppppppp.","p.p.p.p.p","p.p.p.p.p",".p..p..p."],pal:{p:'#a050c8',w:'#f4f0e6',k:'#1e1e22'}},
+  {id:'trident',n:'Trident d’orichalque',rar:'l',w:.3,wd:'atlantide',quip:'Il vibre encore de la puissance des anciens rois.',map:["o.o.o","o.o.o","ooooo","..o..","..o..","..o..","..o..","..O..","..o.."],pal:{o:'#e8a050',O:'#ffd890'}},
+  {id:'perlegeante',n:'Perle géante',rar:'j',w:3,wd:'atlantide',quip:'Grosse comme une balle de ping-pong.',map:[".ww.","wWww","wwww",".ww."],pal:{w:'#ece8f2',W:'#ffffff'}},
+  {id:'pixelpoisson',n:'Poisson 8 bits',rar:'c',w:9,cm:[8,16],wd:'plateforme',quip:'Il nage en ligne droite, très carré.',map:["....oo..","o.oooooo","oooowoko","o.oooooo","....oo.."],pal:{o:'#e8604a',w:'#ffffff',k:'#1e1e22'}},
+  {id:'carpesaut',n:'Carpe sauteuse',rar:'c',w:8,cm:[20,40],wd:'plateforme',quip:'Elle a sauté par-dessus un bloc pour mordre.',look:{len:12,h:5,body:'#f0a030',back:'#c86a10',belly:'#fff0c0',fin:'#e84a2a',pat:'scales'}},
+  {id:'champisaut',n:'Champignon bondissant',rar:'u',w:4,wd:'plateforme',quip:'Il rebondit dans le seau.',map:[".rrrr.","rwrrwr","rrrrrr",".kwwk.",".wwww."],pal:{r:'#e8403a',w:'#f8f4ec',k:'#1e1e22'}},
+  {id:'poissoncube',n:'Poisson cube',rar:'r',w:2.5,cm:[15,30],wd:'plateforme',quip:'Six faces, zéro arête.',map:["bbbbbb","bBBbkb","bBbbbb","bbbbbb","bbbbbb"],pal:{b:'#4ab0e8',B:'#a8e0ff',k:'#1e1e22'}},
+  {id:'etoilebonus',n:'Étoile bonus',rar:'e',w:1,wd:'plateforme',quip:'Elle clignote. Tu te sens invincible.',map:["..y..","..y..","yyyyy",".yky.",".y.y.","y...y"],pal:{y:'#f6d24a',k:'#1e1e22'}},
+  {id:'coeurbonus',n:'Cœur bonus',rar:'l',w:.3,wd:'plateforme',quip:'Une vie de plus !',map:[".rr.rr.","rWrrrrr","rrrrrrr",".rrrrr.","..rrr..","...r..."],pal:{r:'#e8404a',W:'#ffc0c8'}},
+  {id:'piecegeante',n:'Pièce géante',rar:'j',w:3,wd:'plateforme',quip:'Elle est en chocolat. Dommage.',map:[".yyy.","yYyyy","yYyky","yYyyy",".yyy."],pal:{y:'#f2c64a',Y:'#fff0a0',k:'#c8962a'}},
+  {id:'manette8',n:'Vieille manette',rar:'j',w:2,wd:'plateforme',quip:'Le fil est emmêlé, comme toujours.',map:["kkkkkkk","kgkkkrk","ggkkkkk","kgkkrkk","kkkkkkk"],pal:{k:'#5a5a6a',g:'#2a2a3a',r:'#e8404a'}},
+  {id:'goujonpage',n:'Goujon page',rar:'c',w:9,cm:[8,15],wd:'medieval',quip:'Il porte les messages du château.',look:{len:8,h:3,body:'#b8b49a',back:'#6a6a58',belly:'#ece8d6',fin:'#a89a7a',pat:'spots'}},
+  {id:'bremeroyale',n:'Brème royale',rar:'c',w:8,cm:[25,50],wd:'medieval',look:{len:13,h:6,body:'#c8b890',back:'#7a6a4a',belly:'#efe6cc',fin:'#9a7a5a',pat:'shine'}},
+  {id:'brochetarmure',n:'Brochet en armure',rar:'u',w:5,cm:[50,100],wd:'medieval',quip:'Ses écailles sonnent comme une cotte de mailles.',look:{len:19,h:4,body:'#9aa0a8',back:'#5a6068',belly:'#dde2e6',fin:'#7a8088',pat:'plates'}},
+  {id:'tancheblason',n:'Tanche à blason',rar:'u',w:4,cm:[20,45],wd:'medieval',look:{len:12,h:5,body:'#7a9a4a',back:'#4a6a2a',belly:'#e8d890',fin:'#c84a3a',pat:'spots'}},
+  {id:'carpeduroi',n:'Carpe du roi',rar:'r',w:2.5,cm:[40,90],wd:'medieval',quip:'On dit qu’elle nageait déjà dans les douves du temps du vieux roi.',look:{len:16,h:7,body:'#e8b840',back:'#b88420',belly:'#fbeaa8',fin:'#d8602a',pat:'scales'}},
+  {id:'vouivre',n:'Vouivre',rar:'e',w:1,cm:[80,160],wd:'medieval',when:'nuit',quip:'La serpente des légendes. Son œil brille comme une escarboucle.',map:[".gg........ggg.","gGGg......gGGky","g..gg....gg.gg.","....gg..gg.....",".....gggg......"],pal:{g:'#3a9a5a',G:'#7ad08a',k:'#f2d24a',y:'#e8504a'}},
+  {id:'epee',n:'Épée du lac',rar:'l',w:.3,wd:'medieval',quip:'Une main sortie de l’eau te l’a tendue. Tu n’as rien demandé.',map:["..s..",".sSs.",".sSs.",".sSs.",".sSs.",".sSs.",".sSs.","ggGgg","..b..","..b..","..y.."],pal:{s:'#c8d0d8',S:'#f4f8fc',g:'#d8a830',G:'#f6d860',b:'#6a4428',y:'#f2c64a'}},
+  {id:'heaume',n:'Heaume rouillé',rar:'j',w:3,wd:'medieval',quip:'Le chevalier qui le portait doit encore le chercher.',map:[".kkkk.","kmMmrk","kmMmmk","kkkkkk","kmmrmk",".kmmk."],pal:{k:'#5a5a62',m:'#9a9aa2',M:'#c8c8d0',r:'#a8603a'}},
+  {id:'parchemin',n:'Parchemin détrempé',rar:'j',w:2,wd:'medieval',quip:'« Par ordre du roi… » La suite a pris l’eau.',map:["pPPPPp","pppppp","pkpkkp","pPPPPp"],pal:{p:'#e8d8b0',P:'#c8b088',k:'#8a6a4a'}},
+  {id:'ferache',n:'Fer à cheval',rar:'j',w:2,wd:'medieval',quip:'Ça porte bonheur, paraît-il.',map:["kk.kk","k...k","k...k","k...k",".kkk."],pal:{k:'#8a8e96'}},
   {id:'girelle',n:'Girelle',rar:'c',w:9,cm:[10,20],wd:'crique',quip:'Elle porte toutes les couleurs de la Méditerranée.',look:{len:10,h:3,body:'#4ab0a0',back:'#2a7a8a',belly:'#f0e8c8',fin:'#e8804a',pat:'rainbow'}},
   {id:'saupe',n:'Saupe',rar:'c',w:8,cm:[20,35],wd:'crique',look:{len:12,h:5,body:'#c8c8b8',back:'#7a8078',belly:'#f4f2ea',fin:'#b8a888',pat:'stripes'}},
   {id:'sar',n:'Sar',rar:'u',w:5,cm:[20,40],wd:'crique',look:{len:13,h:6,body:'#d8dcd8',back:'#8a948e',belly:'#ffffff',fin:'#a8b0aa',pat:'stripes'}},
@@ -1050,7 +1115,11 @@ const WORLDS=[
   {id:'toit',n:'Toits de Paris',d:'Une citerne de pluie sur les toits de zinc, face à la tour Eiffel.',need:144,tree:'none',roofs:1,water:['#6a7a8a',.5],sky:['#ecdcd0',.22],sw:['#e4d8d0','#6a7a8a']},
   {id:'peniche',n:'Péniche sur la Seine',d:'On glisse doucement le long des quais de Paris.',need:152,tree:'none',boat:1,seine:1,water:['#5a7a7a',.45],sky:['#e4e0d8',.15],sw:['#e4e0d8','#5a7a7a']},
   {id:'crique',n:'Crique provençale',d:'Une calanque d’eau turquoise entre les roches blanches et les pins parasols.',need:160,tree:'parasol',crique:1,water:['#2ab8c8',.62],sky:['#f4ead8',.2],sw:['#f0e6d4','#2ab8c8']},
-  {id:'giverny',n:'Giverny',d:'L’étang aux nymphéas, le pont japonais sous la glycine, les saules. Monet peint sur l’autre rive.',need:168,tree:'none',giverny:1,pads:1,water:['#4a8aa0',.48],sky:['#78bce8',.6],sw:['#cfe6c0','#3a7a72']}
+  {id:'giverny',n:'Giverny',d:'L’étang aux nymphéas, le pont japonais sous la glycine, les saules. Monet peint sur l’autre rive.',need:168,tree:'none',giverny:1,pads:1,water:['#4a8aa0',.48],sky:['#78bce8',.6],sw:['#cfe6c0','#3a7a72']},
+  {id:'medieval',n:'Royaume médiéval',d:'Un château fort sur la colline, un village à colombages et des bannières au vent.',need:176,tree:'none',medieval:1,fant:1,water:['#4a8ab0',.42],sky:['#cfe4f0',.15],sw:['#d4e8c0','#4a8ab0']},
+  {id:'ogre',n:'Marais de l’ogre',d:'Une cabane tordue au fond d’un marais de conte, entre champignons géants et feux follets.',need:184,tree:'none',ogre:1,fant:1,reeds:1,fog:1,pads:1,water:['#4a5a2a',.55],sky:['#b8c49a',.32],sw:['#b8c49a','#4a5a2a']},
+  {id:'atlantide',n:'Atlantide',d:'Un royaume englouti : temples de marbre, dômes d’or et forêts de varech.',need:192,tree:'none',atlantis:1,fant:1,rays:1,water:['#2a8aa8',.5],sky:['#1e6a9a',.86],sw:['#5ab0d0','#1e6a9a']},
+  {id:'plateforme',n:'Monde plateforme',d:'Des blocs qui flottent, des pièces qui tournent et des collines toutes rondes.',need:200,tree:'none',platform:1,fant:1,water:['#3a8ae8',.45],sky:['#6ab0f8',.75],sw:['#8ac8ff','#3a8ae8']}
 ];
 const WI=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
 const discovered=()=>Object.keys(loadLog().sp).filter(id=>SPI[id]).length;
@@ -1078,7 +1147,11 @@ const QUEST={
   toit:{t:'Fais 100 prises en tout',n:100,v:()=>loadLog().total},
   peniche:{t:'Fais 5 prises sur les Toits de Paris',n:5,v:()=>QS().wc.toit||0},
   crique:{t:'Viens pêcher 7 jours différents',n:7,v:()=>QS().days.length},
-  giverny:{t:'Trouve 40 espèces',n:40,v:()=>discovered()}
+  giverny:{t:'Trouve 40 espèces',n:40,v:()=>discovered()},
+  ogre:{t:'Fais 10 prises au Marais brumeux',n:10,v:()=>QS().wc.marais||0},
+  atlantide:{t:'Fais 15 prises au Bord de mer ou au large',n:15,v:()=>(QS().wc.mer||0)+(QS().wc.large||0)},
+  plateforme:{t:'Attrape 5 ballons cadeaux',n:5,v:()=>QS().ball},
+  medieval:{t:'Ouvre 6 mondes des Terres connues',n:6,v:()=>openWorlds().filter(id=>id!=='medieval'&&WI[id]&&!WI[id].fant).length}
 };
 const questOf=w=>{const q=QUEST[w.id];return q&&q!=='bird'?q:null};
 const questTxt=w=>{const q=questOf(w);return q?`${q.t} · ${Math.min(q.n,q.v())}/${q.n}`:'Un oiseau postal t’apportera peut-être sa carte.'};
@@ -1127,6 +1200,10 @@ const BANKS={
   oasis:{grass:['#e8d2a0','#f4e2b8'],earth:['#d8b880','#c4a068','#e8cc98'],base:'#a8844c',snow:1},
   moulin:{grass:['#6aa048','#8ac060'],earth:['#6a5440','#584432','#7a6450'],base:'#3e3024'},
   crique:{grass:['#ddd6c4','#f0ebde'],earth:['#c8bfa8','#b0a690','#ddd6c4'],base:'#8a8270'},
+  medieval:{grass:['#6aa84a','#94c862'],earth:['#8a6a4a','#74583c','#a4825a'],base:'#5a4432'},
+  ogre:{grass:['#4a6a2a','#6a8a3a'],earth:['#4a3a2a','#3a2e22','#5a4834'],base:'#2a2218'},
+  atlantide:{grass:['#e8d8a8','#f4e8c0'],earth:['#c8b080','#b09868','#d8c494'],base:'#8a7a5a'},
+  plateforme:{grass:['#5ad04a','#8ae86a'],earth:['#c8743a','#a85a2a','#e08a4a'],base:'#7a3a1a'},
   toit:{grass:['#9aa8b8','#c4ced8'],earth:['#7a8898','#6a7888','#8a98a8'],base:'#4a5664'},
   giverny:{grass:['#5a9a40','#8ac458'],earth:['#c8a878','#b08a60','#dcc090'],base:'#7a5a3a'},
   jardin:{grass:['#5a9a4e','#8cc468'],earth:['#b8b0cc','#9a92b4','#d4cee0'],base:'#6a6488'},
@@ -2373,6 +2450,233 @@ function drawCriqueFront(g,r){
   for(const B of[LB,RB])for(let x=Math.max(B.x0,0)+8;x<Math.min(B.x1,W)-6;x+=16+r()*26){if(B===LB&&x>rab.x-34&&x<rab.x+16)continue;if(B===RB&&x>cx-4&&x<cx+100)continue;
     const rx=3+r()*4,ry=2+r()*2;for(let y=-Math.ceil(ry);y<=0;y++)for(let d=-Math.ceil(rx);d<=rx;d++){if(Math.hypot(d/rx,y/ry)>1)continue;g.fillStyle=y<-ry*.4&&d<0?'#fffaf0':d>rx*.4?'#c8bea8':'#e4dccb';g.fillRect(Math.round(x+d),GT+1+y,1,1)}}
 }
+/* ---------- marais de l'ogre ---------- */
+function drawOgre(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),1,1)},rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+  // forêt de conte : trois rangs d'arbres trapus et tordus, couronnes sombres, mousse qui pend
+  const ROWS=[['#8a9a78','#9aa888','#7a8c6a'],['#6a7a58','#7a8a66','#5a6c4a'],['#4a5a3a','#5a6a48','#3a4a2e']];
+  ROWS.forEach(([c,hl,cr],k)=>{const n=Math.round(W/(46-k*10));for(let i=0;i<n;i++){
+    const x0=(i+.2+r()*.6)*W/n,h=WY*(.26+k*.07)*(.75+r()*.35),tw=5+k*3+r()*3,lean=(r()-.5)*.35,top=GT-h,bend=3+r()*4;
+    const xAt=y=>{const v=(y-top)/h;return x0+Math.sin(v*3.2+i*1.7)*bend*(1-v)+lean*(GT-y)};
+    for(let y=Math.round(top);y<GT;y++){const v=(y-top)/h,xx=xAt(y),w=tw*(.55+v*.5)+(v>.85?(v-.85)*60:0);rect(xx-w/2,y,Math.max(1,Math.round(w)),1,c);if(v>.1){px(xx-w/2,y,hl);if((y+i)%5===0)px(xx+w*.1,y,cr)}}
+    // branches noueuses qui partent sur les côtés
+    for(let b=0;b<2+k;b++){let bx=xAt(top+h*.15),by=top+h*(.12+r()*.3);const dir=b%2?-1:1,len=10+r()*14+k*5;for(let j=0;j<len;j++){bx+=dir*(.9+r()*.3);by+=(r()-.7)*.9;rect(bx,by,1+(j<len*.4?1:0),1,c)}
+      for(let m=0;m<3;m++){const mx=Math.round(bx-dir*m*3),ml=3+r()*(6+k*3);for(let j=0;j<ml;j++)px(mx,Math.round(by+1+j),k===2?'#7a8a4a':k===1?'#8a9a68':'#98a684')}}
+    // couronne : grosses touffes de feuillage sombre
+    const tx=xAt(top);for(let b=0;b<5;b++){const bx=tx+(r()-.5)*tw*4,by=top+(r()-.6)*tw*1.5,rr=tw*(.9+r()*.8);
+      for(let a=-rr;a<=rr;a++)for(let d=-rr*.75;d<=rr*.6;d++){if(a*a+(d/.75)**2>rr*rr||r()<.08)continue;px(bx+a,by+d,d<-rr*.35&&a<rr*.2?hl:(a+d)%4===0?cr:c)}}
+    rect(x0+lean*0-tw,GT-1,tw*2,1,c)}});
+  // lucioles de brume (feux follets lointains)
+  for(let i=0;i<8;i++)lights.push({x:r()*W|0,y:Math.round(GT-6-r()*WY*.3),c:'#9af0c8',ph:r()*6});
+}
+function drawOgreFront(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),1,1)},rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+  // la cabane : rondins tordus, toit de mousse épais avec champignons, porte ronde et fenêtre éclairées
+  const x1=Math.min(RB.x1,W),cw=Math.round(clamp(W*.15,56,92)),ch=Math.round(H*.095),hx=Math.round(RB.x0+(x1-RB.x0)*.42-cw/2),top=GT+1-ch;
+  for(let y=top;y<=GT;y++){const lean=Math.round((GT-y)*.08);for(let x=0;x<cw;x++){const row=Math.floor((y-top)/3),gap=(y-top)%3===2;
+    let c=gap?'#3a2618':(x+row*5)%9===0?'#5a3c24':row%2?'#7a5434':'#8a6040';if(x<1||x>=cw-1)c=OUT;else if(x>=cw-4)c=rgb(mix(hex(c),[30,20,30],.25));px(hx+x+lean,y,c)}
+    if((y-top)%3===1){px(hx-1,y,'#a87a4a');px(hx+cw,y,'#a87a4a')}}
+  // porte ronde et fenêtre
+  const dx=hx+Math.round(cw*.3),dw=9,dh=12;for(let y=0;y<dh;y++)for(let x=0;x<dw;x++){const hr=dw/2,ex=x+.5-hr,ey=hr-y-.5;if(y<hr&&ex*ex+ey*ey>hr*hr)continue;px(dx+x,GT+1-dh+y,x===0||x===dw-1||(y<hr&&ex*ex+ey*ey>(hr-1)*(hr-1))?'#3a2414':x===4?'#5a3a22':'#9a6a3a')}
+  px(dx+6,GT-5,'#e8c04a');
+  const wx=hx+Math.round(cw*.66),wy=top+Math.round(ch*.32);rect(wx-1,wy-1,7,6,'#3a2414');rect(wx,wy,5,4,'#e8b850');rect(wx+2,wy,1,4,'#3a2414');rect(wx,wy+2,5,1,'#3a2414');
+  for(let k=0;k<4;k++)lights.push({x:wx+(k&1)*3,y:wy+(k>>1)*2,c:'#ffc860',ph:0,lamp:1,win:1});
+  // toit de mousse qui déborde et coule sur les bords
+  const rt=top-Math.round(ch*.6);for(let y=rt;y<top+2;y++){const v=(y-rt)/(top+2-rt),hw=cw*.58*(.55+.45*Math.sqrt(v)),c0=hx+cw/2;
+    for(let x=Math.round(c0-hw);x<=Math.round(c0+hw);x++){const e=x===Math.round(c0-hw)||x===Math.round(c0+hw)||y===rt;let c=(x*5+y*3)%7===0?'#8ab04a':(x+y)%3===0?'#4a7a2a':'#5a8a32';if(x>c0+hw*.4)c=rgb(mix(hex(c),[30,40,30],.25));px(x,y,e?OUT:c)}}
+  for(let i=0;i<9;i++){const x=Math.round(hx+cw/2+(r()-.5)*cw*1.1),l=2+r()*5;for(let j=0;j<l;j++)px(x,top+2+j,j===l-1?'#8ab04a':'#5a8a32')}
+  for(const[ox,s]of[[.2,3],[.55,4],[.8,2]]){const mx=Math.round(hx+cw*ox),my=rt+Math.round(ch*.6*(1-Math.abs(ox-.5)*.8))-1;rect(mx,my-1,1,2,'#f0e6d0');rect(mx-s+1,my-1-Math.ceil(s/2),2*s-1,Math.ceil(s/2),'#d8402e');px(mx-1,my-2-Math.floor(s/3),'#ffffff')}
+  // cheminée de pierres de travers
+  const cx=hx+Math.round(cw*.78);for(let y=0;y<10;y++)rect(cx+Math.round(y*.2),rt-6+y,4,1,y%2?'#7a7a6a':'#9a9a88');
+  // chaudron sur le feu, panneau, champignons géants, bûches
+  const kx=hx-16;if(kx>RB.x0){rect(kx,GT-6,9,5,'#2a2a2e');rect(kx+1,GT-7,7,1,'#3a3a40');rect(kx+2,GT-7,5,1,'#7ad04a');px(kx+3,GT-9,'#a8f07a');px(kx+5,GT-10,'#a8f07a');for(let d=0;d<9;d+=2)px(kx+d,GT,(d&2)?'#ff9a3a':'#ffd04a');rect(kx+1,GT-1,1,1,'#2a2a2e');rect(kx+7,GT-1,1,1,'#2a2a2e');lights.push({x:kx+4,y:GT,c:'#ff9a3a',ph:1.3});lights.push({x:kx+2,y:GT,c:'#ffd04a',ph:2.1})}
+  const sx=hx+cw+10;if(sx+10<x1){rect(sx+4,GT-11,1,12,'#6a4a32');rect(sx,GT-12,10,5,'#9a7048');rect(sx+1,GT-10,2,1,'#4a3020');rect(sx+4,GT-10,1,1,'#4a3020');rect(sx+6,GT-10,3,1,'#4a3020');rect(sx+2,GT-8,5,1,'#4a3020')}
+  const shroom=(x,h,cap)=>{rect(x-1,GT+1-h,3,h,'#f0e6d0');rect(x+1,GT+1-h,1,h,'#d8ccb4');const cw2=Math.round(cap);for(let y=0;y<Math.ceil(cap*.6);y++){const hw=Math.round(cw2*Math.sqrt(1-(y/(cap*.6))**2));rect(x-hw,GT+1-h-y,hw*2+1,1,y===0?'#a8302a':'#d8402e')}
+    for(let i=0;i<4;i++)px(x-cw2+2+r()*(cw2*2-3),GT+1-h-1-r()*cap*.45,'#ffffff')};
+  for(const B of[LB,RB])for(let x=Math.max(B.x0,0)+10;x<Math.min(B.x1,W)-8;x+=22+r()*30){if(B===LB&&x>rab.x-30&&x<rab.x+16)continue;if(B===RB&&x>kx-6&&x<sx+14)continue;shroom(Math.round(x),4+(r()*8|0),3+r()*5)}
+}
+/* ---------- Atlantide ---------- */
+function drawAtlantis(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),1,1)},rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+  const HZ=[40,110,150],hz=(c,k)=>rgb(mix(hex(c),HZ,k));
+  // cité lointaine : tours, dômes et colonnades noyés dans le bleu
+  for(const[k,col]of[[.62,'#c8e0ea'],[.42,'#d8ecf2']]){let x=-r()*20;const base=Math.round(GT-WY*(k===.62?.18:.08));
+    while(x<W){const w=10+r()*20,h=WY*(.05+r()*.13)*(k===.62?1:.8),c=hz(col,k),t=Math.round(base-h);rect(x,t,w,base-t+WY,c);
+      for(let wy=t+3;wy<base-2;wy+=5)for(let wx=x+2;wx<x+w-2;wx+=4){rect(wx,wy,2,3,hz('#5a8aa8',k));px(wx,wy-1,hz('#5a8aa8',k+.1))}
+      if(r()<.3){rect(x+w/2-1,t-WY*.06,2,WY*.06,c);px(x+w/2-1,t-WY*.06-1,hz('#e8c860',k))}
+      if(r()<.8){const R2=w/2;for(let y=0;y<R2;y++){const hw=Math.round(R2*Math.sqrt(1-(y/R2)**2));rect(x+R2-hw,t-y,hw*2,1,r()<.02?c:hz(y<2?col:'#e8c860',k+.05))}}
+      else for(let cx=x+1;cx<x+w-1;cx+=3)rect(cx,t,1,base-t,hz('#a8c4d0',k));
+      x+=w+2+r()*10}}
+  // forêt de varech qui ondule doucement (statique ici, les herbes des rives bougent)
+  for(let i=0;i<W/5;i++){const x=r()*W,h=WY*(.08+r()*.22),c=r()<.5?'#2e7a5a':'#3a8a62';let X=x;for(let y=0;y<h;y++){X+=Math.sin(y*.15+i)*.35;px(X,GT-y,hz(c,.25));if(y%5===2)px(X+(i%2?1:-1),GT-y,hz('#5aa87a',.25))}}
+  // grand temple au centre : soubassement à degrés, colonnes de marbre, fronton, dôme d'or
+  const cx=Math.round(W*.5),tb=Math.round(GT-WY*.06),tw=Math.round(clamp(W*.2,70,120)),sc=clamp(WY/230,.8,1.25),u=v=>Math.max(1,Math.round(v*sc));
+  const M=['#f2f6f8','#d8e2e8','#b8c8d2'],G=['#f6d870','#e0b040','#b88a28'];
+  for(let k=0;k<3;k++)rect(cx-tw/2-6+k*3,tb-k*3,tw+12-k*6,3,hz(M[k%2],.08));
+  const colH=u(34),ct=tb-9-colH,nC=6,step=(tw-8)/(nC-1);
+  // dôme derrière le fronton
+  {const R2=Math.round(tw*.32),dy=ct-u(12);for(let y=0;y<R2;y++){const hw=Math.round(R2*Math.sqrt(1-(y/R2)**2));for(let x=-hw;x<=hw;x++)px(cx+x,dy-y,x<-hw*.4?G[0]:x>hw*.45?G[2]:G[1])}
+    rect(cx-R2,dy,R2*2+1,u(10),hz(M[1],.05));for(let x=cx-R2+2;x<cx+R2;x+=4)rect(x,dy+2,1,u(10)-3,hz(M[2],.05));rect(cx,dy-R2-4,1,4,G[2]);px(cx,dy-R2-5,'#fff6c0');lights.push({x:cx,y:dy-R2-5,c:'#fff6c0',ph:0,lamp:1})}
+  for(let i=0;i<nC;i++){const x=Math.round(cx-tw/2+4+i*step);rect(x-2,ct,5,colH,M[0]);rect(x+1,ct,2,colH,M[1]);rect(x+2,ct,1,colH,M[2]);rect(x-3,ct,7,2,M[1]);rect(x-3,tb-9,7,2,M[1])}
+  rect(cx-tw/2,ct-3,tw,3,M[0]);rect(cx-tw/2,ct-1,tw,1,M[2]);
+  const ph=u(12);for(let y=0;y<ph;y++){const hw=Math.round((tw/2+2)*(y/ph));rect(cx-hw,ct-3-ph+y,hw*2,1,y===ph-1?M[2]:M[0])}
+  for(let y=Math.round(ph*.4);y<ph-1;y++){const hw=Math.round((tw/2-4)*(y/ph));rect(cx-hw,ct-3-ph+y,hw*2,1,M[1])}
+  rect(cx-2,ct-ph+2,4,3,G[1]);
+  // vasques de lumière entre les colonnes
+  for(let i=0;i<nC-1;i++){const x=Math.round(cx-tw/2+4+(i+.5)*step);px(x,tb-12,'#7af0ff');lights.push({x,y:tb-12,c:'#7af0ff',ph:0,lamp:1})}
+  // colonnes brisées et statue renversée de chaque côté
+  for(const sx of[cx-tw/2-u(30),cx+tw/2+u(22)]){const h=u(10+r()*14);rect(sx,tb-h,5,h,M[0]);rect(sx+3,tb-h,2,h,M[2]);for(let d=0;d<5;d++)if(r()<.6)px(sx+d,tb-h-1,M[1]);rect(sx-2,tb-2,9,2,M[1]);rect(sx+8,tb-3,6,3,M[0])}
+}
+function drawAtlantisFront(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),1,1)},rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+  // coraux branchus, éventails de mer, anémones, coquillages, coffre au trésor
+  const coral=(x,h,c,c2)=>{const br=(bx,by,a,l,d)=>{let X=bx,Y=by;for(let i=0;i<l;i++){X+=Math.cos(a);Y-=Math.sin(a);px(X,Y,i>l-2?c2:c);px(X+1,Y,c)}if(d<3)for(const da of[-.5,.5])if(r()<.85)br(X,Y,a+da+(r()-.5)*.3,l*.7,d+1)};br(x,GT,Math.PI/2,h,0)};
+  const fan=(x,h,c)=>{for(let y=0;y<h;y++){const hw=Math.round(h*.55*Math.sin(Math.PI*(y+1)/(h+1)));for(let d=-hw;d<=hw;d++)if((d+y)%2===0||Math.abs(d)===hw)px(x+d,GT-h+y,c)}rect(x,GT-2,1,3,c)};
+  const CC=[['#f06a8a','#ffb0c4'],['#f0904a','#ffc890'],['#c870e0','#f0b8ff'],['#f2d24a','#fff0a0']];
+  for(const B of[LB,RB])for(let x=Math.max(B.x0,0)+6;x<Math.min(B.x1,W)-4;x+=6+r()*12){if(B===LB&&x>rab.x-30&&x<rab.x+16)continue;
+    const k=r();if(k<.4){const c=CC[r()*4|0];coral(Math.round(x),4+r()*6,c[0],c[1])}else if(k<.6)fan(Math.round(x),5+(r()*6|0),CC[r()*4|0][0]);
+    else if(k<.8){const c=CC[r()*4|0][0];for(let t=-3;t<=3;t++)for(let j=0;j<3+(r()*2|0);j++)px(x+t,GT-j-Math.abs(t)%2,c)}
+    else{px(x,GT,'#f4e8d8');px(x+1,GT,'#e8c8b0');px(x,GT-1,'#f4e8d8')}}
+  const cx=rab.x-40;if(cx>LB.x0+4){rect(cx,GT-5,10,6,'#8a5a2a');rect(cx,GT-7,10,2,'#a8703a');rect(cx,GT-5,10,1,'#d8a830');rect(cx+4,GT-5,2,3,'#d8a830');rect(cx+1,GT-8,8,1,'#f2d24a');px(cx+2,GT-9,'#fff6c0');px(cx+6,GT-9,'#fff6c0');lights.push({x:cx+4,y:GT-8,c:'#f2d24a',ph:0,lamp:1})}
+  // cristaux lumineux
+  for(let i=0;i<5;i++){const B=r()<.5?LB:RB,x=Math.round(lerp(Math.max(B.x0,0)+6,Math.min(B.x1,W)-6,r()));if(B===LB&&x>rab.x-30&&x<rab.x+16)continue;const h=3+(r()*4|0);for(let y=0;y<h;y++)rect(x-(y<h-1?1:0),GT-y,y<h-1?3:1,1,y<h-1?'#5ad0e8':'#c8f8ff');lights.push({x,y:GT-h+1,c:'#7af0ff',ph:0,lamp:1})}
+}
+/* ---------- monde plateforme ---------- */
+function drawPlatform(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),1,1)},rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+  // collines toutes rondes, rayées, en deux rangs
+  for(const[k,c,c2]of[[0,'#8ae08a','#a8f0a0'],[1,'#4ac04a','#6ad86a']]){let x=-r()*40;while(x<W){const R2=WY*(k?.12:.2)*(.7+r()*.6),cx=x+R2;
+    for(let y=0;y<R2*1.3;y++){const v=y/(R2*1.3),hw=Math.round(R2*Math.sqrt(Math.max(0,1-(1-v)**2)));for(let d=-hw;d<=hw;d++){let cc=Math.abs(d)===hw||y===0?'#2a6a2a':((d+Math.round(R2))%9<2&&k)?c2:c;px(cx+d,GT-R2*1.3+y,cc)}}
+    if(k)for(let i=0;i<4;i++)px(cx+(r()-.5)*R2,GT-R2*.6-r()*R2*.5,'#2a6a2a');x+=R2*2*(.8+r()*.6)}}
+  // blocs flottants : briques, blocs bonus et petites îles d'herbe (au-dessus de l'eau, sous l'horloge)
+  const B=8,brick=(x,y)=>{rect(x,y,B,B,'#c8643a');rect(x,y,B,1,'#e89060');for(const yy of[3,7])rect(x,y+yy,B,1,'#7a3a1a');rect(x+3,y+1,1,2,'#7a3a1a');rect(x+7,y+4,1,3,'#7a3a1a');rect(x+1,y+4,1,3,'#7a3a1a')};
+  const bonus=(x,y)=>{rect(x,y,B,B,'#e8a020');rect(x,y,B,1,'#f8d060');rect(x,y+B-1,B,1,'#a86a10');rect(x+B-1,y,1,B,'#a86a10');rect(x+3,y+2,2,3,'#fff6d0');rect(x+3,y+6,2,1,'#fff6d0');px(x+1,y+1,'#a86a10');px(x+B-2,y+1,'#a86a10')};
+  const isle=(x,y,w)=>{rect(x,y,w,2,'#5ad04a');rect(x,y,w,1,'#8ae86a');for(let i=0;i<w;i++){const d=2+Math.round(4*Math.sin(Math.PI*(i+.5)/w));rect(x+i,y+2,1,d,i%3?'#c8743a':'#a85a2a')}rect(x-1,y,1,2,OUT);rect(x+w,y,1,2,OUT)};
+  const yA=Math.round(WY*.5),yB=Math.round(WY*.66),cx=Math.round(W*.5);
+  for(let i=-2;i<=2;i++)(i===0||i===2?bonus:brick)(cx-B*2.5+i*B+B*2,yA);
+  for(let i=0;i<3;i++)(i===1?bonus:brick)(cx-W*.22+i*B,yB);
+  isle(Math.round(cx+W*.14),yB-4,30);isle(Math.round(cx-W*.36),Math.round(WY*.56),22);
+  // pièces qui tournent au-dessus des blocs
+  for(let i=0;i<5;i++)flags.push({coin:1,x:Math.round(cx-B*2+i*B+2),y:yA-10,ph:i*.6});
+  for(let i=0;i<3;i++)flags.push({coin:1,x:Math.round(cx+W*.14+6+i*8),y:yB-14,ph:i*.6+2});
+}
+function drawPlatformFront(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),1,1)},rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+  // buissons ronds, escalier de blocs, tremplin et mât d'arrivée
+  for(const Bk of[LB,RB])for(let x=Math.max(Bk.x0,0)+8;x<Math.min(Bk.x1,W)-10;x+=30+r()*30){if(Bk===LB&&x>rab.x-34&&x<rab.x+16)continue;
+    for(let b=0;b<3;b++){const R2=3+b%2*2,bx=x+b*5;for(let y=0;y<=R2;y++){const hw=Math.round(Math.sqrt(R2*R2-y*y));rect(bx-hw,GT-y,hw*2+1,1,y===R2||!hw?'#2a6a2a':'#5ad04a')}}}
+  const x1=Math.min(RB.x1,W),sx=Math.round(RB.x0+(x1-RB.x0)*.3);
+  for(let s=0;s<4;s++)for(let k=0;k<=s;k++){const x=sx+s*6,y=GT-5-k*6;rect(x,y,6,6,'#b8b0a8');rect(x,y,6,1,'#e8e0d8');rect(x+5,y,1,6,'#8a827a');rect(x,y+5,6,1,'#8a827a')}
+  const fx0=sx+40;if(fx0<x1-8){rect(fx0,GT-44,1,45,'#e8ece8');rect(fx0+1,GT-44,1,45,'#a8b0a8');rect(fx0-1,GT-47,3,3,'#f2c64a');rect(fx0-2,GT+1-3,5,3,'#5a5a5a');flags.push({x:fx0,y:GT-42,l:8,h:5,c:'#e8404a',c2:'#ffffff',ph:0})}
+  const tx=rab.x-44;if(tx>LB.x0+4){rect(tx,GT-1,8,2,'#3a3a3a');for(let k=0;k<3;k++)rect(tx+1,GT-3-k*2,6,1,'#c8c8d0');rect(tx,GT-8,8,2,'#e8404a')}
+}
+/* ---------- royaume médiéval ---------- */
+let flags=[];
+// fanion qui ondule (dessiné chaque image sur le premier plan)
+function drawFlag(f){if(f.coin){const w=Math.round(Math.abs(Math.cos(T*3+f.ph))*2.5),y=f.y+Math.round(Math.sin(T*2+f.ph));fx.fillStyle='#a86a10';fx.fillRect(f.x+2-w,y,w*2+1,6);fx.fillStyle='#f6d24a';fx.fillRect(f.x+2-w,y+1,Math.max(1,w*2),4);if(w>1){fx.fillStyle='#fff6c0';fx.fillRect(f.x+2-w+1,y+1,1,3)}return}for(let i=0;i<f.l;i++){const dy=Math.round(Math.sin(T*5+f.ph-i*.9)*.8*(i/f.l));fx.fillStyle=i===1&&f.c2?f.c2:f.c;fx.fillRect(f.x+1+i,f.y+dy,1,i<f.l-1?f.h:Math.max(1,f.h-1))}}
+function drawMedieval(g,r){
+  const px=(x,y,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),1,1)},rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+  const HZ=[200,216,226],hz=(c,k)=>rgb(mix(hex(c),HZ,k)),dk=(c,k)=>rgb(mix(hex(c),[52,40,52],k));
+  const hs=(i,j)=>{const v=Math.sin(i*127.1+j*311.7)*43758.5453;return v-Math.floor(v)};
+  const ph=r()*6,cx=Math.round(W*.5);
+  // collines lointaines et leurs bosquets bleutés
+  const far=x=>Math.round(WY*.47+Math.sin(x*.012+ph)*WY*.05+Math.sin(x*.031+ph*2)*WY*.025);
+  for(let x=0;x<W;x++){const t=far(x);for(let y=t;y<GT;y++)px(x,y,y===t?'#c6dad4':'#aac6bc')}
+  for(let i=0;i<W/10;i++){const x=r()*W|0,y=far(x)+1+r()*4,rr=1.5+r()*2;for(let a=-rr;a<=rr;a++)for(let b=-rr;b<=0;b++)if(a*a+b*b<=rr*rr)px(x+a,y+b,b<-rr*.5&&a<0?'#a6c6b6':'#8eb2a4')}
+  // colline du château : champs en patchwork bordés de haies
+  const mid=x=>Math.round(WY*.72-WY*.14*Math.exp(-(((x-cx)/(W*.17))**2))+Math.sin(x*.02+ph)*WY*.025);
+  const FC=['#9cc462','#b4cf6a','#e0c86a','#86b058','#cdb070','#a8c45c'];
+  const cellOf=(x,d)=>[Math.floor((x+d*1.7)/30),Math.floor(d/8+Math.sin(x*.03)*.5)];
+  for(let x=0;x<W;x++){const t=mid(x);for(let y=t;y<GT;y++){
+    const d=y-t,[ci,ri]=cellOf(x,d),[cj,rj]=cellOf(x+1,d),[,rk]=cellOf(x,d+1);
+    let c=FC[Math.floor(hs(ci,ri)*FC.length)];
+    if(d===0)c='#c8e08a';
+    else if(cj!==ci||rk!==ri)c='#5e8a46';
+    else if(c==='#e0c86a'&&(x+d*2)%4===0)c='#f0dc8a';
+    else if(c==='#cdb070'&&d%2===0)c='#b89a5a';
+    px(x,y,hz(c,.16))}}
+  // arbres des haies
+  for(let i=0;i<W/7;i++){const x=r()*W|0,t=mid(x),y=t+4+r()*(GT-t-6)|0;if(Math.abs(x-cx)<W*.13&&y<t+WY*.12)continue;const rr=1.5+r()*2.2;
+    for(let a=-rr;a<=rr;a++)for(let b=-rr;b<=rr*.7;b++)if(a*a+b*b<=rr*rr)px(x+a,y+b,hz(b<-rr*.2&&a<0?'#7aa85a':'#4e7a3e',.14))}
+  // chemin qui descend du château
+  const base=mid(cx)+3,sc=clamp(WY/230,.8,1.25),u=v=>Math.max(1,Math.round(v*sc));
+  for(let y=base;y<GT;y++){const k=(y-base)/(GT-base),x=Math.round(cx+Math.sin(k*5.5)*W*.07*k),w=1+Math.round(k*4);for(let d=-w;d<=w;d++)px(x+d,y,hz(d===-w||d===w?'#c8b488':'#e8d8a8',.12))}
+  // le château fort : donjon, courtines crénelées, châtelet d'entrée et tours rondes
+  const ST=['#ded5c0','#c8bda6','#b0a48c','#f2ebd8'].map(c=>hz(c,.1)),J=ST.map(c=>dk(c,.16));
+  const stone=(x0,y0,w,h,round)=>{for(let y=0;y<h;y++)for(let x=0;x<w;x++){const t=w>1?x/(w-1):0,row=y>>2;
+    const k=round?(t<.2?3:t>.8?2:t>.6?1:0):(x===0?3:x>=w-2?2:0);const j=y%4===3||(x+(row&1)*3)%6===0;px(x0+x,y0+y,j?J[k]:ST[k])}};
+  const crenel=(x0,y,w)=>{for(let x=0;x<w;x+=4){rect(x0+x,y-2,Math.min(2,w-x),2,ST[0]);px(x0+x+1,y-2,ST[1])}};
+  const RC=['#5a74c0','#425ca8','#30448a','#7a94d8'].map(c=>hz(c,.08));
+  const cone=(cc,yb,wd,hh,fc)=>{for(let i=0;i<hh;i++){const hw=(wd/2)*(1-i/hh);for(let x=Math.round(-hw);x<=Math.round(hw);x++){const t=(x+hw)/(2*hw||1);px(cc+x,yb-i,i===0?RC[2]:t<.3?RC[3]:t>.7?RC[2]:i%3===0?RC[1]:RC[0])}}
+    rect(cc,yb-hh-3,1,3,'#3b2a35');flags.push({x:cc,y:yb-hh-3,l:5,h:2,c:fc||'#d8383a',c2:'#f2c64a',ph:r()*6})};
+  const slit=(x,y)=>{rect(x,y,1,3,'#3a3038');px(x,y-1,J[0])};
+  const win=(x,y)=>{rect(x,y,2,3,'#3a3038');px(x,y-1,'#3a3038');px(x+1,y-1,'#3a3038');lights.push({x,y:y+1,c:'#ffd27a',ph:0,lamp:1,win:1});lights.push({x:x+1,y:y+1,c:'#ffc060',ph:0,lamp:1,win:1})};
+  const banner=(x,y,h,c)=>{rect(x,y,4,h,c);rect(x,y+h,1,1,c);rect(x+3,y+h,1,1,c);rect(x+1,y+2,2,2,'#f2c64a');px(x+1,y+1,dk(c,.2));rect(x-1,y-1,6,1,'#6a4a32')};
+  const cw=u(84),wh=u(18),x0=cx-(cw>>1),tw=u(12),th=wh+u(13);
+  // donjon au fond, avec ses deux tourelles
+  const kw=u(28),kh=wh+u(24),kx=cx-(kw>>1)+u(5);
+  stone(kx,base-kh,kw,kh);crenel(kx,base-kh,kw);
+  for(const tx of[kx-2,kx+kw-4]){const tt=base-kh-u(9);stone(tx,tt,6,u(11),true);cone(tx+3,tt-1,8,u(9),'#f2c64a')}
+  win(kx+Math.round(kw*.22),base-kh+u(9));win(kx+Math.round(kw*.68),base-kh+u(9));banner(kx+(kw>>1)-2,base-kh+u(4),u(11),'#3a5aa8');
+  // courtines
+  stone(x0,base-wh,cw,wh);crenel(x0,base-wh,cw);
+  for(let x=x0+5;x<x0+cw-5;x+=7)if(Math.abs(x-cx)>u(11))slit(x,base-wh+u(6));
+  banner(x0+u(14),base-wh+2,u(9),'#c8383a');banner(x0+cw-u(14)-4,base-wh+2,u(9),'#c8383a');
+  // châtelet : deux tours carrées autour de la porte à herse
+  const gw=u(10),gh=u(12),gx=cx-(gw>>1);
+  for(const sx of[gx-u(6),gx+gw]){stone(sx,base-wh-u(7),u(6),wh+u(7));crenel(sx,base-wh-u(7),u(6));slit(sx+(u(6)>>1),base-wh-u(3))}
+  for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){const hr=gw/2,dx=x+.5-hr,dy=hr-y-.5;if(y<hr&&dx*dx+dy*dy>hr*hr)continue;px(gx+x,base-gh+y,x%2===1&&y>1&&y<gh-1?'#6a5a48':'#2a2228')}
+  for(let a=0;a<=12;a++){const t=Math.PI*(1-a/12),hr=gw/2+.5;px(gx+hr-.5+Math.cos(t)*hr,base-gh+hr-Math.sin(t)*hr,ST[3])}
+  for(const lx of[gx-2,gx+gw+1]){rect(lx,base-gh+1,1,2,'#5a3a2a');px(lx,base-gh,'#ffb050');lights.push({x:lx,y:base-gh,c:'#ffb050',ph:0,lamp:1})}
+  // tours d'angle rondes, plus hautes, toits d'ardoise et fanions
+  for(const tx of[x0-tw+3,x0+cw-3]){stone(tx,base-th,tw,th,true);crenel(tx,base-th,tw);slit(tx+(tw>>1),base-th+u(8));slit(tx+(tw>>1),base-th+u(18));cone(tx+(tw>>1),base-th-3,tw+3,u(15))}
+  // petites maisons au pied des remparts
+  for(let i=0;i<6;i++){const hx=Math.round(x0-u(30)+i*(cw+u(60))/5+(r()-.5)*6);if(hx>x0-tw&&hx<x0+cw+tw)continue;const hy=mid(hx)+u(5),w=u(6),h=u(4);rect(hx,hy-h,w,h,hz('#efe4cc',.15));rect(hx+w-2,hy-h,2,h,hz('#d8caa8',.15));for(let k=0;k<u(4);k++)rect(hx-1+k,hy-h-1-k,w+2-2*k,1,hz(k%2?'#b8503a':'#a8402e',.15));px(hx+1,hy-2,'#3a3038');lights.push({x:hx+1,y:hy-2,c:'#ffd27a',ph:0,lamp:1,win:1})}
+}
+function drawTimberHouse(g,x0,base,w,h,roof){
+  const rect=(x,y,ww,hh,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),ww,hh)},px=(x,y,c)=>rect(x,y,1,1,c);
+  const B='#5a3a2a',PL='#f4ead4',PS='#ded0b2',sb=3,top=base-h,fl=Math.round((h-sb)*.48),y1=top+fl;
+  // soubassement de pierre, étages enduits à colombages
+  for(let y=base-sb;y<base;y++)for(let x=0;x<w;x++)px(x0+x,y,(x+(y&1)*2)%4===0?'#8a8070':x>=w-3?'#a49a88':'#bab09e');
+  rect(x0,top,w,h-sb,PL);rect(x0+w-3,top,3,h-sb,PS);
+  rect(x0,top,w,1,B);rect(x0-1,y1,w+2,1,B);rect(x0,base-sb-1,w,1,B);
+  for(let x=0;x<w;x+=6)rect(x0+x,top,1,h-sb,B);rect(x0+w-1,top,1,h-sb,B);
+  // croix de Saint-André dans un panneau sur deux, fenêtres dans les autres
+  for(let x=0,k=0;x+6<w;x+=6,k++){
+    if(k%2===0)for(let i=1;i<fl;i++){const t=Math.round(i/fl*5);px(x0+x+t,top+i,B);px(x0+x+6-t,top+i,B)}
+    else{rect(x0+x+2,top+2,3,3,'#3a4a5a');px(x0+x+3,top+2,'#6a8aa0');rect(x0+x+1,top+2,1,3,'#7a9a5a');rect(x0+x+5,top+2,1,3,'#7a9a5a');lights.push({x:x0+x+3,y:top+3,c:'#ffd27a',ph:0,lamp:1,win:1})}
+    if(k%2===1||x+12>w)continue;rect(x0+x+2,y1+2,3,3,'#3a4a5a');lights.push({x:x0+x+3,y:y1+3,c:'#ffc66a',ph:0,lamp:1,win:1})}
+  // porte cintrée en bois et lanterne
+  const dx=x0+w-9;rect(dx,base-sb-6,5,6+sb,'#7a4a2a');rect(dx+1,base-sb-7,3,1,'#7a4a2a');rect(dx+2,base-sb-5,1,6+sb,'#5a3a22');px(dx+4,base-sb-2,'#d8b04a');px(dx-2,base-sb-6,'#ffd27a');lights.push({x:dx-2,y:base-sb-6,c:'#ffb050',ph:0,lamp:1});
+  // toit très pentu (chaume ou tuiles), cheminée
+  const rh=Math.round(w*.6),cxh=x0+(w-1)/2;
+  rect(Math.round(x0+w*.7),top-Math.round(rh*.75),3,Math.round(rh*.6),'#8a7a6a');rect(Math.round(x0+w*.7)-1,top-Math.round(rh*.75)-1,5,1,'#6a5a4a');
+  for(let i=0;i<rh;i++){const hw=(w/2+2)*(1-i/rh),a=Math.round(cxh-hw),b=Math.round(cxh+hw);for(let x=a;x<=b;x++){
+    let c=roof.thatch?((x*7+i*3)%5===0?roof[2]:i%3===0?roof[1]:roof[0]):(i%2===0?roof[1]:(x+(i>>1)*2)%4===0?roof[2]:roof[0]);
+    if(x===a||x===b||i===0)c=OUT;else if(x>cxh+hw*.35)c=rgb(mix(hex(c),[52,40,52],.18));px(x,top-1-i,c)}}
+  rect(x0-1,top,1,h,OUT);rect(x0+w,top,1,h,OUT);
+}
+function drawMedievalFront(g,r){
+  const rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)},px=(x,y,c)=>rect(x,y,1,1,c);
+  const TH=['#d8b060','#b89040','#ecca7a'];TH.thatch=1;const TI=['#b8503a','#963a2a','#d0704a'];
+  // un puits, puis le village à colombages sur l'autre rive
+  const x1=Math.min(RB.x1,W);let x=RB.x0+6;
+  {const wx=x;for(let y=0;y<4;y++)for(let d=0;d<9;d++)px(wx+d,GT-y,(d+(y&1)*2)%3===0?'#8a8070':d>6?'#a49a88':'#c4bba8');rect(wx,GT-4,9,1,'#d8d0bc');rect(wx+1,GT-11,1,7,'#6a4a32');rect(wx+7,GT-11,1,7,'#6a4a32');rect(wx-1,GT-12,11,1,'#963a2a');rect(wx,GT-13,9,1,'#b8503a');rect(wx+2,GT-14,5,1,'#b8503a');rect(wx+4,GT-10,1,4,'#c8b088');rect(wx+3,GT-6,3,2,'#7a5a3a');x+=14}
+  const specs=[[31,Math.round(H*.14),TH],[25,Math.round(H*.11),TI],[37,Math.round(H*.16),TI],[27,Math.round(H*.12),TH],[31,Math.round(H*.13),TI]];
+  for(const[w,h,rf]of specs){if(x+w>x1-4)break;drawTimberHouse(g,x,GT+1,w,h,rf);x+=w+5+(r()*5|0)}
+  // rive du lapin : tente de tournoi rayée, panneau, botte de foin, chêne
+  const tx=Math.round(LB.x0+(rab.x-LB.x0)*.36);
+  if(tx>8&&tx<rab.x-58){const tw=28,bh=12,cc=tx+tw/2;
+    for(let y=0;y<bh;y++)for(let d=0;d<tw;d++)px(tx+d,GT-y,((d>>2)&1)?'#f4ece0':'#d8383a');
+    for(let i=0;i<10;i++){const hw=tw/2*(1-i/10);for(let d=Math.round(-hw);d<=Math.round(hw);d++)px(cc+d,GT-bh-i,(((d+tw/2+i*.4)>>2)&1)?'#f4ece0':'#d8383a')}
+    for(let d=0;d<tw;d+=3){rect(tx+d,GT-bh,3,1,'#f2c64a');px(tx+d+1,GT-bh+1,'#f2c64a')}
+    for(let y=0;y<7;y++){const hw=Math.round(y*.5);rect(cc-hw,GT-6+y,hw*2+1,1,'#3a2228')}
+    rect(tx-1,GT-bh,1,bh+1,OUT);rect(tx+tw,GT-bh,1,bh+1,OUT);rect(cc,GT-bh-13,1,3,'#3b2a35');flags.push({x:cc,y:GT-bh-13,l:6,h:2,c:'#3a5aa8',c2:'#f2c64a',ph:r()*6})}
+  const sx=rab.x-44;if(sx>LB.x0+6){rect(sx,GT-10,1,11,'#6a4a32');rect(sx-4,GT-9,9,3,'#a07a4a');px(sx+5,GT-8,'#a07a4a');rect(sx-3,GT-8,6,1,'#7a5a3a');rect(sx-3,GT-5,8,2,'#a07a4a');px(sx-4,GT-4,'#a07a4a')}
+  const hb=rab.x-58;if(hb>LB.x0+4)for(let y=0;y<5;y++)for(let d=0;d<8;d++)px(hb+d,GT-y,y===4||d===0||d===7?'#b8902a':(d*3+y*5)%7===0?'#f2d880':'#e0c060');
+  const oak=makeOak(Math.round(H*.2),(r()*1e9)|0,false);if(LB.x0+6<tx-20||tx<=8)g.drawImage(oak,-Math.round(oak.width*.3),GT+3-oak.height);
+  if(x<x1-30){const o2=makeOak(Math.round(H*.2),(r()*1e9)|0,false);g.drawImage(o2,x1-o2.width+10,GT+3-o2.height)}
+}
 function drawFuji(g,r){
   const cx=Math.round(W*.52),hm=Math.round(WY*.46),bw=hm*3.5,sy=GT-hm,ph=r()*6,haze=hex('#c8d4de');
   const C={snowL:hex('#ffffff'),snowR:hex('#dce6f0'),snowG:hex('#c4d2e2'),rockL:hex('#a2b0c4'),rockR:hex('#8694aa'),gully:hex('#74829a')};
@@ -2556,7 +2860,7 @@ function resize(){
 }
 const castMin=()=>LB.x1+5, castMax=()=>Math.max(LB.x1+8,RB.x0-5);
 function buildLand(){
-  lights=[];star=null;mills=[];buildPal();
+  lights=[];star=null;mills=[];flags=[];buildPal();
   SEASON=season();LEAVES=SEASON==='automne'&&['clairiere','marais','jardin','kyoto'].includes(WORLD.id);
   const r=rng(1337+WORLD.need*31),P=BANKS[WORLD.id]||BANKS.lac,kind=WORLD.tree;
   [land]=canvasOf(WORLD.boat?W*2:W,WY);const g=land.getContext('2d');
@@ -2577,6 +2881,10 @@ function buildLand(){
   if(WORLD.fjord)drawFjord(g,r);
   if(WORLD.id==='jardin')drawJardin(g,r);
   if(WORLD.giverny)drawGiverny(g,r);
+  if(WORLD.medieval)drawMedieval(g,r);
+  if(WORLD.ogre)drawOgre(g,r);
+  if(WORLD.atlantis)drawAtlantis(g,r);
+  if(WORLD.platform)drawPlatform(g,r);
   // arbres : rang du fond puis rang de devant
   trees=[];
   const AUT=['#4a2414','#8a3a18','#c8642a','#e8983a','#f6c860','#fff0a8'];
@@ -2624,6 +2932,10 @@ function buildLand(){
   if(WORLD.dutch)drawPolderFront(g,r);
   if(WORLD.roofs)drawRoofsFront(g,r);
   if(WORLD.crique)drawCriqueFront(g,r);
+  if(WORLD.medieval)drawMedievalFront(g,r);
+  if(WORLD.ogre)drawOgreFront(g,r);
+  if(WORLD.atlantis)drawAtlantisFront(g,r);
+  if(WORLD.platform)drawPlatformFront(g,r);
   if(WORLD.city)drawCity(g,r);
   if(SEASON==='automne'&&!WORLD.crique&&!WORLD.sea&&!WORLD.boat&&!WORLD.city&&!WORLD.ice&&!WORLD.polar&&!WORLD.roofs&&!WORLD.desert&&!WORLD.kyoto&&WORLD.id!=='tropique')g.drawImage(PUMPKIN,rab.x-22,GT+1-PUMPKIN.height);
   if(WORLD.id==='tropique'){const pa=makeParasol(Math.round(H*.085)+12),bx=Math.round(RB.x0+(Math.min(RB.x1,W)-RB.x0)*.42);g.drawImage(pa,bx-(pa.width>>1),GT+2-pa.height);g.drawImage(TRANSAT,bx-4,GT+2-TRANSAT.height)}
@@ -2636,6 +2948,8 @@ function buildLand(){
     if(WORLD.city)continue;
     if(WORLD.polar||WORLD.roofs)continue;
     if(WORLD.crique){if(r()<.2)tufts.push({x,h:1+(r()*3|0),c:'#8a9a5a',top:'#a8b070',p:r()*6});if(r()<.08)flowers.push({x,h:3+(r()*3|0),c:'#9a7ad0',p:r()*6});continue}
+    if(WORLD.atlantis){if(r()<.32)tufts.push({x,h:8+(r()*28|0),c:r()<.5?'#3a8a5a':'#5aa86a',top:'#8ad08a',p:r()*6});continue}
+    if(WORLD.platform){if(r()<.15)tufts.push({x,h:2+(r()*3|0),c:'#4ac04a',top:'#8ae86a',p:r()*6});if(r()<.04)flowers.push({x,h:3+(r()*2|0),c:['#e8404a','#f6d24a','#ffffff'][r()*3|0],p:r()*6});continue}
     if(WORLD.kyoto){if(r()<.12)tufts.push({x,h:1+(r()*2|0),c:'#6a8a5a',top:'#8aa870',p:r()*6});continue}
     if(WORLD.dutch&&r()<.18)flowers.push({x,h:3+(r()*3|0),c:['#e8403a','#f2c63a','#f08ab0','#ffffff'][(r()*4)|0],p:r()*6});
     if(WORLD.canyon||WORLD.desert){if(r()<.12)tufts.push({x,h:1+(r()*3|0),c:'#a89a5a',top:'#c8b878',p:r()*6});continue}
@@ -2649,7 +2963,7 @@ function buildLand(){
     if(r()<.035)flowers.push({x,h:4+(r()*4|0),c:r()<.6?'#e8605a':'#f2a6b0',p:r()*6});
   }
   // nuages, étoiles, reflets
-  clouds=makeSky(99);
+  clouds=WORLD.atlantis?[]:makeSky(99);
   stars=[];for(let i=0;i<Math.round(W*H/450);i++)stars.push({x:r()*W|0,y:r()*WY*.8|0,f:1+r()*3,p:r()*6,b:r()<.12});
   const flow=WORLD.flow||0;
   dashes=[];for(let i=0;i<Math.round(W/(flow?6:9));i++)dashes.push({x:r()*W,y:WY+2+(r()*(H-WY-3)|0),l:(WORLD.sea||WORLD.boat?4:2)+(r()*7|0),v:WORLD.boat?-(5+r()*5):flow?flow*(.7+r()*.6):(r()-.5)*(WORLD.sea?5:2),p:r()*6});
@@ -2659,7 +2973,8 @@ function buildLand(){
   pads=[];if(WORLD.polar)for(let i=0;i<Math.round(W/30);i++){const x=r()*W|0;if(x>castMin()-10&&x<castMax()+10)continue;pads.push({x,y:WY+3+(r()*(H-WY-6)|0),w:3+(r()*4|0),ice:1})}
   if(WORLD.pads){const gv=WORLD.giverny;for(let i=0;i<Math.round(W/(gv?7:22));i++){const x=r()*W|0;if(x>castMin()-8&&x<castMax()+8)continue;const y=WY+3+(r()*(H-WY-6)|0),d=(y-WY)/(H-WY);if(gv){const w=Math.round(1+d*d*17+r()*(1+d*3));pads.push({x,y,w,e:Math.max(1,Math.round(w*.36)),f:r()<.4,fc:r()<.45?'#f6f0f4':null,nb:r()<.5?1:-1})}else pads.push({x,y,w:2+(r()*2|0),f:r()<.35})}}
   cracks=[];if(WORLD.ice)for(let i=0;i<Math.round(W/30);i++){let x=r()*W,y=WY+2+r()*(H-WY-4);const pts=[];for(let k=0;k<6+r()*8;k++){pts.push([x|0,y|0]);x+=1+r()*2;y=clamp(y+(r()-.5)*1.6,WY+1,H-1)}cracks.push(pts)}
-  flakes=[];if(WX==='pluie'&&!WORLD.snow)for(let i=0;i<Math.round(W*H/260);i++)flakes.push({x:r()*W,y:r()*H,v:110+r()*50,p:r()*6,c:'#c8d6e0',rain:1});
+  flakes=[];if(WORLD.atlantis)for(let i=0;i<Math.round(W*H/900);i++)flakes.push({x:r()*W,y:r()*H,v:-(5+r()*10),p:r()*6,c:r()<.5?'#d8f4ff':'#a8e0f0'});
+  else if(WX==='pluie'&&!WORLD.snow)for(let i=0;i<Math.round(W*H/260);i++)flakes.push({x:r()*W,y:r()*H,v:110+r()*50,p:r()*6,c:'#c8d6e0',rain:1});
   else if(WORLD.snow||NOEL||WX==='neige')for(let i=0;i<Math.round(W*H/(WORLD.snow?350:600));i++)flakes.push({x:r()*W,y:r()*H,v:4+r()*8,p:r()*6,c:'#ffffff'});
   else if(LEAVES)for(let i=0;i<Math.round(W*H/1800);i++)flakes.push({x:r()*W,y:r()*H,v:6+r()*6,p:r()*6,c:['#d8602a','#e8983a','#b8402a','#f0c050'][(r()*4)|0]});
   else if(WORLD.petals&&SEASON==='printemps')for(let i=0;i<Math.round(W*H/1600);i++)flakes.push({x:r()*W,y:r()*H,v:3+r()*4,p:r()*6,c:r()<.5?'#f6b4c8':'#fbdce6'});
@@ -2793,7 +3108,7 @@ function update(dt){
   birds=birds.filter(b=>b.x>-40&&b.x<W+40);
   if(sk.dark>.7&&!shoot&&R()<dt*.02)shoot={x:rnd(W*.2,W),y:rnd(0,WY*.4),t:0};
   if(shoot&&(shoot.t+=dt)>.7)shoot=null;
-  for(const f of flakes){f.y+=f.v*dt;f.x+=f.rain?-dt*12:Math.sin(T*.8+f.p)*dt*3;if(f.x<0)f.x+=W;if(f.y>H){f.y=-1;f.x=R()*W}}
+  for(const f of flakes){f.y+=f.v*dt;f.x+=f.rain?-dt*12:Math.sin(T*.8+f.p)*dt*3;if(f.x<0)f.x+=W;if(f.y>H){f.y=-1;f.x=R()*W}else if(f.y<-2){f.y=H;f.x=R()*W}}
   for(const b of bflies){b.vx+=(R()-.5)*dt*40;b.vy+=(R()-.5)*dt*40-Math.sin(T*3+b.p)*dt*6;b.vx=clamp(b.vx*.97,-14,14);b.vy*=.95;b.x+=b.vx*dt;b.y+=b.vy*dt;b.y=clamp(b.y,WY*.45,GT-3);if(b.x<-4)b.x=W+3;if(b.x>W+4)b.x=-3}
   for(const f of flies){f.vx+=(R()-.5)*dt*30;f.vy+=(R()-.5)*dt*30;f.vx*=.96;f.vy*=.96;f.x+=f.vx*dt;f.y+=f.vy*dt;f.y=clamp(f.y,GT-45,WY+3)}
 }
@@ -2822,6 +3137,7 @@ function draw(){
   for(const b of birds){const up=Math.sin(T*10+b.p)>0;fx.fillStyle=Wd.sea||Wd.boat?'#fbfbf6':OUT;fx.fillRect(Math.round(b.x),Math.round(b.y),1,1);fx.fillRect(Math.round(b.x)-1,Math.round(b.y)-(up?1:0),1,1);fx.fillRect(Math.round(b.x)+1,Math.round(b.y)-(up?1:0),1,1)}
   if(Wd.boat){const L=land.width,o=Math.round(scrollX)%L;fx.drawImage(land,-o,0);fx.drawImage(land,L-o,0)}else fx.drawImage(land,0,0);
   for(const m of mills)drawSails(m);
+  for(const f of flags)drawFlag(f);
   if(Wd.tree==='palm'&&sk.dark<.85){
     // ombres portées des palmiers sur le sable, opposées au soleil, avec des taches de lumière
     const day=new Date(d);day.setHours(0,0,0,0);const fr=clamp(((d-day)/864e5-.25)/.5,0,1);
@@ -2857,6 +3173,8 @@ function draw(){
   if(PAL){const b=palBox(),bl=(T+1.7)%4.6<.14,L=pw.dir<0&&!WORLD.boat,step=pw.walk>0&&Math.floor(pw.go*6)%2;chx.drawImage(L?(bl?PAL.blinkL:PAL.sprL):(bl?PAL.blink:PAL.spr),b.x,b.y-(palHop>0||F.hop>0||step?1:0))}
   const sprite=RAB[F.ear*2+F.blink];
   chx.drawImage(sprite,rab.x-OX,rab.y-OY-(F.hop>0?1:0));
+  // Atlantide : bulle de verre autour de la tête du lapin
+  if(WORLD.atlantis){const hx=rab.x+6,hy=rab.y+7-(F.hop>0?1:0);chx.globalAlpha=.9;for(let a=0;a<56;a++){const t=a/56*Math.PI*2;chx.fillStyle=t>Math.PI*.15&&t<Math.PI*.85?'#5aa8c8':'#d8f6ff';chx.fillRect(Math.round(hx+Math.cos(t)*9),Math.round(hy+Math.sin(t)*9),1,1)}chx.fillStyle='#bfeaf6';chx.globalAlpha=.22;chx.beginPath();chx.arc(hx+.5,hy+.5,8.5,0,7);chx.fill();chx.globalAlpha=.9;chx.fillStyle='#ffffff';chx.fillRect(hx-6,hy-5,1,2);chx.fillRect(hx-5,hy-6,2,1);chx.globalAlpha=1}
   const[hx,hy]=[rab.x+HAND[0],rab.y+HAND[1]-(F.hop>0?1:0)];
   {let x=hx,y=hy,a=F.ang;for(let i=0;i<24;i++){a+=F.bend/24;x+=Math.cos(a);y+=Math.sin(a);plot(chx,x,y,i>20?'#c8a070':'#7a4e3c')}}
   const[tx,ty]=rodTip();
@@ -3145,7 +3463,7 @@ function renderLinks(){
 
 /* ---------- carnet & réglages ---------- */
 function openModal(tab){$('#modal').classList.add('on');showTab(tab)}
-function closeModal(){$('#modal').classList.remove('on')}
+function closeModal(){$('#modal').classList.remove('on');mapSel=null}
 $('#bCarnet').onclick=()=>openModal('carnet');$('#bShop').onclick=()=>openModal('boutique');$('#bWorld').onclick=()=>openModal('mondes');$('#bSet').onclick=()=>openModal('reglages');
 $('#tAdmin').hidden=!ADMIN();$('#mClose').onclick=closeModal;$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
 document.querySelectorAll('.ph .tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
@@ -3162,23 +3480,35 @@ const MAPR=[
   {tropique:[202,112,'T']},
   {large:[166,130,'-']}
 ];
-const MLBL={banquise:'Banquise',glace:'Lac gelé',fjord:'Fjord',lac:'Lac',riviere:'Rivière',brume:'Forêt brumeuse',clairiere:'Clairière',marais:'Marais',mer:'Bord de mer',jardin:'Jardin zen',kyoto:'Kyoto',rizieres:'Rizières',giverny:'Giverny',ville:'Ville',moulin:'Moulins',peniche:'Péniche',toit:'Toits de Paris',crique:'Crique',canyon:'Canyon',oasis:'Oasis',tropique:'Tropiques',large:'Au large'};
+// 2e carte : les royaumes enchantés (mondes fantaisistes)
+const MAPR2=[
+  {medieval:[78,92,'K']},
+  {ogre:[160,112,'O']},
+  {atlantide:[64,214,'A']},
+  {plateforme:[160,240,'P']}
+];
+const MAPS=[{n:'Terres connues',r:MAPR,sea:'#5cc4c8',rip:'#7fd4d4',shore:'#8fdcd6'},{n:'Royaumes enchantés',r:MAPR2,sea:'#6a86d0',rip:'#8aa4e0',shore:'#a8c0f0',big:24,fog:[[122,166]]}];
+const mapOf=w=>Math.max(0,MAPS.findIndex(M=>M.r.some(reg=>w.id in reg)));
+let mapSel=null;
+const MLBL={banquise:'Banquise',glace:'Lac gelé',fjord:'Fjord',lac:'Lac',riviere:'Rivière',brume:'Forêt brumeuse',clairiere:'Clairière',marais:'Marais',mer:'Bord de mer',jardin:'Jardin zen',kyoto:'Kyoto',rizieres:'Rizières',giverny:'Giverny',ville:'Ville',moulin:'Moulins',peniche:'Péniche',toit:'Toits de Paris',crique:'Crique',medieval:'Royaume médiéval',ogre:'Marais de l’ogre',atlantide:'Atlantide',plateforme:'Monde plateforme',canyon:'Canyon',oasis:'Oasis',tropique:'Tropiques',large:'Au large'};
 const MGROUND={ // dessus, bord, falaise, bas de falaise
   G:['#8cc66a','#e8d49a','#a0643c','#7a4a2e'],M:['#6a9a6a','#c8c09a','#7a5a42','#5a4232'],W:['#8a9a5a','#b8b08a','#7a6a42','#5a4e32'],
   S:['#f2f6f8','#dce8ee','#9ab8cc','#7a98ae'],F:['#7aa070','#e4eee8','#7a8a94','#5a6a74'],J:['#9fd082','#ecd8b0','#9a5a48','#743e32'],
   D:['#f0c468','#f6dc98','#c8703c','#9a522c'],B:['#9cce74','#f4e2a8','#b07a4a','#86583a'],T:['#f4e2a8','#fbf0c8','#d0a060','#a87a44'],C:['#d8d4a8','#f2ece0','#d4ccbc','#aaa294'],
   V:['#7ab858','#d8c890','#8a6a48','#6a4e34'],
+  K:['#94c868','#e8d8a0','#9a7050','#74543a'],
+  O:['#6a7a3a','#a8a070','#5a4a32','#3e3424'],A:['#e8d8a8','#f4ecd0','#4a8aa8','#2a6a8a'],P:['#5ad04a','#f0d878','#c8643a','#9a4a2a'],
   X:['#d4d6d8','#c8cacc','#aeb2b6','#94989c']
 };
-function worldMap(B){
-  const MW=220,MH=300,L=loadLog();
-  const wrap=document.createElement('div');wrap.className='wmap';
+function worldMap(B,mi=0){
+  const MW=220,MH=300,L=loadLog(),M=MAPS[mi],MR=M.r;
+  const wrap=document.createElement('div');wrap.className='wmap';wrap.style.background=M.sea;
   const cv=document.createElement('canvas');cv.width=MW;cv.height=MH;
   wrap.append(cv);B.appendChild(wrap);
   const card=document.createElement('div');card.className='wsel';B.appendChild(card);
-  const isl=[];MAPR.forEach((reg,ri)=>{for(const id in reg){const w=WI[id];if(!w)continue;const[x,y,gd]=reg[id];isl.push({w,i:WORLDS.indexOf(w),x,y,gd,ri,r:gd==='-'?0:1,ok:unlocked(w)})}});
+  const isl=[];MR.forEach((reg,ri)=>{for(const id in reg){const w=WI[id];if(!w)continue;const[x,y,gd]=reg[id];isl.push({w,i:WORLDS.indexOf(w),x,y,gd,ri,r:gd==='-'?0:1,ok:unlocked(w)})}});
   // silhouette de chaque île : un cercle par monde + des ponts de terre entre voisins proches
-  const circ=MAPR.map((reg,ri)=>{const m=isl.filter(I=>I.ri===ri&&I.r),c=m.map(I=>({x:I.x,y:I.y,r:m.length>1?20:14}));
+  const circ=MR.map((reg,ri)=>{const m=isl.filter(I=>I.ri===ri&&I.r),c=m.map(I=>({x:I.x,y:I.y,r:m.length>1?20:M.big||14}));
     for(let a=0;a<m.length;a++)for(let b=a+1;b<m.length;b++){const d=Math.hypot(m[a].x-m[b].x,m[a].y-m[b].y);if(d<64)c.push({x:(m[a].x+m[b].x)/2,y:(m[a].y+m[b].y)/2,r:15})}return c});
   const landAt=(x,y,pad=0)=>{for(let ri=0;ri<circ.length;ri++)for(let k=0;k<circ[ri].length;k++){const C=circ[ri][k],dx=x-C.x,dy=(y-C.y)/.72,a=Math.atan2(dy,dx),d=Math.hypot(dx,dy);if(d<C.r*(1+.1*Math.sin(3*a+k*1.3+ri)+.06*Math.sin(7*a+k*.7))+pad)return ri}return -1};
   const zoneAt=(x,y,ri)=>{let b=null,bd=1e9;for(const I of isl)if(I.ri===ri&&I.r){const d=(x-I.x)**2+((y-I.y)/.8)**2;if(d<bd){bd=d;b=I}}return b};
@@ -3187,7 +3517,7 @@ function worldMap(B){
   const im=s.createImageData(MW,MH),D=im.data;
   const put=(x,y,c)=>{if(x<0||y<0||x>=MW||y>=MH)return;const k=(y*MW+x)*4,v=parseInt(c.slice(1),16);D[k]=v>>16;D[k+1]=v>>8&255;D[k+2]=v&255;D[k+3]=255};
   const RI=new Int8Array(MW*MH).fill(-1),Z=new Array(MW*MH);
-  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(landAt(x,y,3)>=0)put(x,y+2,'#8fdcd6');const ri=landAt(x,y);if(ri>=0){RI[y*MW+x]=ri;Z[y*MW+x]=zoneAt(x,y,ri)}}
+  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(landAt(x,y,3)>=0)put(x,y+2,M.shore);const ri=landAt(x,y);if(ri>=0){RI[y*MW+x]=ri;Z[y*MW+x]=zoneAt(x,y,ri)}}
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const z=Z[y*MW+x];if(!z)continue;const P=MGROUND[z.ok?z.gd:'X'];put(x,y+4,P[3]);for(let k=1;k<4;k++)put(x,y+k,P[2])}
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const z=Z[y*MW+x];if(!z)continue;const P=MGROUND[z.ok?z.gd:'X'],edge=landAt(x,y,-2)<0;
     const nb=[Z[y*MW+x+1],Z[(y+1)*MW+x]].some(o=>o&&o!==z);
@@ -3221,6 +3551,10 @@ function worldMap(B){
     toit:(x,y)=>{const c='#5a4a3a';R(x,y-13,1,4,c);R(x-1,y-9,3,1,c);R(x-1,y-8,1,3,c);R(x+1,y-8,1,3,c);R(x-2,y-5,5,1,c);R(x-2,y-4,1,4,c);R(x+2,y-4,1,4,c);R(x-3,y,1,1,c);R(x+3,y,1,1,c);house(x+5,y+2,4,4,'#e8dcc8','#7a8a9a')},
     peniche:(x,y)=>{R(x-11,y+1,22,3,'#5a8aa0');R(x-4,y,8,2,'#3a3a4a');R(x-2,y-2,3,2,'#c04a3a');house(x-9,y-1,4,5,'#e8dcc8','#6a7a8a');house(x+5,y-1,4,6,'#e0d0b8','#6a7a8a')},
     giverny:(x,y)=>{R(x-8,y-1,16,4,'#4a8aa0');for(const[a,b]of[[-6,1],[-2,2],[3,0],[6,2]]){R(x+a,y+b,2,1,'#7ab858')}R(x+3,y-1,1,1,'#f2a6c0');R(x-1,y+2,1,1,'#fff');for(let k=-6;k<=6;k++){const yy=y-3-Math.round(2*Math.cos(k/6*Math.PI/2));R(x+k,yy,1,1,'#b890c8');R(x+k,yy-3,1,1,'#d8b0dc')}for(const k of[-6,-2,2,6])R(x+k,y-6-Math.round(2*Math.cos(k/6*Math.PI/2)),1,3,'#9070a8');R(x-11,y-9,3,6,'#64a034');R(x+8,y-9,3,6,'#64a034')},
+    ogre:(x,y)=>{pool(x+6,y+2,8,3,'#5a6a3a');R(x-6,y-5,9,6,'#8a6040');R(x-7,y-8,11,3,'#5a8a32');R(x-5,y-9,7,1,'#5a8a32');R(x-4,y-3,3,4,'#3a2414');R(x,y-4,2,2,'#e8b850');R(x+5,y-2,1,3,'#f0e6d0');R(x+4,y-4,3,2,'#d8402e');R(x-10,y-6,1,7,'#3a4a2a');R(x-11,y-8,3,2,'#4a5a3a')},
+    atlantide:(x,y)=>{R(x-7,y,15,2,'#d8e2e8');for(const k of[-6,-3,0,3,6])R(x+k,y-6,1,6,'#f2f6f8');R(x-7,y-7,15,1,'#d8e2e8');R(x-6,y-8,13,1,'#f2f6f8');R(x-4,y-9,9,1,'#f2f6f8');R(x-2,y-10,5,1,'#f2f6f8');R(x-2,y-13,5,3,'#e0b040');R(x-1,y-14,3,1,'#f6d870');for(const[a,b]of[[-9,-6],[9,-4],[-10,-1],[10,-9]])R(x+a,y+b,1,1,'#d8f4ff')},
+    plateforme:(x,y)=>{R(x-9,y-1,8,6,'#4ac04a');R(x-8,y-2,6,1,'#4ac04a');R(x-7,y-3,4,1,'#4ac04a');for(let k=0;k<3;k++){R(x+k*4-2,y-10,4,4,k===1?'#e8a020':'#c8643a');R(x+k*4-2,y-10,4,1,k===1?'#f8d060':'#e89060')}R(x-1,y-15,2,3,'#f6d24a');R(x+7,y-8,1,9,'#e8ece8');R(x+8,y-8,3,2,'#e8404a')},
+    medieval:(x,y)=>{const S='#e4dcc8',D='#c4b9a2',T='#4a62a8';R(x-6,y-5,13,6,S);R(x+4,y-5,3,6,D);for(let k=-6;k<=6;k+=2)R(x+k,y-6,1,1,S);R(x-9,y-9,4,10,S);R(x+6,y-9,4,10,D);R(x-10,y-10,6,1,T);R(x-9,y-11,4,1,T);R(x-8,y-12,2,1,T);R(x+5,y-10,6,1,T);R(x+6,y-11,4,1,T);R(x+7,y-12,2,1,T);R(x-1,y-3,3,4,'#3a3038');R(x-2,y-9,5,4,S);R(x-1,y-11,3,2,T);R(x,y-15,1,4,'#3b2a35');R(x+1,y-15,2,1,'#e8504a');R(x-4,y+2,2,1,'#e8d8a8');R(x-3,y+3,2,1,'#e8d8a8')},
     crique:(x,y)=>{pool(x,y+2,8,3,'#2ab8c8');R(x-7,y-1,4,3,'#c8c0b4');R(x-7,y-2,3,1,'#f2ece0');R(x+4,y-6,1,6,'#6a4a3a');R(x+2,y-8,6,2,'#3a6a3a');R(x+3,y-9,4,1,'#4a7a4a')}
   };
   for(const I of isl.filter(I=>I.r)){
@@ -3232,9 +3566,10 @@ function worldMap(B){
   const ripples=Array.from({length:46},(_,k)=>({x:(k*53)%MW,y:(k*97)%MH,p:k*.7}));
   function frame(now){
     if(!cv.isConnected)return;const t=(now-t0)/1000;
-    g.fillStyle='#5cc4c8';g.fillRect(0,0,MW,MH);
-    g.fillStyle='#7fd4d4';for(const q of ripples){const x=(q.x+t*3)%MW,o=Math.sin(t*1.3+q.p);if(o>-.3)g.fillRect(x|0,q.y,o>.5?4:2,1)}
+    g.fillStyle=M.sea;g.fillRect(0,0,MW,MH);
+    g.fillStyle=M.rip;for(const q of ripples){const x=(q.x+t*3)%MW,o=Math.sin(t*1.3+q.p);if(o>-.3)g.fillRect(x|0,q.y,o>.5?4:2,1)}
     g.drawImage(st,0,0);
+    if(M.fog)for(const[fx0,fy0]of M.fog){const dx=Math.sin(t*.35+fx0)*2;g.globalAlpha=.9;g.fillStyle='#f4f6fa';g.fillRect(fx0-12+dx,fy0-6,24,8);g.fillRect(fx0-8+dx,fy0-10,16,4);g.fillRect(fx0-15+dx,fy0-3,30,5);g.fillStyle='#dfe4ee';g.fillRect(fx0-13+dx,fy0+1,26,1);g.globalAlpha=1;g.fillStyle='#9aa0b8';const qx=Math.round(fx0-1+dx),qy=fy0-7;g.fillRect(qx,qy,3,1);g.fillRect(qx+2,qy+1,1,2);g.fillRect(qx+1,qy+3,1,1);g.fillRect(qx+1,qy+5,1,1)}
     const P=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
     for(const I of isl){
       if(I.w.id==='large'){const b=Math.sin(t*2)>0?0:1,x=I.x,y=I.y+b;if(I.ok){P(x-5,y+2,11,1,'#8fdcd6');P(x-4,y,9,2,'#8a5a3a');P(x-3,y+2,7,1,'#6a4228');P(x,y-8,1,8,'#5a3a2a');P(x+1,y-7,1,6,'#fff');P(x+2,y-6,1,5,'#fff');P(x+3,y-5,1,3,'#fff')}}
@@ -3293,19 +3628,23 @@ function showTab(tab){
      mt.innerHTML='<div class="seg">'+WXCHOICE.map(([k,ic,n])=>`<button data-k="${k}" class="${k===sel?'on':''}" title="${n}"><i>${ic}</i>${n}</button>`).join('')+'</div>'+`<small>${sel==='auto'?`Météo du jour : ${SKIES[WX]||'—'}. Elle change chaque jour.`:'Le ciel reste comme ça jusqu’à ce que tu repasses en Auto.'}</small>`;
      mt.onclick=e=>{const bt=e.target.closest('button');if(!bt)return;store.set('ciel',bt.dataset.k);buildLand();showTab('mondes')};B.appendChild(mt)}
     B.insertAdjacentHTML('beforeend',`<p class="lockl" style="margin:0 0 10px">${WORLDS.filter(unlocked).length}/${WORLDS.length} mondes. Un monde au hasard parmi les tiens à chaque nouvel onglet. Certains arrivent par la poste (guette l’oiseau qui porte une lettre), les autres se gagnent : touche une île dans la brume pour voir son défi.</p>`);
-    worldMap(B);
+    {const mi=mapSel??mapOf(WORLD),tb=document.createElement('div');tb.className='mtabs';
+     tb.innerHTML=MAPS.map((M,i)=>{const ws=WORLDS.filter(w=>mapOf(w)===i);return`<button data-i="${i}" class="${i===mi?'on':''}">${M.n} · ${ws.filter(unlocked).length}/${ws.length}</button>`}).join('');
+     tb.onclick=e=>{const bt=e.target.closest('button');if(!bt)return;mapSel=+bt.dataset.i;showTab('mondes')};B.appendChild(tb);
+     worldMap(B,mi)}
   }else if(tab==='boutique'){
     const L=loadLog();
-    B.innerHTML=`<div class="stats"><div class="stat"><b class="price">${L.coins}</b>pièces</div></div><p class="lockl" style="margin:0 0 6px">Chaque prise rapporte des pièces : plus elle est rare, plus elle vaut cher. Les ballons cadeaux qui passent dans le ciel aussi.</p>`;
-    for(const[slot,name]of[['tete','Chapeaux'],['yeux','Lunettes'],['cou','Autour du cou'],['corps','Pulls'],['pelage','Pelage']]){
-      const h=document.createElement('h3');h.className='wh';h.textContent=name;B.appendChild(h);
-      const G=document.createElement('div');G.className='grid';B.appendChild(G);
+    B.innerHTML=`<p class="lockl" style="margin:0 0 4px"><b class="price">${L.coins} pièces</b> · chaque prise en rapporte (plus elle est rare, plus elle vaut), les ballons cadeaux aussi.</p>`;
+    for(const[slot,name]of[['pelage','Pelage'],['tete','Chapeaux'],['yeux','Lunettes'],['cou','Autour du cou'],['corps','Pulls']]){
+      const h=document.createElement('h3');h.className='wh';h.style.margin='12px 0 5px';h.textContent=name;B.appendChild(h);
+      const G=document.createElement('div');G.className='grid shopg';B.appendChild(G);
       for(const it of SHOP.filter(i=>i.slot===slot&&(!i.noel||NOEL||closet.own.includes(i.id)))){
         const own=closet.own.includes(it.id)||!it.p,worn=(closet.wear[slot]||(slot==='pelage'?'creme':''))===it.id,c=document.createElement('div');
         c.className='card shop'+(worn?' worn':'')+(!own&&L.coins<it.p?' poor':'');
         c.appendChild(bigSprite(dressed(0,0,{...closet.wear,[slot]:it.id}),3));
         const info=document.createElement('div');
-        info.innerHTML=`<div class="nm">${it.n}</div><div class="ms">${worn?(slot==='corps'||slot==='pelage'?'porté':'porté · cliquer pour enlever'):own?'à toi · cliquer pour porter':`<span class="price">${it.p} pièces</span>`}</div>`;
+        info.innerHTML=`<div class="nm">${it.n}</div><div class="ms">${worn?'porté':own?'à toi':`<span class="price">${it.p} pièces</span>`}</div>`;
+        c.title=worn?(slot==='corps'||slot==='pelage'?'Porté':'Cliquer pour enlever'):own?'Cliquer pour porter':'Cliquer pour acheter';
         c.appendChild(info);
         c.onclick=()=>{
           if(!own){const L2=loadLog();if(L2.coins<it.p)return;L2.coins-=it.p;store.set('log',L2);refreshCount();closet.own.push(it.id)}
