@@ -355,7 +355,7 @@ function nutHTML(k){var n=NUT[k]; if(!n)return ""; var h='<dl class="nut"><dt>'+
 var LOK={"Endurance + renfo":1,"Sortie longue":1,"Sortie club · dimanche":1,"Jour 2 du bloc":1,"Tempo long":1,"Fartlek nature":1,"Progressif":1,"Footing":1};
 function loopHTML(o){var link=o.src==="Komoot"?"Chercher « "+o.n+" » sur Komoot":"Voir le tracé sur "+o.src; return '<div class="loop"><div class="lh"><b>'+esc(o.a)+' · '+esc(o.n)+'</b><span class="chip">'+esc(o.t)+'</span></div><div class="muted num">'+kmS(o.km)+' km · +'+o.dp+' m</div><p>'+esc(o.d)+'</p><a href="'+o.u+'" target="_blank" rel="noopener noreferrer">'+esc(link)+'</a></div>';}
 function bestLoops(s){if(!s||!LOK[s.type]||s.km<5)return []; var pool=s.dp<100?LOCAL.filter(function(o){return o.dp<=150;}):LOCAL; return pool.map(function(o){return {o:o,v:Math.abs(s.km-o.km)/s.km+(s.dp>=100?Math.abs(s.dp-o.dp)/s.dp:0)};}).sort(function(a,b){return a.v-b.v;}).slice(0,2).map(function(x){return x.o;});}
-function banners(){var f=fakeDate(); return f?'<div class="banner warn"><b>Date simulée : '+fmtL(todayUTC()).toLowerCase()+'</b>'+(QS.get("date")?'':' <button class="btn sm" data-act="unfake" style="margin-top:8px">Revenir à la vraie date</button>')+'</div>':"";}
+function banners(){var f=fakeDate(); return f?'<div class="banner warn mini"><span>Date simulée : <b>'+fmtS(todayUTC())+'</b></span>'+(QS.get("date")?'':'<button data-act="unfake">Vraie date</button>')+'</div>':"";}
 
 // ---------- profil ----------
 function profileSVG(m,o){
@@ -416,7 +416,9 @@ function vPrep(r,pl){
   var wk=P(pl,cur), selD=pl.start+((cur-1)*7+sel)*DAY, isToday=selD===todayUTC();
   var h=header(fmtL(todayUTC())+" · "+jx(r),isToday?"Aujourd’hui":fmtL(selD))+banners();
   if(ti<0&&!browsing)h+='<div class="banner">Ton plan '+esc(r.name)+' démarre le '+fmtL(pl.start).toLowerCase()+', dans '+(-ti)+' jour'+(-ti>1?"s":"")+'.</div>';
-  if(browsing)h+='<div class="banner">Tu regardes la semaine '+cur+' sur '+pl.n+' ('+wk.ph.toLowerCase()+'). <button class="btn sm" data-act="now" style="margin-top:8px">Revenir à aujourd’hui</button></div>';
+  var nw=nowWeek(pl);
+  h+='<div class="wnav"><button data-wnav="-1" aria-label="Semaine précédente"'+(cur<=1?" disabled":"")+'>‹</button><div><b>Semaine '+cur+'<small> / '+pl.n+'</small></b><span>'+fmtS(wk.start)+' – '+fmtS(wk.start+6*DAY)+' · '+esc(wk.ph)+'</span></div><button data-wnav="1" aria-label="Semaine suivante"'+(cur>=pl.n?" disabled":"")+'>›</button></div>';
+  if(browsing&&cur!==nw)h+='<div class="banner mini"><span>'+(cur<nw?'Semaine passée':'Semaine à venir')+'</span><button data-act="now">Aujourd’hui</button></div>';
   h+='<div class="strip" role="group" aria-label="Jours de la semaine">';
   for(var i=0;i<7;i++){var s0=sessAt(wk,i), dn=s0&&D.done[sk(r,cur,s0.k)], tdy=cur===tw&&i===td;
     h+='<button class="day'+(s0?" has":"")+(dn?" done":"")+(tdy?" today":"")+'" data-day="'+i+'" aria-pressed="'+(sel===i)+'" aria-label="'+DOWL[i]+(s0?", "+esc(s0.type):", repos")+(dn?", faite":"")+'"><span>'+DL[i]+'</span><b>'+new Date(pl.start+((cur-1)*7+i)*DAY).getUTCDate()+'</b><i></i></button>';}
@@ -742,6 +744,7 @@ $("view").addEventListener("click",function(e){
   if(ds.adj){var ak=activeRace().id+":"+ds.w; if(ds.adj==="reset")delete D.adj[ak]; else D.adj[ak]=ds.adj; save(); render(true); return;}
   if(ds.todo!=null){var st=ds.store==="kit"?kitOf(activeRace()):D.todo; st[ds.todo]=!st[ds.todo]; if(!st[ds.todo])delete st[ds.todo]; save(); var kd=$("kitd"),op=kd&&kd.open; render(true); if(op&&$("kitd"))$("kitd").open=true; return;}
   if(ds.wk){var w=+ds.wk; openWk=openWk===w?null:w; render(true); return;}
+  if(ds.wnav){var r0=activeRace(), p0=planOf(r0); if(!p0)return; cur=Math.max(1,Math.min(p0.n,cur+(+ds.wnav))); if(cur===nowWeek(p0)&&planIdx(p0)>=0)goNow(); else{browsing=true; var w0=p0.weeks[cur-1]; if(!sessAt(w0,sel)&&w0.s.length)sel=w0.s[0].dow;} render(); return;}
   if(ds.goto){var p=ds.goto.split("-"); cur=+p[0]; sel=+p[1]; browsing=true; tab="today"; prevTab="today"; render(); return;}
   if(ds.edit){var q=ds.edit.split("-"); editSession(+q[0],q[1]); return;}
   if(ds.sheet){showInfo(ds.sheet); return;}

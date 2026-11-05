@@ -68,6 +68,14 @@ a{color:var(--brand)}
 .banner{background:var(--brand-soft);color:var(--ink);border-radius:16px;padding:12px 14px;margin-bottom:12px;font-size:14px}
 .banner.warn{background:var(--warn-soft)}
 .banner .btn{margin-top:8px}
+.banner.mini{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 6px 6px 14px;border-radius:14px}
+.banner.mini button{flex:none;border:0;background:var(--card);color:var(--ink);font:inherit;font-weight:700;font-size:13px;border-radius:10px;padding:0 12px;min-height:34px}
+.wnav{display:flex;align-items:center;gap:8px;margin:0 0 6px}
+.wnav>div{flex:1;text-align:center;line-height:1.2}
+.wnav b{display:block;font-family:var(--display);font-size:16px}.wnav b small{color:var(--muted);font-size:13px;font-weight:600}
+.wnav span{font-size:12px;color:var(--muted)}
+.wnav button{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:24px;line-height:1;padding:0 0 3px}
+.wnav button:disabled{opacity:.35}
 .syncline{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin:-6px 0 12px}
 .syncline button{border:0;background:none;color:var(--brand);font-weight:700;padding:6px 4px;min-height:32px}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
