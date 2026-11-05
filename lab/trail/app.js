@@ -555,9 +555,9 @@ function vPlan(){
   return h+'</div>';
 }
 
-// --- Ma course ---
+// --- Mes courses ---
 function vCourse(){
-  var a=activeRace(), f=focusRace(), h=header("Ta saison","Ma course");
+  var a=activeRace(), f=focusRace(), h=header("Ta saison","Mes courses");
   races().forEach(function(r){var past=daysTo(r)<0, res=D.results[r.id], fin=res&&res.splits&&res.splits[res.splits.length-1], m=model(r);
     h+='<button class="race'+(r.prio==="B"?" b":"")+(f&&r.id===f.id?" sel":"")+(past?" past":"")+'" data-focus="'+r.id+'"><span class="tag">'+r.prio+'</span><span style="flex:1;min-width:0"><b style="font-family:var(--display);font-size:19px">'+esc(r.name)+'</b><br><span class="small muted">'+fmtD(dms(r.date))+' · '+kmS(m.L)+' km · +'+nb(m.dp)+' m</span></span>'+(fin?'<span class="chip ok">'+hmc(fin)+'</span>':a&&r.id===a.id?'<span class="chip">objectif</span>':past?'':'<span class="chip" style="background:none">'+jx(r)+'</span>')+'</button>';});
   h+='<button class="race add" data-act="addrace">+ Ajouter une course (trace GPX)</button>';
@@ -940,7 +940,7 @@ $("rm").addEventListener("pointerdown",function(e){var b=e.target.closest('[data
 ["pointerup","pointerleave","pointercancel"].forEach(function(ev){$("rm").addEventListener(ev,function(){clearTimeout(holdT); var q=document.querySelector(".rm-quit.hold"); if(q)q.classList.remove("hold");});});
 function startGps(){
   if(!navigator.geolocation){toast("Pas de GPS sur cet appareil.");return;}
-  if(!RR.gpx){toast("Ajoute la trace GPX de la course (Ma course > Modifier) pour te situer au GPS.");return;}
+  if(!RR.gpx){toast("Ajoute la trace GPX de la course (Mes courses > Modifier) pour te situer au GPS.");return;}
   gpsWatch=navigator.geolocation.watchPosition(onPos,function(err){toast(err.code===1?"Localisation refusée.":"GPS indisponible pour l’instant."); stopGps(); if(RS)rmRender();},{enableHighAccuracy:true,maximumAge:15000,timeout:30000});
   rmRender(); toast("Recherche du GPS…");
 }
