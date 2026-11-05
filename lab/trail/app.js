@@ -19,6 +19,7 @@ var QT={"Côtes":1,"Tempo long":1,"Côtes courtes":1,"Côtes enchaînées":1,"De
 var LT={"Sortie longue":1,"Sortie club · dimanche":1,"Jour 2 du bloc":1,"Course B":1};
 var ZX={"Renfo seul":"Hors course","Autre sport":"Z1-Z2","Course B":"Allure course","Activation":"Z1-Z2"};
 function zoneOf(t){return ZONE[t]||ZX[t]||"";}
+if(window.FIT){FIT.zoneOf=zoneOf; FIT.dbg=function(){return {activeRace:activeRace,planOf:planOf,P:P,openRace:openRace,RS:function(){return RS;}};};}
 function tagOf(t){return QT[t]?"q":LT[t]?"l":"e";}
 function nutOfTag(tag){return tag==="q"?"quality":tag==="l"?"long":"easy";}
 
@@ -343,7 +344,7 @@ var I={
  down:sv('<path d="M12 3v12M7 10l5 5 5-5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>'), trash:sv('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'),
  help:sv('<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6M12 17h.01"/>'), dumb:sv('<path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12"/>'),
  leaf:sv('<path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14"/><path d="M5 19l7-7"/>'), pin:sv('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>'),
- pen:sv('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>'), list:sv('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>')
+ watch:sv('<rect x="6" y="6" width="12" height="12" rx="3"/><path d="M9 6l1-3h4l1 3M9 18l1 3h4l1-3M12 10v2l1.5 1"/>'), pen:sv('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>'), list:sv('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>')
 };
 
 // ---------- petits blocs ----------
@@ -462,6 +463,7 @@ function weekCard(r,pl,wk,s){
   if(rf){var R0=RENFO[rf.renfo], dd=Math.round((sessDate(pl,wk.n,rf)-t)/DAY), parts=R0.name.split(" · "); h+='<button class="link" data-sheet="renfo:'+rf.renfo+'"><span class="ico">'+I.dumb+'</span><span class="tx"><b>'+esc(parts[0])+' '+(dd===0?"aujourd’hui":dd===1?"demain":DOWL[rf.dow])+'</b><small>'+esc(parts[1]||"")+' · 25 min · une chaise</small></span><span class="chev">›</span></button>';}
   var nk=s?s.nut:"rest"; if(!NUT[nk])nk="easy";
   h+='<button class="link" data-sheet="nut:'+nk+'"><span class="ico">'+I.leaf+'</span><span class="tx"><b>Nutrition du jour</b><small>'+esc(NUT[nk].t)+' · ≈ '+NUT[nk].c+' g de glucides</small></span><span class="chev">›</span></button>';
+  if(window.FIT&&FIT.wktOf(s))h+='<button class="link" data-act="watch" data-w="'+wk.n+'" data-k="'+s.k+'"><span class="ico">'+I.watch+'</span><span class="tx"><b>Envoyer à la montre</b><small>'+esc(s.type)+' en entraînement guidé · fichier .FIT</small></span><span class="chev">›</span></button>';
   if(bestLoops(s).length)h+='<button class="link" data-sheet="loops:'+wk.n+'-'+s.k+'"><span class="ico">'+I.pin+'</span><span class="tx"><b>Où courir près de chez toi</b><small>Boucles proches de '+kmS(s.km)+' km</small></span><span class="chev">›</span></button>';
   h+='<button class="link" data-act="weekplan" data-w="'+wk.n+'"><span class="ico">'+I.list+'</span><span class="tx"><b>Toute la semaine</b><small>'+weekDone(r,wk)+' / '+nSess(wk)+' séances faites · modifier</small></span><span class="chev">›</span></button>';
   return h+'</div>'+(wk.note?'<p class="small muted" style="margin:10px 0 0"><b style="color:var(--ink)">Le mot du coach :</b> '+esc(wk.note)+'</p>':'')+'</div>';
@@ -628,6 +630,23 @@ function showInfo(key){
   else if(key==="judge")h='<h3>Comment le coach juge</h3><ul class="pts"><li>Distance : en cible entre 90 et 115 % du prévu.</li><li>Dénivelé : en cible au-dessus de 75 % du prévu.</li><li>Sorties faciles : trop rapides si l’allure par km-effort (1 km + 100 m de D+) dépasse celle de l’objectif.</li><li>Séance du club : enregistrée, jamais jugée.</li><li>Chaque semaine : volume, sorties trop rapides et check-in donnent une proposition d’ajustement, que tu acceptes ou non.</li><li>Quand tu modifies une séance, le coach compare tes chiffres à ta version.</li></ul>';
   openSheet(h);
 }
+// ---------- montre ----------
+function wktName(s,d){return s.type+" "+fmtS(d);}
+function hrTxt(h){return h?h[0]+"-"+h[1]+" bpm":"";}
+function durTxt(d){return d.open?"jusqu’à Tour":d.d?(d.d>=1000?kmS(d.d/1000)+" km":d.d+" m"):d.t>=60?Math.round(d.t/60)+" min":d.t+" s";}
+function stepLi(x){return '<li><span>'+durTxt(x.dur)+'</span><span>'+esc(x.name)+(x.hr?' · '+hrTxt(x.hr):'')+'</span></li>';}
+function wktFiles(r,pl,wk,only){var out=[]; wk.s.forEach(function(s){if(only&&s.k!==only)return; var st=FIT.wktOf(s); if(!st)return; var d=sessDate(pl,wk.n,s);
+  out.push({name:FIT.slug(r.name)+"-"+iso(d)+"-"+FIT.slug(s.type)+".fit",data:FIT.encode(wktName(s,d),st)});}); return out;}
+function watchSheet(w,k){
+  var r=activeRace(), pl=planOf(r), wk=P(pl,w), s=sessByKey(wk,k), st=s&&FIT.wktOf(s); if(!st)return;
+  var nW=wk.s.filter(function(x){return FIT.wktOf(x);}).length, d=sessDate(pl,w,s);
+  var h='<h3>Envoyer à la montre</h3><p class="small muted" style="margin:-4px 0 10px">« '+esc(wktName(s,d))+' » arrive dans les entraînements de ta montre. Elle te guide étape par étape et vibre à chaque changement.</p><ul class="steps">';
+  st.forEach(function(x){if(x.rep)h+='<li><span>'+x.rep+' ×</span><span>'+x.steps.map(function(y){return durTxt(y.dur)+' '+esc(y.name.toLowerCase())+(y.hr?' ('+hrTxt(y.hr)+')':'');}).join(' puis ')+'</span></li>'; else h+=stepLi(x);});
+  h+='</ul><button class="btn primary" data-sact="fitone" style="margin-top:12px">'+I.down+' Télécharger la séance</button>';
+  if(nW>1)h+='<button class="btn" data-sact="fitweek" style="margin-top:8px">'+I.down+' Toute la semaine '+w+' · '+nW+' séances (.zip)</button>';
+  h+='<details style="margin-top:12px"><summary>'+I.help+' Copier sur la montre</summary><div class="in"><ol class="small" style="margin:0;padding-left:18px"><li>Branche la montre au Mac et ouvre OpenMTP.</li><li>Copie le fichier .fit dans <b>GARMIN/NewFiles</b> (pour la semaine, double-clique d’abord le .zip pour avoir les .fit).</li><li>Débranche : la montre importe les séances. Tu les trouves dans <b>Entraînement › Entraînements</b>. Lance la séance, puis démarre l’activité.</li></ol><p class="muted xs" style="margin:8px 0 0">Depuis l’iPhone, le fichier part dans Fichiers : il faut passer par le Mac pour le copier sur la montre. Les étapes « jusqu’à Tour » attendent un appui sur le bouton Tour.</p></div></details>';
+  openSheet(h,{kind:"watch",w:w,k:k,rid:r.id});
+}
 function firstFreeDow(wk){var used={}; wk.s.forEach(function(s){used[s.dow]=1;}); for(var i=0;i<7;i++)if(!used[i])return i; return 0;}
 function editSession(w,k,dow){
   var r=activeRace(), pl=planOf(r), wk=pl.weeks[w-1], s=k?sessByKey(wk,k):null, isNew=!s;
@@ -660,6 +679,9 @@ function editRace(id){
 }
 function sheetAct(a){
   if(!SH)return;
+  if(a==="fitone"||a==="fitweek"){var r=raceById(SH.rid), pl=planOf(r), wk=P(pl,SH.w), F=wktFiles(r,pl,wk,a==="fitone"?SH.k:null); if(!F.length)return;
+    if(F.length===1)FIT.download(new Blob([F[0].data],{type:"application/octet-stream"}),F[0].name); else FIT.download(FIT.zip(F),FIT.slug(r.name)+"-semaine-"+SH.w+".zip");
+    toast(F.length>1?F.length+" séances prêtes : copie-les dans GARMIN/NewFiles.":"Séance prête : copie-la dans GARMIN/NewFiles."); return;}
   if(a==="savemanual"){var km=num($("mKm").value), dp=num($("mDp").value)||0, t=parseDur($("mT").value); if(!(km>0)){toast("Indique au moins les kilomètres.");return;}
     D.actual[SH.key]={km:Math.round(km*100)/100,dp:Math.round(dp),t:Math.round(t),src:"manual"}; D.done[SH.key]=1; save(); closeSheet(); toast("Chiffres enregistrés."); render(true); return;}
   if(a==="delmanual"){delete D.actual[SH.key]; save(); closeSheet(); render(true); return;}
@@ -765,6 +787,7 @@ function act(a,b){
   var ds=b.dataset;
   if(a==="sync")sync(true);
   else if(a==="now"){goNow(); render();}
+  else if(a==="watch")watchSheet(+ds.w,ds.k);
   else if(a==="weekplan"){openWk=+ds.w; setTab("plan"); var el=document.querySelector('[data-wk="'+ds.w+'"]'); if(el)el.scrollIntoView({block:"start"});}
   else if(a==="addses")editSession(+ds.w,null,ds.d!=null?+ds.d:null);
   else if(a==="manual")manualSheet(+ds.w,ds.k);
@@ -894,16 +917,20 @@ function rmRender(){
     el.innerHTML='<div class="rm-top"><span>'+(pr?"Essai":esc(r.name))+' · terminé</span></div><div class="rm-spacer"></div><div class="rm-big"><span class="eyebrow" style="color:#93A39A">Arrivée</span><div class="clock" style="font-size:80px">'+hmc(fin)+'</div><span class="delta '+dcls(d)+'">'+sgn(d)+'</span><p style="margin:16px 0 0">'+(pr?"Essai terminé. Rien n’est gardé dans ton bilan.":"Bravo. Bois, mange, marche un peu.<br>Le bilan détaillé t’attend dans l’appli.")+'</p></div><div class="rm-spacer"></div>'+(pr?'':'<button class="rm-go" data-rm="bilan">Voir le bilan</button>')+'<button class="rm-ghost" data-rm="undo">Annuler l’arrivée</button><button class="rm-quit" data-rm="close">Fermer</button>'; return;}
   if(!RS.t0){var isDay=!pr&&daysTo(r)===0, since=(Date.now()-raceStartTs(r))/60000;
     el.innerHTML='<div class="rm-top"><span class="chips"><span class="chip">'+(pr?"Essai · ":"")+esc(r.name)+'</span><span class="chip" id="rmWake">'+(wake?"Écran allumé":"Écran : garde-le allumé")+'</span></span><span>objectif '+hm(m.goal)+'</span></div><div class="rm-spacer"></div><div class="rm-big"><span class="eyebrow" style="color:#93A39A">'+(isDay&&since<0?"Départ dans":"Prête ?")+'</span><div class="clock" id="rmCount">'+(isDay&&since<0?hms(-since*60):"0:00:00")+'</div><p>'+(pr?"Lance le chrono au début de ta sortie. Touche « J’y suis » à chaque point pour voir l’écran évoluer.":"Touche « Départ » au coup de pistolet. Le chrono continue même si tu fermes l’appli.")+'</p></div><div class="rm-spacer"></div><div class="rm-prof">'+profileSVG(m,{dark:true,pos:0,h:96,top:20,small:true})+'</div>'+
-      '<button class="rm-go" data-rm="start">Départ<small>chrono lancé maintenant</small></button>'+(isDay&&since>0&&since<300?'<button class="rm-go" style="background:#1B2620;color:#F1F5F2;min-height:60px;font-size:18px" data-rm="startoff">Départ donné à '+esc(r.time)+'<small>il y a '+Math.round(since)+' min</small></button>':'')+'<button class="rm-quit" data-rm="close">Fermer</button>'; return;}
+      syncPanel()+'<button class="rm-go" data-rm="start">Départ<small>appuie en même temps sur Start de la montre</small></button>'+(isDay&&since>0&&since<300?'<button class="rm-go" style="background:#1B2620;color:#F1F5F2;min-height:60px;font-size:18px" data-rm="startoff">Départ donné à '+esc(r.time)+'<small>il y a '+Math.round(since)+' min</small></button>':'')+(syncUI?'':'<button class="rm-ghost" data-rm="syncopen">La montre tourne déjà ? Caler sur son chrono</button>')+'<button class="rm-quit" data-rm="close">Fermer</button>'; return;}
   var i=RS.splits.length, last=i>=C.length-1;
   el.innerHTML='<div class="rm-top" id="rmTop"></div><div class="clock" id="rmClock"></div><div id="rmLive" style="display:flex;flex-direction:column;gap:10px"></div><div class="rm-spacer"></div>'+
     '<div class="rm-row"><button data-rm="gel" id="rmGel">Gel pris<small id="rmGelSub"></small></button><button data-rm="gps" id="rmGps" class="'+(gpsWatch!=null?"on":"")+'">'+(gpsWatch!=null?"GPS actif":"Me situer")+'<small id="rmGpsSub">'+(gpsWatch!=null?"toucher pour couper":r.gpx?"GPS sur la trace":"sans trace GPX")+'</small></button></div>'+
     (pr?'<div class="rm-row"><button data-rm="ff">+10 min<small>avancer l’essai</small></button></div>':'')+
-    '<button class="rm-go" data-rm="cp">'+(last?"Je franchis l’arrivée":"J’y suis")+'<small>'+(last?kmS(m.L)+" km":esc(C[i].n)+" · km "+kmS(C[i].km))+'</small></button>'+
+    syncPanel()+'<button class="rm-go" data-rm="cp">'+(last?"Je franchis l’arrivée":"J’y suis")+'<small>'+(last?kmS(m.L)+" km":esc(C[i].n)+" · km "+kmS(C[i].km))+'</small></button>'+
     (i?'<button class="rm-ghost" data-rm="undo" id="rmUndo">Annuler le dernier pointage ('+esc(C[i-1].n)+')</button>':'')+
-    '<button class="rm-quit" data-rm="quit"><i></i>Maintenir pour quitter · le chrono continue</button>';
+    (syncUI?'':'<button class="rm-ghost" data-rm="syncopen">Caler le chrono sur la montre</button>')+'<button class="rm-quit" data-rm="quit"><i></i>Maintenir pour quitter · le chrono continue</button>';
   rmTick();
 }
+var syncUI=false;
+function syncPanel(){return syncUI?'<div class="rm-card"><span class="eyebrow">Chrono de la montre</span><div class="rm-sync"><input id="rmSyncIn" inputmode="numeric" placeholder="ex. 12:40" autocomplete="off" aria-label="Temps de la montre"><button data-rm="syncgo">Caler</button></div><p class="rm-hint">Tape un temps un peu en avance sur la montre, puis touche « Caler » quand elle l’affiche.</p><button class="rm-ghost" data-rm="syncx" style="min-height:36px">Annuler</button></div>':'';}
+function parseClock(v){v=String(v||"").trim(); var p; if(/[:h.]/.test(v))p=v.split(/[:h.]/).map(Number); else{var d=v.replace(/\D/g,""); if(!d)return null; p=d.length<=2?[+d,0]:d.length<=4?[+d.slice(0,-2),+d.slice(-2)]:[+d.slice(0,-4),+d.slice(-4,-2),+d.slice(-2)];}
+  if(p.some(isNaN)||p.length>3)return null; while(p.length<3)p.unshift(0); if(p[1]>59||p[2]>59)return null; return p[0]*3600+p[1]*60+p[2];}
 function rmTick(){
   if(!RS)return;
   if(!RS.t0){var c=$("rmCount"); if(c&&!RS.practice&&daysTo(RR)===0){var s=(raceStartTs(RR)-Date.now())/1000; if(s>0)c.textContent=hms(s); else if(c.textContent!=="0:00:00")rmRender();} return;}
@@ -923,7 +950,12 @@ function rmTick(){
 }
 $("rm").addEventListener("click",function(e){
   var b=e.target.closest("[data-rm]"); if(!b||!RS)return; var a=b.dataset.rm, C=RM.cps;
-  if(a==="start"){RS.t0=Date.now(); RS.shift=0; vib(80); save(); rmRender();}
+  if(a==="start"){RS.t0=Date.now(); RS.shift=0; syncUI=false; vib(80); save(); rmRender();}
+  else if(a==="syncopen"){syncUI=true; rmRender(); var si=$("rmSyncIn"); if(si)si.focus();}
+  else if(a==="syncx"){syncUI=false; rmRender();}
+  else if(a==="syncgo"){var sec=parseClock(($("rmSyncIn")||{}).value); if(sec==null){toast("Temps illisible : écris par exemple 12:40 ou 1:05:00.");return;}
+    var nt=nowMs()-sec*1000; if(RS.t0){var df=(RS.t0-nt)/60000; RS.splits=RS.splits.map(function(x){return x+df;});} else RS.shift=0;
+    RS.t0=nt; syncUI=false; vib(60); save(); toast("Chrono calé sur la montre : "+hms(sec)+"."); rmRender();}
   else if(a==="startoff"){RS.t0=raceStartTs(RR); save(); rmRender();}
   else if(a==="cp"){var t=(nowMs()-RS.t0)/60000, ci=RS.splits.length; if(ci&&t-RS.splits[ci-1]<2){toast("Pointage déjà fait il y a moins de 2 min.");return;}
     if(t<RM.cumMin(C[ci].km)*0.6&&!cpArmed){cpArmed=true; b.firstChild.textContent="Si tôt ? Toucher encore"; setTimeout(function(){if(RS&&!RS.done&&cpArmed)rmRender();},3000); return;}

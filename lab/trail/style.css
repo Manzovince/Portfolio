@@ -321,3 +321,8 @@ details summary svg{width:20px;height:20px;flex:none;color:var(--brand)}
 .sheet-x{position:absolute;top:10px;right:12px;width:40px;height:40px;border-radius:50%;border:0;background:var(--bg);font-size:24px;line-height:1;color:var(--muted)}
 .grab{width:40px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 10px}
 .empty{text-align:center;padding:30px 10px}
+
+.rm-sync{display:flex;gap:8px;margin:8px 0 6px}
+.rm-sync input{flex:1;min-width:0;min-height:52px;border-radius:14px;border:1px solid #2d3530;background:#141917;color:#e7ebe6;font:700 24px var(--display);padding:0 14px;font-variant-numeric:tabular-nums}
+.rm-sync button{min-height:52px;border:0;border-radius:14px;background:#7fb898;color:#10201a;font-weight:800;font-size:16px;padding:0 18px}
+.rm-hint{font-size:13px;color:#9aa49d;margin:0 0 4px}
