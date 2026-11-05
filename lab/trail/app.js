@@ -122,6 +122,7 @@ function model(r){
     m.cumMin=function(km){km=Math.max(0,Math.min(km,m.L)); var f=km/m.L*N,j=Math.min(N-1,Math.floor(f)); return m.goal*(E[j]+(E[j+1]-E[j])*(f-j))/E[N];};
     var prev=0; m.sect=m.cps.map(function(c,j){var s={a:prev,b:c.km,n:(j?m.cps[j-1].n:"Départ")+" → "+(j===m.cps.length-1?"arrivée":c.n),up:m.dplus(prev,c.km),dn:m.dminus(prev,c.km)}; prev=c.km; return s;});
     genStrat(m);
+    if(r.strat&&r.strat.length){m.strat=r.strat; m.adv=r.strat.map(function(x){return [x[2],x[1]];}); m.adv[m.adv.length-1][0]=m.L+1;}
   }
   m.kmAt=function(min){if(min<=0)return 0; var lo=0,hi=m.L; for(var k=0;k<32;k++){var x=(lo+hi)/2; if(m.cumMin(x)<min)lo=x; else hi=x;} return lo;};
   MC[r.id]={key:key,m:m}; return m;
@@ -492,7 +493,7 @@ function kitCard(r){
   var kit=kitOf(r), bk=Object.keys(kit).filter(function(x){return kit[x];}).length;
   return '<div class="card"><h3>Matériel obligatoire</h3><div class="sb num small" style="margin-bottom:6px"><span>'+bk+' / '+KITL.length+' prêts</span><span class="muted">'+(r.builtin?'règlement 2025, à revérifier':'liste type, vérifie le règlement')+'</span></div><div class="bar"><i style="width:'+Math.round(bk/KITL.length*100)+'%"></i></div><details id="kitd"><summary>Voir la liste</summary><div class="in">'+KITL.map(function(x,i){return todoBtn(String(i),esc(x),kit);}).join("")+'</div></details></div>';
 }
-function cpTable(r,m){return '<table class="tbl num"><tr><th>Ravito</th><th>Km</th><th>Passage</th></tr>'+m.cps.map(function(c){return '<tr><td>'+esc(c.n)+'</td><td>'+kmS(c.km)+'</td><td><b>'+hm(m.cumMin(c.km))+'</b><br><span class="muted xs">vers '+tod(r,m.cumMin(c.km))+'</span></td></tr>';}).join("")+'</table>';}
+function cpTable(r,m){return '<table class="tbl num"><tr><th>Point</th><th>Km</th><th>Passage</th></tr>'+m.cps.map(function(c){return '<tr><td>'+esc(c.n)+'</td><td>'+kmS(c.km)+'</td><td><b>'+hm(m.cumMin(c.km))+'</b><br><span class="muted xs">vers '+tod(r,m.cumMin(c.km))+'</span></td></tr>';}).join("")+'</table>';}
 
 // --- jour J ---
 function vRaceDay(r,pl){
@@ -643,12 +644,13 @@ function editRace(id){
   r=r||{name:"",date:"",time:"08:00",km:"",dp:"",goal:0,prio:"A",cps:[],start:nextMonday()};
   var b=!!r.builtin;
   var h='<h3>'+(isNew?"Ajouter une course":"Modifier "+esc(r.name))+'</h3>';
+  if(isNew&&typeof PRESETS!=="undefined")h+='<span class="eyebrow" style="margin-bottom:6px">Courses prêtes</span>'+PRESETS.map(function(p){var has=D.races.some(function(x){return x.preset===p.key;}); return '<button class="link" data-sact="preset:'+p.key+'"'+(has?' disabled style="opacity:.5"':'')+'><span class="ico">'+I.flag+'</span><span class="tx"><b>'+esc(p.name)+'</b><small>'+kmS(p.km)+' km · +'+nb(p.dp)+' m · '+esc(p.place)+(has?' · déjà ajoutée':' · trace et conseils inclus')+'</small></span><span class="chev">›</span></button>';}).join("")+'<span class="eyebrow" style="margin:14px 0 6px">Ou une autre course</span>';
   if(!b)h+='<div class="radio2" data-group="prio"><button data-pick="A" aria-pressed="'+(r.prio==="A")+'"><b>Course A · objectif</b><span>L’appli te prépare un plan jusqu’au jour J</span></button><button data-pick="B" aria-pressed="'+(r.prio==="B")+'"><b>Course B · préparation</b><span>Glissée dans le plan de ta course A</span></button></div>';
   h+='<button class="btn sm" data-sact="gpx" style="margin-bottom:10px;width:100%">'+I.up+' <span id="gpxlab">'+(r.prof||r.gpx?"Remplacer la trace GPX":"Importer la trace GPX")+'</span></button>';
   h+='<label class="field" style="margin-bottom:8px">Nom<input id="rName" value="'+esc(r.name)+'" placeholder="Trail des Calanques"'+(b?" disabled":"")+'></label>';
   h+='<div class="fields"><label class="field">Date'+(b?'<select id="rDate"><option value="2027-05-08"'+(r.date==="2027-05-08"?" selected":"")+'>sam. 8 mai 2027</option><option value="2027-05-09"'+(r.date==="2027-05-09"?" selected":"")+'>dim. 9 mai 2027</option></select>':'<input type="date" id="rDate" value="'+esc(r.date)+'">')+'</label><label class="field">Départ<input type="time" id="rTime" value="'+esc(r.time||"08:00")+'"></label></div>';
   h+='<div class="fields"><label class="field">Distance (km)<input id="rKm" inputmode="decimal" value="'+(r.km?kmS(r.km):"")+'"'+(b?" disabled":"")+'></label><label class="field">D+ (m)<input id="rDp" inputmode="numeric" value="'+(r.dp===""?"":r.dp)+'"'+(b?" disabled":"")+'></label><label class="field">Objectif<input id="rGoal" placeholder="auto" value="'+(r.goal?hmi(r.goal):"")+'"></label></div>';
-  if(!b)h+='<div class="fields"><label class="field">Lieu<input id="rPlace" value="'+esc(r.place||"")+'" placeholder="facultatif"></label><label class="field">Début du plan (A)<input type="date" id="rStart" value="'+esc(r.start||"")+'"></label></div><label class="field" style="margin-bottom:10px">Ravitos, un par ligne : km nom<textarea id="rCps" placeholder="12 Col du Pin&#10;24,5 Village">'+esc((r.cps||[]).map(function(c){return kmS(c.km)+" "+c.n;}).join("\n"))+'</textarea></label>';
+  if(!b)h+='<div class="fields"><label class="field">Lieu<input id="rPlace" value="'+esc(r.place||"")+'" placeholder="facultatif"></label><label class="field">Début du plan (A)<input type="date" id="rStart" value="'+esc(r.start||"")+'"></label></div><label class="field" style="margin-bottom:10px">Ravitos ou points de passage, un par ligne : km nom<textarea id="rCps" placeholder="12 Col du Pin&#10;24,5 Village">'+esc((r.cps||[]).map(function(c){return kmS(c.km)+" "+c.n;}).join("\n"))+'</textarea></label>';
   h+='<p class="muted xs" id="gpxinfo" style="margin:0 0 10px">'+(r.prof?"Trace chargée : profil, montées et descentes calculés.":r.gpx?"Trace chargée pour le GPS.":b?"Facultatif : la trace permet au GPS du mode Course de te situer.":"Sans trace : profil plat et D+ réparti régulièrement.")+'</p>';
   h+='<button class="btn primary" data-sact="saverace">'+(isNew?"Ajouter":"Enregistrer")+'</button>';
   if(!isNew)h+='<button class="btn sm danger" data-sact="delrace" style="margin:8px auto 0">Supprimer la course</button>';
@@ -671,6 +673,10 @@ function sheetAct(a){
     save(); closeSheet(); toast("Séance enregistrée."); render(true); return;
   }
   if(a==="gpx"){$("fileGpxRace").click(); return;}
+  if(a.indexOf("preset:")===0){var pr=PRESETS.filter(function(x){return x.key===a.slice(7);})[0]; if(!pr)return;
+    var nr=JSON.parse(JSON.stringify(pr)); nr.id=uid(); nr.preset=pr.key; delete nr.key; nr.prio=SH.prio||"A"; nr.start=nextMonday(); var nt=nr.note; delete nr.note;
+    D.races.push(nr); D.focus=nr.id; var ca=activeRace(); if(nr.prio==="A"&&(!ca||daysTo(ca)<0))D.active=nr.id;
+    MC={}; PC={}; save(); closeSheet(); toast(nr.name+" ajoutée. "+nt); goNow(); render(true); editRace(nr.id); return;}
   if(a==="saverace"){
     var isB=SH.builtin, r0=SH.id?raceById(SH.id):null;
     var name=isB?r0.name:$("rName").value.trim(), date=$("rDate").value, time=$("rTime").value||"08:00", rkm=isB?r0.km:num($("rKm").value), rdp=isB?r0.dp:Math.round(num($("rDp").value)||0), gv=$("rGoal").value.trim(), goal=gv?Math.round(parseDur(gv)/60):0;
@@ -884,13 +890,13 @@ function rmRender(){
   if(RS.done){var fin=RS.splits[RS.splits.length-1], d=fin-m.goal;
     el.innerHTML='<div class="rm-top"><span>'+(pr?"Essai":esc(r.name))+' · terminé</span></div><div class="rm-spacer"></div><div class="rm-big"><span class="eyebrow" style="color:#93A39A">Arrivée</span><div class="clock" style="font-size:80px">'+hmc(fin)+'</div><span class="delta '+dcls(d)+'">'+sgn(d)+'</span><p style="margin:16px 0 0">'+(pr?"Essai terminé. Rien n’est gardé dans ton bilan.":"Bravo. Bois, mange, marche un peu.<br>Le bilan détaillé t’attend dans l’appli.")+'</p></div><div class="rm-spacer"></div>'+(pr?'':'<button class="rm-go" data-rm="bilan">Voir le bilan</button>')+'<button class="rm-ghost" data-rm="undo">Annuler l’arrivée</button><button class="rm-quit" data-rm="close">Fermer</button>'; return;}
   if(!RS.t0){var isDay=!pr&&daysTo(r)===0, since=(Date.now()-raceStartTs(r))/60000;
-    el.innerHTML='<div class="rm-top"><span class="chips"><span class="chip">'+(pr?"Essai · ":"")+esc(r.name)+'</span><span class="chip" id="rmWake">'+(wake?"Écran allumé":"Écran : garde-le allumé")+'</span></span><span>objectif '+hm(m.goal)+'</span></div><div class="rm-spacer"></div><div class="rm-big"><span class="eyebrow" style="color:#93A39A">'+(isDay&&since<0?"Départ dans":"Prête ?")+'</span><div class="clock" id="rmCount">'+(isDay&&since<0?hms(-since*60):"0:00:00")+'</div><p>'+(pr?"Lance le chrono au début de ta sortie. Touche « Je suis au ravito » pour voir l’écran évoluer.":"Touche « Départ » au coup de pistolet. Le chrono continue même si tu fermes l’appli.")+'</p></div><div class="rm-spacer"></div><div class="rm-prof">'+profileSVG(m,{dark:true,pos:0,h:96,top:20,small:true})+'</div>'+
+    el.innerHTML='<div class="rm-top"><span class="chips"><span class="chip">'+(pr?"Essai · ":"")+esc(r.name)+'</span><span class="chip" id="rmWake">'+(wake?"Écran allumé":"Écran : garde-le allumé")+'</span></span><span>objectif '+hm(m.goal)+'</span></div><div class="rm-spacer"></div><div class="rm-big"><span class="eyebrow" style="color:#93A39A">'+(isDay&&since<0?"Départ dans":"Prête ?")+'</span><div class="clock" id="rmCount">'+(isDay&&since<0?hms(-since*60):"0:00:00")+'</div><p>'+(pr?"Lance le chrono au début de ta sortie. Touche « J’y suis » à chaque point pour voir l’écran évoluer.":"Touche « Départ » au coup de pistolet. Le chrono continue même si tu fermes l’appli.")+'</p></div><div class="rm-spacer"></div><div class="rm-prof">'+profileSVG(m,{dark:true,pos:0,h:96,top:20,small:true})+'</div>'+
       '<button class="rm-go" data-rm="start">Départ<small>chrono lancé maintenant</small></button>'+(isDay&&since>0&&since<300?'<button class="rm-go" style="background:#1B2620;color:#F1F5F2;min-height:60px;font-size:18px" data-rm="startoff">Départ donné à '+esc(r.time)+'<small>il y a '+Math.round(since)+' min</small></button>':'')+'<button class="rm-quit" data-rm="close">Fermer</button>'; return;}
   var i=RS.splits.length, last=i>=C.length-1;
   el.innerHTML='<div class="rm-top" id="rmTop"></div><div class="clock" id="rmClock"></div><div id="rmLive" style="display:flex;flex-direction:column;gap:10px"></div><div class="rm-spacer"></div>'+
     '<div class="rm-row"><button data-rm="gel" id="rmGel">Gel pris<small id="rmGelSub"></small></button><button data-rm="gps" id="rmGps" class="'+(gpsWatch!=null?"on":"")+'">'+(gpsWatch!=null?"GPS actif":"Me situer")+'<small id="rmGpsSub">'+(gpsWatch!=null?"toucher pour couper":r.gpx?"GPS sur la trace":"sans trace GPX")+'</small></button></div>'+
     (pr?'<div class="rm-row"><button data-rm="ff">+10 min<small>avancer l’essai</small></button></div>':'')+
-    '<button class="rm-go" data-rm="cp">'+(last?"Je franchis l’arrivée":"Je suis au ravito")+'<small>'+(last?kmS(m.L)+" km":esc(C[i].n)+" · km "+kmS(C[i].km))+'</small></button>'+
+    '<button class="rm-go" data-rm="cp">'+(last?"Je franchis l’arrivée":"J’y suis")+'<small>'+(last?kmS(m.L)+" km":esc(C[i].n)+" · km "+kmS(C[i].km))+'</small></button>'+
     (i?'<button class="rm-ghost" data-rm="undo" id="rmUndo">Annuler le dernier pointage ('+esc(C[i-1].n)+')</button>':'')+
     '<button class="rm-quit" data-rm="quit"><i></i>Maintenir pour quitter · le chrono continue</button>';
   rmTick();
@@ -907,7 +913,7 @@ function rmTick(){
   var nd=new Date(); $("rmClock").innerHTML=hms(m.t*60)+'<small>temps de course · objectif '+hm(RM.goal)+(RS.practice?'':' · il est '+nd.getHours()+':'+pz(nd.getMinutes()))+'</small>';
   var due=m.gelLeft!=null&&m.gelLeft<=0;
   $("rmLive").innerHTML=(due?'<div class="rm-card alert"><span class="eyebrow">Rappel</span><div class="rm-next">Prends un gel maintenant</div><span>Puis touche « Gel pris ». Bois un peu avec.</span></div>':'')+
-    '<div class="rm-card"><span class="eyebrow">'+(m.last?"Dernière section":"Prochain ravito")+'</span><div class="rm-next">'+esc(m.last?"Arrivée":m.nx.n)+'</div><div class="rm-grid num"><div><b>'+kmS(m.left)+'</b>km</div><div><b>+'+m.up+'</b>m D+</div><div><b>'+hmc(m.eta)+'</b>prévu '+hmc(m.target)+'</div></div></div>'+
+    '<div class="rm-card"><span class="eyebrow">'+(m.last?"Dernière section":"Prochain point")+'</span><div class="rm-next">'+esc(m.last?"Arrivée":m.nx.n)+'</div><div class="rm-grid num"><div><b>'+kmS(m.left)+'</b>km</div><div><b>+'+m.up+'</b>m D+</div><div><b>'+hmc(m.eta)+'</b>prévu '+hmc(m.target)+'</div></div></div>'+
     '<div class="rm-card" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><span class="eyebrow">Arrivée estimée</span><div style="font-family:var(--display);font-size:28px;font-weight:800" class="num">'+hm(m.proj)+'</div></div><span class="delta '+dcls(m.delta)+'">'+sgn(m.delta)+'</span></div>'+
     '<div class="rm-card rm-advice">'+esc(m.adv)+'</div><div class="rm-prof">'+profileSVG(RM,{dark:true,pos:m.pos,h:96,top:20,small:true})+'</div>';
   var g=$("rmGel"), gs=$("rmGelSub"); if(g){g.className=due?"due":""; gs.textContent=(RS.gels?RS.gels+" pris · ":"")+(m.gelLeft==null?"rappel coupé":due?"c’est l’heure":"prochain dans "+Math.max(1,Math.ceil(m.gelLeft))+" min");}
