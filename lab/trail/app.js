@@ -6,6 +6,7 @@ var $=function(id){return document.getElementById(id);};
 // ---------- constantes ----------
 var START=Date.UTC(2026,10,9);                 // lundi 9 novembre 2026, semaine 1
 var KEY="thp40v2";
+var STRAVA=false;   // synchro Strava coupée pour l’instant : repasser à true pour la rebrancher
 var DEF_JSON="https://raw.githubusercontent.com/mathildevans-collab/trail/main/activities.json";
 var DOW=["lun","mar","mer","jeu","ven","sam","dim"], DOWL=["lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"], DL=["L","M","M","J","V","S","D"];
 var MON=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
@@ -32,6 +33,11 @@ function load(){
 }
 function merge(o,r){for(var k in o){if(r[k]==null)continue; if(!NULLABLE[k]&&o[k]&&typeof o[k]==="object"&&!Array.isArray(o[k]))Object.assign(o[k],r[k]); else o[k]=r[k];}}
 var D=load();
+if(!STRAVA){ // sans synchro : on oublie les sorties venues de Strava, on garde les imports CSV et les saisies
+  for(var _k in D.actual)if(D.actual[_k]&&D.actual[_k].src==="strava")delete D.actual[_k];
+  D.sync.runs=(D.sync.runs||[]).filter(function(r){return r.src==="csv";}); D.sync.t=0; D.sync.err=""; D.sync.upd="";
+  try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){}
+}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){toast("Mémoire du téléphone pleine : données non enregistrées.");}}
 
 // ---------- dates ----------
@@ -252,6 +258,7 @@ function localHTML(s){
   return h+'<p class="muted xs" style="margin-top:8px">Distances et dénivelés tels que publiés par chaque site. Vérifie le tracé avant de partir.</p></div></details>';
 }
 function syncLine(){
+  if(!STRAVA)return "";
   var s=D.sync, st=syncing?["warn","Synchronisation…"]:s.err?["off","Strava : "+s.err]:s.t?["ok","Strava à jour · "+ago(s.t)]:["","Strava pas encore synchronisé"];
   return '<div class="syncline"><span class="dot '+st[0]+'"></span><span>'+esc(st[1])+'</span><button data-act="sync"'+(syncing?" disabled":"")+'>Actualiser</button></div>';
 }
@@ -345,7 +352,7 @@ function sessionHero(p,s){
   var a=adjFor(p.n); if(a&&a.mode==="z2"&&(s.tag==="e"||s.tag==="l"))h+='<p><b>Zone 2 stricte cette semaine :</b> reste sous 150 bpm, marche si besoin.</p>';
   if(s.tag==="l"&&s.km>=14&&!s.race)h+='<p>À tester aujourd’hui : 40 à 60 g de glucides par heure (un gel de 22 g toutes les 30 à 40 min).</p>';
   if(s.race){h+='<button class="btn" data-go="today-race">'+I.play+' Voir le jour J</button>';}
-  else h+='<button class="btn'+(dn?" isdone":"")+'" data-done="'+k+'">'+I.check+(dn?' Faite · toucher pour annuler':' C’est fait')+'</button><p class="sub">'+(D.actual[k]?'Chiffres reçus : le bilan est plus bas.':'Le bilan arrive tout seul quand Strava reçoit ta sortie.')+'</p>';
+  else h+='<button class="btn'+(dn?" isdone":"")+'" data-done="'+k+'">'+I.check+(dn?' Faite · toucher pour annuler':' C’est fait')+'</button><p class="sub">'+(D.actual[k]?'Chiffres reçus : le bilan est plus bas.':(STRAVA?'Le bilan arrive tout seul quand Strava reçoit ta sortie.':'Saisis tes chiffres plus bas pour avoir le bilan du coach.'))+'</p>';
   return h+'</div>';
 }
 function sessionExtras(p,s){
@@ -469,7 +476,7 @@ function resultsHTML(today){
   }
   h+='<div class="card"><h3>Récupération</h3>'+[["J+1 à J+3","Marche, mobilité douce, pas de course."],["J+4 à J+7","Footings de 30 min en zone 1-2 si les jambes sont bonnes."],["J+8","Retour au club, sans séance dure."]].map(function(x){return '<div class="ex"><span><b>'+x[0]+'</b></span><span style="max-width:62%">'+x[1]+'</span></div>';}).join("")+'</div>';
   var t=totals();
-  h+='<div class="card"><h3>Ta préparation</h3><div class="stats num"><div class="stat"><b>'+t.d+'</b><span>séances faites sur '+t.t+'</span></div><div class="stat"><b>'+kmS(sumKm())+'</b><span>km courus (Strava)</span></div><div class="stat"><b>'+nb(sumDp())+'</b><span>m de D+</span></div></div><button class="btn sm" data-act="export" style="margin-top:6px">Exporter mes données</button></div>';
+  h+='<div class="card"><h3>Ta préparation</h3><div class="stats num"><div class="stat"><b>'+t.d+'</b><span>séances faites sur '+t.t+'</span></div><div class="stat"><b>'+kmS(sumKm())+'</b><span>km courus</span></div><div class="stat"><b>'+nb(sumDp())+'</b><span>m de D+</span></div></div><button class="btn sm" data-act="export" style="margin-top:6px">Exporter mes données</button></div>';
   return h;
 }
 function planRuns(){var a=dateOf(1,0).getTime(), b=raceUTC(); return (D.sync.runs||[]).filter(function(r){var t=Date.parse(r.date+"T00:00:00Z"); return t>=a&&t<b;});}
@@ -515,7 +522,7 @@ function projRange(){var p=projRuns().map(projOf); if(p.length<2)return ""; p.so
 function projCard(){
   var runs=(D.sync.runs||[]).filter(function(r){return r.km>=10&&r.t>0;}).slice().reverse();
   var h='<div class="card"><h3>Ton allure vs objectif</h3>';
-  if(!runs.length)return h+'<p class="small">Synchronise Strava (ou importe un CSV dans Réglages) pour comparer tes sorties de 10 km et plus à ton objectif.</p><button class="btn sm" data-act="sync">'+I.sync+' Synchroniser</button></div>';
+  if(!runs.length)return h+'<p class="small">Importe un export CSV de tes sorties (Garmin Connect ou Strava) pour comparer celles de 10 km et plus à ton objectif.</p><button class="btn sm" data-act="csv">'+I.up+' Importer un CSV</button></div>';
   var i=Math.min(RJsel,runs.length-1), a=runs[i], tot=projOf(a), diff=goal()-tot, pk=a.t/(a.km+(a.dp||0)/100);
   h+='<label class="field" style="margin-bottom:10px">Sortie comparée<select id="rjsel">'+runs.slice(0,20).map(function(r,k){return '<option value="'+k+'"'+(k===i?" selected":"")+'>'+fmtS(new Date(r.date+"T00:00:00Z"))+' · '+kmS(r.km)+' km · +'+nb(r.dp||0)+' m</option>';}).join("")+'</select></label>';
   h+='<div class="stats num"><div class="stat"><b>'+mmss(pk)+'</b><span>par km-effort</span></div><div class="stat"><b>'+mmss(eff())+'</b><span>cible '+hm(goal())+'</span></div><div class="stat"><b>'+mmss(a.t/a.km)+'</b><span>par km</span></div></div>';
@@ -538,10 +545,10 @@ function group(t,inner){return '<div class="sgroup"><span class="eyebrow">'+t+'<
 function vSettings(){
   var th=D.set.theme;
   var h='<button class="back" data-go="back">'+I.back+'Retour</button><h2 style="font-size:30px;margin-bottom:16px">Réglages</h2>';
-  h+=group("Apparence",swItem("phone","Suivre le téléphone","Clair le jour, sombre le soir","auto",th==="auto")+swItem("moon","Thème sombre",th==="auto"?"Réglé par le téléphone ("+(sysDark()?"sombre":"clair")+")":"Choisi à la main","dark",isDark(),th==="auto")+
-    '<div class="pv"><div style="background:#F5F6F3;color:#15221A;border-color:'+(isDark()?"#DDE3DD":"#5B47C9")+'">Clair<i style="background:#5B47C9"></i></div><div style="background:#0F1612;color:#E9F0EB;border-color:'+(isDark()?"#B3A6FF":"#26342B")+'">Sombre<i style="background:#B3A6FF"></i></div></div>');
+  h+=group("Apparence",'<div class="spad"><div class="opts" role="radiogroup" aria-label="Thème" style="margin:0">'+[["auto","Auto"],["light","Clair"],["dark","Sombre"]].map(function(o){return '<button role="radio" data-theme="'+o[0]+'" aria-pressed="'+(th===o[0])+'" aria-checked="'+(th===o[0])+'">'+o[1]+'</button>';}).join("")+'</div><p class="muted xs" style="margin:8px 0 0">'+(th==="auto"?"Suit le téléphone (en ce moment : "+(sysDark()?"sombre":"clair")+").":"Choisi à la main.")+'</p></div>');
   var s=D.sync;
-  h+=group("Strava",sitem("sync","Synchroniser maintenant",syncing?"Synchronisation…":s.err?"Dernière tentative : "+esc(s.err):s.t?"Dernière synchro "+ago(s.t)+(s.upd?" · données Strava du "+esc(fmtUpd(s.upd)):"")+" · "+(s.runs||[]).length+" sorties":"Jamais synchronisé",syncing?'<span class="chip warn">…</span>':s.err?'<span class="chip off">Erreur</span>':s.t?'<span class="chip ok">Actif</span>':'',' data-act="sync"')+
+  if(!STRAVA)h+=group("Sorties",sitem("up","Importer un CSV","Export Garmin Connect ou Strava (activities.csv). La synchro Strava automatique est coupée pour l’instant.",null,' data-act="csv"'));
+  else h+=group("Strava",sitem("sync","Synchroniser maintenant",syncing?"Synchronisation…":s.err?"Dernière tentative : "+esc(s.err):s.t?"Dernière synchro "+ago(s.t)+(s.upd?" · données Strava du "+esc(fmtUpd(s.upd)):"")+" · "+(s.runs||[]).length+" sorties":"Jamais synchronisé",syncing?'<span class="chip warn">…</span>':s.err?'<span class="chip off">Erreur</span>':s.t?'<span class="chip ok">Actif</span>':'',' data-act="sync"')+
     sitem("up","Importer un CSV","Export Garmin Connect ou Strava (activities.csv)",null,' data-act="csv"')+
     '<div class="spad"><details><summary class="small">Source des sorties Strava</summary><div class="in"><p class="small muted">Fichier activities.json écrit toutes les 2 h par l’Action GitHub du dépôt trail. Il ne contient que date, km, D+ et durée.</p><label class="field">Adresse<input id="jsonurl" value="'+esc(D.set.json)+'" inputmode="url" autocomplete="off"></label><div class="row" style="margin-top:8px"><button class="btn sm" data-act="jsonsave">Enregistrer</button><button class="btn sm" data-act="jsondef">Par défaut</button></div></div></details></div>');
   h+=group("Course",srow("cal","Jour de la course","Le plan et le compte à rebours suivent ce jour",'<select id="racedate"><option value="2027-05-08"'+(D.set.raceDate==="2027-05-08"?" selected":"")+'>sam. 8 mai</option><option value="2027-05-09"'+(D.set.raceDate==="2027-05-09"?" selected":"")+'>dim. 9 mai</option></select>')+
@@ -599,6 +606,7 @@ $("view").addEventListener("click",function(e){
   if(ds.go){ if(ds.go==="settings"){prevTab=tab;tab="settings";render();} else if(ds.go==="back"){setTab(prevTab||"today");} else if(ds.go==="today-race"){browsing=false;setTab("today");} else setTab(ds.go); return;}
   if(ds.day!=null&&b.classList.contains("day")||ds.day!=null&&b.classList.contains("link")){sel=+ds.day; if(b.classList.contains("link")){render(); return;} render(true); return;}
   if(ds.done){if(D.done[ds.done])delete D.done[ds.done]; else D.done[ds.done]=1; save(); if(D.done[ds.done]&&navigator.vibrate&&D.set.vib)try{navigator.vibrate(30);}catch(x){} render(true); return;}
+  if(ds.theme){D.set.theme=ds.theme; applyTheme(); save(); render(true); return;}
   if(ds.ci){var o=D.ci[cur]||(D.ci[cur]={}); o[ds.ci]=o[ds.ci]===ds.v?"":ds.v; save(); render(true); return;}
   if(ds.adj){if(ds.adj==="reset")delete D.adj[cur]; else D.adj[cur]=ds.adj; save(); render(true); return;}
   if(ds.todo!=null){var st=ds.store==="kit"?D.kit:D.todo; st[ds.todo]=!st[ds.todo]; if(!st[ds.todo])delete st[ds.todo]; save(); var kd=$("kitd"), op=kd&&kd.open; render(true); if(op&&$("kitd"))$("kitd").open=true; return;}
@@ -642,7 +650,7 @@ function act(a,b){
   else if(a==="jsonsave"){var u=$("jsonurl").value.trim(); if(u&&!/^https?:\/\//.test(u)){toast("Adresse invalide.");return;} D.set.json=u; save(); sync(true);}
   else if(a==="jsondef"){D.set.json=DEF_JSON; save(); sync(true);}
   else if(a==="reset"){if(!resetArmed){resetArmed=true; render(true); setTimeout(function(){if(resetArmed){resetArmed=false; if(tab==="settings")render(true);}},5000); return;}
-    var keep=D.set, gpx=D.gpx, sy=D.sync; D=blank(); D.set=keep; D.gpx=gpx; D.sync=sy; resetArmed=false; applyActs(D.sync.runs||[],true); save(); toast("Données effacées. Les sorties Strava ont été relues."); render(true);}
+    var keep=D.set, gpx=D.gpx, sy=D.sync; D=blank(); D.set=keep; D.gpx=gpx; D.sync=sy; resetArmed=false; applyActs(D.sync.runs||[],true); save(); toast("Données effacées."); render(true);}
   else if(a==="racereset"){if(!confirm("Réinitialiser le chrono de course ? Les temps déjà pointés seront perdus (sauf ceux déjà gardés dans le bilan)."))return; D.race=null; save(); render(true);}
   else if(a==="fakeset"){var f=$("fake").value; if(!isoOk(f)){toast("Choisis une date.");return;} D.set.fake=f; save(); goNow(); toast("Date simulée : "+fmtL(new Date(todayUTC())).toLowerCase()); setTab("today");}
   else if(a==="unfake"){D.set.fake=""; save(); goNow(); toast("Retour à aujourd’hui."); render(true);}
@@ -663,7 +671,7 @@ function toast(m){var t=$("toast"); t.textContent=m; t.hidden=false; clearTimeou
 // ---------- Strava (activities.json public) ----------
 var syncing=false;
 function sync(manual){
-  if(syncing)return; if(!D.set.json){if(manual)toast("Aucune source Strava réglée."); return;}
+  if(!STRAVA||syncing)return; if(!D.set.json){if(manual)toast("Aucune source Strava réglée."); return;}
   syncing=true; if(tab==="settings"||tab==="today")render(true);
   var u=D.set.json+(D.set.json.indexOf("?")>=0?"&":"?")+"t="+Date.now();
   fetch(u,{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error(r.status===404?"fichier introuvable":"erreur "+r.status); return r.json();}).then(function(j){
@@ -686,7 +694,7 @@ function applyActs(acts,quiet){
     if(m.s.km&&o.km>=0.6*m.s.km)D.done[k]=1; n++;});
   return n;
 }
-function autoSync(){if(!syncing&&Date.now()-(D.sync.t||0)>10*60*1000)sync(false);}
+function autoSync(){if(STRAVA&&!syncing&&Date.now()-(D.sync.t||0)>10*60*1000)sync(false);}
 
 // ---------- fichiers ----------
 function readFile(input,cb){var f=input.files&&input.files[0]; if(!f)return; var rd=new FileReader(); rd.onerror=function(){toast("Lecture du fichier impossible.");}; rd.onload=function(){try{cb(String(rd.result),f);}catch(err){toast("Ce fichier n’a pas pu être lu.");} input.value="";}; rd.readAsText(f);}
@@ -707,7 +715,7 @@ $("fileCsv").addEventListener("change",function(){readFile(this,function(txt){
     acts.push({date:dt,km:km,dp:iA>=0?(num(r[iA])||0):0,t:iM>=0?parseDur(r[iM]):0,src:"csv"});});
   var n=applyActs(acts);
   var have={}; (D.sync.runs||[]).forEach(function(r){have[r.date+"|"+Math.round(r.km*10)]=1;});
-  acts.forEach(function(a){if(!have[a.date+"|"+Math.round(a.km*10)])D.sync.runs.push({date:a.date,km:a.km,dp:Math.round(a.dp),t:Math.round(a.t)});});
+  acts.forEach(function(a){if(!have[a.date+"|"+Math.round(a.km*10)])D.sync.runs.push({date:a.date,km:a.km,dp:Math.round(a.dp),t:Math.round(a.t),src:"csv"});});
   D.sync.runs.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
   save(); toast(acts.length+" sorties lues, "+n+" correspondent au plan."); render(true);
 });});
