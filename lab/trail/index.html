@@ -9,13 +9,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="THP40">
 <title>Plan THP40</title>
-<link rel="manifest" href="manifest.webmanifest?v=2">
-<link rel="icon" href="icon.svg?v=2" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon-180.png?v=2">
+<link rel="manifest" href="manifest.webmanifest?v=3">
+<link rel="icon" href="icon.svg?v=3" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png?v=3">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 <main id="view" aria-live="polite"></main>
@@ -29,13 +29,15 @@
 </nav>
 
 <section class="racemode" id="rm" hidden aria-label="Mode Course"><div class="rm-in" id="rmIn"></div></section>
+<div class="sheet" id="sheet" hidden><div class="sheet-bg" data-close="1"></div><div class="sheet-in" role="dialog" aria-modal="true" aria-label="Détail"><div class="grab"></div><button class="sheet-x" data-close="1" aria-label="Fermer">×</button><div id="sheetBody"></div></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
 <input type="file" id="fileCsv" accept=".csv,text/csv" hidden>
+<input type="file" id="fileGpxRace" accept=".gpx,application/gpx+xml,application/xml,text/xml" hidden>
 <input type="file" id="fileGpx" accept=".gpx,application/gpx+xml,application/xml,text/xml" hidden>
 <input type="file" id="fileJson" accept=".json,application/json" hidden>
 
-<script src="data.js?v=2"></script>
-<script src="app.js?v=2"></script>
+<script src="data.js?v=3"></script>
+<script src="app.js?v=3"></script>
 <script>if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js');</script>
 </body>
 </html>
