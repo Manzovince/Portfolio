@@ -359,8 +359,8 @@ function banners(){var f=fakeDate(); return f?'<div class="banner warn"><b>Date 
 // ---------- profil ----------
 function profileSVG(m,o){
   o=o||{}; var W=360,H=o.h||170,top=o.top||26,bot=H-22,L=m.L,P=m.prof;
-  var dark=o.dark, line=dark?"#B3A6FF":"var(--brand)", trap=dark?"#F08A98":"var(--off)", txt=dark?"#93A39A":"var(--muted)", grid=dark?"#26342B":"var(--line)";
-  var X=function(k){return 10+k/L*(W-20);}, ring=dark?"#0B0F0D":"var(--card)";
+  var dark=o.dark, line=dark?"#7fb898":"var(--brand)", trap=dark?"#ec8a52":"var(--off)", txt=dark?"#9aa49d":"var(--muted)", grid=dark?"#2d3530":"var(--line)";
+  var X=function(k){return 10+k/L*(W-20);}, ring=dark?"#141917":"var(--card)";
   if(!P){var yy=(top+bot)/2, s0='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Parcours">';
     s0+='<line x1="10" x2="'+(W-10)+'" y1="'+yy+'" y2="'+yy+'" stroke="'+line+'" stroke-width="3" stroke-linecap="round"/>';
     m.cps.slice(0,-1).forEach(function(c,i){s0+='<circle cx="'+X(c.km)+'" cy="'+yy+'" r="4" fill="'+line+'"/><text x="'+X(c.km)+'" y="'+(yy-10)+'" text-anchor="middle" font-size="10" font-weight="700" fill="'+txt+'">R'+(i+1)+'</text>';});
@@ -537,7 +537,7 @@ function vPlan(){
   var r=activeRace(); if(!r)return header("Ton plan","Le plan")+'<div class="card empty"><p class="muted">Ajoute une course A pour avoir un plan.</p><button class="btn primary" data-act="addrace">+ Ajouter une course</button></div>';
   var pl=planOf(r), cw=nowWeek(pl), ti=planIdx(pl), t=totals(pl), ne=Object.keys(D.edits[r.id]||{}).length;
   var h=header(pl.n+" semaine"+(pl.n>1?"s":"")+" · "+fmtS(pl.start)+" → "+fmtS(pl.end),"Le plan");
-  var cols={Base:"#B3A6FF",Construction:"#8C79F0","Spécifique":"#5B47C9",Affûtage:"#2E2373"}, PH=[];
+  var cols={Base:"#a9cdb8",Construction:"#6fa587","Spécifique":"#2f5d46",Affûtage:"#e2a72e"}, PH=[];
   pl.weeks.forEach(function(wk){if(!PH.length||PH[PH.length-1][0]!==wk.ph)PH.push([wk.ph,0]); PH[PH.length-1][1]++;});
   h+='<div class="card"><div class="sb"><b style="font-family:var(--display);font-size:18px">'+esc(r.name)+'</b><span class="chip">'+fmtD(pl.end)+'</span></div><div class="phases">'+PH.map(function(p){return '<div style="flex:'+p[1]+';background:'+cols[p[0]]+'"></div>';}).join("")+'</div><div class="phlab">'+PH.map(function(p){return '<span>'+p[0]+'</span>';}).join("")+'</div>'+
     '<p class="small" style="margin:10px 0 6px">'+(ti<0?'Le plan démarre le '+fmtL(pl.start).toLowerCase()+'.':ti>=pl.n*7?'Plan terminé. Bravo.':'Tu es en semaine <b>'+cw+'</b>, phase <b>'+pl.weeks[cw-1].ph.toLowerCase()+'</b>.')+'</p><div class="sb small num"><span>'+t.d+' / '+t.t+' séances faites</span><span class="muted">'+(t.t?Math.round(t.d/t.t*100):0)+' %</span></div><div class="bar" style="margin-top:6px"><i style="width:'+(t.t?t.d/t.t*100:0)+'%"></i></div>'+
@@ -705,7 +705,7 @@ function sysDark(){return !!(MQ&&MQ.matches);}
 function isDark(){return D.set.theme==="dark"||(D.set.theme==="auto"&&sysDark());}
 function applyTheme(){
   if(D.set.theme==="auto")document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme",D.set.theme);
-  var mt=document.querySelector('meta[name="theme-color"]'); if(mt)mt.setAttribute("content",!$("rm").hidden?"#0B0F0D":isDark()?"#0F1612":"#F5F6F3");
+  var mt=document.querySelector('meta[name="theme-color"]'); if(mt)mt.setAttribute("content",!$("rm").hidden?"#141917":isDark()?"#141917":"#f3f4f0");
 }
 applyTheme();
 if(MQ&&MQ.addEventListener)MQ.addEventListener("change",function(){applyTheme(); if(tab==="settings")render(true);});
