@@ -665,7 +665,7 @@ function editRace(id){
   r=r||{name:"",date:"",time:"08:00",km:"",dp:"",goal:0,prio:"A",cps:[],start:nextMonday()};
   var b=!!r.builtin;
   var h='<h3>'+(isNew?"Ajouter une course":"Modifier "+esc(r.name))+'</h3>';
-  if(isNew&&typeof PRESETS!=="undefined")h+='<span class="eyebrow" style="margin-bottom:6px">Courses prêtes</span>'+PRESETS.map(function(p){var has=D.races.some(function(x){return x.preset===p.key;}); return '<button class="link" data-sact="preset:'+p.key+'"'+(has?' disabled style="opacity:.5"':'')+'><span class="ico">'+I.flag+'</span><span class="tx"><b>'+esc(p.name)+'</b><small>'+kmS(p.km)+' km · +'+nb(p.dp)+' m · '+esc(p.place)+(has?' · déjà ajoutée':' · trace et conseils inclus')+'</small></span><span class="chev">›</span></button>';}).join("")+'<span class="eyebrow" style="margin:14px 0 6px">Ou une autre course</span>';
+  if(isNew&&typeof PRESETS!=="undefined")h+='<span class="eyebrow" style="margin-bottom:6px">Courses prêtes</span>'+PRESETS.map(function(p){var has=D.races.some(function(x){return x.preset===p.key;}); return '<button class="link" data-sact="preset:'+p.key+'"'+(has?' disabled style="opacity:.5"':'')+'><span class="ico">'+I.flag+'</span><span class="tx"><b>'+esc(p.name)+'</b><small>'+kmS(p.km)+' km · +'+nb(p.dp)+' m · '+esc(p.place)+(has?' · déjà ajoutée':(p.prio==="B"?' · course B':'')+(p.prof?' · trace et conseils inclus':' · sans trace'))+'</small></span><span class="chev">›</span></button>';}).join("")+'<span class="eyebrow" style="margin:14px 0 6px">Ou une autre course</span>';
   if(!b)h+='<div class="radio2" data-group="prio"><button data-pick="A" aria-pressed="'+(r.prio==="A")+'"><b>Course A · objectif</b><span>L’appli te prépare un plan jusqu’au jour J</span></button><button data-pick="B" aria-pressed="'+(r.prio==="B")+'"><b>Course B · préparation</b><span>Glissée dans le plan de ta course A</span></button></div>';
   h+='<button class="btn sm" data-sact="gpx" style="margin-bottom:10px;width:100%">'+I.up+' <span id="gpxlab">'+(r.prof||r.gpx?"Remplacer la trace GPX":"Importer la trace GPX")+'</span></button>';
   h+='<label class="field" style="margin-bottom:8px">Nom<input id="rName" value="'+esc(r.name)+'" placeholder="Trail des Calanques"'+(b?" disabled":"")+'></label>';
@@ -698,7 +698,7 @@ function sheetAct(a){
   }
   if(a==="gpx"){$("fileGpxRace").click(); return;}
   if(a.indexOf("preset:")===0){var pr=PRESETS.filter(function(x){return x.key===a.slice(7);})[0]; if(!pr)return;
-    var nr=JSON.parse(JSON.stringify(pr)); nr.id=uid(); nr.preset=pr.key; delete nr.key; nr.prio=SH.prio||"A"; nr.start=nextMonday(); var nt=nr.note; delete nr.note;
+    var nr=JSON.parse(JSON.stringify(pr)); nr.id=uid(); nr.preset=pr.key; delete nr.key; nr.prio=pr.prio||SH.prio||"A"; nr.start=nextMonday(); var nt=nr.note; delete nr.note;
     D.races.push(nr); D.focus=nr.id; var ca=activeRace(); if(nr.prio==="A"&&(!ca||daysTo(ca)<0))D.active=nr.id;
     MC={}; PC={}; save(); closeSheet(); toast(nr.name+" ajoutée. "+nt); goNow(); render(true); editRace(nr.id); return;}
   if(a==="saverace"){
