@@ -1,6 +1,6 @@
 // Hors ligne : réseau d’abord, copie en cache sinon (indispensable le jour de la course).
-const C = 'thp40-v9';
-const SHELL = ['./', 'index.html', 'style.css?v=9', 'data.js?v=9', 'fit.js?v=9', 'app.js?v=9', 'icon.svg?v=9', 'icon-192.png?v=9', 'manifest.webmanifest?v=9'];
+const C = 'thp40-v10';
+const SHELL = ['./', 'index.html', 'style.css?v=10', 'data.js?v=10', 'fit.js?v=10', 'app.js?v=10', 'icon.svg?v=10', 'icon-192.png?v=10', 'manifest.webmanifest?v=10'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== C).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', e => {

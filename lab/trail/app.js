@@ -605,6 +605,7 @@ function vSettings(){
     (D.race?sitem("trash","Réinitialiser le chrono de course",esc((raceById(D.race.rid)||{}).name||"")+" · "+(D.race.done?"terminée":D.race.t0?"chrono lancé":"prêt"),"",' data-act="racereset"',"danger"):""));
   if(a){var ad=dms(a.date), cf=fakeDate(), pst=planOf(a).start, opts=[["Préparer",Math.max(pst+8*DAY+DAY,Math.min(realToday(),ad-30*DAY))],["Affûter",ad-4*DAY],["Courir",ad],["Récupérer",ad+DAY]];
     h+=group("Date simulée",'<div class="spad"><div class="seg">'+opts.map(function(x){var j=Math.round((ad-x[1])/DAY); return '<button data-fake="'+iso(x[1])+'" aria-pressed="'+(cf===iso(x[1]))+'"><b>'+x[0]+'</b><span>'+fmtD(x[1])+' · '+(j>0?"J-"+j:j===0?"jour J":"J+"+(-j))+'</span></button>';}).join("")+'</div><div class="fields" style="margin-top:10px"><label class="field">Autre date<input type="date" id="fake" value="'+esc(D.set.fake||"")+'"></label></div><button class="btn sm" data-act="unfake"'+(D.set.fake?"":" disabled")+'>Revenir à la vraie date</button></div>');}
+  h+=group("Montre",sitem("watch","Préparer la montre","Toutes tes courses à venir pour l’écran de suivi en direct",null,' data-act="watchexp"'));
   h+=group("Données",sitem("down","Exporter mes données","Courses, séances, check-ins, temps de course",null,' data-act="export"')+sitem("up","Importer une sauvegarde","Remplace les données de ce téléphone",null,' data-act="import"')+
     sitem("trash",resetArmed?"Toucher encore pour tout effacer":"Tout effacer","Séances cochées, chiffres, check-ins, modifications du plan (les courses restent)","",' data-act="reset"',"danger"));
   return h+'<p class="foot">Plan trail · v3 · données gardées sur ce téléphone</p>';
@@ -631,6 +632,28 @@ function showInfo(key){
   openSheet(h);
 }
 // ---------- montre ----------
+function watchRace(r){
+  var m=model(r), L=m.L, i, k, d=new Date(dms(r.date)), out={name:r.name.split(" · ").pop().slice(0,18),date:+r.date.replace(/-/g,""),time:r.time||"",km:Math.round(L*100)/100,dp:Math.round(m.dp),goal:Math.round(m.goal)};
+  out.pass=[]; var st=L>20?1:0.5; for(k=st;k<L-0.05;k+=st)out.pass.push([Math.round(k*10)/10,Math.round(m.cumMin(k)*10)/10]); out.pass.push([Math.round(L*10)/10,Math.round(m.goal*10)/10]);
+  var P=m.prof?m.prof.slice():[[0,0],[L,0]], prof=[];
+  if(m.prof){var step=Math.max(0.1,L/120), next=0; P.forEach(function(p,j){if(p[0]>=next-1e-9||j===P.length-1){prof.push(p); next=p[0]+step;}});}
+  else prof=[[0,0],[L,0]];
+  var up=0; out.prof=prof.map(function(p,j){if(m.prof){if(j)up+=Math.max(0,p[1]-prof[j-1][1]);} return [Math.round(p[0]*10)/10,Math.round(p[1])];});
+  var raw=0, cum=[0]; for(i=1;i<out.prof.length;i++){raw+=Math.max(0,out.prof[i][1]-out.prof[i-1][1]); cum.push(raw);}
+  out.up=m.prof&&raw>0?cum.map(function(v){return Math.round(v*m.dp/raw);}):[0,Math.round(m.dp)];
+  if(!m.prof)out.prof=[[0,0],[Math.round(L*10)/10,0]];
+  out.aids=m.cps.slice(0,-1).map(function(c){var n=c.n.split(/[,(]/)[0].trim(); if(n.length>16)n=n.slice(0,16).replace(/\s+\S*$/,""); return [Math.round(c.km*10)/10,n];});
+  out.climbs=m.prof?segs(m,1).map(function(c){return [Math.round(c.a*10)/10,Math.round(c.b*10)/10,c.g,c.p];}):[];
+  out.traps=(m.traps||[]).map(function(t,ti){if(r.builtin)return [t[0],t[1],["Descente -13 %","Montée +12 %"][ti]||"Piège"];var dz=m.elevAt(t[1])-m.elevAt(t[0]), g=Math.round(Math.abs(dz)/((t[1]-t[0])*10)); return [Math.round(t[0]*10)/10,Math.round(t[1]*10)/10,(dz<0?"Descente -":"Montée +")+g+" %"];});
+  return out;
+}
+function watchExport(){
+  var R=D.races.filter(function(r){return daysTo(r)>=0;}).sort(function(a,b){return a.date<b.date?-1:1;});
+  if(!R.length){toast("Aucune course à venir.");return;}
+  var J={app:"trail",made:new Date().toISOString(),gel:D.set.gel||0,water:D.set.water||0,races:R.map(watchRace)};
+  FIT.download(new Blob([JSON.stringify(J)],{type:"application/json"}),"courses-montre.json");
+  openSheet('<h3>Préparer la montre</h3><p class="small muted" style="margin:-4px 0 10px">Le fichier <b>courses-montre.json</b> contient '+R.length+' course'+(R.length>1?'s':'')+' : '+R.map(function(r){return esc(r.name);}).join(", ")+'. Le jour d’une course, l’écran de suivi de la montre la choisit tout seul.</p><ol class="small" style="margin:0;padding-left:18px"><li>Sur le Mac, dans le Terminal :<br><code>~/Documents/Projects/"Claude Code"/trail-montre/montre.sh</code><br>Le script prend le fichier dans Téléchargements et fabrique <b>Trail.prg</b>.</li><li>Branche la montre, ouvre OpenMTP et copie <b>bin/Trail.prg</b> dans <b>GARMIN/APPS</b>. Supprime l’ancien THP40.prg s’il y est encore.</li><li>Sur la montre, l’écran garde sa place dans l’activité Trail. S’il a disparu : Trail › Réglages › Écrans de données › Ajouter › Champs Connect IQ › <b>Trail</b>.</li><li>Refais-le quand tu ajoutes une course, changes un objectif ou les rappels gel/eau.</li></ol>');
+}
 function wktName(s,d){return s.type+" "+fmtS(d);}
 function hrTxt(h){return h?h[0]+"-"+h[1]+" bpm":"";}
 function durTxt(d){return d.open?"jusqu’à Tour":d.d?(d.d>=1000?kmS(d.d/1000)+" km":d.d+" m"):d.t>=60?Math.round(d.t/60)+" min":d.t+" s";}
@@ -798,6 +821,7 @@ function act(a,b){
   else if(a==="csv")$("fileCsv").click();
   else if(a==="import")$("fileJson").click();
   else if(a==="export")exportData();
+  else if(a==="watchexp")watchExport();
   else if(a==="reset"){if(!resetArmed){resetArmed=true; render(true); setTimeout(function(){if(resetArmed){resetArmed=false; if(tab==="settings")render(true);}},5000); return;}
     var keep={set:D.set,races:D.races,active:D.active,focus:D.focus}; D=blank(); Object.assign(D,keep); resetArmed=false; MC={}; PC={}; save(); toast("Données effacées. Tes courses sont gardées."); goNow(); render(true);}
   else if(a==="racereset"){if(!confirm("Réinitialiser le chrono de course ? Les temps pointés seront perdus (sauf ceux déjà gardés dans le bilan)."))return; D.race=null; save(); render(true);}
