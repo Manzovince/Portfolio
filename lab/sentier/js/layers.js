@@ -416,17 +416,53 @@ function skyCanvas(sk,cloud){
 let STARS=null;
 function stars(){if(STARS&&STARS.w===W)return STARS;const r=rng(77),a=[];for(let i=0;i<W*H/260;i++)a.push([r()*W|0,r()*H*.6|0,r()]);return STARS={w:W,a}}
 // nuages en pixels : cumulus empilés
-const cloudSprites=[];
-function cloudSprite(i,dark=0){
-  const ck=i+'_'+dark;if(cloudSprites[ck])return cloudSprites[ck];
-  const r=rng(500+i),w=40+r()*70|0,h=Math.round(w*.42),pb=PB(w+4,h+4);
-  const dk=c=>u32(mix(hex(c),[90,96,108],dark*.55)),cW=dk('#ffffff'),cL=dk('#eef1f7'),cS=dk('#cdd3e2'),cD=dk('#aeb6ca');
-  const blobs=[];for(let k=0;k<6+r()*5;k++)blobs.push([w*.15+r()*w*.7,h*.45+r()*h*.35,h*.22+r()*h*.3]);
-  for(let y=0;y<h+4;y++)for(let x=0;x<w+4;x++){
-    let best=-1,ly=0;
-    for(const[bx,by,br]of blobs){const d=((x-bx)**2+(y-by)**2*1.4)/(br*br);if(d<1){const v=1-d;if(v>best){best=v;ly=(y-by)/br+(x-bx)/br*.3}}}
-    if(best<0||y>h*.86)continue;
-    pb.b[y*(w+4)+x]=ly<-.45?cW:ly<.05?cL:ly<.5?(bay(x,y)<.5?cL:cS):(y>h*.78?cD:cS);
+/* ---------- nuages : palette selon l'heure et la météo, formes en chou-fleur, bords tramés ---------- */
+const cloudSprites=new Map();let cloudKey='';
+// 4 teintes : lumière, milieu, ombre, ombre profonde
+function cloudPalette(sk,se,wx){
+  const W0=WX[wx],grey=W0.rain?.62:wx==='nuages'?.35:W0.fog?.2:0;
+  let hi=[255,255,255],mid=[236,240,247],sh=[200,208,224],dp=[166,176,198];
+  // coucher et lever : dessus doré, dessous rosé
+  const low=clamp(1-Math.abs(se-2)/9,0,1);
+  if(low>0){hi=mix(hi,[255,214,160],low*.8);mid=mix(mid,[250,190,160],low*.6);sh=mix(sh,[200,130,150],low*.6);dp=mix(dp,[130,100,140],low*.6)}
+  // nuit : bleu sombre, bords éclairés par la lune
+  if(sk.dark>0){const n=sk.dark;hi=mix(hi,[120,130,170],n*.75);mid=mix(mid,[60,68,104],n*.85);sh=mix(sh,[36,42,72],n*.9);dp=mix(dp,[24,28,52],n*.9)}
+  if(grey){const g=[[150,156,166],[120,126,138],[92,98,112],[70,76,90]];[hi,mid,sh,dp]=[hi,mid,sh,dp].map((c,i)=>mix(c,g[i],grey))}
+  return[hi,mid,sh,dp];
+}
+function cloudSprite(i,pal,kind='cu'){
+  const key=i+kind+pal.map(c=>c.join()).join('|');let c=cloudSprites.get(key);if(c)return c;
+  if(cloudSprites.size>80)cloudSprites.clear();
+  const r=rng(500+i*7+(kind==='ac'?999:0)),P=pal.map(u32);
+  let w,h,blobs=[];
+  if(kind==='ac'){ // altocumulus : petits moutons alignés
+    w=60+r()*80|0;h=Math.round(w*.18)+6;for(let k=0;k<w/6;k++)blobs.push([4+r()*(w-8),h*.55+(r()-.5)*h*.3,2+r()*3.2]);
+  }else if(kind==='cb'){ // gros nuage d'averse, haut et sombre
+    w=110+r()*70|0;h=Math.round(w*.7);for(let k=0;k<16;k++){const t=r();blobs.push([w*(.15+t*.7),h*(.25+(1-Math.abs(t-.5)*1.4)*-.05+r()*.5),h*(.12+r()*.16)])}
+  }else{ // cumulus en chou-fleur
+    w=48+r()*80|0;h=Math.round(w*.5);
+    for(let k=0;k<5+r()*4;k++)blobs.push([w*.12+r()*w*.76,h*.62+r()*h*.18,h*.18+r()*h*.18]);   // base
+    for(let k=0;k<4+r()*4;k++)blobs.push([w*.25+r()*w*.5,h*.35+r()*h*.2,h*.16+r()*h*.2]);       // bourgeons du dessus
   }
-  const[cv,g]=canvasOf(w+4,h+4);g.putImageData(pb.img,0,0);return cloudSprites[ck]=cv;
+  const W2=w+6,H2=h+6,pb=PB(W2,H2),flat=kind==='ac'?1:h*.8;
+  for(let y=0;y<H2;y++)for(let x=0;x<W2;x++){
+    let best=-1,lx=0,ly=0;
+    for(const[bx,by,br]of blobs){const d=((x-bx)**2+(y-by)**2*1.3)/(br*br);if(d<1){const v=1-d;if(v>best){best=v;lx=(x-bx)/br;ly=(y-by)/br}}}
+    if(best<0||y>flat+2)continue;
+    if(best<.12&&bay(x,y)>best/.12)continue;                  // bords tramés, plus doux
+    const L=ly*.85+lx*.35+(y/H2)*.9-.35;                       // lumière venant du haut-gauche
+    const t=L<-.55?0:L<-.1?(bay(x,y)<(L+.55)/.45?1:0):L<.35?1:L<.75?(bay(x,y)<(L-.35)/.4?2:1):2;
+    pb.b[y*W2+x]=P[(y>flat-1?Math.min(3,t+1):t)];
+  }
+  const[cv,g]=canvasOf(W2,H2);g.putImageData(pb.img,0,0);cloudSprites.set(key,cv);return cv;
+}
+// couche couverte (temps gris, pluie) : plafond continu au bord inférieur bosselé et tramé
+let deckCv=null,deckKey='';
+function cloudDeck(pal,depth){
+  const key=W+'x'+H+pal.map(c=>c.join()).join('|')+depth;if(key===deckKey)return deckCv;deckKey=key;
+  const w=W*2,pb=PB(w,Math.round(H*depth)+12),P=pal.map(u32);
+  for(let x=0;x<w;x++){const e=Math.round(H*depth*(.72+.22*fbm(x/w*12,3,3))+3*vn(x/7,5));
+    for(let y=0;y<pb.h;y++){if(y>e+3)break;const f=y/e;let k=f<.45?1:f<.8?(bay(x,y)<(f-.45)/.35?2:1):(bay(x,y)<(f-.8)/.2?3:2);
+      if(y>=e&&bay(x,y)>(e+3-y)/4)continue;if(y===e-1&&hs2(x,y)<.4)k=0;pb.b[y*w+x]=P[k]}}
+  const[cv,g]=canvasOf(w,pb.h);g.putImageData(pb.img,0,0);return deckCv=cv;
 }
