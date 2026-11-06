@@ -293,9 +293,9 @@ function hud(){
     const hr=LIVE.hr,pc=clamp((hr/190-.5)/.5,0,1),z=hr<114?1:hr<133?2:hr<152?3:hr<171?4:5,ZC=['#8a8f99','#3a8ae0','#3ab86a','#f0a030','#e8483a'];
     $('#fHr').textContent=Math.round(hr);
     const a=(150+pc*240)*Math.PI/180;$('#fMark').setAttribute('cx',(50+46.5*Math.cos(a)).toFixed(2));$('#fMark').setAttribute('cy',(50+46.5*Math.sin(a)).toFixed(2));
-    $('.f-top .h').style.animationDuration=(60/hr).toFixed(2)+'s';
-    $('#fDist').textContent=fmt(G.d/1000,2);$('#fPace').textContent=pace(LIVE.v);$('#fTime').textContent=dur(G.t);
-    $('#fSub').textContent=`D+ ${fmt(G.dp)} · ${fmt(elevMacro(G.d))} m · ${(LIVE.grade>0?'+':'')+Math.round(LIVE.grade*100)} %`;
+    $('.face .h').style.animationDuration=(60/hr).toFixed(2)+'s';
+    $('#fDist').textContent=fmt(G.d/1000,2);$('#fPace').textContent=pace(LIVE.v);$('#fDp').textContent=fmt(G.dp);
+    $('#fSub').textContent=`m · ${fmt(elevMacro(G.d))} m · ${(LIVE.grade>0?'+':'')+Math.round(LIVE.grade*100)} %`;
   }$('#wCad').textContent=LIVE.cad+' spm';$('#wMode').textContent=LIVE.mode==='run'?'course':'marche';
   const cap=capL(),sh=GEAR[G.gear.shoes];
   $('#bW').style.width=G.water/cap*100+'%';$('#tW').textContent=fmt(G.water,2)+' L';
