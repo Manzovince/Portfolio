@@ -403,28 +403,65 @@ function item(title,desc,btn,cls,on,fn,dis){
   d.innerHTML='<b></b><button></button><div class="d"></div>';d.querySelector('b').textContent=title;d.querySelector('.d').textContent=desc;
   const b=d.querySelector('button');b.textContent=btn;if(cls)b.className=cls;b.disabled=!!dis;b.onclick=()=>{fn();save();renderShop();hud()};return d;
 }
+// boutique en rayons : une barre de catégories fixe, puis des grilles de cartes compactes
+const SICO={style:'🏃',shoes:'👟',top:'👕',head:'🧢',eyes:'🕶️',bag:'🎒',poles:'🥢',lamp:'🔦'};
+let shopCat=store.get('shopCat','ravito'),shopSlot=store.get('shopSlot','shoes');
+function card(o){
+  const d=document.createElement('div');d.className='scard'+(o.on?' on':'')+(o.lock?' lock':'');
+  d.innerHTML=`<div class="si"></div><div class="sn"></div><div class="sd"></div><button></button>`;
+  d.querySelector('.si').textContent=o.ic||'';if(o.sw)d.querySelector('.si').style.cssText=`background:${o.sw};`;
+  d.querySelector('.sn').textContent=o.n;d.querySelector('.sd').textContent=o.d||'';d.title=o.d||'';
+  if(o.badge){const bg=document.createElement('i');bg.className='sb';bg.textContent=o.badge;d.appendChild(bg)}
+  const b=d.querySelector('button');b.textContent=o.btn;if(o.buy)b.className='buy';b.disabled=!!o.dis;
+  b.onclick=()=>{o.fn();save();renderShop();hud()};return d;
+}
 function renderShop(){
   const pb=$('#pb'),keep=pb.scrollTop;pb.innerHTML='';requestAnimationFrame(()=>pb.scrollTop=keep);const reg=BI[leg(G.d).b].reg;
-  const h=t=>{const e=document.createElement('h3');e.textContent=t;pb.appendChild(e)};
-  h(`Ravitaillement · sac ${stockN()}/${slots()} · ${coinTxt(Math.floor(G.coins))}`);
-  for(const[id,f]of Object.entries(FOOD)){if(f.reg&&f.reg!==reg)continue;
-    pb.appendChild(item(`${f.ic} ${f.n}`,`+${f.e} d’énergie · tu en as ${G.stock[id]||0}`,coinTxt(f.p),'buy',0,()=>{G.coins-=f.p;G.stock[id]=(G.stock[id]||0)+1},G.coins<f.p||stockN()>=slots()))}
-  const sh=GEAR[G.gear.shoes];
-  if(G.wear>sh.life*.5){const pr=Math.max(20,Math.round(sh.p*.4));pb.appendChild(item('👟 Nouvelle paire · '+sh.n,`Semelle à ${Math.round(Math.max(0,1-G.wear/sh.life)*100)} %`,coinTxt(pr),'buy',0,()=>{G.coins-=pr;G.wear=0},G.coins<pr))}
-  for(const[slot,name]of SLOTS){h(name);
-    if(['head','eyes','poles','lamp'].includes(slot)&&G.gear[slot])pb.appendChild(item('Rien','Ranger l’accessoire','Retirer','',0,()=>{G.gear[slot]=null}));
-    for(const[id,g]of Object.entries(GEAR)){if(g.s!==slot)continue;const own=G.own.includes(id),on=G.gear[slot]===id;
-      pb.appendChild(item(g.n,g.d,on?'porté':own?'Mettre':coinTxt(g.p),own?'':'buy',on,()=>{if(!own){G.coins-=g.p;G.own.push(id)}G.gear[slot]=id;if(slot==='shoes')G.wear=0;if(slot==='bag')G.water=Math.min(G.water,capL())},on||(!own&&G.coins<g.p)))}}
-  h('Entraînement');
-  for(const[k,u]of Object.entries(UPG)){const l=lvl(k),c=upCost(k,l);pb.appendChild(item(`${u.n} · niv. ${l}`,u.d,coinTxt(c),'buy',0,()=>{G.coins-=c;G.up[k]=l+1},G.coins<c))}
-  h('Compagnon');
-  const ok=G.q.includes('chien');
-  for(const[id,C]of Object.entries(COMP)){
-    const met=!!G.st.bio[C.b],own=G.comps.includes(id),on=G.comp===id;
-    pb.appendChild(item(`${C.ic} ${met?C.n:'???'}`,met?C.d:`${C.meet} (${BI[C.b].n.toLowerCase()})`,on?'avec toi':own?'Emmener':met?coinTxt(C.p):'à rencontrer',own?'':'buy',on,
-      ()=>{if(!own){G.coins-=C.p;G.comps.push(id)}G.comp=id},on||!met||(!own&&G.coins<C.p)));
+  // barre fixe : pièces, sac, catégories
+  const top=document.createElement('div');top.className='shead';
+  top.innerHTML=`<div class="sbal"><b>${coinTxt(Math.floor(G.coins))}</b><span>sac ${stockN()}/${slots()} · ${fmt(G.water,2)}/${fmt(capL(),2)} L</span></div><div class="scats"></div>`;
+  const CATS=[['ravito','🍌 Ravito'],['equip','🎽 Équipement'],['style','🏃 Style'],['train','💪 Entraînement'],['comp','🐾 Compagnons']];
+  for(const[k,n]of CATS){const b=document.createElement('button');b.textContent=n;b.className=shopCat===k?'on':'';b.onclick=()=>{shopCat=k;store.set('shopCat',k);pb.scrollTop=0;renderShop()};top.querySelector('.scats').appendChild(b)}
+  pb.appendChild(top);
+  const grid=(cls='')=>{const g=document.createElement('div');g.className='sgrid '+cls;pb.appendChild(g);return g};
+  const note=t=>{const p=document.createElement('p');p.className='snote';p.textContent=t;pb.appendChild(p)};
+  if(shopCat==='ravito'){
+    note('Mangé tout seul quand l’énergie baisse. Réassort automatique réglable dans Réglages.');
+    const g=grid();
+    for(const[id,f]of Object.entries(FOOD)){if(f.reg&&f.reg!==reg)continue;const n=G.stock[id]||0;
+      g.appendChild(card({ic:f.ic,n:f.n,d:`+${f.e} d’énergie`,badge:n?'×'+n:'',btn:coinTxt(f.p),buy:1,dis:G.coins<f.p||stockN()>=slots(),fn:()=>{G.coins-=f.p;G.stock[id]=n+1}}))}
+    if(stockN()>=slots())note('Sac plein : un portage plus grand (Équipement → Portage) emporte plus d’encas.');
+  }else if(shopCat==='equip'){
+    // sous-onglets par emplacement, avec l'objet porté
+    const sl=document.createElement('div');sl.className='sslots';
+    for(const[slot,name]of SLOTS){if(slot==='style')continue;const b=document.createElement('button');const cur=G.gear[slot]?GEAR[G.gear[slot]].n:'—';
+      b.innerHTML=`<span>${SICO[slot]}</span><b></b><small></small>`;b.querySelector('b').textContent=name;b.querySelector('small').textContent=cur;b.className=shopSlot===slot?'on':'';
+      b.onclick=()=>{shopSlot=slot;store.set('shopSlot',slot);renderShop()};sl.appendChild(b)}
+    pb.appendChild(sl);
+    const slot=shopSlot==='style'?'shoes':shopSlot,g=grid('two');
+    const sh=GEAR[G.gear.shoes];
+    if(slot==='shoes'&&G.wear>sh.life*.5){const pr=Math.max(20,Math.round(sh.p*.4));g.appendChild(card({ic:'🔁',n:'Nouvelle paire',d:`${sh.n} · semelle à ${Math.round(Math.max(0,1-G.wear/sh.life)*100)} %`,btn:coinTxt(pr),buy:1,dis:G.coins<pr,fn:()=>{G.coins-=pr;G.wear=0}}))}
+    for(const[id,it]of Object.entries(GEAR)){if(it.s!==slot)continue;const own=G.own.includes(id),on=G.gear[slot]===id;
+      g.appendChild(card({ic:SICO[slot],sw:it.col?`linear-gradient(135deg,${it.col}55,${it.col}22)`:'',n:it.n,d:it.d,on,btn:on?'porté':own?'Mettre':coinTxt(it.p),buy:!own,dis:on||(!own&&G.coins<it.p),
+        fn:()=>{if(!own){G.coins-=it.p;G.own.push(id)}G.gear[slot]=id;if(slot==='shoes')G.wear=0;if(slot==='bag')G.water=Math.min(G.water,capL())}}))}
+    if(['head','eyes','poles','lamp'].includes(slot)&&G.gear[slot])g.appendChild(card({ic:'✕',n:'Rien',d:'Ranger l’accessoire',btn:'Retirer',fn:()=>{G.gear[slot]=null}}));
+  }else if(shopCat==='style'){
+    note('Change la façon de courir du coureur, avec un petit bonus.');
+    const g=grid('two');
+    for(const[id,it]of Object.entries(GEAR)){if(it.s!=='style')continue;const own=G.own.includes(id),on=G.gear.style===id;
+      g.appendChild(card({ic:'🏃',n:it.n,d:it.d,on,btn:on?'porté':own?'Mettre':coinTxt(it.p),buy:!own,dis:on||(!own&&G.coins<it.p),fn:()=>{if(!own){G.coins-=it.p;G.own.push(id)}G.gear.style=id}}))}
+  }else if(shopCat==='train'){
+    const g=grid('two');
+    for(const[k,u]of Object.entries(UPG)){const l=lvl(k),c=upCost(k,l);
+      g.appendChild(card({ic:'💪',n:u.n,d:u.d,badge:'niv. '+l,btn:coinTxt(c),buy:1,dis:G.coins<c,fn:()=>{G.coins-=c;G.up[k]=l+1}}))}
+  }else{
+    note('On les rencontre en traversant leur paysage, puis on les adopte ici. Un seul court avec toi.');
+    const g=grid('two');
+    for(const[id,C]of Object.entries(COMP)){const met=!!G.st.bio[C.b],own=G.comps.includes(id),on=G.comp===id;
+      g.appendChild(card({ic:met?C.ic:'❔',n:met?C.n:'???',d:met?C.d:`${C.meet} (${BI[C.b].n.toLowerCase()})`,on,lock:!met,
+        btn:on?'avec toi':own?'Emmener':met?coinTxt(C.p):'à rencontrer',buy:!own&&met,dis:on||!met||(!own&&G.coins<C.p),fn:()=>{if(!own){G.coins-=C.p;G.comps.push(id)}G.comp=id}}))}
+    if(G.comp)grid('two').appendChild(card({ic:'🏃',n:'Courir seul',d:'Laisser ton compagnon se reposer',btn:'Seul',fn:()=>{G.comp=null}}));
   }
-  if(G.comp)pb.appendChild(item('Courir seul','Laisser ton compagnon se reposer','Seul','',0,()=>{G.comp=null}));
 }
 function renderCarnet(){
   const pb=$('#pb');pb.innerHTML='';const h=t=>{const e=document.createElement('h3');e.textContent=t;pb.appendChild(e)};
