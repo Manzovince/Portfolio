@@ -300,7 +300,7 @@ function hud(){
   const cap=capL(),sh=GEAR[G.gear.shoes];
   $('#bW').style.width=G.water/cap*100+'%';$('#tW').textContent=fmt(G.water,2)+' L';
   $('#bE').style.width=G.energy+'%';$('#tE').textContent=Math.round(G.energy)+' %';
-  const life=Math.max(0,1-G.wear/sh.life);$('#bS').style.width=life*100+'%';$('#bS').style.background=life<.15?'#e85a4a':'#9ad06a';$('#tS').textContent=fmt(Math.max(0,sh.life-G.wear))+' km';
+  const life=Math.max(0,1-G.wear/sh.life);$('#bS').style.width=life*100+'%';$('#bS').style.background=life<.15?'#e85a4a':'#9ad06a';{const ns=G.spare[G.gear.shoes]||0;$('#tS').textContent=fmt(Math.max(0,sh.life-G.wear))+' km'+(ns?' +'+ns:'');$('#tS').title=ns?ns+' paire(s) de rechange':''}
   const box=$('#food'),items=Object.entries(G.stock).filter(([,n])=>n>0),sig=items.map(e=>e.join()).join()+'|'+slots();
   if(box.dataset.sig!==sig){box.dataset.sig=sig;box.innerHTML='';
     for(const[id,n]of items){const b=document.createElement('button');b.title=FOOD[id].n+' · +'+FOOD[id].e+' (clic pour manger)';b.textContent=FOOD[id].ic+'×'+n;b.onclick=()=>eat(id);box.appendChild(b)}
@@ -406,6 +406,7 @@ function item(title,desc,btn,cls,on,fn,dis){
 // boutique en rayons : une barre de catégories fixe, puis des grilles de cartes compactes
 const SICO={style:'🏃',shoes:'👟',top:'👕',head:'🧢',eyes:'🕶️',bag:'🎒',poles:'🥢',lamp:'🔦'};
 let shopCat=store.get('shopCat','ravito'),shopSlot=store.get('shopSlot','shoes');
+const spareCost=id=>Math.max(20,Math.round(GEAR[id].p*.4));
 function card(o){
   const d=document.createElement('div');d.className='scard'+(o.on?' on':'')+(o.lock?' lock':'');
   d.innerHTML=`<div class="si"></div><div class="sn"></div><div class="sd"></div><button></button>`;
@@ -440,7 +441,9 @@ function renderShop(){
     pb.appendChild(sl);
     const slot=shopSlot==='style'?'shoes':shopSlot,g=grid('two');
     const sh=GEAR[G.gear.shoes];
-    if(slot==='shoes'&&G.wear>sh.life*.5){const pr=Math.max(20,Math.round(sh.p*.4));g.appendChild(card({ic:'🔁',n:'Nouvelle paire',d:`${sh.n} · semelle à ${Math.round(Math.max(0,1-G.wear/sh.life)*100)} %`,btn:coinTxt(pr),buy:1,dis:G.coins<pr,fn:()=>{G.coins-=pr;G.wear=0}}))}
+    if(slot==='shoes'){const pr=spareCost(G.gear.shoes),n=G.spare[G.gear.shoes]||0,life=Math.round(Math.max(0,1-G.wear/sh.life)*100);
+      g.appendChild(card({ic:'📦',n:'Paire de rechange',d:`${sh.n} · semelle actuelle à ${life} %. Enfilée toute seule quand l’autre est usée.`,badge:n?'×'+n+' en réserve':'',btn:'+1 · '+coinTxt(pr),buy:1,dis:G.coins<pr||n>=5,fn:()=>{G.coins-=pr;G.spare[G.gear.shoes]=n+1}}));
+      if(life<15&&n===0)g.appendChild(card({ic:'🔁',n:'Changer maintenant',d:'Racheter la même paire et la mettre tout de suite.',btn:coinTxt(pr),buy:1,dis:G.coins<pr,fn:()=>{G.coins-=pr;G.wear=0}}))}
     for(const[id,it]of Object.entries(GEAR)){if(it.s!==slot)continue;const own=G.own.includes(id),on=G.gear[slot]===id;
       g.appendChild(card({ic:SICO[slot],sw:it.col?`linear-gradient(135deg,${it.col}55,${it.col}22)`:'',n:it.n,d:it.d,on,btn:on?'porté':own?'Mettre':coinTxt(it.p),buy:!own,dis:on||(!own&&G.coins<it.p),
         fn:()=>{if(!own){G.coins-=it.p;G.own.push(id)}G.gear[slot]=id;if(slot==='shoes')G.wear=0;if(slot==='bag')G.water=Math.min(G.water,capL())}}))}

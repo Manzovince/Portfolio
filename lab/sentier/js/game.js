@@ -143,7 +143,7 @@ const NEW=()=>({v:1,d:0,dp:0,dn:0,t:0,coins:30,tot:0,water:.5,energy:100,wear:0,
   up:{},dog:0,seen:{},q:[],st:{tops:0,mer:0,nuit:0,pluie:0,rav:0,alpage:0,photos:0,maxAlt:0,eaten:0,wx:{},bio:{},froid:0,neige:0,fon:0,worn:0},
   auto:{eat:40,restock:{gel:3,barre:2}},last:Date.now(),sess:{d:0,dp:0}});
 let G=Object.assign(NEW(),store.get('save',{}));
-G.st=Object.assign(NEW().st,G.st);if(!G.comps){G.comps=G.dog?['chien']:[];G.comp=G.dog?'chien':null}if(!G.gear.style)G.gear.style='classique';if(!G.own.includes('classique'))G.own.push('classique');if(G.qSeen==null)G.qSeen=G.q.length;G.auto=Object.assign(NEW().auto,G.auto);
+G.st=Object.assign(NEW().st,G.st);if(!G.spare)G.spare={};if(!G.comps){G.comps=G.dog?['chien']:[];G.comp=G.dog?'chien':null}if(!G.gear.style)G.gear.style='classique';if(!G.own.includes('classique'))G.own.push('classique');if(G.qSeen==null)G.qSeen=G.q.length;G.auto=Object.assign(NEW().auto,G.auto);
 if(Q.has('km')){G.d=parseFloat(Q.get('km'))*1000;G.last=Date.now();Q.delete('km');history.replaceState(null,'',location.pathname+(Q.toString()?'?'+Q:''))}
 if(Q.has('tout')){G.coins+=99999;history.replaceState(null,'',location.pathname)}
 const save=()=>{G.last=Date.now();store.set('save',G)};
@@ -192,6 +192,8 @@ function step(dt,date){
   // déplacement
   const s1=s0+v*dt,de=elevMacro(s1)-elevMacro(s0);
   G.d=s1;G.t+=dt;G.wear+=v*dt/1000;G.sess.d+=v*dt;
+  // semelle usée : on enfile une paire de rechange du même modèle s'il en reste
+  if(G.wear>sh.life&&(G.spare[G.gear.shoes]||0)>0){G.spare[G.gear.shoes]--;G.wear=0;emit('Nouvelle paire enfilée',`${sh.n} · encore ${G.spare[G.gear.shoes]} en réserve`,'👟')}
   if(de>0){G.dp+=de;G.sess.dp+=de}else G.dn-=de;
   G.st.maxAlt=Math.max(G.st.maxAlt,elevMacro(s1));
   if(c.night)G.st.nuit+=v*dt;if(WX[c.wx].rain)G.st.pluie+=v*dt;G.st.wx[c.wx]=(G.st.wx[c.wx]||0)+v*dt;if(c.T<0)G.st.froid+=v*dt;if(WX[c.wx].rain&&(c.alt>2100||c.T<1))G.st.neige+=v*dt;if(G.wear>sh.life&&!G._worn){G._worn=1;G.st.worn++}else if(G.wear<sh.life)G._worn=0;
