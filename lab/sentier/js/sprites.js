@@ -279,7 +279,8 @@ const COMPSPR={
 };
 function compFrame(id,f){
   const k=id+f+'z'+ZOOM;if(compCache[k])return compCache[k];const S=COMPSPR[id],m=S.f[f%S.f.length];
-  const cv0=scaledMap(m,S.p,S.h);return compCache[k]={cv:outlineCv(cv0,'#141214',.4),ox:Math.floor(cv0.width/2),oy:cv0.height+1};
+  if(COMPQ[id]){const cv=outlineCv(quad(COMPQ[id],S.h*pxPerM(),f*Math.PI/2),'#141214',.4);return compCache[k]={cv,ox:Math.floor(cv.width/2),oy:cv.height}}
+  const cv0=mapSpr(m,S.p);return compCache[k]={cv:outlineCv(cv0,'#141214',.4),ox:Math.floor(cv0.width/2),oy:cv0.height+1};
 }
 
 /* ---------- animaux à photographier ---------- */
@@ -363,7 +364,13 @@ function scaledMap(rows,pal,hm,minPx=3){
   return scaleCv(base,Math.max(2,Math.round(base.width*f)),th);
 }
 function faunaIcon(id){return faunaCache['i'+id]||(faunaCache['i'+id]=outlineCv(mapSpr(FAUNA[id].m,FAUNA[id].p),'#18161a',.5))}
-function faunaSprite(id){const k=id+'z'+ZOOM,F=FAUNA[id];return faunaCache[k]||(faunaCache[k]=outlineCv(F.sea?mapSpr(F.m,F.p):scaledMap(F.m,F.p,F.h),'#18161a',.5))}
+function faunaSprite(id){const k=id+'z'+ZOOM,F=FAUNA[id];if(faunaCache[k])return faunaCache[k];
+  const Hp=(F.h||0)*pxPerM();let cv;
+  if(id==='elephant')cv=elephant(Hp);
+  else if(BIGQ[id])cv=quad(BIGQ[id],Hp);
+  else if(BIGB[id])cv=bigBird(BIGB[id],Hp);
+  else cv=mapSpr(F.m,F.p);           // petits animaux : leur sprite d'origine, déjà à bonne échelle
+  return faunaCache[k]=outlineCv(cv,'#18161a',.5)}
 
 /* ---------- petits détails au bord du chemin (zoom moyen et proche) ---------- */
 const MICRO={
@@ -554,3 +561,109 @@ function bigRefuge(){
   });
   return{cv:outlineCv(cv,'#1e1a1a',.45),ox:Math.round(w*.4),oy:h};
 }
+
+/* ---------- grands animaux dessinés à leur vraie taille (pixels nets à chaque zoom) ---------- */
+function cropCv(pb){let x0=pb.w,y0=pb.h,x1=-1,y1=-1;for(let y=0;y<pb.h;y++)for(let x=0;x<pb.w;x++)if(pb.b[y*pb.w+x]){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+  if(x1<0)return canvasOf(1,1)[0];const[c,g]=canvasOf(x1-x0+1,y1-y0+1);const[t,tg]=canvasOf(pb.w,pb.h);tg.putImageData(pb.img,0,0);g.drawImage(t,-x0,-y0);return c}
+// quadrupède vu de profil, tourné vers la droite ; Q = proportions en fractions de la hauteur totale
+function quad(Q,H,ph=null){
+  H=Math.max(4,Math.round(H));const u=H,R=v=>Math.max(1,Math.round(v*u));
+  const pb=PB(Math.round(H*3.4)+12,H+8),gy=H+6,C=k=>c32(Q.c[k]||Q.c.b);
+  const bL=R(Q.bL),bH=R(Q.bH),lH=R(Q.lH),lW=Math.max(1,Math.round(u*(Q.lW||.07))),x0=Math.round(H*(Q.tail||.3))+3,yb=gy-lH-bH;
+  const P=(x,y,k)=>pb.p(x,y,typeof k==='number'?k:C(k));
+  const pat=(x,y,k)=>{ // motifs de pelage
+    if(Q.pat==='stripes'&&((x+Math.round(y*.35))%3===0))return 'p';
+    if(Q.pat==='spots'){const cx=Math.floor((x+(Math.floor(y/3)%2)*1.5)/3),cy=Math.floor(y/3);if(((x+(Math.floor(y/3)%2)*1.5)%3)>.6&&(y%3)>0&&hs2(cx,cy)<.95)return 'p'}
+    if(Q.pat==='rosettes'&&hs2(x,y)<.16)return 'p';
+    if(Q.pat==='patches'&&hs2(Math.floor(x/Math.max(2,bH*.6)),Math.floor(y/Math.max(2,bH*.5)))<.35)return 'p';
+    return k};
+  const line=(xa,ya,xb,yb2,w,k)=>{const n=Math.max(1,Math.ceil(Math.hypot(xb-xa,yb2-ya)));for(let i=0;i<=n;i++){const x=Math.round(lerp(xa,xb,i/n)),y=Math.round(lerp(ya,yb2,i/n));for(let a=0;a<w;a++)P(x+a,y,pat(x+a,y,k))}};
+  // pattes : celles du fond plus sombres, avec un léger pas si ph est donné
+  const legs=[[x0+bL*.16,1],[x0+bL*.8,0]];
+  const leg=(lx,far,off)=>{const sw=ph==null?0:Math.sin(ph+off)*lH*.35,hx=Math.round(lx+(far?1:0)),fx=Math.round(hx+sw);
+    for(let w=0;w<lW;w++)line(hx+w,yb+bH-1,fx+w,gy-1,1,far?'d':'b');for(let w=0;w<lW;w++)P(fx+w,gy-1,'k');
+    if(Q.sock)for(let w=0;w<lW;w++)for(let j=2;j<Math.max(2,lH*.35);j++)P(fx+w+Math.round(-sw*j/lH),gy-j,'w')};
+  for(const[lx,f]of legs)leg(lx,1,f?0:Math.PI);
+  // queue
+  const tl=R(Q.tail||.3);if(Q.tailUp)line(x0+1,yb+1,x0-Math.round(tl*.6),yb-Math.round(tl*.6),1,'d');else line(x0+1,yb+1,x0-Math.round(tl*.35),yb+Math.round(tl),1,'d');
+  if(Q.tuft){P(x0-Math.round(tl*.35),yb+Math.round(tl)+1,'k');P(x0-Math.round(tl*.35)-1,yb+Math.round(tl),'k')}
+  // corps aux bouts arrondis, éclairé dessus, plus sombre dessous
+  for(let j=0;j<bH;j++){const t=(j-(bH-1)/2)/(bH/2),ins=Math.round((1-Math.sqrt(Math.max(0,1-t*t)))*bH*.55);
+    for(let x=x0+ins;x<x0+bL-ins;x++){let k=j===0?'l':j>=bH-Math.max(1,Math.round(bH*.28))?(Q.belly?'w':'d'):'b';P(x,yb+j,pat(x,yb+j,k))}}
+  // bosse
+  if(Q.hump){const hx=x0+bL*.45,hr=R(Q.hump);for(let j=0;j<hr;j++){const hw=Math.round(Math.sqrt(1-(j/hr)**2)*hr*1.4);for(let x=-hw;x<=hw;x++)P(Math.round(hx+x),yb-j,j===hr-1?'l':'b')}}
+  // cou et tête
+  const nL=R(Q.nL||0),a=(Q.nA||30)*Math.PI/180,nW=Math.max(1,Math.round(u*(Q.nW||.12)));
+  const nx0=x0+bL-Math.round(bL*.12),ny0=yb+Math.round(bH*.3),nx1=nx0+Math.round(Math.cos(a)*nL),ny1=ny0-Math.round(Math.sin(a)*nL);
+  if(nL>0)for(let w=0;w<nW;w++)line(nx0-w,ny0+w*.3,nx1-w,ny1+w*.3,1,w===0?'l':'b');
+  if(Q.mane&&nL>0)line(nx0-nW,ny0-1,nx1-nW+1,ny1-1,1,'m');
+  const hW=R(Q.hW||.3),hH=R(Q.hH||.25),hx=nx1+Math.round(hW*.15),hy=ny1;
+  if(Q.lionMane){const mr=Math.round(hH*1.25);for(let y=-mr;y<=mr;y++)for(let x=-mr;x<=Math.round(mr*.6);x++)if(x*x+y*y<=mr*mr)P(hx+x,hy+y+1,hs2(x,y)<.3?'k':'m')}
+  for(let y=-Math.floor(hH/2);y<=Math.floor(hH/2);y++)for(let x=-Math.floor(hW/2);x<=Math.ceil(hW/2);x++){if((x*x)/(hW*hW/4+.5)+(y*y)/(hH*hH/4+.5)>1.05)continue;P(hx+x,hy+y,y===-Math.floor(hH/2)?'l':pat(hx+x,hy+y,'b'))}
+  const mz=R(Q.muz||.12),my=hy+Math.max(0,Math.floor(hH/4));for(let x=1;x<=mz;x++)for(let y=0;y<Math.max(1,Math.round(hH*.45));y++)P(hx+Math.ceil(hW/2)+x-1,my+y,x===mz&&y===0?'k':(Q.snout?'n':'b'));
+  P(hx+Math.round(hW*.15),hy-Math.max(0,Math.round(hH*.15)),'e');
+  // oreilles
+  const ex=hx-Math.round(hW*.2),ey=hy-Math.ceil(hH/2);P(ex,ey,'b');P(ex,ey-1,Q.earTuft?'k':'b');if(Q.bigEars)for(let y=0;y<R(.18);y++)P(ex-1,ey-y,'b');
+  // cornes, bois, ossicones, défenses
+  const hd=ey;
+  if(Q.horn==='small'){P(ex+1,hd-1,'w');P(ex+2,hd-2,'w')}
+  if(Q.horn==='hook'){for(let j=1;j<=R(.12);j++)P(ex+1,hd-j,'k');P(ex,hd-R(.12)-1,'k')}
+  if(Q.horn==='ibex'){const L=R(.45);for(let j=0;j<L;j++){const t=j/L;P(Math.round(ex+1-Math.sin(t*1.9)*L*.55),Math.round(hd-Math.cos(t*1.6)*L*.6),j%2?'w':'g')}}
+  if(Q.horn==='antlers'){const L=R(Q.antL||.35);for(let j=0;j<L;j++){const x=Math.round(ex+1-j*.35),y=hd-j;P(x,y,'a');if(j>L*.35&&j%Math.max(2,Math.round(L/3))===0){for(let t=1;t<=Math.max(1,Math.round(L*.3));t++)P(x+t,y-t,'a')}}}
+  if(Q.horn==='ossi'){P(ex+1,hd-1,'k');P(ex+1,hd-2,'k');P(ex+3,hd-1,'k')}
+  if(Q.tusk){P(hx+Math.ceil(hW/2)+1,my+Math.round(hH*.45),'w');P(hx+Math.ceil(hW/2)+2,my+Math.round(hH*.45)-1,'w')}
+  if(Q.beard){P(hx+Math.ceil(hW/2)-1,hy+Math.ceil(hH/2)+1,'d');P(hx+Math.ceil(hW/2)-1,hy+Math.ceil(hH/2)+2,'d')}
+  if(Q.udder){P(x0+Math.round(bL*.62),yb+bH,'n');P(x0+Math.round(bL*.66),yb+bH,'n')}
+  return cropCv(pb);
+}
+// éléphant : grosse tête, oreille, trompe jusqu'au sol, défense
+function elephant(H){
+  H=Math.max(8,Math.round(H));const pb=PB(Math.round(H*2.2)+8,H+6),gy=H+5,c={b:c32('#8a8a92'),l:c32('#a8a8b0'),d:c32('#6a6a72'),k:c32('#4a4a52'),w:c32('#f0ece0'),e:c32('#1e1e22'),r:c32('#76767e')};
+  const bL=Math.round(H*1.25),bH=Math.round(H*.52),lH=Math.round(H*.4),lW=Math.max(2,Math.round(H*.15)),x0=4,yb=gy-lH-bH;
+  for(const[lx,f]of[[x0+bL*.12,1],[x0+bL*.7,1],[x0+bL*.2,0],[x0+bL*.78,0]])for(let w=0;w<lW;w++)for(let y=yb+bH-2;y<gy;y++)pb.p(Math.round(lx)+w+(f?1:0),y,y===gy-1?c.k:f?c.d:(w===0?c.l:c.b));
+  for(let j=0;j<bH;j++){const t=(j-(bH-1)/2)/(bH/2),ins=Math.round((1-Math.sqrt(Math.max(0,1-t*t)))*bH*.5);for(let x=x0+ins;x<x0+bL-ins;x++)pb.p(x,yb+j,j<2?c.l:j>bH*.75?c.d:(hs2(x,j)<.08?c.r:c.b))}
+  const hr=Math.round(H*.24),hx=x0+bL-Math.round(hr*.3),hy=yb+Math.round(hr*.7);
+  for(let y=-hr;y<=hr;y++)for(let x=-hr;x<=hr;x++)if(x*x+y*y<=hr*hr)pb.p(hx+x,hy+y,y<-hr*.6?c.l:c.b);
+  const er=Math.round(hr*.85);for(let y=-er;y<=er;y++)for(let x=-er;x<=Math.round(er*.4);x++)if(x*x/1.3+y*y<=er*er)pb.p(hx-Math.round(hr*.35)+x,hy+y+1,x===Math.round(er*.4)||y===er?c.k:c.d);
+  for(let j=0;j<Math.round(H*.55);j++){const x=hx+hr-1+Math.round(Math.sin(j/(H*.55)*1.4)*H*.08),y=hy+Math.round(hr*.3)+j;pb.p(x,y,c.b);pb.p(x+1,y,j%3?c.b:c.d)}
+  for(let t=0;t<Math.round(H*.18);t++)pb.p(hx+hr-2+t,hy+Math.round(hr*.55)+Math.round(t*.4),c.w);
+  pb.p(hx+Math.round(hr*.35),hy-Math.round(hr*.25),c.e);pb.p(x0,yb+3,c.d);pb.p(x0-1,yb+4,c.d);pb.p(x0-1,yb+5,c.k);
+  return cropCv(pb);
+}
+// grand oiseau en vol plané, ailes déployées, rémiges sombres
+function bigBird(B,H){
+  const span=Math.max(9,Math.round(H*(B.span||2.4))),pb=PB(span+6,Math.round(span*.5)+6),cx=Math.round(pb.w/2),cy=Math.round(pb.h*.45),C=k=>c32(B.c[k]);
+  const half=Math.floor(span/2),ww=Math.max(2,Math.round(span*.13));
+  for(let s of[-1,1])for(let i=0;i<=half;i++){const t=i/half,w=Math.max(1,Math.round(ww*(1-t*.55))),dy=Math.round(-Math.sin(t*Math.PI*.9)*span*.06+t*t*span*(B.droop||.04));
+    for(let j=0;j<w;j++){const fing=t>.78&&j===w-1&&i%2;pb.p(cx+s*i,cy+dy+j,fing?0:t>.72?C('t'):j===0?C('l'):C('w'))}}
+  const bl=Math.max(3,Math.round(span*.28));for(let i=-Math.round(bl*.45);i<=Math.round(bl*.55);i++)for(let j=0;j<Math.max(2,Math.round(ww*.9));j++)pb.p(cx+i,cy+j,j===0?C('l'):C('b'));
+  const hx=cx+Math.round(bl*.55)+1;pb.p(hx,cy,C('h'));pb.p(hx+1,cy,C('h'));pb.p(hx,cy+1,C('h'));pb.p(hx+2,cy+1,C('k'));if(B.pouch){pb.p(hx+2,cy+2,C('k'));pb.p(hx+3,cy+1,C('k'))}
+  for(let i=1;i<=Math.round(bl*.25);i++)pb.p(cx-Math.round(bl*.45)-i,cy+1,C('t'));
+  return cropCv(pb);
+}
+const COMPQ={
+  chien:{bL:1.35,bH:.42,lH:.45,lW:.08,nL:.18,nA:35,nW:.2,hW:.32,hH:.26,muz:.16,tail:.55,tailUp:1,belly:1,sock:1,c:{b:'#2a2626',l:'#3e3838',d:'#1e1a1a',k:'#141212',w:'#f0ece4',e:'#0a0808'}},
+  chevre:{bL:1,bH:.42,lH:.42,lW:.07,nL:.24,nA:50,nW:.14,hW:.24,hH:.2,muz:.1,tail:.08,tailUp:1,horn:'hook',beard:1,c:{b:'#e8e0d0',l:'#fffaf0',d:'#c8bca8',k:'#3a2a1a',w:'#f4f0e8',e:'#1e1410'}}
+};
+const BIGQ={
+  vache:{bL:1.55,bH:.46,lH:.36,lW:.09,nL:.14,nA:15,nW:.2,hW:.28,hH:.26,muz:.08,snout:1,tail:.45,tuft:1,horn:'small',udder:1,c:{b:'#9a6038',l:'#b8784a',d:'#7a4a2a',k:'#3a2a20',w:'#ece2cc',n:'#e8c4b4',e:'#1e1410'}},
+  cerf:{bL:.95,bH:.36,lH:.5,lW:.06,nL:.36,nA:62,nW:.12,hW:.22,hH:.16,muz:.1,tail:.12,horn:'antlers',antL:.42,c:{b:'#8a5a32',l:'#a8784a',d:'#6a4226',k:'#2a1e16',a:'#d8c8a8',e:'#1e1410',m:'#5a3a22'},mane:1},
+  chevreuil:{bL:.9,bH:.34,lH:.5,lW:.06,nL:.32,nA:62,nW:.11,hW:.22,hH:.18,muz:.1,tail:.06,horn:'antlers',antL:.16,c:{b:'#a86a3a',l:'#c88a52',d:'#7a4a28',k:'#2a1e16',a:'#c8b898',e:'#1e1410'}},
+  chamois:{bL:.95,bH:.4,lH:.45,lW:.07,nL:.26,nA:55,nW:.14,hW:.22,hH:.2,muz:.08,tail:.08,horn:'hook',c:{b:'#6a4a32',l:'#8a6448',d:'#4a3222',k:'#1e1410',w:'#e8dcc8',e:'#1e1410'}},
+  bouquetin:{bL:1.05,bH:.45,lH:.38,lW:.08,nL:.2,nA:45,nW:.16,hW:.24,hH:.22,muz:.08,tail:.08,horn:'ibex',beard:1,c:{b:'#8a7a62',l:'#a8987a',d:'#6a5a46',k:'#3a3226',w:'#c8b898',g:'#a89878',e:'#1e1410'}},
+  sanglier:{bL:1.45,bH:.55,lH:.3,lW:.1,nL:.04,nA:-5,nW:.3,hW:.36,hH:.36,muz:.16,snout:1,tail:.18,tusk:1,mane:1,c:{b:'#4a3a2e',l:'#6a5444',d:'#33281f',k:'#1e1814',n:'#6a5048',w:'#f0e8d8',m:'#2a201a',e:'#0e0a08'}},
+  chevre:{bL:1,bH:.42,lH:.4,lW:.07,nL:.24,nA:50,nW:.14,hW:.24,hH:.2,muz:.1,tail:.08,tailUp:1,horn:'hook',beard:1,c:{b:'#7a4a2a',l:'#9a6238',d:'#5a341c',k:'#2a1a10',w:'#e8dcc8',e:'#1e1410'}},
+  dromadaire:{bL:.85,bH:.3,lH:.56,lW:.06,nL:.42,nA:28,nW:.1,hW:.2,hH:.13,muz:.1,tail:.18,hump:.18,c:{b:'#c89a62',l:'#e0b47a',d:'#a87e4a',k:'#6a5034',e:'#2a1e14'}},
+  girafe:{bL:.42,bH:.2,lH:.4,lW:.04,nL:.42,nA:72,nW:.06,hW:.12,hH:.07,muz:.05,tail:.14,tuft:1,horn:'ossi',pat:'spots',c:{b:'#e8b860',l:'#f4cc80',d:'#c89848',k:'#5a3a22',p:'#9a5a2a',e:'#2a1e14'}},
+  zebre:{bL:1.3,bH:.42,lH:.42,lW:.07,nL:.32,nA:50,nW:.16,hW:.3,hH:.2,muz:.12,tail:.3,tuft:1,mane:1,pat:'stripes',c:{b:'#f4f4ee',l:'#ffffff',d:'#d8d8d0',k:'#1e1e22',p:'#1e1e22',m:'#1e1e22',e:'#0e0e10'}},
+  lion:{bL:1.5,bH:.42,lH:.36,lW:.09,nL:.12,nA:20,nW:.2,hW:.34,hH:.3,muz:.12,tail:.55,tuft:1,lionMane:1,c:{b:'#d8a858',l:'#ecc070',d:'#b8883e',k:'#5a3a1e',m:'#8a5a2a',e:'#2a1a0e'}},
+  jaguar:{bL:1.8,bH:.46,lH:.34,lW:.1,nL:.08,nA:10,nW:.24,hW:.36,hH:.32,muz:.1,tail:.8,pat:'rosettes',c:{b:'#e0a848',l:'#f0c060',d:'#c08838',k:'#3a2a1a',p:'#3a2618',e:'#1e140a'}},
+  lynx:{bL:1.3,bH:.46,lH:.46,lW:.1,nL:.08,nA:15,nW:.24,hW:.36,hH:.32,muz:.08,tail:.12,earTuft:1,pat:'rosettes',c:{b:'#c8a070',l:'#dcb888',d:'#a8845a',k:'#2a2420',p:'#8a6a4a',e:'#1e1814'}},
+  coyote:{bL:1.35,bH:.4,lH:.45,lW:.07,nL:.15,nA:30,nW:.2,hW:.3,hH:.22,muz:.18,tail:.55,c:{b:'#a89070',l:'#c8ac88',d:'#887256',k:'#3a3026',e:'#1e1814'}}
+};
+const BIGB={aigle:{span:2.6,c:{b:'#5a3e28',w:'#6a4a30',l:'#8a6a48',t:'#2a1e14',h:'#c89a48',k:'#e8b840'}},
+  gypaete:{span:2.8,c:{b:'#c88a48',w:'#3a3434',l:'#5a5050',t:'#1e1a1a',h:'#f0d8b0',k:'#2a2420'}},
+  vautour:{span:2.8,droop:.06,c:{b:'#8a6a4a',w:'#4a3a2a',l:'#6a5440',t:'#1e1814',h:'#e8dcc8',k:'#c8b8a0'}},
+  fregate:{span:2.4,c:{b:'#1e1e24',w:'#1e1e24',l:'#3a3a44',t:'#0e0e12',h:'#2a2a30',k:'#d83a2a'}},
+  pelican:{span:2.4,pouch:1,c:{b:'#8a7a6a',w:'#9a8a78',l:'#c8b8a4',t:'#3a3430',h:'#e8e0d0',k:'#e8b040'}},
+  ara:{span:2,c:{b:'#d8302a',w:'#d8302a',l:'#f0c030',t:'#2a5ad0',h:'#d8302a',k:'#f4f0e8'}}};
