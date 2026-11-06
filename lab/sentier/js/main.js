@@ -435,7 +435,7 @@ function renderCarnet(){
   h(`Espèces photographiées · ${Object.keys(G.seen).length}/${Object.keys(FAUNA).length}`);
   const gr=document.createElement('div');gr.className='sp-g';
   for(const[id,f]of Object.entries(FAUNA)){const d=document.createElement('div'),n=G.seen[id];if(!n)d.className='no';
-    const src=faunaSprite(id),[c,g]=canvasOf(src.width,src.height);if(n)g.drawImage(src,0,0);else{g.drawImage(src,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#2c3446';g.fillRect(0,0,c.width,c.height)}
+    const src=faunaIcon(id),[c,g]=canvasOf(src.width,src.height);if(n)g.drawImage(src,0,0);else{g.drawImage(src,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#2c3446';g.fillRect(0,0,c.width,c.height)}
     d.appendChild(c);d.appendChild(document.createTextNode(n?`${f.n} ×${n}`:'???'));d.title=n?f.n:'Se montre en '+f.b.map(b=>BI[b].n.toLowerCase()).join(', ');gr.appendChild(d)}
   pb.appendChild(gr);
   h('Sommets gravis');

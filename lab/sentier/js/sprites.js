@@ -269,91 +269,101 @@ const gearKey=g=>[g.shoes,g.top,g.head,g.eyes,g.bag,g.poles,g.lamp,g.style].join
 /* ---------- le chien (border collie) ---------- */
 const compCache={};
 const COMPSPR={
-  chien:{p:{b:'#2a2626',w:'#f0ece4'},f:[['....b','bbbbw','b...b'],['....b','bbbbw','.b.b.'],['....b','bbbbw','..b..'],['....b','bbbbw','.b.b.']]},
-  chat:{p:{k:'#e8903a',d:'#b8682a'},f:[['k...kk','.kkkkk','.k..k.'],['k...kk','.kkkkk','..kk..'],['.k..kk','.kkkkk','.k..k.'],['k...kk','.kkkkk','..kk..']]},
-  marmotte:{p:{m:'#9a7448',l:'#c8a478'},f:[['..mm','mmlm','m..m'],['..mm','mmlm','.mm.'],['..mm','mmlm','m..m'],['..mm','mmlm','.mm.']]},
-  chevre:{p:{m:'#7a4a2a',d:'#3a2a1a'},f:[['....dd','....mm','mmmmm.','m.m.m.'],['....dd','....mm','mmmmm.','.m.m..'],['....dd','....mm','mmmmm.','..m.m.'],['....dd','....mm','mmmmm.','.m.m..']]},
-  fennec:{p:{s:'#e8c890'},f:[['...s.s','sssss.','s...s.'],['...s.s','sssss.','.s.s..'],['...s.s','sssss.','..s...'],['...s.s','sssss.','.s.s..']]},
-  suricate:{p:{s:'#b89a6a',k:'#4a3a2a'},f:[['....k','sssss','s...s'],['....k','sssss','.s.s.'],['....k','sssss','..s..'],['.k','.s','.s','ss']]},
-  ara:{p:{r:'#d8302a',b:'#3a6ad0',y:'#f0c030'},f:[['b...b','.rrry','..r..'],['.....','brrry','b.r..'],['.....','.rrry','bbr..'],['.....','brrry','b.r..']]}
+  chien:{h:0.6,p:{b:'#2a2626',w:'#f0ece4'},f:[['....b','bbbbw','b...b'],['....b','bbbbw','.b.b.'],['....b','bbbbw','..b..'],['....b','bbbbw','.b.b.']]},
+  chat:{h:0.3,p:{k:'#e8903a',d:'#b8682a'},f:[['k...kk','.kkkkk','.k..k.'],['k...kk','.kkkkk','..kk..'],['.k..kk','.kkkkk','.k..k.'],['k...kk','.kkkkk','..kk..']]},
+  marmotte:{h:0.45,p:{m:'#9a7448',l:'#c8a478'},f:[['..mm','mmlm','m..m'],['..mm','mmlm','.mm.'],['..mm','mmlm','m..m'],['..mm','mmlm','.mm.']]},
+  chevre:{h:0.8,p:{m:'#7a4a2a',d:'#3a2a1a'},f:[['....dd','....mm','mmmmm.','m.m.m.'],['....dd','....mm','mmmmm.','.m.m..'],['....dd','....mm','mmmmm.','..m.m.'],['....dd','....mm','mmmmm.','.m.m..']]},
+  fennec:{h:0.3,p:{s:'#e8c890'},f:[['...s.s','sssss.','s...s.'],['...s.s','sssss.','.s.s..'],['...s.s','sssss.','..s...'],['...s.s','sssss.','.s.s..']]},
+  suricate:{h:0.3,p:{s:'#b89a6a',k:'#4a3a2a'},f:[['....k','sssss','s...s'],['....k','sssss','.s.s.'],['....k','sssss','..s..'],['.k','.s','.s','ss']]},
+  ara:{h:0.7,p:{r:'#d8302a',b:'#3a6ad0',y:'#f0c030'},f:[['b...b','.rrry','..r..'],['.....','brrry','b.r..'],['.....','.rrry','bbr..'],['.....','brrry','b.r..']]}
 };
 function compFrame(id,f){
-  const k=id+f;if(compCache[k])return compCache[k];const S=COMPSPR[id],m=S.f[f%S.f.length];
-  return compCache[k]={cv:outlineCv(mapSpr(m,S.p),'#141214',.4),ox:Math.floor(m[0].length/2),oy:m.length+1};
+  const k=id+f+'z'+ZOOM;if(compCache[k])return compCache[k];const S=COMPSPR[id],m=S.f[f%S.f.length];
+  const cv0=scaledMap(m,S.p,S.h);return compCache[k]={cv:outlineCv(cv0,'#141214',.4),ox:Math.floor(cv0.width/2),oy:cv0.height+1};
 }
 
 /* ---------- animaux à photographier ---------- */
 const FAUNA={
-  marmotte:{n:'Marmotte',b:['alpage','crete','lac'],r:1,c:8,m:['.d.','mmm','mlm','m.m'],p:{m:'#9a7448',l:'#c8a478',d:'#6a4a30'}},
-  chamois:{n:'Chamois',b:['crete','alpage','sommet','glacier'],r:.6,c:15,m:['....dd','.....m','mmmmmm','mllmm.','m.m.m.'],p:{m:'#6a4a32',l:'#c8b498',d:'#2a2018'}},
-  bouquetin:{n:'Bouquetin',b:['crete','sommet','glacier','lac'],r:.4,c:25,m:['....dd.','.....dd','.....mm','mmmmmmm','mmmmmm.','m.m..m.'],p:{m:'#8a7a62',d:'#4a3e30'}},
-  aigle:{n:'Aigle royal',b:['crete','sommet','alpage'],r:.25,c:40,fly:1,m:['dd.....dd','.ddmmmdd.','...mlm...'],p:{m:'#5a3e28',l:'#c89a48',d:'#3a281a'}},
-  gypaete:{n:'Gypaète barbu',b:['sommet','crete'],r:.08,c:120,fly:1,m:['ddd....ddd','..ddmmdd..','....ml....'],p:{m:'#c88a48',l:'#f0d8b0',d:'#3a3434'}},
-  edelweiss:{n:'Edelweiss',b:['crete','alpage'],r:.3,c:35,m:['.w.','wyw','.w.','.g.'],p:{w:'#f4f4ec',y:'#e8d050',g:'#7a9a5a'}},
-  chevreuil:{n:'Chevreuil',b:['foret','prairie','hetraie','vignes'],r:.6,c:14,m:['....d.','....mm','mmmmm.','mmmmm.','m...m.'],p:{m:'#a86a3a',d:'#5a3a22'}},
-  ecureuil:{n:'Écureuil roux',b:['foret','hetraie'],r:.8,c:9,m:['m.m','mmm','.mm'],p:{m:'#c8582a'}},
-  pic:{n:'Pic noir',b:['foret','hetraie'],r:.35,c:20,m:['r.','dd','dd','d.'],p:{d:'#1e1e22',r:'#d83a2a'}},
-  vache:{n:'Vache tarine',b:['alpage','prairie'],r:1,c:5,m:['....mh','mmmmmm','mwmmm.','m.m.m.'],p:{m:'#a86a3a',w:'#e8dcc8',h:'#e8e0d0'}},
-  heron:{n:'Héron cendré',b:['prairie'],r:.3,c:18,m:['.dd','..m','..m','.mm','mm.','.d.','.d.'],p:{m:'#9aa0aa',d:'#4a4e56'}},
-  cigale:{n:'Cigale',b:['garrigue','falaise','lavande','vignes','gorges'],r:.9,c:6,m:['ll','mm'],p:{m:'#5a5a3a',l:'#c8d0c0'}},
-  lezard:{n:'Lézard ocellé',b:['garrigue','falaise','cote','gorges'],r:.5,c:16,m:['.mmmmm','mm.m.m.'],p:{m:'#4a9a3a'}},
-  sanglier:{n:'Sanglier',b:['garrigue'],r:.35,c:22,m:['.ddddd.','dddddddw','ddddddd.','d.d..d.'],p:{d:'#4a3a2e',w:'#e8e0d0'}},
-  chevre:{n:'Chèvre du Rove',b:['garrigue','falaise','gorges'],r:.5,c:14,m:['.....dd','.....mm','mmmmmm.','mmmmm..','m.m.m..'],p:{m:'#7a4a2a',d:'#3a2a1a'}},
-  tortue:{n:'Tortue d’Hermann',b:['garrigue'],r:.2,c:45,m:['.ymy.','mymymg'],p:{m:'#6a5a2a',y:'#d8b84a',g:'#9a9a5a'}},
-  goeland:{n:'Goéland leucophée',b:['cote','falaise'],r:.9,c:7,fly:1,m:['d.....d','.wwwww.','...w...'],p:{w:'#f4f4f4',d:'#5a5e66'}},
+  marmotte:{h:0.45,n:'Marmotte',b:['alpage','crete','lac'],r:1,c:8,m:['.d.','mmm','mlm','m.m'],p:{m:'#9a7448',l:'#c8a478',d:'#6a4a30'}},
+  chamois:{h:0.9,n:'Chamois',b:['crete','alpage','sommet','glacier'],r:.6,c:15,m:['....dd','.....m','mmmmmm','mllmm.','m.m.m.'],p:{m:'#6a4a32',l:'#c8b498',d:'#2a2018'}},
+  bouquetin:{h:1.0,n:'Bouquetin',b:['crete','sommet','glacier','lac'],r:.4,c:25,m:['....dd.','.....dd','.....mm','mmmmmmm','mmmmmm.','m.m..m.'],p:{m:'#8a7a62',d:'#4a3e30'}},
+  aigle:{h:0.8,n:'Aigle royal',b:['crete','sommet','alpage'],r:.25,c:40,fly:1,m:['dd.....dd','.ddmmmdd.','...mlm...'],p:{m:'#5a3e28',l:'#c89a48',d:'#3a281a'}},
+  gypaete:{h:0.9,n:'Gypaète barbu',b:['sommet','crete'],r:.08,c:120,fly:1,m:['ddd....ddd','..ddmmdd..','....ml....'],p:{m:'#c88a48',l:'#f0d8b0',d:'#3a3434'}},
+  edelweiss:{h:0.15,n:'Edelweiss',b:['crete','alpage'],r:.3,c:35,m:['.w.','wyw','.w.','.g.'],p:{w:'#f4f4ec',y:'#e8d050',g:'#7a9a5a'}},
+  chevreuil:{h:0.9,n:'Chevreuil',b:['foret','prairie','hetraie','vignes'],r:.6,c:14,m:['....d.','....mm','mmmmm.','mmmmm.','m...m.'],p:{m:'#a86a3a',d:'#5a3a22'}},
+  ecureuil:{h:0.25,n:'Écureuil roux',b:['foret','hetraie'],r:.8,c:9,m:['m.m','mmm','.mm'],p:{m:'#c8582a'}},
+  pic:{h:0.35,n:'Pic noir',b:['foret','hetraie'],r:.35,c:20,m:['r.','dd','dd','d.'],p:{d:'#1e1e22',r:'#d83a2a'}},
+  vache:{h:1.4,n:'Vache tarine',b:['alpage','prairie'],r:1,c:5,m:['....mh','mmmmmm','mwmmm.','m.m.m.'],p:{m:'#a86a3a',w:'#e8dcc8',h:'#e8e0d0'}},
+  heron:{h:1.0,n:'Héron cendré',b:['prairie'],r:.3,c:18,m:['.dd','..m','..m','.mm','mm.','.d.','.d.'],p:{m:'#9aa0aa',d:'#4a4e56'}},
+  cigale:{h:0.05,n:'Cigale',b:['garrigue','falaise','lavande','vignes','gorges'],r:.9,c:6,m:['ll','mm'],p:{m:'#5a5a3a',l:'#c8d0c0'}},
+  lezard:{h:0.12,n:'Lézard ocellé',b:['garrigue','falaise','cote','gorges'],r:.5,c:16,m:['.mmmmm','mm.m.m.'],p:{m:'#4a9a3a'}},
+  sanglier:{h:0.9,n:'Sanglier',b:['garrigue'],r:.35,c:22,m:['.ddddd.','dddddddw','ddddddd.','d.d..d.'],p:{d:'#4a3a2e',w:'#e8e0d0'}},
+  chevre:{h:0.8,n:'Chèvre du Rove',b:['garrigue','falaise','gorges'],r:.5,c:14,m:['.....dd','.....mm','mmmmmm.','mmmmm..','m.m.m..'],p:{m:'#7a4a2a',d:'#3a2a1a'}},
+  tortue:{h:0.15,n:'Tortue d’Hermann',b:['garrigue'],r:.2,c:45,m:['.ymy.','mymymg'],p:{m:'#6a5a2a',y:'#d8b84a',g:'#9a9a5a'}},
+  goeland:{h:0.45,n:'Goéland leucophée',b:['cote','falaise'],r:.9,c:7,fly:1,m:['d.....d','.wwwww.','...w...'],p:{w:'#f4f4f4',d:'#5a5e66'}},
   dauphin:{n:'Grand dauphin',b:['cote','plage'],r:.12,c:60,sea:1,m:['..m...','.mmmm.','mm..mm'],p:{m:'#5a6a7a'}},
-  cerf:{n:'Cerf élaphe',b:['hetraie','foret'],r:.35,c:24,m:['d...d.','.d.d..','..dd..','...mm.','mmmmm.','mmmmm.','m...m.'],p:{m:'#8a5a32',d:'#5a3e26'}},
-  blaireau:{n:'Blaireau',b:['hetraie'],r:.5,c:16,m:['.....ww','ddddddd','gggggg.','g.g..g.'],p:{d:'#3a3a3a',g:'#8a8a8a',w:'#f0f0ec'}},
-  geai:{n:'Geai des chênes',b:['hetraie'],r:.6,c:10,fly:1,m:['b.....b','.ppppp.','...pw..'],p:{p:'#c8a08a',b:'#3a6ad0',w:'#f4f4f4'}},
-  salamandre:{n:'Salamandre tachetée',b:['hetraie','foret'],r:.25,c:30,m:['.kykky','kyk.k.k'],p:{k:'#1e1e22',y:'#f0c020'}},
-  colvert:{n:'Canard colvert',b:['lac'],r:.9,c:8,m:['..gy','mmmm.','mmmm.'],p:{g:'#2a7a3a',y:'#e8c040',m:'#9a8a78'}},
+  cerf:{h:1.4,n:'Cerf élaphe',b:['hetraie','foret'],r:.35,c:24,m:['d...d.','.d.d..','..dd..','...mm.','mmmmm.','mmmmm.','m...m.'],p:{m:'#8a5a32',d:'#5a3e26'}},
+  blaireau:{h:0.35,n:'Blaireau',b:['hetraie'],r:.5,c:16,m:['.....ww','ddddddd','gggggg.','g.g..g.'],p:{d:'#3a3a3a',g:'#8a8a8a',w:'#f0f0ec'}},
+  geai:{h:0.3,n:'Geai des chênes',b:['hetraie'],r:.6,c:10,fly:1,m:['b.....b','.ppppp.','...pw..'],p:{p:'#c8a08a',b:'#3a6ad0',w:'#f4f4f4'}},
+  salamandre:{h:0.06,n:'Salamandre tachetée',b:['hetraie','foret'],r:.25,c:30,m:['.kykky','kyk.k.k'],p:{k:'#1e1e22',y:'#f0c020'}},
+  colvert:{h:0.35,n:'Canard colvert',b:['lac'],r:.9,c:8,m:['..gy','mmmm.','mmmm.'],p:{g:'#2a7a3a',y:'#e8c040',m:'#9a8a78'}},
   truite:{n:'Truite fario',b:['lac','gorges'],r:.6,c:18,sea:1,m:['.mmm..','mmrmmm','.mmm..'],p:{m:'#8a8a5a',r:'#d84a3a'}},
-  grenouille:{n:'Grenouille rousse',b:['lac'],r:.6,c:12,m:['.w.w','mmmm','m..m'],p:{m:'#a8703a',w:'#f0e0c0'}},
-  lagopede:{n:'Lagopède alpin',b:['glacier','sommet'],r:.5,c:28,m:['.ww','www','wwr','.k.'],p:{w:'#f6f6f2',r:'#d83a2a',k:'#3a3a3a'}},
-  chocard:{n:'Chocard à bec jaune',b:['glacier','crete','sommet'],r:.8,c:12,fly:1,m:['kk...kk','.kkkkky','..k.k..'],p:{k:'#1c1c22',y:'#e8c840'}},
-  huppe:{n:'Huppe fasciée',b:['vignes','lavande'],r:.4,c:22,m:['oko.','.ooo','.wkw','..k.'],p:{o:'#d8904a',k:'#2a2a2a',w:'#f0ece0'}},
-  faisan:{n:'Faisan de Colchide',b:['vignes'],r:.5,c:14,m:['....gr','.oooo.','ooooo.','tt.o.o'],p:{o:'#c8702a',g:'#2a6a4a',r:'#d83a2a',t:'#8a5a2a'}},
-  escargot:{n:'Escargot de Bourgogne',b:['vignes','hetraie'],r:.7,c:6,m:['.bb.','bdbd','gggg'],p:{b:'#b08a5a',d:'#7a5a3a',g:'#c8b8a0'}},
-  machaon:{n:'Machaon',b:['lavande','alpage'],r:.6,c:15,fly:1,m:['yky','kyk','yky'],p:{y:'#f2d84a',k:'#2a2a2a'}},
-  abeille:{n:'Abeille',b:['lavande'],r:1,c:5,fly:1,m:['ww','yk'],p:{w:'#e8f0f8',y:'#e8b830',k:'#2a2a2a'}},
-  perdrix:{n:'Perdrix rouge',b:['lavande','garrigue'],r:.45,c:18,m:['..rg','gggg.','gbgg.','.r.r'],p:{g:'#9a8a78',r:'#d84a3a',b:'#5a6a8a'}},
-  vautour:{n:'Vautour fauve',b:['gorges'],r:.5,c:30,fly:1,m:['ddd.....ddd','..ddmmmdd..','....mwm....'],p:{d:'#4a3a2a',m:'#b08a5a',w:'#f0e8d8'}},
-  martin:{n:'Martin-pêcheur',b:['gorges','lac'],r:.3,c:35,fly:1,m:['.bbo','bbbo','..o.'],p:{b:'#2a9ad0',o:'#e8803a'}},
-  castor:{n:'Castor d’Europe',b:['gorges'],r:.25,c:40,m:['....mm','mmmmmm','mmmmm.','tt.m.m'],p:{m:'#7a5032',t:'#4a3426'}},
-  pigeon:{n:'Pigeon biset',b:['ville'],r:1,c:4,m:['.gk','ggg.','.g.'],p:{g:'#8a8e98',k:'#3a6a5a'}},
-  renard:{n:'Renard des villes',b:['ville','prairie','hetraie'],r:.5,c:16,m:['.....oo','oooooow','ooooo..','o.o..o.'],p:{o:'#d8702a',w:'#f0ece4'}},
-  chat:{n:'Chat de gouttière',b:['ville'],r:.6,c:8,m:['k...kk','.kkkkk','.k..k.'],p:{k:'#3a3a3e'}},
-  herisson:{n:'Hérisson',b:['ville','prairie'],r:.4,c:14,m:['.bbbb.','bbbbbbf','..k.k.'],p:{b:'#7a6a5a',f:'#c8a888',k:'#3a2a20'}},
-  fennec:{n:'Fennec',b:['desert'],r:.5,c:24,m:['s...s.','ss.ss.','.sssss','..sss.','..s.s.'],p:{s:'#e8c890'}},
-  dromadaire:{n:'Dromadaire',b:['desert'],r:.6,c:18,m:['..cc...','.cccc.c','cccccccc','.c..c..','.c..c..'],p:{c:'#c89a62'}},
-  scarabee:{n:'Scarabée sacré',b:['desert'],r:.7,c:10,m:['.kk.','kkkk','k..k'],p:{k:'#2a2a30'}},
-  scorpion:{n:'Scorpion',b:['desert','canyon'],r:.35,c:26,m:['y.....','.y.yy.','yyyyyy'],p:{y:'#d8b050'}},
-  coyote:{n:'Coyote',b:['canyon'],r:.5,c:18,m:['.....gg','ggggggg','ggggg..','g.g..g.'],p:{g:'#a89070'}},
-  serpent:{n:'Crotale',b:['canyon','desert'],r:.3,c:28,m:['.bb...b','b..bbb.'],p:{b:'#a8885a'}},
-  geocoucou:{n:'Géocoucou',b:['canyon'],r:.35,c:30,m:['b.bb','.bbbb','bb.b.','.b.b.'],p:{b:'#6a5a4a'}},
-  girafe:{n:'Girafe',b:['savane'],r:.5,c:28,m:['...yy','...y.','...y.','...y.','yyyyy','yyyy.','y..y.','y..y.'],p:{y:'#d8a048'}},
-  zebre:{n:'Zèbre',b:['savane'],r:.6,c:20,m:['.....wk','wkwkwkw','kwkwkw.','w.k..w.'],p:{w:'#f0f0ec',k:'#2a2a2a'}},
-  elephant:{n:'Éléphant',b:['savane'],r:.35,c:35,m:['.gggg..','ggggggg','gggggg.g','gggggg.g','g.g.g...'],p:{g:'#8a8a90'}},
-  lion:{n:'Lion',b:['savane'],r:.2,c:50,m:['.....mm','.....mm','yyyyyym','yyyyyy.','y.y..y.'],p:{y:'#d8a858',m:'#8a5a2a'}},
-  toucan:{n:'Toucan',b:['jungle'],r:.6,c:20,m:['.kooo','kkwy.','kk...','.k...'],p:{k:'#1e1e22',o:'#f08a2a',w:'#f4f4f0',y:'#e8d040'}},
-  singe:{n:'Singe hurleur',b:['jungle'],r:.7,c:14,m:['.bb.','bbbb','.bb.','b..b'],p:{b:'#6a4a32'}},
-  jaguar:{n:'Jaguar',b:['jungle'],r:.18,c:55,m:['.....yy','yyykyyy','ykyyky.','y.y..y.'],p:{y:'#e0a848',k:'#4a3020'}},
-  ara:{n:'Ara rouge',b:['jungle'],r:.5,c:22,fly:1,m:['rr...rr','.rrbrr.','...y...'],p:{r:'#d8302a',b:'#3a6ad0',y:'#f0c030'}},
-  paresseux:{n:'Paresseux',b:['jungle'],r:.3,c:32,fly:1,m:['k.....k','.bbbbb.','..bbb..'],p:{b:'#9a8a6a',k:'#4a3a2a'}},
-  iguane:{n:'Iguane',b:['volcan','jungle'],r:.5,c:16,m:['....gg','ggggggg','g.g.g..'],p:{g:'#5a8a4a'}},
-  fregate:{n:'Frégate superbe',b:['volcan'],r:.4,c:26,fly:1,m:['kk.......kk','..kkkrkkk..','....kkk....'],p:{k:'#1e1e24',r:'#d83a2a'}},
-  moineau:{n:'Moineau domestique',b:['vieilleville','ville'],r:1,c:4,m:['.bb','bbbk','.y.'],p:{b:'#9a7a5a',k:'#3a2a1a',y:'#e8b040'}},
-  pie:{n:'Pie bavarde',b:['vieilleville','prairie'],r:.6,c:10,fly:1,m:['k.....k','.kwwkkk','...k...'],p:{k:'#1e2028',w:'#f4f4f0'}},
-  lynx:{n:'Lynx boréal',b:['foretneige','foret'],r:.15,c:60,m:['k...k.','.yyyy.','yyyyyy','y.y.y.'],p:{y:'#c8a070',k:'#2a2420'}},
-  lievre:{n:'Lièvre variable',b:['foretneige','glacier'],r:.6,c:14,m:['.w.w','.www','wwww.','w..w.'],p:{w:'#f6f6f2'}},
-  harfang:{n:'Harfang des neiges',b:['foretneige'],r:.25,c:45,fly:1,m:['ww...ww','.wwkww.','..www..'],p:{w:'#f8f8f4',k:'#3a3a3a'}},
-  crabe:{n:'Crabe fantôme',b:['plage'],r:1,c:6,m:['k...k','.ooo.','o.o.o'],p:{o:'#f0d8a8',k:'#3a2a1a'}},
+  grenouille:{h:0.06,n:'Grenouille rousse',b:['lac'],r:.6,c:12,m:['.w.w','mmmm','m..m'],p:{m:'#a8703a',w:'#f0e0c0'}},
+  lagopede:{h:0.35,n:'Lagopède alpin',b:['glacier','sommet'],r:.5,c:28,m:['.ww','www','wwr','.k.'],p:{w:'#f6f6f2',r:'#d83a2a',k:'#3a3a3a'}},
+  chocard:{h:0.3,n:'Chocard à bec jaune',b:['glacier','crete','sommet'],r:.8,c:12,fly:1,m:['kk...kk','.kkkkky','..k.k..'],p:{k:'#1c1c22',y:'#e8c840'}},
+  huppe:{h:0.3,n:'Huppe fasciée',b:['vignes','lavande'],r:.4,c:22,m:['oko.','.ooo','.wkw','..k.'],p:{o:'#d8904a',k:'#2a2a2a',w:'#f0ece0'}},
+  faisan:{h:0.55,n:'Faisan de Colchide',b:['vignes'],r:.5,c:14,m:['....gr','.oooo.','ooooo.','tt.o.o'],p:{o:'#c8702a',g:'#2a6a4a',r:'#d83a2a',t:'#8a5a2a'}},
+  escargot:{h:0.05,n:'Escargot de Bourgogne',b:['vignes','hetraie'],r:.7,c:6,m:['.bb.','bdbd','gggg'],p:{b:'#b08a5a',d:'#7a5a3a',g:'#c8b8a0'}},
+  machaon:{h:0.08,n:'Machaon',b:['lavande','alpage'],r:.6,c:15,fly:1,m:['yky','kyk','yky'],p:{y:'#f2d84a',k:'#2a2a2a'}},
+  abeille:{h:0.03,n:'Abeille',b:['lavande'],r:1,c:5,fly:1,m:['ww','yk'],p:{w:'#e8f0f8',y:'#e8b830',k:'#2a2a2a'}},
+  perdrix:{h:0.3,n:'Perdrix rouge',b:['lavande','garrigue'],r:.45,c:18,m:['..rg','gggg.','gbgg.','.r.r'],p:{g:'#9a8a78',r:'#d84a3a',b:'#5a6a8a'}},
+  vautour:{h:1.0,n:'Vautour fauve',b:['gorges'],r:.5,c:30,fly:1,m:['ddd.....ddd','..ddmmmdd..','....mwm....'],p:{d:'#4a3a2a',m:'#b08a5a',w:'#f0e8d8'}},
+  martin:{h:0.2,n:'Martin-pêcheur',b:['gorges','lac'],r:.3,c:35,fly:1,m:['.bbo','bbbo','..o.'],p:{b:'#2a9ad0',o:'#e8803a'}},
+  castor:{h:0.4,n:'Castor d’Europe',b:['gorges'],r:.25,c:40,m:['....mm','mmmmmm','mmmmm.','tt.m.m'],p:{m:'#7a5032',t:'#4a3426'}},
+  pigeon:{h:0.3,n:'Pigeon biset',b:['ville'],r:1,c:4,m:['.gk','ggg.','.g.'],p:{g:'#8a8e98',k:'#3a6a5a'}},
+  renard:{h:0.45,n:'Renard des villes',b:['ville','prairie','hetraie'],r:.5,c:16,m:['.....oo','oooooow','ooooo..','o.o..o.'],p:{o:'#d8702a',w:'#f0ece4'}},
+  chat:{h:0.3,n:'Chat de gouttière',b:['ville'],r:.6,c:8,m:['k...kk','.kkkkk','.k..k.'],p:{k:'#3a3a3e'}},
+  herisson:{h:0.2,n:'Hérisson',b:['ville','prairie'],r:.4,c:14,m:['.bbbb.','bbbbbbf','..k.k.'],p:{b:'#7a6a5a',f:'#c8a888',k:'#3a2a20'}},
+  fennec:{h:0.3,n:'Fennec',b:['desert'],r:.5,c:24,m:['s...s.','ss.ss.','.sssss','..sss.','..s.s.'],p:{s:'#e8c890'}},
+  dromadaire:{h:2.1,n:'Dromadaire',b:['desert'],r:.6,c:18,m:['..cc...','.cccc.c','cccccccc','.c..c..','.c..c..'],p:{c:'#c89a62'}},
+  scarabee:{h:0.03,n:'Scarabée sacré',b:['desert'],r:.7,c:10,m:['.kk.','kkkk','k..k'],p:{k:'#2a2a30'}},
+  scorpion:{h:0.05,n:'Scorpion',b:['desert','canyon'],r:.35,c:26,m:['y.....','.y.yy.','yyyyyy'],p:{y:'#d8b050'}},
+  coyote:{h:0.6,n:'Coyote',b:['canyon'],r:.5,c:18,m:['.....gg','ggggggg','ggggg..','g.g..g.'],p:{g:'#a89070'}},
+  serpent:{h:0.1,n:'Crotale',b:['canyon','desert'],r:.3,c:28,m:['.bb...b','b..bbb.'],p:{b:'#a8885a'}},
+  geocoucou:{h:0.5,n:'Géocoucou',b:['canyon'],r:.35,c:30,m:['b.bb','.bbbb','bb.b.','.b.b.'],p:{b:'#6a5a4a'}},
+  girafe:{h:5,n:'Girafe',b:['savane'],r:.5,c:28,m:['...yy','...y.','...y.','...y.','yyyyy','yyyy.','y..y.','y..y.'],p:{y:'#d8a048'}},
+  zebre:{h:1.4,n:'Zèbre',b:['savane'],r:.6,c:20,m:['.....wk','wkwkwkw','kwkwkw.','w.k..w.'],p:{w:'#f0f0ec',k:'#2a2a2a'}},
+  elephant:{h:3.2,n:'Éléphant',b:['savane'],r:.35,c:35,m:['.gggg..','ggggggg','gggggg.g','gggggg.g','g.g.g...'],p:{g:'#8a8a90'}},
+  lion:{h:1.2,n:'Lion',b:['savane'],r:.2,c:50,m:['.....mm','.....mm','yyyyyym','yyyyyy.','y.y..y.'],p:{y:'#d8a858',m:'#8a5a2a'}},
+  toucan:{h:0.45,n:'Toucan',b:['jungle'],r:.6,c:20,m:['.kooo','kkwy.','kk...','.k...'],p:{k:'#1e1e22',o:'#f08a2a',w:'#f4f4f0',y:'#e8d040'}},
+  singe:{h:0.6,n:'Singe hurleur',b:['jungle'],r:.7,c:14,m:['.bb.','bbbb','.bb.','b..b'],p:{b:'#6a4a32'}},
+  jaguar:{h:0.75,n:'Jaguar',b:['jungle'],r:.18,c:55,m:['.....yy','yyykyyy','ykyyky.','y.y..y.'],p:{y:'#e0a848',k:'#4a3020'}},
+  ara:{h:0.8,n:'Ara rouge',b:['jungle'],r:.5,c:22,fly:1,m:['rr...rr','.rrbrr.','...y...'],p:{r:'#d8302a',b:'#3a6ad0',y:'#f0c030'}},
+  paresseux:{h:0.6,n:'Paresseux',b:['jungle'],r:.3,c:32,fly:1,m:['k.....k','.bbbbb.','..bbb..'],p:{b:'#9a8a6a',k:'#4a3a2a'}},
+  iguane:{h:0.35,n:'Iguane',b:['volcan','jungle'],r:.5,c:16,m:['....gg','ggggggg','g.g.g..'],p:{g:'#5a8a4a'}},
+  fregate:{h:0.9,n:'Frégate superbe',b:['volcan'],r:.4,c:26,fly:1,m:['kk.......kk','..kkkrkkk..','....kkk....'],p:{k:'#1e1e24',r:'#d83a2a'}},
+  moineau:{h:0.15,n:'Moineau domestique',b:['vieilleville','ville'],r:1,c:4,m:['.bb','bbbk','.y.'],p:{b:'#9a7a5a',k:'#3a2a1a',y:'#e8b040'}},
+  pie:{h:0.45,n:'Pie bavarde',b:['vieilleville','prairie'],r:.6,c:10,fly:1,m:['k.....k','.kwwkkk','...k...'],p:{k:'#1e2028',w:'#f4f4f0'}},
+  lynx:{h:0.7,n:'Lynx boréal',b:['foretneige','foret'],r:.15,c:60,m:['k...k.','.yyyy.','yyyyyy','y.y.y.'],p:{y:'#c8a070',k:'#2a2420'}},
+  lievre:{h:0.45,n:'Lièvre variable',b:['foretneige','glacier'],r:.6,c:14,m:['.w.w','.www','wwww.','w..w.'],p:{w:'#f6f6f2'}},
+  harfang:{h:0.6,n:'Harfang des neiges',b:['foretneige'],r:.25,c:45,fly:1,m:['ww...ww','.wwkww.','..www..'],p:{w:'#f8f8f4',k:'#3a3a3a'}},
+  crabe:{h:0.08,n:'Crabe fantôme',b:['plage'],r:1,c:6,m:['k...k','.ooo.','o.o.o'],p:{o:'#f0d8a8',k:'#3a2a1a'}},
   tortuemer:{n:'Tortue verte',b:['plage'],r:.3,c:40,sea:1,m:['..gg..','gbbbbg','.g..g.'],p:{g:'#5a8a5a',b:'#8a6a3a'}},
-  pelican:{n:'Pélican brun',b:['plage'],r:.5,c:18,fly:1,m:['bb.....','.bbbbyy','..bb...'],p:{b:'#8a7a6a',y:'#e8c040'}},
-  flamant:{n:'Flamant rose',b:['cote'],r:.15,c:50,m:['.pp','..p','..p','.pp','pp.','.d.','.d.'],p:{p:'#f0a0b4',d:'#c86a80'}}
+  pelican:{h:0.9,n:'Pélican brun',b:['plage'],r:.5,c:18,fly:1,m:['bb.....','.bbbbyy','..bb...'],p:{b:'#8a7a6a',y:'#e8c040'}},
+  flamant:{h:1.3,n:'Flamant rose',b:['cote'],r:.15,c:50,m:['.pp','..p','..p','.pp','pp.','.d.','.d.'],p:{p:'#f0a0b4',d:'#c86a80'}}
 };
 const faunaCache={};
-function faunaSprite(id){return faunaCache[id]||(faunaCache[id]=outlineCv(mapSpr(FAUNA[id].m,FAUNA[id].p),'#18161a',.5))}
+// taille réelle : chaque espèce a une hauteur en mètres (h), dessinée à l'échelle du coureur (~1,8 m)
+const pxPerM=()=>(7*ZOOMS[ZOOM].k+3)/1.8;
+function scaleCv(src,tw,th){const[c,g]=canvasOf(tw,th);g.imageSmoothingEnabled=false;g.drawImage(src,0,0,tw,th);return c}
+function scaledMap(rows,pal,hm,minPx=3){
+  const base=mapSpr(rows,pal);if(!hm)return base;
+  const th=Math.max(minPx,Math.round(hm*pxPerM())),f=th/base.height;
+  if(f>.85&&f<1.2)return base;
+  return scaleCv(base,Math.max(2,Math.round(base.width*f)),th);
+}
+function faunaIcon(id){return faunaCache['i'+id]||(faunaCache['i'+id]=outlineCv(mapSpr(FAUNA[id].m,FAUNA[id].p),'#18161a',.5))}
+function faunaSprite(id){const k=id+'z'+ZOOM,F=FAUNA[id];return faunaCache[k]||(faunaCache[k]=outlineCv(F.sea?mapSpr(F.m,F.p):scaledMap(F.m,F.p,F.h),'#18161a',.5))}
 
 /* ---------- petits détails au bord du chemin (zoom moyen et proche) ---------- */
 const MICRO={
