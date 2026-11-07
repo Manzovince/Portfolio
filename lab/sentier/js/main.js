@@ -357,9 +357,9 @@ const ENG={google:['Google','https://www.google.com/search?q='],ddg:['DuckDuckGo
 let eng=store.get('eng','google');if(!ENG[eng])eng='google';
 const setEng=k=>{eng=k;store.set('eng',k);$('#eng').textContent=ENG[k][0]};setEng(eng);
 $('#eng').onclick=()=>{const k=Object.keys(ENG);setEng(k[(k.indexOf(eng)+1)%k.length]);$('#q').focus()};
-const focusQ=()=>{if(document.activeElement===document.body||!document.activeElement)$('#q').focus({preventScroll:true})};
+const focusQ=()=>{if(document.documentElement.classList.contains('nosearch'))return;if(document.activeElement===document.body||!document.activeElement)$('#q').focus({preventScroll:true})};
 focusQ();addEventListener('load',focusQ);addEventListener('focus',focusQ);
-addEventListener('keydown',e=>{if(e.key.length===1&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)&&!$('#modal').classList.contains('on'))$('#q').focus()});
+addEventListener('keydown',e=>{if(e.key.length===1&&!document.documentElement.classList.contains('nosearch')&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)&&!$('#modal').classList.contains('on'))$('#q').focus()});
 function go(url){try{window.top.location.href=url}catch(e){window.open(url,'_top')}}
 $('#search').onsubmit=e=>{
   e.preventDefault();const q=$('#q').value.trim();if(!q)return;save();
@@ -394,6 +394,7 @@ function renderLinks(){
 }
 
 if(store.get('zen',false))document.documentElement.classList.add('zen');
+if(!store.get('search',true))document.documentElement.classList.add('nosearch');
 if(store.get('watch','face')==='face')document.documentElement.classList.add('wface');
 
 /* ---------- panneau : boutique, carnet, réglages ---------- */
@@ -522,6 +523,8 @@ function renderSet(){
   h('Affichage');
   const z=document.createElement('input');z.type='checkbox';z.checked=store.get('zen',false);z.onchange=()=>{store.set('zen',z.checked);document.documentElement.classList.toggle('zen',z.checked)};
   row('Mode contemplation (juste le paysage et l’heure)',z);
+  const sb=document.createElement('input');sb.type='checkbox';sb.checked=store.get('search',true);
+  sb.onchange=()=>{store.set('search',sb.checked);document.documentElement.classList.toggle('nosearch',!sb.checked)};row('Barre de recherche',sb);
   const ws=document.createElement('select');ws.innerHTML='<option value="face">Cadran de montre</option><option value="strip">Bandeau</option>';ws.value=store.get('watch','face');
   ws.onchange=()=>{store.set('watch',ws.value);document.documentElement.classList.toggle('wface',ws.value==='face');hud()};row('Style de la montre',ws);
   const sel=document.createElement('select');sel.innerHTML='<option value="">Auto (météo du jour)</option>'+Object.entries(WX).map(([k,w])=>`<option value="${k}">${w.ic} ${w.n}</option>`).join('');
