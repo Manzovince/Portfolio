@@ -342,8 +342,8 @@ function hud(){const SS=sessStats();
   const life=Math.max(0,1-G.wear/sh.life);$('#bS').style.height=life*100+'%';$('#bS').style.background=life<.15?'#e85a4a':'#9ad06a';{const ns=G.spare[G.gear.shoes]||0;$('#tS').textContent=fmt(Math.max(0,sh.life-G.wear))+(ns?' +'+ns:'');$('#tS').parentNode.title='Chaussures : '+fmt(Math.max(0,sh.life-G.wear))+' km'+(ns?', '+ns+' paire(s) de rechange':'');$('#tS').title=ns?ns+' paire(s) de rechange':''}
   const box=$('#food'),items=Object.entries(G.stock).filter(([,n])=>n>0),sig=items.map(e=>e.join()).join()+'|'+slots()+'|'+G.flask;
   if(box.dataset.sig!==sig){box.dataset.sig=sig;box.innerHTML='';
-    for(const[id,n]of items){const b=document.createElement('button');b.title=FOOD[id].n+' · +'+FOOD[id].e+' (clic pour manger)';b.textContent=FOOD[id].ic+'×'+n;b.onclick=()=>eat(id);box.appendChild(b)}
-    if(G.flask){const b=document.createElement('button');b.title='Gourde de secours (bue quand les bidons sont vides)';b.textContent='🧴×'+G.flask;b.onclick=()=>{if(G.water<capL()-.05){G.flask--;G.water=Math.min(capL(),G.water+FLASK.l)}};box.appendChild(b)}
+    for(const[id,n]of items){const b=document.createElement('button');b.title=FOOD[id].n+' · +'+FOOD[id].e+' (clic pour manger)';b.innerHTML=`<i class="fi">${FOOD[id].ic}</i>${n}`;b.onclick=()=>eat(id);box.appendChild(b)}
+    if(G.flask){const b=document.createElement('button');b.title='Gourde de secours (bue quand les bidons sont vides)';b.innerHTML=`<i class="fi">🧴</i>${G.flask}`;b.onclick=()=>{if(G.water<capL()-.05){G.flask--;G.water=Math.min(capL(),G.water+FLASK.l)}};box.appendChild(b)}
     const sp=document.createElement('span');sp.style.cssText='opacity:.55;font-size:8.5px;align-self:center;margin-left:auto';sp.textContent=stockN()+'/'+slots();box.appendChild(sp)}
   document.documentElement.classList.toggle('home',!!G.home);
   const bs=G.boost&&G.boost.t>Date.now()?Math.ceil((G.boost.t-Date.now())/1000):0;
