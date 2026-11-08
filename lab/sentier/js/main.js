@@ -250,10 +250,16 @@ function hitSup(e){const x=e.clientX/PX,y=e.clientY/PX,m=(e.pointerType==='touch
 function cheer(gp,e){
   SUP_USED.set(gp.id,performance.now());
   const k=gp.n>=5?1.2:gp.n>=3?1.15:1.1,sec=gp.n>=5?90:60,nowt=Date.now();
+  // au hasard : un gobelet d'eau ou des encouragements
+  if(Math.random()<.5&&G.water<capL()-.05){const l=gp.n>=3?.25:.15;G.water=Math.min(capL(),G.water+l);
+    emit('Un gobelet tendu !',`+${fmt(l,2)} L d’eau`,'🥤');pop(e,'🥤 Tiens !');return}
   G.boost={k:Math.max(k,G.boost&&G.boost.t>nowt?G.boost.k:1),t:Math.min(nowt+180000,Math.max(nowt,G.boost&&G.boost.t||0)+sec*1000)};
   const msgs=['Allez, allez !','Lâche rien !','T’es une machine !','Plus que quelques kilomètres !','Bravo champion·ne !','Allez la frontale !','On est avec toi !'];
   emit(msgs[Math.floor(Math.random()*msgs.length)],`Encouragements : +${Math.round((k-1)*100)} % de vitesse pendant ${sec} s`,'📣');
-  const b=document.createElement('div');b.className='cheer';b.textContent=gp.n>=3?'👏 Allez !':'👏';b.style.left=e.clientX+'px';b.style.top=e.clientY+'px';document.body.appendChild(b);
+  pop(e,gp.n>=3?'👏 Allez !':'👏');
+}
+function pop(e,t){
+  const b=document.createElement('div');b.className='cheer';b.textContent=t;b.style.left=e.clientX+'px';b.style.top=e.clientY+'px';document.body.appendChild(b);
   b.animate([{transform:'translate(-50%,-50%) scale(.6)',opacity:0},{transform:'translate(-50%,-160%) scale(1.2)',opacity:1,offset:.3},{transform:'translate(-50%,-260%) scale(1)',opacity:0}],{duration:1300,easing:'ease-out'}).onfinish=()=>b.remove();
 }
 function hitFauna(e){
@@ -312,11 +318,12 @@ function hud(){
   $('#bW').style.width=G.water/cap*100+'%';$('#tW').textContent=fmt(G.water,2)+' L';
   $('#bE').style.width=G.energy+'%';$('#tE').textContent=Math.round(G.energy)+' %';
   const life=Math.max(0,1-G.wear/sh.life);$('#bS').style.width=life*100+'%';$('#bS').style.background=life<.15?'#e85a4a':'#9ad06a';{const ns=G.spare[G.gear.shoes]||0;$('#tS').textContent=fmt(Math.max(0,sh.life-G.wear))+' km'+(ns?' +'+ns:'');$('#tS').title=ns?ns+' paire(s) de rechange':''}
-  const box=$('#food'),items=Object.entries(G.stock).filter(([,n])=>n>0),sig=items.map(e=>e.join()).join()+'|'+slots();
+  const box=$('#food'),items=Object.entries(G.stock).filter(([,n])=>n>0),sig=items.map(e=>e.join()).join()+'|'+slots()+'|'+G.flask;
   if(box.dataset.sig!==sig){box.dataset.sig=sig;box.innerHTML='';
     for(const[id,n]of items){const b=document.createElement('button');b.title=FOOD[id].n+' · +'+FOOD[id].e+' (clic pour manger)';b.textContent=FOOD[id].ic+'×'+n;b.onclick=()=>eat(id);box.appendChild(b)}
+    if(G.flask){const b=document.createElement('button');b.title='Gourde de secours (bue quand les bidons sont vides)';b.textContent='🧴×'+G.flask;b.onclick=()=>{if(G.water<capL()-.05){G.flask--;G.water=Math.min(capL(),G.water+FLASK.l)}};box.appendChild(b)}
     const sp=document.createElement('span');sp.style.cssText='opacity:.55;font-size:10px;align-self:center;margin-left:auto';sp.textContent=stockN()+'/'+slots();box.appendChild(sp)}
-  const nr=nextPoi(G.d,['ravito']),nf=nextPoi(G.d,['fontaine','ravito']);
+  const nr=nextPoi(G.d,['ravito']),nf=nextPoi(G.d,G.own.includes('filtre')?['fontaine','ravito','buvette','cafe','ruisseau']:['fontaine','ravito','buvette','cafe']);
   $('#next').innerHTML=`<span>⛺ ${nr?fmt((nr.d-G.d)/1000,1)+' km':'—'}</span><span>💧 ${nf?fmt((nf.d-G.d)/1000,1)+' km':'—'}</span><span>${fmt(elevMacro(G.d))} m</span>`;
   const bs=G.boost&&G.boost.t>Date.now()?Math.ceil((G.boost.t-Date.now())/1000):0;
   $('#why').innerHTML=(bs?`<span style="color:#9ef09a">📣 encouragé +${Math.round((G.boost.k-1)*100)} % · ${bs} s</span> `:'')+(LIVE.why.length?'⚠ '+LIVE.why.join(' · '):'');
@@ -334,7 +341,7 @@ function drawProfile(){
   pg.globalAlpha=1;
   const rx=(G.d-a)/(b-a)*w;pg.fillStyle='#fff';pg.fillRect(Math.round(rx),0,1,h);pg.fillStyle='#e8603a';pg.fillRect(Math.round(rx)-2,Y(es[Math.round(rx)])-2,5,5);
   pg.font='10px JetBrains Mono';pg.textAlign='center';
-  for(const p of poisIn(a,b)){if(!['ravito','fontaine','sommet'].includes(p.k))continue;const x=(p.d-a)/(b-a)*w;pg.fillText(p.k==='ravito'?'⛺':p.k==='sommet'?'▲':'·',x,Math.max(9,Y(elevMacro(p.d))-3))}
+  for(const p of poisIn(a,b)){if(!['ravito','fontaine','sommet','buvette','cafe'].includes(p.k))continue;const x=(p.d-a)/(b-a)*w;pg.fillText(p.k==='ravito'?'⛺':p.k==='sommet'?'▲':'·',x,Math.max(9,Y(elevMacro(p.d))-3))}
 }
 setInterval(hud,400);hud();if(innerWidth<700||innerHeight<500)resize();
 
@@ -443,6 +450,9 @@ function renderShop(){
     const g=grid();
     for(const[id,f]of Object.entries(FOOD)){if(f.reg&&f.reg!==reg)continue;const n=G.stock[id]||0;
       g.appendChild(card({ic:f.ic,n:f.n,d:`+${f.e} d’énergie`,badge:n?'×'+n:'',btn:coinTxt(f.p),buy:1,dis:G.coins<f.p||stockN()>=slots(),fn:()=>{G.coins-=f.p;G.stock[id]=n+1}}))}
+    const g2=grid('two');
+    g2.appendChild(card({ic:'🧴',n:'Gourde de secours',d:`+${fmt(FLASK.l,1)} L, bue toute seule quand les bidons sont vides. ${FLASK.max} max.`,badge:G.flask?'×'+G.flask:'',btn:'+1 · '+coinTxt(FLASK.p),buy:1,dis:G.coins<FLASK.p||G.flask>=FLASK.max,fn:()=>{G.coins-=FLASK.p;G.flask++}}));
+    {const own=G.own.includes('filtre');g2.appendChild(card({ic:'🏞',n:'Filtre à eau',d:'Remplis tes bidons aux ruisseaux, torrents et rivières.',on:own,btn:own?'dans le sac':coinTxt(FILTRE.p),buy:!own,dis:own||G.coins<FILTRE.p,fn:()=>{G.coins-=FILTRE.p;G.own.push('filtre')}}))}
     if(stockN()>=slots())note('Sac plein : un portage plus grand (Équipement → Portage) emporte plus d’encas.');
   }else if(shopCat==='equip'){
     // sous-onglets par emplacement, avec l'objet porté
@@ -561,9 +571,9 @@ function renderAdmin(){
    d.append('km',i,btn('Aller',()=>jumpTo(parseFloat(i.value)*1000||0)));pb.appendChild(d)}
   grid(btn('−1 km',()=>jumpTo(G.d-1000)),btn('−100 m',()=>jumpTo(G.d-100)),btn('+100 m',()=>jumpTo(G.d+100)),btn('+1 km',()=>jumpTo(G.d+1000)),btn('+10 km',()=>jumpTo(G.d+10000)),btn('Départ',()=>jumpTo(0)));
   h('Points d’intérêt');
-  const NM={ravito:'Ravito',fontaine:'Fontaine',sommet:'Sommet',panneau:'Entrée de paysage',depart:'Départ'};
+  const NM={ravito:'Ravito',fontaine:'Fontaine',ruisseau:'Ruisseau',buvette:'Buvette',cafe:'Café',sommet:'Sommet',panneau:'Entrée de paysage',depart:'Départ'};
   grid(btn('Prochain ravito',()=>{const p=nextPoi(G.d+30,['ravito']);if(p)jumpTo(p.d-35)}),btn('Prochain refuge',()=>{let p=G.d+30;for(const q of poisIn(G.d+30,G.d+120000))if(q.refuge){jumpTo(q.d-35);break}}),
-    btn('Prochaine fontaine',()=>{const p=nextPoi(G.d+30,['fontaine']);if(p)jumpTo(p.d-35)}),btn('Prochain sommet',()=>{const p=nextPoi(G.d+30,['sommet']);if(p)jumpTo(p.d-60)}));
+    btn('Prochaine fontaine',()=>{const p=nextPoi(G.d+30,['fontaine']);if(p)jumpTo(p.d-35)}),btn('Prochain ruisseau',()=>{const p=nextPoi(G.d+30,['ruisseau']);if(p)jumpTo(p.d-35)}),btn('Prochaine buvette / café',()=>{const p=nextPoi(G.d+30,['buvette','cafe']);if(p)jumpTo(p.d-35)}),btn('Prochain sommet',()=>{const p=nextPoi(G.d+30,['sommet']);if(p)jumpTo(p.d-60)}));
   for(const p of poisIn(G.d,G.d+60000).filter(p=>p.k!=='panneau').slice(0,10)){
     const r=document.createElement('div');r.className='adl';
     const s=document.createElement('span');s.textContent=`${fmt((p.d-G.d)/1000,1)} km · ${NM[p.k]||p.k} · ${p.n}${p.alt?' '+p.alt+' m':''} (${BI[leg(p.d).b].n.toLowerCase()})`;

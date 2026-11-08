@@ -179,6 +179,18 @@ function poiSprite(p){
       const med=!key.endsWith('alpes');
       o=med?{cv:outlineCv(mapSpr(['..ddd..','..d.d..','sssssss','sLsssLs','sssssss'],{d:'#6a5038',s:'#c8bca4',L:'#a89c84'}),'#2a2420',.5),ox:4,oy:6}
         :{cv:outlineCv(mapSpr(['dd.....','.d.....','.db....','.d.b...','.dwwwwd','.dddddd','.d...d.'],{d:'#6a4a30',w:'#5aa0d0',b:'#9ad0f0'}),'#2a2420',.5),ox:3,oy:8};break}
+    case 'ruisseau':{
+      // le sentier franchit un ruisseau : passerelle de planches, eau qui file dessous, galets
+      o={cv:outlineCv(mapSpr(['..p.........p..','.ppppppppppppp.','.ddddddddddddd.','gwWwwbwwWwwbwwg','ggwwwWwwwbwwWgg','.ggg.ggggg.ggg.'],
+        {p:'#7a5a3a',d:'#5a4028',w:'#4a90c8',W:'#bfe4f6',b:'#2e6a9c',g:'#8a8a84'}),'#20262c',.45),ox:7,oy:5};break}
+    case 'buvette':{
+      // chalet-buvette : toit, fenêtre éclairée, table et pancarte
+      o={cv:outlineCv(mapSpr(['......rr......','....rrrrrr....','..rrrrrrrrrr..','rrrrrrrrrrrrrr','.wwwwwwwwwww..','.wwyywwwddww..','.wwyywwwddwwss','.wwwwwwwddww.t','.wwwwwwwddwwtt','...........t.t'],
+        {r:'#7a3a2a',w:'#9a6a40',y:'#f2c860',d:'#5a3a22',s:'#f2ece0',t:'#6a4a30'}),'#2a2420',.5),ox:7,oy:10};break}
+    case 'cafe':{
+      // terrasse de café : store rayé, petites tables rondes et chaises
+      o={cv:outlineCv(mapSpr(['rwrwrwrwrwrwrw','rwrwrwrwrwrwrw','.r.r.r.r.r.r..','.k..........k.','.k...........k','.k..ttt..ttt.k','.kc..t.c..t.ck','.kc..t.c..t.ck'],
+        {r:'#c8382e',w:'#f4efe6',k:'#3a3a40',t:'#d8d8d0',c:'#5a3a2a'}),'#1e1e24',.45),ox:7,oy:8};break}
     case 'sommet':o={cv:outlineCv(mapSpr(['...m...','...m...','.mmmmm.','...m...','...m...','..lmd..','.lmmmd.','lmmmmdd'],{m:'#4a4a52',l:'#b8b6b0',d:'#7a7872'}),'#1a1a20',.5),ox:4,oy:9};break;
     case 'panneau':o={cv:mapSpr(['yyyyy.','yyyyyy','yyyyy.','..d...','.yyyy.','yyyyy.','.yyyy.','..d...','..d...','..d...'],{y:'#f2c84a',d:'#7a5a3a'}),ox:2,oy:10};break;
     default:o={cv:mapSpr(['w','d'],{w:'#fff',d:'#888'}),ox:0,oy:2};

@@ -116,8 +116,17 @@ function genNext(){
       poi(vo.d0+vo.len*.5,'sommet','Cratère du '+nameOf(['Mont Brasier','Piton Rouge','Pic de Cendre'],n3),{alt:Math.round(top)})}
   }
   // panneaux d'entrée et bornes kilométriques
-  for(const L of LEGS)if(!L.sign){L.sign=1;poi(L.d0+25,'panneau',BI[L.b].n,{leg:L})}
+  for(const L of LEGS)if(!L.sign){L.sign=1;poi(L.d0+25,'panneau',BI[L.b].n,{leg:L});extraWater(L)}
   POIS.sort((a,b)=>a.d-b.d);
+}
+// points d'eau secondaires : ruisseaux (filtre requis), buvettes d'alpage, cafés en ville
+const RUIS=['prairie','foret','hetraie','alpage','gorges','lac','jungle','foretneige'],BUV=['alpage','foret','foretneige','crete'],CAFE=['ville','vieilleville'];
+function extraWater(L){
+  const h=i=>hs(L.seed*1.37+i*.71),free=d=>!POIS.some(p=>p.k!=='panneau'&&Math.abs(p.d-d)<220);
+  const put=(f,k,n)=>{for(const df of[0,.12,-.12,.24]){const d=L.d0+L.len*(f+df);if(d>L.d0+120&&d<L.d0+L.len-80&&free(d)){poi(d,k,n);return}}};
+  if(RUIS.includes(L.b)&&h(1)<.75)put(.3+h(2)*.15,'ruisseau',L.b==='jungle'?'Rivière':L.b==='foretneige'?'Torrent sous la glace':L.b==='gorges'?'Gué':'Ruisseau');
+  if(BUV.includes(L.b)&&h(3)<(L.b==='alpage'?.6:.35))put(.78+h(4)*.1,'buvette',L.b==='foretneige'?'Chalet de ski de fond':'Buvette d’alpage');
+  if(CAFE.includes(L.b)&&h(5)<.9)put(.15+h(6)*.1,'cafe',L.b==='ville'?'Café du coin':'Terrasse de la place');
 }
 function ensure(dm){while(endD<dm+40000)genNext()}
 ensure(0);

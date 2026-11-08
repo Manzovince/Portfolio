@@ -54,6 +54,7 @@ const FOOD={
   dattes:{n:'Dattes de l’oasis',e:30,p:12,ic:'🌴',reg:'exo'},
   mangue:{n:'Mangue',e:26,p:10,ic:'🥭',reg:'exo'}
 };
+const FLASK={l:.5,p:25,max:3},FILTRE={p:150},BUVP=30;
 const UPG={
   vma:{n:'Fractionné (VMA)',d:'+4 % de vitesse',b:60},
   endu:{n:'Sortie longue',d:'−6 % d’énergie dépensée',b:50},
@@ -143,7 +144,7 @@ const NEW=()=>({v:1,d:0,dp:0,dn:0,t:0,coins:30,tot:0,water:.5,energy:100,wear:0,
   up:{},dog:0,seen:{},q:[],st:{tops:0,mer:0,nuit:0,pluie:0,rav:0,alpage:0,photos:0,maxAlt:0,eaten:0,wx:{},bio:{},froid:0,neige:0,fon:0,worn:0},
   auto:{eat:40,restock:{gel:3,barre:2}},last:Date.now(),sess:{d:0,dp:0}});
 let G=Object.assign(NEW(),store.get('save',{}));
-G.st=Object.assign(NEW().st,G.st);if(!G.spare)G.spare={};if(!G.comps){G.comps=G.dog?['chien']:[];G.comp=G.dog?'chien':null}if(!G.gear.style)G.gear.style='classique';if(!G.own.includes('classique'))G.own.push('classique');if(G.qSeen==null)G.qSeen=G.q.length;G.auto=Object.assign(NEW().auto,G.auto);
+G.st=Object.assign(NEW().st,G.st);if(!G.spare)G.spare={};if(G.flask==null)G.flask=0;if(!G.comps){G.comps=G.dog?['chien']:[];G.comp=G.dog?'chien':null}if(!G.gear.style)G.gear.style='classique';if(!G.own.includes('classique'))G.own.push('classique');if(G.qSeen==null)G.qSeen=G.q.length;G.auto=Object.assign(NEW().auto,G.auto);
 if(Q.has('km')){G.d=parseFloat(Q.get('km'))*1000;G.last=Date.now();Q.delete('km');history.replaceState(null,'',location.pathname+(Q.toString()?'?'+Q:''))}
 if(Q.has('tout')){G.coins+=99999;history.replaceState(null,'',location.pathname)}
 const save=()=>{G.last=Date.now();store.set('save',G)};
@@ -187,6 +188,7 @@ function step(dt,date){
   const hot=c.T>24||c.wx==='chaleur';
   let wr=.48*eff*(hot?1.5:1)*(1+B.heat*.5)*top.water*(hot&&c.sun&&hd&&hd.heat?hd.heat:1)*(1-.06*lvl('thermo'))*((G.comp&&COMP[G.comp].water)||1)*(c.wx==='chaleur'&&G.gear.top==='doudoune'?1.2:1);
   G.water=Math.max(0,G.water-wr*dt/3600);
+  if(G.water<=0&&G.flask>0){G.flask--;G.water=Math.min(capL(),FLASK.l);emit('Gourde de secours','+'+fmt(FLASK.l,1)+' L · encore '+G.flask+' dans le sac','🧴')}
   G.energy=Math.max(0,G.energy-27*eff*(1-.06*lvl('endu'))*((GEAR[G.gear.style]||{}).endu||1)*dt/3600);
   if(G.energy<G.auto.eat)autoEat();
   // déplacement
@@ -225,6 +227,12 @@ function passPoi(p){
     for(const[id,n]of Object.entries(G.auto.restock)){const f=FOOD[id];if(!f||(f.reg&&f.reg!==BI[L.b].reg))continue;
       while((G.stock[id]||0)<n&&stockN()<slots()&&G.coins>=f.p){G.coins-=f.p;G.stock[id]=(G.stock[id]||0)+1;bought.push(f.ic)}}
     emit(p.refuge?p.n:'Ravito · '+p.n,'Bidons pleins, +15 d’énergie'+(bought.length?' · réassort '+bought.join(''):''),'⛺');
+  }else if(p.k==='ruisseau'){
+    if(G.own.includes('filtre')){if(G.water<capL()-.05){G.water=capL();G.st.ruis=(G.st.ruis||0)+1;emit(p.n,'Bidons remplis au filtre','🏞')}}
+    else if(G.water<capL()*.3)emit(p.n,'Sans filtre à eau, tu passes sans remplir (Boutique → Ravito).','🏞');
+  }else if(p.k==='buvette'||p.k==='cafe'){
+    const pr=BUVP;if((G.water<capL()*.7||G.energy<70)&&G.coins>=pr){G.coins-=pr;G.water=capL();G.energy=Math.min(100,G.energy+20);G.st.buv=(G.st.buv||0)+1;
+      emit(p.n,(p.k==='cafe'?'Café et croissant':'Sirop et part de tarte')+' : bidons pleins, +20 d’énergie · −'+pr,p.k==='cafe'?'☕':'🏠')}
   }else if(p.k==='fontaine'){if(G.water<capL()-.05){G.water=capL();G.st.fon++;emit(p.n,'Bidons remplis','💧')}}
   else if(p.k==='sommet'){G.st.tops++;G.tops=G.tops||[];G.tops.push({n:p.n,alt:p.alt,d:Date.now()});addCoins(50);emit(p.n+' · '+fmt(p.alt)+' m','Sommet atteint ! +50','⛰')}
   else if(p.k==='panneau'){
