@@ -303,8 +303,9 @@ function hud(){
   $('#dShop').hidden=!(Object.entries(GEAR).some(([id,g])=>g.p>0&&!G.own.includes(id)&&g.p<=G.coins)||(Object.entries(COMP).some(([id,c])=>G.st.bio[c.b]&&!G.comps.includes(id)&&G.coins>=c.p)));
   const nd=G.q.length-(G.qSeen??G.q.length),tr=Object.keys(UPG).some(upCan);
   $('#sJ').hidden=!G.newSp;$('#sT').hidden=!tr;$('#sD').hidden=nd<=0;$('#sD').textContent=nd;
+  $('#dRace').hidden=!!G.race||!CAMP.some(id=>raceOpen(id)&&!G.camp.ok.includes(id)&&G.coins>=RACES[id].fee);
   $('#nDef').hidden=nd<=0;$('#nDef').textContent=nd;$('#dCarnet').hidden=nd>0||!(G.newSp||tr);
-  $('#wDist').innerHTML=fmt(G.d/1000,2)+'<small>km</small>';
+  $('#wDist').innerHTML=fmt((onRace()?G.d:G.odo)/1000,2)+'<small>km</small>';
   $('#wDp').innerHTML=fmt(G.dp)+'<small>m</small>';
   $('#wPace').innerHTML=pace(LIVE.v)+'<small>/km</small>';
   $('#wHr').textContent=Math.round(LIVE.hr);$('#hr .h').style.animationDuration=(60/LIVE.hr).toFixed(2)+'s';
@@ -317,8 +318,8 @@ function hud(){
     $('#fHr').textContent=Math.round(hr);
     const a=(150+pc*240)*Math.PI/180;$('#fMark').setAttribute('cx',(50+46.5*Math.cos(a)).toFixed(2));$('#fMark').setAttribute('cy',(50+46.5*Math.sin(a)).toFixed(2));
     $('.face .h').style.animationDuration=(60/hr).toFixed(2)+'s';
-    $('#fDist').textContent=fmt(G.d/1000,2);$('#fPace').textContent=pace(LIVE.v);$('#fDp').textContent=fmt(G.dp);
-  }$('#wCad').textContent=LIVE.cad+' spm';$('#wMode').textContent=LIVE.mode==='run'?'course':LIVE.mode==='rest'?'bivouac':'marche';restUI();
+    $('#fDist').textContent=fmt((onRace()?G.d:G.odo)/1000,2);$('#fPace').textContent=pace(LIVE.v);$('#fDp').textContent=fmt(G.dp);
+  }$('#wCad').textContent=LIVE.cad+' spm';$('#wMode').textContent=LIVE.mode==='run'?'course':LIVE.mode==='rest'?'bivouac':'marche';restUI();raceUI();
   const cap=capL(),sh=GEAR[G.gear.shoes];
   $('#bW').style.width=G.water/cap*100+'%';$('#tW').textContent=fmt(G.water,2)+' L';
   $('#bE').style.width=G.energy+'%';$('#tE').textContent=Math.round(G.energy)+' %';
@@ -359,7 +360,7 @@ function drawProfile(){
   pg.globalAlpha=1;
   const rx=(G.d-a)/(b-a)*w;pg.fillStyle='#fff';pg.fillRect(Math.round(rx),0,1,h);pg.fillStyle='#e8603a';pg.fillRect(Math.round(rx)-2,Y(es[Math.round(rx)])-2,5,5);
   pg.font='10px JetBrains Mono';pg.textAlign='center';
-  for(const p of poisIn(a,b)){if(!['ravito','fontaine','sommet','buvette','cafe'].includes(p.k))continue;const x=(p.d-a)/(b-a)*w;pg.fillText(p.k==='ravito'?'⛺':p.k==='sommet'?'▲':'·',x,Math.max(9,Y(elevMacro(p.d))-3))}
+  for(const p of poisIn(a,b)){if(!['ravito','fontaine','sommet','buvette','cafe','arrivee'].includes(p.k))continue;const x=(p.d-a)/(b-a)*w;pg.fillText(p.k==='arrivee'?'🏁':p.k==='ravito'?'⛺':p.k==='sommet'?'▲':'·',x,Math.max(9,Y(elevMacro(p.d))-3))}
 }
 setInterval(hud,400);hud();if(innerWidth<700||innerHeight<500)resize();
 
@@ -426,7 +427,7 @@ if(store.get('watch','face')==='face')document.documentElement.classList.add('wf
 let curTab='boutique';
 function openModal(tab){$('#modal').classList.add('on');showTab(tab)}
 const closeModal=()=>{$('#modal').classList.remove('on');document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'))};
-$('#bCoins').onclick=()=>openModal('boutique');$('#bCarnet').onclick=()=>openModal('carnet');$('#bBiome').onclick=()=>openModal('journal');$('#bSet').onclick=()=>openModal('reglages');
+$('#bCoins').onclick=()=>openModal('boutique');$('#bRace').onclick=()=>openModal('courses');$('#bCarnet').onclick=()=>openModal('carnet');$('#bBiome').onclick=()=>openModal('journal');$('#bSet').onclick=()=>openModal('reglages');
 {const setBag=v=>{document.documentElement.classList.toggle('nobag',!v);const b=$('#bagT');b.title=b.ariaLabel=v?'Masquer le sac':'Afficher le sac';store.set('bag',v);dispatchEvent(new Event('resize'))};
  setBag(store.get('bag',true));$('#bagT').onclick=()=>setBag(document.documentElement.classList.contains('nobag'))}
 $('#zIn').onclick=()=>setZoom(ZOOM+1);$('#zOut').onclick=()=>setZoom(ZOOM-1);$('#zLbl').textContent=ZOOMS[ZOOM].n;
@@ -440,7 +441,7 @@ function showTab(t){if(t==='carnet')t=carSub;const grp=CSUB.includes(t)?'carnet'
   document.querySelectorAll('.ph .tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===grp));
   document.querySelectorAll('.nb[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===grp));
   $('#psub').hidden=grp!=='carnet';document.querySelectorAll('#psub button').forEach(b=>b.classList.toggle('on',b.dataset.sub===t));
-  if(t==='journal')G.newSp=0;if(t==='defis')G.qSeen=G.q.length;hud();({boutique:renderShop,journal:renderCarnet,defis:renderDefis,reglages:renderSet,admin:renderAdmin,train:renderTrain})[t]()}
+  if(t==='journal')G.newSp=0;if(t==='defis')G.qSeen=G.q.length;hud();({boutique:renderShop,journal:renderCarnet,defis:renderDefis,reglages:renderSet,admin:renderAdmin,train:renderTrain,courses:renderRaces})[t]()}
 const coinTxt=n=>fmt(n)+' ◉',xpTxt=n=>fmt(Math.floor(n))+' XP';
 function item(title,desc,btn,cls,on,fn,dis){
   const d=document.createElement('div');d.className='it'+(on?' on':'');
@@ -456,6 +457,7 @@ function card(o){
   d.innerHTML=`<div class="si"></div><div class="sn"></div><div class="sd"></div><button></button>`;
   d.querySelector('.si').textContent=o.ic||'';if(o.sw)d.querySelector('.si').style.cssText=`background:${o.sw};`;
   d.querySelector('.sn').textContent=o.n;d.querySelector('.sd').textContent=o.d||'';d.title=o.d||'';
+  if(o.buy&&racing()){o.dis=true}
   if(o.badge){const bg=document.createElement('i');bg.className='sb';bg.textContent=o.badge;d.appendChild(bg)}
   const b=d.querySelector('button');b.textContent=o.btn;if(o.buy)b.className='buy';b.disabled=!!o.dis;
   b.onclick=()=>{o.fn();save();renderShop();hud()};return d;
@@ -470,6 +472,7 @@ function renderShop(){
   pb.appendChild(top);
   const grid=(cls='')=>{const g=document.createElement('div');g.className='sgrid '+cls;pb.appendChild(g);return g};
   const note=t=>{const p=document.createElement('p');p.className='snote';p.textContent=t;pb.appendChild(p)};
+  if(racing())note('🏁 En course : la boutique est fermée jusqu’à l’arrivée. Seuls les ravitos officiels te ravitaillent.');
   if(shopCat==='ravito'){
     note('Mangé tout seul quand l’énergie baisse. Réassort automatique réglable dans Réglages.');
     const g=grid();
@@ -508,6 +511,56 @@ function renderShop(){
         btn:on?'avec toi':own?'Emmener':met?coinTxt(C.p):'à rencontrer',buy:!own&&met,dis:on||!met||(!own&&G.coins<C.p),fn:()=>{if(!own){G.coins-=C.p;G.comps.push(id)}G.comp=id}}))}
     if(G.comp)grid('two').appendChild(card({ic:'🏃',n:'Courir seul',d:'Laisser ton compagnon se reposer',btn:'Seul',fn:()=>{G.comp=null}}));
   }
+}
+/* ---------- campagne : courses, dossard, panneau de course ---------- */
+function onRoute(){ensure(G.d);cam=elev(G.d);camMacro=elevMacro(G.d);ANIM=[];SUP_USED.clear();clearTiles();tileBudget=999;save();hud();if($('#modal').classList.contains('on')&&curTab==='courses')renderRaces()}
+const tm=s=>{s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s/60)%60,x=s%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
+const toShop=slot=>{shopCat='equip';shopSlot=slot;store.set('shopCat','equip');store.set('shopSlot',slot);openModal('boutique')};
+let raArm=0;
+function raceUI(){
+  const el=$('#race'),R=G.race,res=!R||R.st==='fin'?G.lastRes:null;
+  if(!R&&!res||G.rest){el.hidden=true;return}el.hidden=false;
+  const go=$('#raGo'),x=$('#raX'),bar=$('#raBar');
+  if(R&&R.st==='bib'){const C=RACES[R.id],I=raceInfo(R.id),miss=reqMissing(R.id);el.className='hud bib';
+    $('#raN').textContent='🎽 '+C.n;$('#raB').textContent='n° '+R.bib;
+    $('#raS').innerHTML=(C.req&&C.req.length?C.req.map(k=>`<span class="${REQ[k].ok()?'ok':'no'}">${REQ[k].ok()?'✓':'✗'} ${REQ[k].n}</span>`).join(''):'<span class="ok">✓ Pas de matériel obligatoire</span>');
+    bar.parentNode.hidden=true;$('#raT').textContent=`${fmt(I.len/1000,1)} km · ${fmt(I.dp)} m D+ · objectif ${tm(C.goal)}`;
+    go.hidden=false;go.disabled=false;go.textContent=miss.length?'Compléter le matériel':'Prendre le départ';go.onclick=()=>{if(miss.length)return toShop(REQ[miss[0]].slot);startRace();save();hud()};
+    x.hidden=false;x.textContent='Rendre le dossard';x.onclick=()=>{dropBib();save();hud()};return}
+  if(R&&R.st==='run'){const C=RACES[R.id],I=raceInfo(R.id),f=clamp(G.d/I.len,0,1),est=f>.02?R.t/f:0;el.className='hud run';
+    $('#raN').textContent=C.ic+' '+C.n;$('#raB').textContent='n° '+R.bib;
+    $('#raS').innerHTML=`<b class="big">${tm(R.t)}</b><span>${fmt(G.d/1000,2)} / ${fmt(I.len/1000,1)} km</span>`;
+    bar.parentNode.hidden=false;bar.style.width=f*100+'%';
+    $('#raT').innerHTML=est?`arrivée estimée <b class="${est<=C.goal?'good':'bad'}">${tm(est)}</b> · objectif ${tm(C.goal)}`:`objectif ${tm(C.goal)}`;
+    go.hidden=true;x.hidden=false;x.textContent=raArm?'Sûr ? Abandonner':'Abandonner';x.classList.toggle('danger',!!raArm);
+    x.onclick=()=>{if(!raArm){raArm=1;setTimeout(()=>{raArm=0},4000);hud();return}raArm=0;finishRace(1,'Tu as rendu ton dossard.');save();hud()};return}
+  // résultat
+  const C=RACES[res.id];el.className='hud res'+(res.dnf?' dnf':res.ok?' good':'');bar.parentNode.hidden=true;
+  $('#raN').textContent=(res.dnf?'🚩 Abandon · ':'🏅 Arrivée · ')+C.n;$('#raB').textContent='';
+  if(res.dnf){$('#raS').innerHTML=`<span>${res.why||''} au km ${fmt(res.km,1)}.</span>`;$('#raT').textContent='Entraîne-toi, prépare mieux ton sac, et reprends un dossard.'}
+  else{$('#raS').innerHTML=`<b class="big">${tm(res.t)}</b><span>${res.place}<sup>e</sup> sur ${fmt(res.n)}${res.pb?' · record perso':''}</span>`;
+    $('#raT').innerHTML=res.ok?(res.first?`Objectif atteint ! +${fmt(C.prize)} ◉`+(res.next?` · <b>${RACES[res.next].n}</b> débloqué`:' · campagne terminée !'):'Objectif atteint.'):`Objectif ${tm(C.goal)} manqué de ${tm(res.t-C.goal)}. Entraîne-toi et retente.`}
+  go.hidden=false;go.disabled=false;go.textContent='Les courses';go.onclick=()=>openModal('courses');
+  x.hidden=false;x.classList.remove('danger');x.textContent=R?'Retour à l’entraînement':'Fermer';x.onclick=()=>{if(R)backToTrain();G.lastRes=null;save();hud()};
+}
+function renderRaces(){
+  const pb=$('#pb'),keep=pb.scrollTop;pb.innerHTML='';requestAnimationFrame(()=>pb.scrollTop=keep);
+  const done=G.camp.ok.length;
+  const top=document.createElement('div');top.className='qtop';
+  top.innerHTML=`<b>${done} / ${CAMP.length}</b> objectifs atteints<div class="qbar"><i style="width:${done/CAMP.length*100}%"></i></div><small>Entraîne-toi seul pour gagner de l’expérience, puis prends un dossard. Bats le chrono objectif pour débloquer la course suivante.</small>`;pb.appendChild(top);
+  CAMP.forEach((id,i)=>{const C=RACES[id],I=raceInfo(id),op=raceOpen(id),ok=G.camp.ok.includes(id),mine=G.race&&G.race.id===id,best=G.camp.best[id];
+    const d=document.createElement('div');d.className='rc'+(op?'':' lock')+(ok?' ok':'')+(mine?' mine':'');
+    d.innerHTML=`<div class="rci">${op?C.ic:'🔒'}</div><div class="rcb"><div class="rch"><b></b><span class="rcm">${ok?'🏅':''}</span></div>
+      <div class="rck">${fmt(I.len/1000,1)} km · ${fmt(I.dp)} m D+ · ${I.bs.map(b=>BI[b].n.toLowerCase()).slice(0,3).join(', ')}${I.bs.length>3?'…':''}</div>
+      <p></p><div class="rcs"><span>Objectif <b>${tm(C.goal)}</b></span>${best?`<span>Record <b>${tm(best)}</b> · ${G.camp.place[id]}<sup>e</sup></span>`:''}<span>${fmt(C.nb)} coureurs</span></div>
+      ${C.req&&C.req.length?`<div class="rcr">${C.req.map(k=>`<span class="${REQ[k].ok()?'ok':'no'}">${REQ[k].ok()?'✓':'✗'} ${REQ[k].n}</span>`).join('')}</div>`:''}<button></button></div>`;
+    d.querySelector('b').textContent=C.n;d.querySelector('p').textContent=op?C.d:`Bats l’objectif de « ${RACES[CAMP[i-1]].n} » pour t’inscrire.`;
+    const b=d.querySelector('button');
+    if(mine){b.textContent=G.race.st==='bib'?'Dossard pris · prépare-toi':'En course';b.disabled=true}
+    else if(!op){b.textContent='Verrouillée';b.disabled=true}
+    else{b.className='buy';b.textContent=(ok?'Recourir':'Prendre le dossard')+' · '+coinTxt(C.fee);b.disabled=!!G.race||G.coins<C.fee;if(G.race)b.title='Tu as déjà un dossard';
+      b.onclick=()=>{if(takeBib(id)){save();hud();closeModal()}}}
+    pb.appendChild(d)});
 }
 /* ---------- entraînement : arbre de compétences ---------- */
 let trSel=store.get('trSel','vma');if(!UPG[trSel])trSel='vma';
@@ -558,7 +611,7 @@ function renderCarnet(){
   const pb=$('#pb');pb.innerHTML='';const h=t=>{const e=document.createElement('h3');e.textContent=t;pb.appendChild(e)};
   h('Au compteur');
   const s=document.createElement('div');s.className='stats';
-  const S=[['Distance',fmt(G.d/1000,1)+' km'],['D+',fmt(G.dp)+' m'],['D−',fmt(G.dn)+' m'],['Temps',dur(G.t)],['Alt. max',fmt(G.st.maxAlt)+' m'],['Sommets',G.st.tops],['Ravitos',G.st.rav],['Mangé',G.st.eaten],['Pièces gagnées',fmt(G.tot)],['Expérience',xpTxt(G.xp)]];
+  const S=[['Distance',fmt(G.odo/1000,1)+' km'],['D+',fmt(G.dp)+' m'],['D−',fmt(G.dn)+' m'],['Temps',dur(G.t)],['Alt. max',fmt(G.st.maxAlt)+' m'],['Sommets',G.st.tops],['Ravitos',G.st.rav],['Mangé',G.st.eaten],['Pièces gagnées',fmt(G.tot)],['Expérience',xpTxt(G.xp)]];
   s.innerHTML=S.map(([k,v])=>`<div><span>${k}</span><b>${v}</b></div>`).join('');pb.appendChild(s);
   h(`Espèces photographiées · ${Object.keys(G.seen).length}/${Object.keys(FAUNA).length}`);
   const gr=document.createElement('div');gr.className='sp-g';
@@ -691,6 +744,12 @@ function renderAdmin(){
     const bv=sec('Bivouac',G.rest?`${RESTWHY[G.rest.why][0]} · ${Math.round(G.rest.p*100)} %`:'Le coureur court.');
     grid(bv,...Object.keys(RESTWHY).map(k=>btn('Arrêt : '+{eau:'eau',energie:'énergie',chaussures:'chaussures'}[k],()=>{if(!G.rest)stopRun(k);else G.rest.why=k},G.rest&&G.rest.why===k)),
       btn('Finir le repos',()=>{if(G.rest)G.rest.p=1}),btn('Repartir',()=>{if(G.rest){G.rest.p=1;if(!shoesOk())G.wear=0;restart()}},0,'pri'));
+    const cp=sec('Campagne',G.race?`${RACES[G.race.id].n} · ${G.race.st}`:'À l’entraînement.');
+    grid(cp,...CAMP.map(id=>btn((G.camp.ok.includes(id)?'✓ ':'')+RACES[id].n,()=>{if(!G.camp.ok.includes(id))G.camp.ok.push(id);else G.camp.ok=G.camp.ok.filter(x=>x!==id)},G.camp.ok.includes(id))));
+    grid(cp,btn('Dossard gratuit (prochaine)',()=>{if(G.race)return;const id=CAMP.find(i=>raceOpen(i)&&!G.camp.ok.includes(i))||CAMP[0];G.coins+=RACES[id].fee;takeBib(id)}),
+      btn('Matériel obligatoire',()=>{for(const id of['montagne','gilet12','doudoune','frontalePro','bonnet'])if(!G.own.includes(id))G.own.push(id);G.gear.shoes='montagne';G.gear.bag='gilet12';G.gear.top='doudoune';G.gear.lamp='frontalePro';G.gear.head='bonnet'}),
+      btn('Aller à 200 m de l’arrivée',()=>{if(racing())jumpTo(raceInfo(G.race.id).len-200)}),btn('Abandonner',()=>{if(racing())finishRace(1,'Abandon (admin)')}),
+      btn('Campagne à zéro',()=>{if(G.race&&G.race.st!=='bib')backToTrain();G.race=null;G.lastRes=null;G.camp=NEW().camp},0,'danger'));
     const un=sec('Débloquer');
     grid(un,btn('Tout l’équipement',()=>{for(const id in GEAR)if(!G.own.includes(id))G.own.push(id);if(!G.own.includes('filtre'))G.own.push('filtre')}),
       btn('Tous les compagnons',()=>{for(const id in COMP){if(!G.comps.includes(id))G.comps.push(id);G.st.bio[COMP[id].b]=1}G.comp=G.comp||'chien'}),

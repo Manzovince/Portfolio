@@ -205,6 +205,28 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
 .psub button{position:relative;display:flex;align-items:center;gap:5px;flex:none;border:2px solid rgba(44,52,70,.15);background:#fff;border-radius:999px;padding:5px 10px;font:700 12px 'JetBrains Mono',monospace;color:var(--panel-ink);cursor:pointer}
 .psub button.on{background:var(--line);border-color:var(--line);color:#fff}
 .psub .dot{top:-3px;right:-3px;box-shadow:0 0 0 2px var(--panel)}.psub .badge{top:-7px;right:-6px}
+#race{position:relative;margin:16px auto 0;width:300px;text-align:left;pointer-events:auto;display:flex;flex-direction:column;gap:6px;padding:10px 12px;z-index:3}#race[hidden]{display:none}
+#race .rh{display:flex;justify-content:space-between;align-items:baseline;gap:6px}#race .rh b{font-size:12px}#race .rh span{font:700 10px 'JetBrains Mono',monospace;opacity:.6}
+#race .rs{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:3px 10px;font-size:10.5px}#race .rs span.ok{color:#6ad08a}#race .rs span.no{color:#ff8a6a}
+#race.bib .rs{flex-direction:column;align-items:flex-start}
+#race .rs .big{font:800 22px 'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+#race .rt{height:5px;border-radius:3px;background:rgba(127,127,127,.3);overflow:hidden}#race .rt[hidden]{display:none}#race .rt i{display:block;height:100%;background:var(--accent);transition:width .5s}
+#race .rx{font-size:10px;opacity:.85}#race .rx .good{color:#6ad08a}#race .rx .bad{color:#ff8a6a}
+#race .rf{display:flex;justify-content:flex-end;gap:6px}#race .rf button{font:800 11px 'JetBrains Mono',monospace;padding:6px 12px;border-radius:8px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+#race .rf button[hidden]{display:none}#race .rf button.sec{background:rgba(127,127,127,.25);color:inherit;margin-right:auto}#race .rf button.sec.danger{background:#c8402e;color:#fff}
+#race.res.good{box-shadow:0 0 0 2px #6ad08a inset}#race.res.dnf{box-shadow:0 0 0 2px #ff8a6a inset}
+@media (max-width:700px),(max-height:500px){#race{margin-top:10px;width:min(320px,calc(100vw - 32px))}}
+.rc{display:grid;grid-template-columns:38px 1fr;gap:10px;border:2px solid rgba(44,52,70,.12);border-radius:14px;padding:10px 12px;margin:8px 0}
+.rc .rci{font-size:26px;text-align:center;padding-top:2px}
+.rc .rch{display:flex;justify-content:space-between;gap:8px;font-size:13.5px}
+.rc .rck{font-size:11px;opacity:.6;margin-top:2px}
+.rc p{font-size:12px;margin:6px 0;opacity:.8}
+.rc .rcs{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;opacity:.85}
+.rc .rcr{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.rc .rcr span{font-size:10.5px;padding:2px 7px;border-radius:999px;background:rgba(58,168,106,.13);color:#2a7a4a}.rc .rcr span.no{background:rgba(216,64,46,.12);color:#b03a2a}
+.rc button{margin-top:8px;width:100%;padding:7px;border-radius:999px;border:2px solid var(--line);background:transparent;color:var(--panel-ink);font:800 12px 'JetBrains Mono',monospace;cursor:pointer}
+.rc button.buy{background:var(--accent);border-color:var(--accent);color:#fff}.rc button:disabled{opacity:.45;cursor:default}
+.rc.lock{opacity:.55;border-style:dashed}.rc.ok{border-color:#e8c03a}.rc.mine{border-color:var(--accent)}
+.qtop small{display:block;margin-top:8px;font-size:11px;opacity:.65}
 .snote{font-size:11px;opacity:.65;margin:0 0 8px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .stats div{background:rgba(44,52,70,.06);border-radius:10px;padding:8px}
@@ -291,6 +313,7 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
     <nav class="nav" aria-label="Menu">
       <button class="nb coin" id="bCoins" data-tab="boutique" title="Boutique" aria-label="Boutique, pièces"><svg width="14" height="14" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><path fill="#c8901c" d="M2 0h3v1H2zM1 1h1v1H1zM5 1h1v1H5zM0 2h1v3H0zM6 2h1v3H6zM1 5h1v1H1zM5 5h1v1H5zM2 6h3v1H2z"/><path fill="#f2c64a" d="M2 1h3v1H2zM1 2h5v3H1zM2 5h3v1H2z"/><path fill="#fff0a0" d="M2 2h1v2H2z"/></svg><span id="nCoin">0</span><i class="dot" id="dShop" hidden></i></button>
       <span class="sep"></span>
+      <button class="nb" id="bRace" data-tab="courses" title="Courses"><svg width="15" height="15" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M1 1h7v7H1zM2 3v3h5V3zM3 4h3v1H3z"/><path fill="currentColor" d="M2 0h1v1H2zM6 0h1v1H6z"/></svg><span class="lbl">Courses</span><i class="dot" id="dRace" hidden></i></button>
       <button class="nb" id="bCarnet" data-tab="carnet" title="Carnet"><svg width="15" height="15" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M1 1h7v7H1zM2 2v5h1V2zM4 2v5h3V2z"/></svg><span class="lbl">Carnet</span><i class="dot" id="dCarnet" hidden></i><i class="badge" id="nDef" hidden></i></button>
       <span class="sep"></span>
       <button class="nb ico" id="bSet" data-tab="reglages" title="Réglages" aria-label="Réglages"><svg width="16" height="16" viewBox="0 0 11 11" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M4 0h3v1H4zM1 1h2v1H1zM4 1h3v1H4zM8 1h2v1H8zM1 2h9v1H1zM2 3h7v1H2zM0 4h4v1H0zM7 4h4v1H7zM0 5h4v1H0zM7 5h4v1H7zM0 6h4v1H0zM7 6h4v1H7zM2 7h7v1H2zM1 8h9v1H1zM1 9h2v1H1zM4 9h3v1H4zM8 9h2v1H8zM4 10h3v1H4z"/></svg></button>
@@ -309,6 +332,13 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
   <div class="rs" id="rBiv"></div>
   <div class="rt"><i id="rBar"></i></div>
   <div class="rf"><span id="rTxt"></span><button id="rGo">Repartir</button></div>
+</div>
+<div class="hud" id="race" hidden>
+  <div class="rh"><b id="raN"></b><span id="raB"></span></div>
+  <div class="rs" id="raS"></div>
+  <div class="rt"><i id="raBar"></i></div>
+  <div class="rx" id="raT"></div>
+  <div class="rf"><button id="raX" class="sec"></button><button id="raGo"></button></div>
 </div>
   </main>
 </div>
@@ -352,6 +382,7 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
 <div id="modal"><div class="panel">
   <div class="ph">
     <button class="tab on" data-tab="boutique">Boutique</button>
+    <button class="tab" data-tab="courses">Courses</button>
     <button class="tab" data-tab="carnet">Carnet</button>
     <button class="tab" data-tab="reglages">Réglages</button>
     <button class="tab" data-tab="admin" id="tAdmin" hidden>Admin</button>
@@ -364,11 +395,11 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
   </div>
   <div class="pb" id="pb"></div>
 </div></div>
-<script src="js/core.js?v=28"></script>
-<script src="js/world.js?v=28"></script>
-<script src="js/layers.js?v=28"></script>
-<script src="js/sprites.js?v=28"></script>
-<script src="js/game.js?v=28"></script>
-<script src="js/main.js?v=28"></script>
+<script src="js/core.js?v=30"></script>
+<script src="js/world.js?v=30"></script>
+<script src="js/layers.js?v=30"></script>
+<script src="js/sprites.js?v=30"></script>
+<script src="js/game.js?v=30"></script>
+<script src="js/main.js?v=30"></script>
 </body>
 </html>

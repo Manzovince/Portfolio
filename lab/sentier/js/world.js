@@ -42,11 +42,11 @@ const NAMES={
   bourg:['Boulangerie de la place','Café du Marché','Halles du vieux quartier'],
   paillote:['Paillote du Lagon','Bar de la Plage Blanche','Cabane des Pêcheurs']
 };
-const LEGS=[],POIS=[];
+let LEGS=[],POIS=[];
 let genLoop=0,endD=0,endE=820;
 function pushLeg(b,lenKm,e1,o={}){
   // une étape s'allonge si elle devait monter ou descendre trop raide (raccords entre boucles)
-  if(o.shape!=='peak'){const mg=b==='crete'||b==='glacier'?.13:b==='falaise'||b==='gorges'||b==='canyon'?.11:.09;lenKm=Math.max(lenKm,Math.abs(e1-endE)/1000/mg)}
+  if(o.shape!=='peak'&&!o.fix){const mg=b==='crete'||b==='glacier'?.13:b==='falaise'||b==='gorges'||b==='canyon'?.11:.09;lenKm=Math.max(lenKm,Math.abs(e1-endE)/1000/mg)}
   const L={b,d0:endD,len:lenKm*1000,e0:endE,e1,ep:o.ep,shape:o.shape||'lin',seed:LEGS.length*17+3};
   LEGS.push(L);endD+=L.len;endE=e1;return L;
 }
@@ -128,9 +128,40 @@ function extraWater(L){
   if(BUV.includes(L.b)&&h(3)<(L.b==='alpage'?.6:.35))put(.78+h(4)*.1,'buvette',L.b==='foretneige'?'Chalet de ski de fond':'Buvette d’alpage');
   if(CAFE.includes(L.b)&&h(5)<.9)put(.15+h(6)*.1,'cafe',L.b==='ville'?'Café du coin':'Terrasse de la place');
 }
-function ensure(dm){while(endD<dm+40000)genNext()}
+/* ---------- parcours : le sentier d'entraînement (infini) ou le tracé fixe d'une course ---------- */
+// RACES est défini dans game.js ; un tracé de course = ses étapes, ses ravitos officiels, puis une arrivée
+let ROUTE={id:'train',gen:genNext},legI=0;
+const ROUTES={train:ROUTE};
+function raceGen(id){
+  let built=0;
+  return function(){
+    if(built){const L=LEGS[LEGS.length-1];pushLeg(L.b,5,endE,{fix:1});return}   // après l'arrivée : on trottine encore un peu
+    const C=RACES[id];built=1;endE=C.e0;
+    for(const[b,km,e1,o]of C.legs){const L=pushLeg(b,km,e1,Object.assign({fix:1},o||{}));if(L.shape==='peak')poi(L.d0+L.len*.5,'sommet',o.top,{alt:Math.round(o.ep)})}
+    poi(12,'depart','Départ');
+    const fin=endD;for(const k of C.rav)poi(k*1000,'ravito','Ravito du km '+k,{race:1});
+    poi(fin,'arrivee','Arrivée',{race:1});
+    for(const L of LEGS)if(!L.sign){L.sign=1;poi(L.d0+25,'panneau',BI[L.b].n,{leg:L})}
+    POIS.sort((a,b)=>a.d-b.d);
+  };
+}
+function useRoute(id){
+  if(ROUTE.id===id&&ROUTE.s)return;
+  ROUTE.s={LEGS,POIS,endD,endE,genLoop};
+  ROUTE=ROUTES[id]||(ROUTES[id]={id,gen:raceGen(id)});
+  if(ROUTE.s)({LEGS,POIS,endD,endE,genLoop}=ROUTE.s);else{LEGS=[];POIS=[];endD=0;endE=820;genLoop=0}
+  legI=0;ensure(0);
+}
+// longueur et dénivelé d'une course (calculés une fois)
+const RINFO={};
+function raceInfo(id){
+  if(RINFO[id])return RINFO[id];const cur=ROUTE.id;useRoute(id);
+  const len=POIS.find(p=>p.k==='arrivee').d;let dp=0,e=elevMacro(0);for(let d=50;d<=len;d+=50){const e2=elevMacro(d);if(e2>e)dp+=e2-e;e=e2}
+  const bs=[...new Set(LEGS.filter(L=>L.d0<len).map(L=>L.b))];useRoute(cur);
+  return RINFO[id]={len,dp:Math.round(dp/10)*10,bs};
+}
+function ensure(dm){while(endD<dm+40000)ROUTE.gen()}
 ensure(0);
-let legI=0;
 function legAt(dm){
   ensure(dm);
   if(LEGS[legI]&&dm>=LEGS[legI].d0&&dm<LEGS[legI].d0+LEGS[legI].len)return legI;

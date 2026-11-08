@@ -100,7 +100,7 @@ const COMP={
 const comp=()=>G.comp&&COMP[G.comp]||{};
 const upCost=(k,l)=>Math.round(UPG[k].b*Math.pow(1.6,l));
 // défis par catégorie ; t = progression, goal = objectif, r = pièces
-const km=g=>g.d/1000,wkm=k=>g=>(g.st.wx[k]||0)/1000,nsp=g=>Object.keys(g.seen).length,upl=g=>Object.values(g.up).reduce((a,b)=>a+b,0);
+const km=g=>(g.odo||g.d)/1000,wkm=k=>g=>(g.st.wx[k]||0)/1000,nsp=g=>Object.keys(g.seen).length,upl=g=>Object.values(g.up).reduce((a,b)=>a+b,0);
 const QCAT=[['dist','Distance','📏'],['deniv','Dénivelé','⛰'],['mont','Montagne et mer','🏔'],['nat','Nature','📷'],['meteo','Nuit et météo','🌙'],['vie','Vie de coureur','🎒']];
 const QUESTS=[
   {c:'dist',id:'km1',n:'Premier kilomètre',t:km,goal:1,r:15},
@@ -164,14 +164,70 @@ const QUESTS=[
 /* ---------- état sauvegardé ---------- */
 const NEW=()=>({v:1,d:0,dp:0,dn:0,t:0,coins:30,tot:0,water:.5,energy:100,wear:0,
   stock:{gel:2,banane:1},gear:{shoes:'route',top:'tshirt',head:null,eyes:null,bag:'gourde',poles:null,lamp:null,biv:'sac'},own:['route','tshirt','gourde','sac'],
-  up:{},xp:0,dog:0,seen:{},q:[],st:{tops:0,mer:0,nuit:0,pluie:0,rav:0,alpage:0,photos:0,maxAlt:0,eaten:0,wx:{},bio:{},froid:0,neige:0,fon:0,worn:0},
+  up:{},xp:0,odo:0,camp:{ok:[],best:{},place:{},fin:{}},race:null,lastRes:null,dog:0,seen:{},q:[],st:{tops:0,mer:0,nuit:0,pluie:0,rav:0,alpage:0,photos:0,maxAlt:0,eaten:0,wx:{},bio:{},froid:0,neige:0,fon:0,worn:0},
   auto:{eat:40,restock:{gel:3,barre:2}},last:Date.now(),sess:{d:0,dp:0}});
 let G=Object.assign(NEW(),store.get('save',{}));
-G.st=Object.assign(NEW().st,G.st);if(!G.spare)G.spare={};if(G.flask==null)G.flask=0;if(G.xp==null)G.xp=0;if(!G.comps){G.comps=G.dog?['chien']:[];G.comp=G.dog?'chien':null}if(!G.gear.style)G.gear.style='classique';if(!G.gear.biv)G.gear.biv='sac';if(!G.own.includes('sac'))G.own.push('sac');if(!G.own.includes('classique'))G.own.push('classique');if(G.qSeen==null)G.qSeen=G.q.length;G.auto=Object.assign(NEW().auto,G.auto);
+G.st=Object.assign(NEW().st,G.st);if(!G.spare)G.spare={};if(G.flask==null)G.flask=0;if(G.xp==null)G.xp=0;if(!G.odo)G.odo=G.d;if(!G.camp)G.camp=NEW().camp;if(!G.comps){G.comps=G.dog?['chien']:[];G.comp=G.dog?'chien':null}if(!G.gear.style)G.gear.style='classique';if(!G.gear.biv)G.gear.biv='sac';if(!G.own.includes('sac'))G.own.push('sac');if(!G.own.includes('classique'))G.own.push('classique');if(G.qSeen==null)G.qSeen=G.q.length;G.auto=Object.assign(NEW().auto,G.auto);
 if(Q.has('km')){G.d=parseFloat(Q.get('km'))*1000;G.last=Date.now();Q.delete('km');history.replaceState(null,'',location.pathname+(Q.toString()?'?'+Q:''))}
 if(Q.has('tout')){G.coins+=99999;history.replaceState(null,'',location.pathname)}
 let RESET=0;   // « Tout recommencer » : plus aucune sauvegarde avant le rechargement
 const save=()=>{if(RESET)return;G.last=Date.now();store.set('save',G)};
+/* ---------- campagne : courses officielles ---------- */
+// legs = [biome, km, altitude d'arrivée de l'étape, options] ; rav = ravitos officiels (km) ;
+// fee = dossard ; goal = chrono à battre pour débloquer la suivante ; med/n = peloton fictif ; req = matériel obligatoire
+const RACES={
+  v5:{n:'Les 5 km de la Vallée',ic:'🌼',e0:820,legs:[['prairie',5,840]],rav:[2.5],fee:15,goal:33*60,med:31.5*60,nb:180,prize:60,
+    d:'La course du village, tout plat entre les prés. Idéal pour un premier dossard.'},
+  v10:{n:'10 km des Parcs',ic:'🏙',e0:450,legs:[['ville',10,455]],rav:[5],fee:30,goal:62*60,med:58*60,nb:900,prize:120,
+    d:'Deux boucles dans les parcs de la ville, sous les platanes.'},
+  semi:{n:'Semi des Vignobles',ic:'🍇',e0:590,legs:[['vieilleville',3,575],['vignes',8,470],['lavande',7,620],['vieilleville',3.1,590]],rav:[5,10,15,20],fee:60,goal:2*3600+15*60,med:2*3600+10*60,nb:1500,prize:250,
+    d:'De la vieille ville aux domaines, puis le plateau de lavande.',req:[]},
+  mara:{n:'Marathon de la Côte',ic:'🌊',e0:420,legs:[['garrigue',10,320],['falaise',6,160],['cote',16,15],['cote',10.2,20]],rav:[5,10,15,20,25,30,35,40],fee:100,goal:4*3600+30*60,med:4*3600+25*60,nb:2500,prize:450,
+    d:'42,195 km des collines à la mer, le long des calanques.',req:['eau1']},
+  trail:{n:'Trail des Alpages',ic:'⛰',e0:820,legs:[['prairie',3,900],['hetraie',4,1250],['foret',6,1800],['alpage',5,2150],['lac',2,2170],['crete',3,2450],['alpage',3,2050],['foret',5,1300],['prairie',1.5,840]],
+    rav:[8,15,24],fee:180,goal:4*3600+45*60,med:5*3600,nb:800,prize:700,d:'La première vraie montagne : forêts, alpages, crête, et la longue descente.',req:['trail','eau1','veste']},
+  ultra:{n:'Ultra-Trail des Cimes',ic:'🏔',e0:820,legs:[['prairie',3,900],['hetraie',4,1250],['foret',6,1800],['alpage',5,2150],['crete',3,2450],['glacier',3,2600],['sommet',4,2500,{shape:'peak',ep:2920,top:'Dôme des Neiges'}],
+    ['crete',3,2250],['foretneige',4,1900],['alpage',4,1800],['lac',3,1850],['alpage',5,2100],['crete',4,2350],['sommet',4,2300,{shape:'peak',ep:2760,top:'Tête Blanche'}],['foretneige',5,1800],['foret',9,1200],['hetraie',4,900],['prairie',4,830]],
+    rav:[10,20,30,40,50,60,70],fee:400,goal:11*3600,med:13*3600,nb:600,prize:2000,d:'Deux sommets, un glacier, une nuit dehors. Le grand voyage.',req:['trail','eau2','veste','frontale','chaud']}
+};
+const CAMP=Object.keys(RACES);
+const REQ={
+  trail:{n:'Chaussures de trail',ok:()=>GEAR[G.gear.shoes].rock>0,slot:'shoes'},
+  eau1:{n:'Réserve d’eau d’au moins 1 L',ok:()=>capL()>=1,slot:'bag'},
+  eau2:{n:'Réserve d’eau d’au moins 2 L',ok:()=>capL()>=2,slot:'bag'},
+  veste:{n:'Veste imperméable',ok:()=>!!GEAR[G.gear.top].rain,slot:'top'},
+  frontale:{n:'Frontale',ok:()=>!!G.gear.lamp,slot:'lamp'},
+  chaud:{n:'Couche chaude (bonnet ou haut chaud)',ok:()=>!!(GEAR[G.gear.top].cold||(G.gear.head&&GEAR[G.gear.head].cold)),slot:'head'}
+};
+const raceOpen=id=>{const i=CAMP.indexOf(id);return i===0||G.camp.ok.includes(CAMP[i-1])};
+const racing=()=>!!(G.race&&G.race.st==='run');
+const onRace=()=>!!(G.race&&(G.race.st==='run'||G.race.st==='fin'));
+const reqMissing=id=>(RACES[id].req||[]).filter(k=>!REQ[k].ok());
+// peloton fictif : temps d'arrivée répartis autour de la médiane
+const FIELD={};
+function field(id){if(FIELD[id])return FIELD[id];const C=RACES[id],r=rng(CAMP.indexOf(id)*7919+11),a=[];
+  for(let i=0;i<C.nb;i++){const z=Math.sqrt(-2*Math.log(r()+1e-9))*Math.cos(2*Math.PI*r());a.push(C.med*Math.exp(.17*z))}return FIELD[id]=a.sort((x,y)=>x-y)}
+const placeOf=(id,t)=>{const f=field(id);let i=0;while(i<f.length&&f[i]<t)i++;return i+1};
+function takeBib(id){const C=RACES[id];if(G.race||!raceOpen(id)||G.coins<C.fee)return false;G.coins-=C.fee;G.race={id,st:'bib',bib:100+Math.floor(Math.random()*C.nb*1.2)};
+  emit('Dossard n° '+G.race.bib,C.n+' · prépare ton matériel, puis prends le départ','🎽');return true}
+function dropBib(){if(G.race&&G.race.st==='bib')G.race=null}
+function startRace(){
+  const R=G.race;if(!R||R.st!=='bib'||reqMissing(R.id).length)return false;
+  Object.assign(R,{st:'run',trainD:G.d,t:0,dp0:G.dp});G.rest=null;LIVE.mode='run';
+  useRoute(R.id);G.d=0;G.water=capL();G.energy=100;
+  emit('Partez !',RACES[R.id].n+' · '+fmt(raceInfo(R.id).len/1000,1)+' km','🏁');if(typeof onRoute==='function')onRoute();return true;
+}
+function finishRace(dnf,why){
+  const R=G.race,C=RACES[R.id],t=R.t,res={id:R.id,t,dnf:!!dnf,why,km:G.d/1000};
+  if(!dnf){res.place=placeOf(R.id,t);res.n=C.nb+1;res.ok=t<=C.goal;const b=G.camp.best[R.id];res.pb=!b||t<b;if(res.pb)G.camp.best[R.id]=t;
+    if(!G.camp.place[R.id]||res.place<G.camp.place[R.id])G.camp.place[R.id]=res.place;
+    if(res.ok&&!G.camp.ok.includes(R.id)){G.camp.ok.push(R.id);res.first=1;addCoins(C.prize);const nx=CAMP[CAMP.indexOf(R.id)+1];res.next=nx}
+    G.camp.fin[R.id]=(G.camp.fin[R.id]||0)+1;
+    emit('Arrivée · '+C.n,tm(t)+' · '+res.place+'e sur '+res.n+(res.ok?' · objectif atteint !':''),'🏅')}
+  else{G.camp.dnf=(G.camp.dnf||0)+1;emit('Abandon · '+C.n,why||'Tu rends ton dossard.','🚩')}
+  G.lastRes=res;R.st='fin';if(dnf)backToTrain();
+}
+function backToTrain(){const R=G.race;if(!R)return;G.race=null;useRoute('train');G.d=R.trainD||G.d;G.rest=null;LIVE.mode='run';G.water=Math.max(G.water,capL()*.5);G.energy=Math.max(G.energy,50);if(typeof onRoute==='function')onRoute()}
 const lvl=k=>G.up[k]||0;
 // une compétence s'achète si ses parents ont le niveau demandé (déjà entamée = toujours ouverte)
 const upOpen=k=>lvl(k)>0||(UPG[k].req||[]).every(([p,n])=>lvl(p)>=n);
@@ -206,6 +262,7 @@ function restStep(dt,date){
   if(R.p>=1&&!R.done){R.done=1;emit('Bien reposé',shoesOk()?'Clique sur « Repartir » quand tu veux.':'Il te faut une paire de chaussures pour repartir.','⛺')}
 }
 function stopRun(why){
+  if(racing())return finishRace(1,RESTWHY[why][0]);
   G.rest={why,p:0,d:G.d,t:Date.now()};G.st.biv=(G.st.biv||0)+1;
   emit('Bivouac · '+RESTWHY[why][0],GEAR[G.gear.biv].n+' : récupération en '+Math.round(restMin().m)+' min','⛺');
 }
@@ -250,12 +307,12 @@ function step(dt,date){
   if(G.energy<G.auto.eat)autoEat();
   // déplacement
   const s1=s0+v*dt,de=elevMacro(s1)-elevMacro(s0);
-  G.d=s1;G.t+=dt;G.wear+=v*dt/1000*(1-.12*lvl('semelle'));G.sess.d+=v*dt;
+  G.d=s1;G.t+=dt;G.odo+=v*dt;if(racing())G.race.t+=dt;else if(G.race&&G.race.st==='fin'&&G.d>raceInfo(G.race.id).len+220)backToTrain();G.wear+=v*dt/1000*(1-.12*lvl('semelle'));G.sess.d+=v*dt;
   // semelle usée : on enfile une paire de rechange du même modèle s'il en reste
   if(G.wear>sh.life&&(G.spare[G.gear.shoes]||0)>0){G.spare[G.gear.shoes]--;G.wear=0;emit('Nouvelle paire enfilée',`${sh.n} · encore ${G.spare[G.gear.shoes]} en réserve`,'👟')}
   if(de>0){G.dp+=de;G.sess.dp+=de}else G.dn-=de;
   // expérience : 10 par km, 1 par 10 m de D+ (sert à l'entraînement)
-  G.xp+=v*dt/100+Math.max(0,de)/10;
+  if(!onRace())G.xp+=v*dt/100+Math.max(0,de)/10;
   G.st.maxAlt=Math.max(G.st.maxAlt,elevMacro(s1));
   if(c.night)G.st.nuit+=v*dt;if(WX[c.wx].rain)G.st.pluie+=v*dt;G.st.wx[c.wx]=(G.st.wx[c.wx]||0)+v*dt;if(c.T<0)G.st.froid+=v*dt;if(WX[c.wx].rain&&(c.alt>2100||c.T<1))G.st.neige+=v*dt;if(G.wear>sh.life&&!G._worn){G._worn=1;G.st.worn++}else if(G.wear<sh.life)G._worn=0;
   // pièces : 1 tous les 100 m (× biome), 1 tous les 10 m de D+
@@ -284,6 +341,8 @@ function autoEat(){
 function eat(id,auto){if(!G.stock[id])return;G.stock[id]--;if(!G.stock[id])delete G.stock[id];const e=Math.round(FOOD[id].e*(1+.1*lvl('estomac')));G.energy=Math.min(100,G.energy+e);G.st.eaten++;if(!auto)emit(FOOD[id].n,'+'+e+' d’énergie',FOOD[id].ic)}
 function passPoi(p){
   const L=leg(p.d);
+  if(p.k==='arrivee'){if(racing())finishRace(0);return}
+  if(p.k==='ravito'&&p.race){if(!racing())return;G.water=capL();G.energy=Math.min(100,G.energy+25);G.st.rav++;emit(p.n,'Bidons pleins, +25 d’énergie','🥤');return}
   if(p.k==='ravito'){
     G.water=capL();G.energy=Math.min(100,G.energy+15);G.st.rav++;
     let bought=[];
@@ -318,3 +377,5 @@ function catchUp(sec){
   checkQuests();
   return{sec:run,capped:sec>cap,km:(G.d-d0)/1000,dp:G.dp-dp0,coins:G.tot-c0};
 }
+// une course en cours reprend sur son tracé
+if(G.race&&(G.race.st==='run'||G.race.st==='fin'))useRoute(G.race.id);

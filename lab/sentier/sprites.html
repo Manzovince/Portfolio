@@ -64,11 +64,11 @@ body.bg-check .stage{background:repeating-conic-gradient(#e4e0d8 0 25%,#fff 0 50
 <main id="main"><div id="err"></div></main>
 <div id="big"><canvas id="bigCv"></canvas><b id="bigT"></b><span id="bigI" style="font-size:11px;opacity:.7"></span></div>
 
-<script src="js/core.js?v=28"></script>
-<script src="js/world.js?v=28"></script>
-<script src="js/layers.js?v=28"></script>
-<script src="js/sprites.js?v=28"></script>
-<script src="js/game.js?v=28"></script>
+<script src="js/core.js?v=30"></script>
+<script src="js/world.js?v=30"></script>
+<script src="js/layers.js?v=30"></script>
+<script src="js/sprites.js?v=30"></script>
+<script src="js/game.js?v=30"></script>
 <script>
 'use strict';
 /* Planche de debug : tous les sprites et assets du jeu, rendus par le code du jeu lui-même.
@@ -152,7 +152,7 @@ function render(){
   // points d'intérêt
   section('poi','Points d’intérêt');
   {const g=sub('Structures');const L=b=>legOf(b).d0+50;
-    card(g,'Arche de départ',poiSprite({k:'depart',d:0}),'depart');card(g,'Refuge',poiSprite({k:'ravito',refuge:1,d:L('alpage')}),'ravito refuge');
+    card(g,'Arche de départ',poiSprite({k:'depart',d:0}),'depart');card(g,'Arche d’arrivée',poiSprite({k:'arrivee',d:0}),'arrivee course');card(g,'Refuge',poiSprite({k:'ravito',refuge:1,d:L('alpage')}),'ravito refuge');
     card(g,'Ravito',poiSprite({k:'ravito',d:L('prairie')}),'ravito');card(g,'Fontaine (Alpes)',poiSprite({k:'fontaine',d:L('foret')}),'fontaine');
     card(g,'Fontaine (Sud)',poiSprite({k:'fontaine',d:L('garrigue')}),'fontaine');card(g,'Sommet',poiSprite({k:'sommet',d:L('sommet')}),'sommet');card(g,'Panneau',poiSprite({k:'panneau',d:L('prairie')}),'panneau')}
   {const g=sub('Points d’eau');card(g,'Ruisseau',poiSprite({k:'ruisseau',d:0}),'ruisseau');card(g,'Buvette',poiSprite({k:'buvette',d:0}),'buvette');card(g,'Café',poiSprite({k:'cafe',d:0}),'cafe')}

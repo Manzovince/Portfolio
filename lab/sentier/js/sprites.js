@@ -159,6 +159,7 @@ function poiSprite(p){
   if(POIS_SPR[key])return POIS_SPR[key];
   let o;
   if(p.k==='depart')return POIS_SPR[key]=bigArch();
+  if(p.k==='arrivee')return POIS_SPR[key]=bigArch('ARRIVÉE');
   if(p.k==='ravito'&&p.refuge)return POIS_SPR[key]=bigRefuge();
   if(p.k==='buvette')return POIS_SPR[key]=bigBuvette();
   if(p.k==='cafe')return POIS_SPR[key]=bigCafe();
@@ -496,11 +497,12 @@ function supportersIn(a,b){
   const out=[];
   for(const p of poisIn(a-60,b+60)){
     if(p.k==='depart')out.push({id:'p'+Math.round(p.d),dm:p.d+18,n:7});
+    if(p.k==='arrivee'){out.push({id:'a'+Math.round(p.d),dm:p.d-40,n:6});out.push({id:'b'+Math.round(p.d),dm:p.d+20,n:7})}
     if(p.k==='ravito'){out.push({id:'r'+Math.round(p.d),dm:p.d-26,n:3+Math.floor(hs(p.d)*3)});out.push({id:'s'+Math.round(p.d),dm:p.d+30,n:2+Math.floor(hs(p.d*3)*3)})}
   }
   const C=70;
   for(let c=Math.floor((a-20)/C);c<=Math.ceil((b+20)/C);c++){
-    const dm=c*C+hs(c*2.3)*C*.6,bi=leg(dm).b,pr=['ville','vieilleville'].includes(bi)?.18:bi==='prairie'||bi==='plage'?.08:.035;
+    const dm=c*C+hs(c*2.3)*C*.6,bi=leg(dm).b,pr=ROUTE.id!=='train'?.3:['ville','vieilleville'].includes(bi)?.18:bi==='prairie'||bi==='plage'?.08:.035;
     if(hs(c*4.7)<pr)out.push({id:'c'+c,dm,n:hs(c*9.1)<.6?1:2});
   }
   return out.filter(g=>g.dm>=a-30&&g.dm<=b+30);
@@ -512,7 +514,7 @@ const FONT={D:['110','101','101','101','110'],E:['111','100','110','100','111'],
   S:['011','100','010','001','110'],N:['101','111','111','101','101'],I:['111','010','010','010','111'],L:['100','100','100','100','111'],O:['010','101','101','101','010'],
   B:['110','101','110','101','110'],V:['101','101','101','101','010'],C:['011','100','100','100','011']};
 function pxText(pb,txt,x,y,col,sc=1){let cx=x;for(const ch of txt){const g=FONT[ch];if(g)for(let r=0;r<5;r++)for(let c=0;c<3;c++)if(g[r][c]==='1')pb.r(cx+c*sc,y+r*sc,sc,sc,col);cx+=4*sc}return cx-x-sc}
-function bigArch(){
+function bigArch(txt='DÉPART'){
   const K=ZOOMS[ZOOM].k,R=Math.round(30*K),T=Math.max(4,Math.round(5*K)),w=2*R+T*2+4,h=R+T+Math.round(6*K)+4,cx=Math.floor(w/2),by=h-2;
   const cv=spr(w,h,pb=>{
     const red=c32('#d8402e'),redD=c32('#a82a20'),redL=c32('#f06a50'),wh=c32('#f6f2ea'),sh=c32('#c8c0b0'),blue=c32('#2a4ab0'),blueD=c32('#1a3080'),yel=c32('#f2c84a');
@@ -525,7 +527,7 @@ function bigArch(){
     // bannière bleue « DÉPART »
     const bw=Math.round(R*1.25),bh=Math.max(9,Math.round(9*K)),bx=cx-Math.round(bw/2),bty=by-Math.round(R*.78);
     pb.r(bx,bty,bw,bh,blue);pb.r(bx,bty+bh-1,bw,1,blueD);pb.r(bx,bty,bw,1,c32('#4a6ad8'));
-    const sc=K>1.7?2:1,tw=6*4*sc-sc,tx=cx-Math.floor(tw/2),ty=bty+Math.floor((bh-5*sc)/2);pxText(pb,'DÉPART',tx,ty,wh,sc);
+    const sc=K>1.7&&txt.length<7?2:1,tw=txt.length*4*sc-sc,tx=cx-Math.floor(tw/2),ty=bty+Math.floor((bh-5*sc)/2);pxText(pb,txt,tx,ty,wh,sc);
     // cordes de la bannière
     for(let i=0;i<Math.round(R*.25);i++){pb.p(bx-1-i,bty-1-i*.6,sh);pb.p(bx+bw+i,bty-1-i*.6,sh)}
     // petits fanions au sommet
