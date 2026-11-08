@@ -301,8 +301,9 @@ function hud(){
   $('#nCoin').textContent=fmt(cn);
   // pastilles : un équipement abordable, une nouvelle espèce, des défis réussis non vus
   $('#dShop').hidden=!(Object.entries(GEAR).some(([id,g])=>g.p>0&&!G.own.includes(id)&&g.p<=G.coins)||(Object.entries(COMP).some(([id,c])=>G.st.bio[c.b]&&!G.comps.includes(id)&&G.coins>=c.p)));
-  $('#dCarnet').hidden=!G.newSp;$('#dTrain').hidden=!Object.keys(UPG).some(upCan);
-  const nd=G.q.length-(G.qSeen??G.q.length);$('#nDef').hidden=nd<=0;$('#nDef').textContent=nd;
+  const nd=G.q.length-(G.qSeen??G.q.length),tr=Object.keys(UPG).some(upCan);
+  $('#sJ').hidden=!G.newSp;$('#sT').hidden=!tr;$('#sD').hidden=nd<=0;$('#sD').textContent=nd;
+  $('#nDef').hidden=nd<=0;$('#nDef').textContent=nd;$('#dCarnet').hidden=nd>0||!(G.newSp||tr);
   $('#wDist').innerHTML=fmt(G.d/1000,2)+'<small>km</small>';
   $('#wDp').innerHTML=fmt(G.dp)+'<small>m</small>';
   $('#wPace').innerHTML=pace(LIVE.v)+'<small>/km</small>';
@@ -426,16 +427,21 @@ if(store.get('watch','face')==='face')document.documentElement.classList.add('wf
 let curTab='boutique';
 function openModal(tab){$('#modal').classList.add('on');showTab(tab)}
 const closeModal=()=>{$('#modal').classList.remove('on');document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'))};
-$('#bCoins').onclick=()=>openModal('boutique');$('#bCarnet').onclick=$('#bBiome').onclick=()=>openModal('carnet');$('#bSet').onclick=()=>openModal('reglages');$('#bDefis').onclick=()=>openModal('defis');$('#bTrain').onclick=()=>openModal('train');
+$('#bCoins').onclick=()=>openModal('boutique');$('#bCarnet').onclick=()=>openModal('carnet');$('#bBiome').onclick=()=>openModal('journal');$('#bSet').onclick=()=>openModal('reglages');
 {const setBag=v=>{document.documentElement.classList.toggle('nobag',!v);const b=$('#bagT');b.title=b.ariaLabel=v?'Masquer le sac':'Afficher le sac';store.set('bag',v);dispatchEvent(new Event('resize'))};
  setBag(store.get('bag',true));$('#bagT').onclick=()=>setBag(document.documentElement.classList.contains('nobag'))}
 $('#zIn').onclick=()=>setZoom(ZOOM+1);$('#zOut').onclick=()=>setZoom(ZOOM-1);$('#zLbl').textContent=ZOOMS[ZOOM].n;
 $('#mClose').onclick=closeModal;$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
 addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 document.querySelectorAll('.ph .tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
-function showTab(t){curTab=t;document.querySelectorAll('.ph .tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
-  document.querySelectorAll('.nb[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
-  if(t==='carnet')G.newSp=0;if(t==='defis')G.qSeen=G.q.length;hud();({boutique:renderShop,carnet:renderCarnet,defis:renderDefis,reglages:renderSet,admin:renderAdmin,train:renderTrain})[t]()}
+// le carnet regroupe journal de bord, entraînement et défis (sous-onglets)
+const CSUB=['journal','train','defis'];let carSub=store.get('carSub','journal');if(!CSUB.includes(carSub))carSub='journal';
+document.querySelectorAll('#psub button').forEach(b=>b.onclick=()=>showTab(b.dataset.sub));
+function showTab(t){if(t==='carnet')t=carSub;const grp=CSUB.includes(t)?'carnet':t;if(grp==='carnet'){carSub=t;store.set('carSub',t)}curTab=t;
+  document.querySelectorAll('.ph .tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===grp));
+  document.querySelectorAll('.nb[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===grp));
+  $('#psub').hidden=grp!=='carnet';document.querySelectorAll('#psub button').forEach(b=>b.classList.toggle('on',b.dataset.sub===t));
+  if(t==='journal')G.newSp=0;if(t==='defis')G.qSeen=G.q.length;hud();({boutique:renderShop,journal:renderCarnet,defis:renderDefis,reglages:renderSet,admin:renderAdmin,train:renderTrain})[t]()}
 const coinTxt=n=>fmt(n)+' ◉';
 function item(title,desc,btn,cls,on,fn,dis){
   const d=document.createElement('div');d.className='it'+(on?' on':'');
