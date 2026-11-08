@@ -31,7 +31,7 @@ function spawnFauna(force){
   const rb=(G.comp&&COMP[G.comp].rare)||1,wt=f=>f.r<.3?f.r*rb:f.r;
   let tot=0;for(const[,f]of pool)tot+=wt(f);let r=Math.random()*tot,id=pool[0][0];
   for(const[k,f]of pool){r-=wt(f);if(r<=0){id=k;break}}
-  const f=FAUNA[id],a={id,dm:force?G.d+(W-RX)*MPX*.45:G.d+(W-RX)*MPX+2+Math.random()*20,t0:performance.now(),ph:Math.random()*6};
+  const f=FAUNA[id],a={id,dm:force?G.d+(W-RX)*MPX*(.3+Math.random()*.4):G.d+(W-RX)*MPX+2+Math.random()*20,t0:performance.now(),ph:Math.random()*6};
   if(f.fly)a.alt=25+Math.random()*35;
   if(f.sea)a.lx=scrollPx()*SPD[2]+W+4;
   ANIM.push(a);
@@ -226,12 +226,16 @@ function faunaPos(a,s,t){
   return{x,y};
 }
 function drawFauna(g,s,t){
-  ANIM=ANIM.filter(a=>faunaPos(a,s,t).x>-20);
+  // photographié : l'animal détale (ou s'envole) en s'effaçant, puis disparaît
+  ANIM=ANIM.filter(a=>faunaPos(a,s,t).x>-20&&!(a.shot&&t-a.shot>1100));
   for(const a of ANIM){
     const f=FAUNA[a.id];if(f.sea)continue;
     if(f.fly)a.dm+=.004*(Math.sin(t/3000+a.ph)>0?1:-.3);
+    let al=1;if(a.shot){const e=(t-a.shot)/1100;al=Math.max(0,1-e*e);if(f.fly){a.alt+=.9;a.dm+=.12}else a.dm+=(.12+e*.7)*(MPX/.18)}
     const c=faunaSprite(a.id),p=faunaPos(a,s,t);
+    if(al<1)g.globalAlpha=al;
     g.drawImage(c,Math.round(p.x-c.width/2),Math.round(p.y-c.height+1));
+    g.globalAlpha=1;
     // petit scintillement pour attirer l'œil
     if(!a.shot&&((t+a.ph*1000)%2600)<260){g.fillStyle='#fff';g.fillRect(Math.round(p.x),Math.round(p.y-c.height-3),1,1);g.fillRect(Math.round(p.x)-1,Math.round(p.y-c.height-2),3,1);g.fillRect(Math.round(p.x),Math.round(p.y-c.height-1),1,1)}
   }
@@ -239,7 +243,7 @@ function drawFauna(g,s,t){
 function drawSeaFauna(g,sp,alt){
   const t=performance.now();
   for(const a of ANIM){if(!FAUNA[a.id].sea)continue;const p=faunaPos(a,G.d,t),c=faunaSprite(a.id),j=Math.max(0,Math.sin(t/700+a.ph))*4;
-    if(j>.3)g.drawImage(c,Math.round(p.x-c.width/2),Math.round(p.y-c.height-j))}
+    if(a.shot)continue;if(j>.3)g.drawImage(c,Math.round(p.x-c.width/2),Math.round(p.y-c.height-j))}
 }
 // clic : photographier un animal
 cv.addEventListener('pointermove',e=>{cv.classList.toggle('cible',!!hitFauna(e)||!!hitSup(e))});
@@ -269,11 +273,11 @@ function hitFauna(e){
   return null;
 }
 function photo(a,e){
-  a.shot=1;const f=FAUNA[a.id],first=!G.seen[a.id];G.seen[a.id]=(G.seen[a.id]||0)+1;if(first)G.newSp=1;G.st.photos++;
+  a.shot=performance.now();const f=FAUNA[a.id],first=!G.seen[a.id];G.seen[a.id]=(G.seen[a.id]||0)+1;if(first)G.newSp=1;G.st.photos++;
   const r=Math.round(f.c*(first?3:1)*(1+.1*lvl('sponsor'))*((G.gear.eyes&&GEAR[G.gear.eyes].photo)||1)*((G.comp&&COMP[G.comp].photo)||1));addCoins(r);
   const fl=$('#flash');fl.animate([{opacity:.7},{opacity:0}],{duration:350});
   emit((first?'Nouvelle espèce · ':'')+f.n,'Photo dans le carnet · +'+r+' pièces','📷');
-  setTimeout(()=>{ANIM=ANIM.filter(x=>x!==a)},1200);
+  if(f.sea)ANIM=ANIM.filter(x=>x!==a);
 }
 
 /* ---------- interface ---------- */
