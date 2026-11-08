@@ -1,0 +1,96 @@
+/* Les trois styles de cartes de Revers, partagés par le jeu (body.th-x) et la page des designs.
+   Chaque carte (.tc) est un conteneur : 1cqw = 1 % de sa largeur, donc tout s'adapte à la taille. */
+
+.tc { position: relative; overflow: hidden; container-type: inline-size; flex: none; user-select: none; }
+.tc svg { width: 100%; height: 100%; display: block; fill: currentColor; stroke: currentColor; }
+.tc-frame { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+.tc-arrows { position: absolute; top: 5cqw; left: 7cqw; right: 7cqw; display: flex; justify-content: space-between; z-index: 1; }
+.tc-arrows i { width: 28%; aspect-ratio: 1; }
+.tc-sup { position: absolute; top: 47%; width: 9cqw; height: 15cqw; z-index: 1; }
+.tc-sup.l { left: 0; } .tc-sup.r { right: 0; }
+.tc-num { position: absolute; left: 0; right: 0; top: 34%; text-align: center; line-height: 1; z-index: 1; }
+.tc-name { position: absolute; left: 5cqw; right: 5cqw; bottom: 25cqw; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; z-index: 1; line-height: 1.15; }
+.tc-home { position: absolute; bottom: 5cqw; right: 7cqw; width: 20cqw; height: 20cqw; z-index: 1; }
+.tc-text { display: none; position: absolute; left: 7cqw; right: 7cqw; bottom: 5cqw; font-size: 7.6cqw; line-height: 1.2; text-align: center; z-index: 1; }
+.tc.back { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.tc.back .tc-glyph { width: 46%; position: relative; z-index: 1; }
+.tc.back .tc-label { position: relative; z-index: 1; margin-top: 5cqw; white-space: nowrap; }
+.tc.blason .tc-crown { position: absolute; top: 22%; left: 25%; width: 50%; z-index: 1; }
+.tc.blason .tc-home { display: none; }
+/* page des designs : texte des capacités visible */
+.showtext .tc.spec .tc-text, .showtext .tc.blason .tc-text { display: block; }
+.showtext .tc.spec .tc-name, .showtext .tc.blason .tc-name { bottom: 42cqw; }
+.showtext .tc.spec .tc-num { top: 25%; }
+.showtext .tc.spec .tc-home { display: none; }
+
+/* ================= Carte d'état-major ================= */
+.th-carto .tc { border-radius: 6% / 4.3%; font-family: "IM Fell English", Georgia, serif; color: #4a3520; background: #efe3c4; box-shadow: 0 2px 5px rgba(0,0,0,.5); }
+.th-carto .tc { --tint: #6b8f5a; }
+.th-carto .t-P { --tint: #c59a3a; } .th-carto .t-F { --tint: #4f7a46; } .th-carto .t-M { --tint: #7c6f66; } .th-carto .t-A { --tint: #4f7b80; } .th-carto .t-B { --tint: #7a2f2f; }
+.th-carto .tc-frame { box-shadow: inset 0 0 0 4cqw #efe3c4, inset 0 0 0 5cqw #8b6a43, inset 0 0 18cqw rgba(120,80,30,.35); }
+.th-carto .face .tc-frame::before { content: ""; position: absolute; inset: 7.5cqw; border: 1px solid #8b6a43; border-radius: 3px; background: repeating-radial-gradient(circle at 70% 75%, transparent 0 7.5cqw, color-mix(in srgb, var(--tint) 24%, transparent) 7.5cqw 8.5cqw); }
+.th-carto .tc-arrows i { opacity: .13; } .th-carto .tc-arrows i.on { opacity: 1; color: #8c2a1c; }
+.th-carto .tc-sup { width: 8cqw; height: 13cqw; }
+.th-carto .tc-sup.on { background: #8c2a1c; }
+.th-carto .tc-sup.l.on { left: 7cqw; clip-path: polygon(100% 0, 0 50%, 100% 100%); }
+.th-carto .tc-sup.r.on { right: 7cqw; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+.th-carto .tc-num { font-size: 50cqw; font-style: italic; }
+.th-carto .tc-name { font-size: max(8px, 11cqw); font-style: italic; letter-spacing: .03em; }
+.th-carto .tc-home { color: var(--tint); }
+.th-carto .tc-text { font-style: italic; }
+.th-carto .back { background: repeating-radial-gradient(circle at 30% 70%, #efe3c4 0 6px, color-mix(in srgb, var(--tint) 55%, #efe3c4) 6px 7px), #efe3c4; color: var(--tint); }
+.th-carto .back .tc-glyph { background: #efe3c4; border-radius: 50%; padding: 8cqw; box-shadow: 0 0 0 1px #8b6a43; width: 56%; }
+.th-carto .back .tc-label { background: #efe3c4; padding: 0 6cqw; border: 1px solid #8b6a43; font-style: italic; color: #4a3520; font-size: max(7px, 10.5cqw); }
+.th-carto .blason .tc-crown { color: #7a2f2f; }
+.th-carto .ombre .tc-crown { color: #4a4a4a; }
+
+/* ================= Signalétique ================= */
+.th-signal .tc { border-radius: 8% / 5.7%; font-family: Archivo, "Helvetica Neue", Arial, sans-serif; background: #fff; color: #111; box-shadow: 0 1px 0 #bbb, 0 3px 8px rgba(0,0,0,.25); }
+.th-signal .t-P { --c: #f2b705; } .th-signal .t-F { --c: #12a150; } .th-signal .t-M { --c: #6b7a90; } .th-signal .t-A { --c: #0f8b8d; } .th-signal .t-B { --c: #5a2ca0; }
+.th-signal .ombre { --c: #3b3b44; }
+.th-signal .face .tc-frame::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 36%; background: var(--c); }
+.th-signal .tc-arrows { top: 6cqw; }
+.th-signal .tc-arrows i { color: rgba(0,0,0,.16); } .th-signal .tc-arrows i.on { color: #111; }
+.th-signal .tc-sup { width: 8cqw; height: 19cqw; }
+.th-signal .tc-sup.on { background: #111; }
+.th-signal .tc-sup.l { border-radius: 0 4px 4px 0; } .th-signal .tc-sup.r { border-radius: 4px 0 0 4px; }
+.th-signal .tc-num { top: 39%; font-size: 54cqw; font-weight: 900; letter-spacing: -.04em; }
+.th-signal .tc-name { font-size: max(7px, 9.5cqw); font-weight: 800; text-transform: uppercase; letter-spacing: .08em; bottom: 23cqw; }
+.th-signal .tc-home { color: var(--c); }
+.th-signal .tc-text { font-weight: 500; }
+.th-signal .back { background: var(--c); color: #fff; }
+.th-signal .back .tc-frame::before { content: ""; position: absolute; inset: 8cqw; border: 2.5cqw solid rgba(255,255,255,.9); border-radius: 5cqw; }
+.th-signal .back.t-P .tc-frame::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 8cqw, rgba(255,255,255,.18) 8cqw 16cqw); }
+.th-signal .back.t-F .tc-frame::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle, rgba(255,255,255,.24) 2.6cqw, transparent 3.2cqw) 0 0 / 14cqw 14cqw; }
+.th-signal .back.t-M .tc-frame::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent 0 8cqw, rgba(255,255,255,.2) 8cqw 10.5cqw); }
+.th-signal .back.t-A .tc-frame::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0 7cqw, rgba(255,255,255,.2) 7cqw 9.5cqw); }
+.th-signal .back.t-B .tc-frame::after { content: ""; position: absolute; inset: 0; background: repeating-conic-gradient(rgba(255,255,255,.16) 0 25%, transparent 0 50%) 0 0 / 17cqw 17cqw; }
+.th-signal .back .tc-label { font-weight: 900; text-transform: uppercase; letter-spacing: .12em; font-size: max(7px, 10cqw); }
+.th-signal .blason .tc-crown { color: #fff; top: 6%; width: 44%; left: 28%; }
+
+/* ================= Art déco nocturne ================= */
+.th-deco .tc { border-radius: 7% / 5%; font-family: "Josefin Sans", Futura, sans-serif; background: #0f1a2e; color: #e8cf8a; box-shadow: 0 3px 10px rgba(0,0,0,.6); }
+.th-deco .t-P { --c: #e0b24f; } .th-deco .t-F { --c: #5fb38a; } .th-deco .t-M { --c: #9fb2d0; } .th-deco .t-A { --c: #4fb0b8; } .th-deco .t-B { --c: #d06a8f; }
+.th-deco .ombre { --c: #8a8fa3; }
+.th-deco .tc-frame { box-shadow: inset 0 0 0 1.7cqw #0f1a2e, inset 0 0 0 2.5cqw #c9a75a, inset 0 0 0 5cqw #0f1a2e, inset 0 0 0 5.9cqw #c9a75a55; }
+.th-deco .face .tc-frame::before { content: ""; position: absolute; left: 50%; top: 52%; width: 127cqw; height: 127cqw; transform: translate(-50%, -50%); background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--c) 20%, transparent) 0 5deg, transparent 5deg 15deg); border-radius: 50%; }
+.th-deco .tc-arrows { top: 10cqw; left: 12cqw; right: 12cqw; }
+.th-deco .tc-arrows i { opacity: .14; } .th-deco .tc-arrows i.on { opacity: 1; color: #f3dc9c; }
+.th-deco .tc-sup { width: 7.5cqw; height: 13.5cqw; }
+.th-deco .tc-sup.on { background: #f3dc9c; }
+.th-deco .tc-sup.l.on { left: 7cqw; clip-path: polygon(100% 0, 0 50%, 100% 100%); }
+.th-deco .tc-sup.r.on { right: 7cqw; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+.th-deco .tc-num { font-size: 51cqw; font-weight: 300; top: 33%; }
+.th-deco .tc-name { font-size: max(7px, 8.5cqw); font-weight: 600; letter-spacing: .25em; text-transform: uppercase; color: var(--c); }
+.th-deco .tc-home { color: var(--c); }
+.th-deco .tc-text { color: #bfae80; font-weight: 300; }
+.th-deco .back { background: repeating-conic-gradient(from 0deg at 50% 100%, color-mix(in srgb, var(--c) 42%, #0f1a2e) 0 6deg, #0f1a2e 6deg 12deg); color: var(--c); }
+.th-deco .back .tc-glyph { background: #0f1a2e; border: 1px solid #c9a75a; border-radius: 50% 50% 8% 8%; padding: 10cqw 8cqw; width: 56%; }
+.th-deco .back .tc-label { background: #0f1a2e; border: 1px solid #c9a75a; padding: 2.5cqw 7cqw; font-size: max(6.5px, 8.5cqw); letter-spacing: .35em; text-transform: uppercase; color: #e8cf8a; }
+.th-deco .blason .tc-crown { color: #e8cf8a; }
+.th-deco .ombre .tc-crown { color: #8a8fa3; }
+
+/* petites cartes (jeu sur téléphone) : noms plus serrés */
+@container (max-width: 72px) {
+  .tc-name, .tc-label { letter-spacing: .02em !important; }
+}

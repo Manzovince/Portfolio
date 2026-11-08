@@ -1,4 +1,4 @@
-import { runRange } from './sim.js?v=1';
+import { runRange } from './sim.js?v=2';
 self.onmessage = e => {
   const { id, cfg, levels, from, to, seed } = e.data;
   let last = 0;

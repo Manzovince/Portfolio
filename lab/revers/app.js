@@ -1,8 +1,8 @@
 // Interface de REVERS : vous (joueur 0, en bas) contre le bot (joueur 1, en haut).
-import * as E from './engine.js?v=1';
-import { chooseDraw, chooseAction } from './ai.js?v=1';
-import { faceHTML, backHTML } from './cards.js?v=1';
-import { mergeAgg, emptyAgg } from './sim.js?v=1';
+import * as E from './engine.js?v=2';
+import { chooseDraw, chooseAction } from './ai.js?v=2';
+import { faceHTML, backHTML } from './cards.js?v=2';
+import { mergeAgg, emptyAgg } from './sim.js?v=2';
 
 const ME = 0, BOT = 1;
 const $ = id => document.getElementById(id);
@@ -11,8 +11,16 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* stockage indisponible */ } },
 };
-const DEF_OPTS = { level: 'normal', first: '0', actions: 1, elan: true, parachute: true, firstNoDraw: true, bonus2: 0, market: 4 };
+const DEF_OPTS = { theme: 'signal', level: 'normal', first: '0', actions: 1, elan: true, parachute: true, firstNoDraw: true, bonus2: 0, market: 4 };
 let opts = { ...DEF_OPTS, ...store.get('revers.opts', {}) };
+const qTheme = new URLSearchParams(location.search).get('style');
+if (qTheme) opts.theme = qTheme;
+function applyTheme() {
+  if (!['signal', 'carto', 'deco'].includes(opts.theme)) opts.theme = 'signal';
+  document.body.className = document.body.className.replace(/\bth-\w+/g, '').trim() + ' th-' + opts.theme;
+}
+applyTheme();
+if (qTheme) store.set('revers.opts', opts);
 const cfgFromOpts = () => ({ actions: +opts.actions, elan: !!opts.elan, parachute: !!opts.parachute, firstNoDraw: !!opts.firstNoDraw, bonus2: +opts.bonus2, market: +opts.market });
 
 let s = null;
@@ -330,14 +338,16 @@ $('bOpts').onclick = () => {
   for (const [k, v] of Object.entries(opts)) { const el = f.elements[k]; if (!el) continue; if (el.type === 'checkbox') el.checked = !!v; else el.value = String(v); }
   $('dlgOpts').showModal();
 };
-$('optForm').onsubmit = e => {
-  e.preventDefault();
-  const f = e.target;
+function readOpts() {
+  const f = $('optForm');
   for (const k of Object.keys(DEF_OPTS)) { const el = f.elements[k]; if (el) opts[k] = el.type === 'checkbox' ? el.checked : el.value; }
   store.set('revers.opts', opts);
+  applyTheme();
   $('dlgOpts').close();
-  newGame();
-};
+}
+$('optForm').onsubmit = e => { e.preventDefault(); readOpts(); newGame(); };
+$('optKeep').onclick = () => { readOpts(); render(); };
+$('optForm').elements.theme.onchange = e => { opts.theme = e.target.value; applyTheme(); store.set('revers.opts', opts); };
 
 let simRun = 0;
 $('simGo').onclick = () => {
@@ -353,7 +363,7 @@ $('simGo').onclick = () => {
   for (let w = 0; w < W; w++) {
     const from = w * per, to = Math.min(N, from + per);
     if (from >= to) { done++; continue; }
-    const wk = new Worker('worker.js?v=1', { type: 'module' });
+    const wk = new Worker('worker.js?v=2', { type: 'module' });
     wk.onmessage = e => {
       if (run !== simRun) return wk.terminate();
       prog += e.data.progress || 0; $('simProg').value = prog;

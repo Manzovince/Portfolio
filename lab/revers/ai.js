@@ -4,7 +4,7 @@
 import {
   CARDS, REMPART, clone, apply, legalActions, flipOptions, drawOptions, climat,
   canStrikeFrom, strikeTarget, doDraw, attackValue, defenseValue, DIRS, isBlason, souvId, ombreId, blasonCells,
-} from './engine.js?v=1';
+} from './engine.js?v=2';
 
 export const LEVELS = { facile: { noise: 2.5, greedyDraw: false }, normal: { noise: 0.05, greedyDraw: true }, fort: { noise: 0.05, greedyDraw: true, look: 10 } };
 

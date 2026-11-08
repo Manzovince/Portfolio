@@ -13,7 +13,7 @@ button:hover, .btn:hover { border-color: var(--gold); }
 button.primary { background: var(--gold); color: #1a1406; border-color: var(--gold); font-weight: 600; }
 button:disabled { opacity: .4; cursor: default; }
 
-.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
 .top h1 { margin: 0; font-size: 20px; letter-spacing: .35em; font-weight: 800; }
 .top nav { display: flex; gap: 6px; flex-wrap: wrap; }
 .burger { display: none; flex-direction: column; justify-content: center; gap: 4px; width: 38px; height: 34px; padding: 0 9px; }
@@ -44,46 +44,18 @@ button:disabled { opacity: .4; cursor: default; }
 .slot .odds.ok { color: var(--green); } .slot .odds.ko { color: var(--red); }
 .slot.last { box-shadow: 0 0 0 2px rgba(227,179,79,.55); }
 
-/* ---------- cartes ---------- */
-.card { width: var(--cw); height: var(--ch); border-radius: 8px; position: relative; overflow: hidden; user-select: none; flex: none; }
-.card.face { background: #f4efe2; color: #1d1d1b; border: 3px solid var(--tc, #999); box-shadow: 0 2px 4px rgba(0,0,0,.35); }
-.card.face.t-P { --tc: var(--P); } .card.face.t-F { --tc: var(--F); } .card.face.t-M { --tc: var(--M); } .card.face.t-A { --tc: var(--A); }
-.card .ars { display: flex; justify-content: space-between; padding: 2px 3px 0; }
-.card .ar { width: 30%; aspect-ratio: 1; display: grid; place-items: center; }
-.card .ar svg { width: 100%; height: 100%; fill: #00000014; }
-.card .ar.on svg { fill: #b2301f; }
-.card .sp { position: absolute; top: 46%; width: 0; height: 0; border: calc(var(--cw) * .085) solid transparent; }
-.card .sp.l { left: 1px; } .card .sp.r { right: 1px; }
-.card .sp.l.on { border-right-color: #2c6fb3; border-left-width: 0; left: 2px; }
-.card .sp.r.on { border-left-color: #2c6fb3; border-right-width: 0; right: 2px; }
-.card .num { text-align: center; font-size: calc(var(--cw) * .44); font-weight: 800; line-height: 1; margin-top: 2px; }
-.card .nm { text-align: center; font-size: calc(var(--cw) * .125); font-weight: 600; line-height: 1.1; padding: 0 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card .home { position: absolute; bottom: 2px; right: 3px; width: 26%; opacity: .9; }
-.card .home svg, .bk-glyph svg, .bl-glyph svg { width: 100%; display: block; fill: currentColor; stroke: currentColor; }
-.card.face .home { color: var(--tc); }
-.card.face.spec .num { color: #6b3c00; }
-.card.face.blason { background: radial-gradient(circle at 50% 35%, #8a66b0, #3c2853); color: #f6e2a8; border: 3px solid var(--gold); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.card.face.blason.ombre { background: radial-gradient(circle at 50% 35%, #4b4b55, #18181d); color: #b9b9c6; border-color: #777; }
-.bl-glyph { width: 55%; }
-.card.face.blason .tx { font-size: calc(var(--cw) * .11); opacity: .8; }
-
-.card.back { color: rgba(255,255,255,.88); border: 3px solid rgba(255,255,255,.18); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; box-shadow: 0 2px 4px rgba(0,0,0,.35); }
-.card.back.t-P { background: repeating-linear-gradient(0deg, #c79a37 0 6px, #d9b04a 6px 12px); }
-.card.back.t-F { background: radial-gradient(circle at 30% 30%, #4f9c62 0 18%, transparent 19%) 0 0/18px 18px, #2f6f40; }
-.card.back.t-M { background: linear-gradient(135deg, #8c97a8 25%, transparent 25%) 0 0/14px 14px, linear-gradient(225deg, #8c97a8 25%, transparent 25%) 0 0/14px 14px, #687387; }
-.card.back.t-A { background: repeating-radial-gradient(circle at 50% 120%, #5a8c86 0 5px, #426d68 5px 10px); }
-.card.back.t-B { background: repeating-conic-gradient(from 45deg, #5c3f7a 0 25%, #6b4a8c 0 50%) 0 0/16px 16px; color: var(--gold); border-color: var(--gold); }
-.bk-glyph { width: 46%; filter: drop-shadow(0 1px 1px rgba(0,0,0,.4)); }
-.bk-nm { font-size: calc(var(--cw) * .12); font-weight: 700; letter-spacing: .05em; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
-.card.back.mini { --cw: 34px; --ch: 48px; border-width: 2px; }
-.card.back.mini .bk-nm { display: none; }
+/* ---------- cartes (l'apparence vient de themes.css) ---------- */
+.card { width: var(--cw); height: var(--ch); }
+.card.mini { --cw: 34px; --ch: 48px; width: 34px; height: 48px; }
+.card.mini .tc-label { display: none; }
+.card.mini .tc-glyph { width: 66%; }
 
 /* carte cachée dont on connaît la face */
 .card.known-hidden { opacity: .62; }
 .card.known-hidden::after { content: "caché"; position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.65); color: #fff; font-size: 9px; text-align: center; letter-spacing: .08em; }
 .slot .seen { position: absolute; top: -6px; right: -6px; z-index: 2; background: var(--gold); color: #1a1406; font-size: 9px; font-weight: 700; padding: 1px 4px; border-radius: 6px; }
 .flip180 { transform: rotate(180deg); }
-.flip180 .num, .flip180 .nm, .flip180 .bk-nm, .flip180 .tx { transform: rotate(180deg); }
+.flip180 .tc-num, .flip180 .tc-name, .flip180 .tc-label { transform: rotate(180deg); }
 
 /* ---------- milieu ---------- */
 .mid { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; padding: 6px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
@@ -146,7 +118,7 @@ progress { width: 100%; height: 8px; margin: 8px 0; accent-color: var(--gold); }
 /* ---------- téléphone ---------- */
 @media (max-width: 600px) {
   :root { --cw: min(62px, calc((100vw - 60px) / 5)); --ch: calc(var(--cw) * 1.32); }
-  .top { padding: 6px 10px; gap: 6px; flex-wrap: nowrap; }
+  .top { padding: calc(6px + env(safe-area-inset-top)) 10px 6px; gap: 6px; flex-wrap: nowrap; }
   .top h1 { font-size: 15px; letter-spacing: .2em; }
   .top { position: relative; z-index: 35; }
   .burger { display: flex; }
@@ -156,17 +128,14 @@ progress { width: 100%; height: 8px; margin: 8px 0; accent-color: var(--gold); }
   #table { gap: 6px; padding: 6px 8px 0; padding-bottom: calc(var(--dockh, 150px) + 12px); }
   .board { gap: 4px; padding: 5px; }
   .who { font-size: 11px; }
-  .card.back.mini { --cw: 24px; --ch: 34px; }
-  .card.back.mini .bk-glyph { width: 70%; }
-  .card .num { font-size: calc(var(--cw) * .42); }
-  .card .nm { font-size: 9px; }
+  .card.mini { --cw: 24px; --ch: 34px; width: 24px; height: 34px; }
   .slot .rowtag { display: none; }
 
   .mid { display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; align-items: center; padding: 4px 0; }
   .pile { display: contents; }
   .pile .deck { grid-row: 1; grid-column: 1; --cw: 44px; --ch: 60px; }
   .pile .deck .card { --cw: 44px; --ch: 60px; }
-  .pile .deck .bk-nm { display: none; }
+  .pile .deck .tc-label { display: none; }
   .market { grid-row: 1; grid-column: 2; justify-content: flex-start; gap: 4px; --cw: min(54px, calc((100vw - 100px) / 4)); --ch: calc(var(--cw) * 1.32); }
   .pile .clim { grid-row: 2; grid-column: 1 / -1; max-width: none; text-align: center; }
   .pile .clim b { display: inline; font-size: 13px; } .pile .clim b::after { content: ' · '; color: var(--dim); } .pile .clim span { font-size: 11px; }
@@ -179,10 +148,11 @@ progress { width: 100%; height: 8px; margin: 8px 0; accent-color: var(--gold); }
   .hand.mine { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; max-width: 100%; padding: 6px 2px 2px; --cw: 50px; --ch: 66px; scrollbar-width: none; }
   .hand.mine:has(> :nth-child(6)) { --cw: 44px; --ch: 58px; }
   .hand.mine > div { flex: none; }
-  .hand.mine .card .nm { font-size: 8px; }
   .hand.mine:empty { display: none; }
   .log { max-height: none; }
   #toast { top: 8px; bottom: auto; }
   .slot .seen { font-size: 8px; top: -5px; right: -3px; padding: 0 3px; }
   .slot .odds { font-size: 11px; padding: 1px 4px; }
 }
+
+.row2 { display: flex; gap: 8px; flex-wrap: wrap; }
