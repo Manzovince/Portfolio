@@ -103,6 +103,7 @@ html.wface #face{display:block}html.wface #watch{display:none}
 .hcol{display:flex;flex-direction:column;align-items:flex-start;gap:6px;order:1}
 .zpill{pointer-events:auto;background:var(--hud);color:var(--hud-ink);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:10px;padding:3px}
 .zpill span{min-width:54px}
+.hrow{display:flex;gap:6px;align-items:center}.bagt{border:0;border-radius:999px;font:inherit;font-size:11px;padding:4px 9px;cursor:pointer;display:flex;gap:4px;align-items:center}.bagt i{font-style:normal;font-size:9px;opacity:.7}html.nobag #bag{display:none}html.nobag .bagt i{transform:rotate(-90deg)}
 .bar{display:grid;grid-template-columns:14px 1fr 44px;align-items:center;gap:6px;white-space:nowrap;font-size:10px}
 .bar .t{height:6px;background:rgba(255,255,255,.14);border-radius:4px;overflow:hidden}
 .bar .t i{display:block;height:100%;border-radius:4px;transition:width .5s}
@@ -210,7 +211,7 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
   #search{margin-top:12px;box-shadow:2px 2px 0 var(--field-b)}
   #q{font-size:16px;padding:11px 0}
   #hudw{left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));flex-direction:column;align-items:stretch;gap:6px}
-  .hcol{align-items:stretch}.zpill{align-self:flex-start}
+  .hcol{align-items:stretch}.hrow{align-self:flex-start}
   .hud{border-radius:14px;padding:8px 10px}
   html.wface #watch,#watch{display:flex!important;justify-content:space-between;gap:8px}html.wface #face{display:none}
   #watch>div:nth-child(5),#watch>div:nth-child(6),#watch .row{display:none!important}
@@ -288,7 +289,7 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
   <div class="row"><span id="wTime">0:00:00</span><span id="wCad">0 spm</span><span id="wMode">course</span></div>
 </div>
 <div class="hcol">
-<div class="zoom zpill" title="Vue (ou molette sur le paysage)"><button id="zOut" aria-label="Dézoomer">−</button><span id="zLbl"></span><button id="zIn" aria-label="Zoomer">+</button></div>
+<div class="hrow"><div class="zoom zpill" title="Vue (ou molette sur le paysage)"><button id="zOut" aria-label="Dézoomer">−</button><span id="zLbl"></span><button id="zIn" aria-label="Zoomer">+</button></div><button class="zpill bagt" id="bagT" title="Masquer le sac" aria-label="Masquer le sac">🎒<i>▾</i></button></div>
 <div class="hud" id="bag">
   <canvas id="prof"></canvas>
   <div id="next"></div>
@@ -312,11 +313,11 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
   </div>
   <div class="pb" id="pb"></div>
 </div></div>
-<script src="js/core.js?v=15"></script>
-<script src="js/world.js?v=15"></script>
-<script src="js/layers.js?v=15"></script>
-<script src="js/sprites.js?v=15"></script>
-<script src="js/game.js?v=15"></script>
-<script src="js/main.js?v=15"></script>
+<script src="js/core.js?v=16"></script>
+<script src="js/world.js?v=16"></script>
+<script src="js/layers.js?v=16"></script>
+<script src="js/sprites.js?v=16"></script>
+<script src="js/game.js?v=16"></script>
+<script src="js/main.js?v=16"></script>
 </body>
 </html>

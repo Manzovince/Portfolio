@@ -423,6 +423,8 @@ let curTab='boutique';
 function openModal(tab){$('#modal').classList.add('on');showTab(tab)}
 const closeModal=()=>{$('#modal').classList.remove('on');document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'))};
 $('#bCoins').onclick=()=>openModal('boutique');$('#bCarnet').onclick=$('#bBiome').onclick=()=>openModal('carnet');$('#bSet').onclick=()=>openModal('reglages');$('#bDefis').onclick=()=>openModal('defis');
+{const setBag=v=>{document.documentElement.classList.toggle('nobag',!v);const b=$('#bagT');b.title=b.ariaLabel=v?'Masquer le sac':'Afficher le sac';store.set('bag',v);dispatchEvent(new Event('resize'))};
+ setBag(store.get('bag',true));$('#bagT').onclick=()=>setBag(document.documentElement.classList.contains('nobag'))}
 $('#zIn').onclick=()=>setZoom(ZOOM+1);$('#zOut').onclick=()=>setZoom(ZOOM-1);$('#zLbl').textContent=ZOOMS[ZOOM].n;
 $('#mClose').onclick=closeModal;$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
 addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
