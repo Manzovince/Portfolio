@@ -200,11 +200,15 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
 .tfiche button.buy{background:var(--bc);border-color:var(--bc);color:#fff}
 .tfiche button:disabled{opacity:.5;cursor:default}
 @media (max-width:560px){.ttree{gap:12px;padding:6px}.tn{grid-template-columns:16px 1fr;column-gap:3px;padding:4px;font-size:9.5px}.tn .ti{font-size:12px}.tn .tt{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word;hyphens:auto}}
-.psub{display:flex;gap:4px;padding:8px 12px;border-bottom:2px solid var(--line);overflow-x:auto}
+.psub{display:flex;gap:2px;padding:0 12px;background:transparent;border-bottom:2px solid var(--line);overflow-x:auto;scrollbar-width:none}
 .psub[hidden]{display:none}
-.psub button{position:relative;flex:1;white-space:nowrap;border:2px solid transparent;background:rgba(44,52,70,.06);color:var(--panel-ink);font:700 12px 'JetBrains Mono',monospace;padding:7px 10px;border-radius:10px;cursor:pointer}
-.psub button.on{background:var(--panel);border-color:var(--accent);color:var(--accent)}
-.psub .dot{top:3px;right:3px}.psub .badge{top:-6px;right:-4px}
+.ph:has(+.psub:not([hidden])){border-bottom:0;padding-bottom:4px}
+.psub button{position:relative;display:flex;align-items:center;gap:6px;white-space:nowrap;border:0;background:transparent;color:var(--panel-ink);opacity:.5;font:700 12px 'JetBrains Mono',monospace;padding:9px 10px 10px;cursor:pointer;transition:opacity .15s}
+.psub button:hover{opacity:.8}
+.psub button::after{content:'';position:absolute;left:8px;right:8px;bottom:-2px;height:3px;border-radius:3px 3px 0 0;background:var(--accent);transform:scaleX(0);transition:transform .2s}
+.psub button.on{opacity:1}.psub button.on::after{transform:none}
+.psub button span{font-size:13px;filter:grayscale(1)}.psub button.on span{filter:none}
+.psub .dot{position:static;margin-left:-2px;box-shadow:none}.psub .badge{position:static;margin-left:-1px}
 .snote{font-size:11px;opacity:.65;margin:0 0 8px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .stats div{background:rgba(44,52,70,.06);border-radius:10px;padding:8px}
@@ -358,17 +362,17 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
     <span class="sp"></span><button class="close" id="mClose" aria-label="Fermer">✕</button>
   </div>
   <div class="psub" id="psub" hidden>
-    <button data-sub="journal">📖 Journal de bord<i class="dot" id="sJ" hidden></i></button>
-    <button data-sub="train">💪 Entraînement<i class="dot" id="sT" hidden></i></button>
-    <button data-sub="defis">🏅 Défis<i class="badge" id="sD" hidden></i></button>
+    <button data-sub="journal"><span>📖</span>Journal de bord<i class="dot" id="sJ" hidden></i></button>
+    <button data-sub="train"><span>💪</span>Entraînement<i class="dot" id="sT" hidden></i></button>
+    <button data-sub="defis"><span>🏅</span>Défis<i class="badge" id="sD" hidden></i></button>
   </div>
   <div class="pb" id="pb"></div>
 </div></div>
-<script src="js/core.js?v=24"></script>
-<script src="js/world.js?v=24"></script>
-<script src="js/layers.js?v=24"></script>
-<script src="js/sprites.js?v=24"></script>
-<script src="js/game.js?v=24"></script>
-<script src="js/main.js?v=24"></script>
+<script src="js/core.js?v=25"></script>
+<script src="js/world.js?v=25"></script>
+<script src="js/layers.js?v=25"></script>
+<script src="js/sprites.js?v=25"></script>
+<script src="js/game.js?v=25"></script>
+<script src="js/main.js?v=25"></script>
 </body>
 </html>
