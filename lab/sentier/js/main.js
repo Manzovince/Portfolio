@@ -568,53 +568,88 @@ function stripParam(...ks){let ch=0;for(const k of ks)if(Q.has(k)){Q.delete(k);c
 function setWeather(k){stripParam('meteo');store.set('meteoForce',k);skyKey='';drops.length=0;flakes.length=0;tick()}
 $('#tAdmin').hidden=!ADMIN();
 function jumpTo(dm){G.d=Math.max(0,dm);ensure(G.d);cam=elev(G.d);camMacro=elevMacro(G.d);ANIM=[];save();hud()}
+let admTab=store.get('admTab','monde');
 function renderAdmin(){
-  const pb=$('#pb');pb.innerHTML='';
-  const h=t=>{const e=document.createElement('h3');e.textContent=t;pb.appendChild(e)};
-  const btn=(t,fn,cur)=>{const b=document.createElement('button');b.className='btn'+(cur?' cur':'');b.textContent=t;b.onclick=()=>{fn();if(curTab==='admin')renderAdmin()};return b};
-  const grid=(...bs)=>{const d=document.createElement('div');d.className='adg';d.append(...bs);pb.appendChild(d);return d};
+  const pb=$('#pb'),keep=pb.scrollTop;pb.innerHTML='';requestAnimationFrame(()=>pb.scrollTop=keep);
+  const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
+  const sec=(t,note)=>{const d=el('div','ads');d.appendChild(el('h4',null,t));if(note)d.appendChild(el('p','adn',note));pb.appendChild(d);return d};
+  const btn=(t,fn,cur,cls='')=>{const b=el('button','btn '+cls+(cur?' cur':''),t);b.onclick=()=>{fn();if(curTab==='admin')renderAdmin();hud()};return b};
+  const grid=(par,...bs)=>{const d=el('div','adg');d.append(...bs);par.appendChild(d);return d};
   const L=leg(G.d);
-  // infos en direct
-  const info=document.createElement('div');info.id='adInfo';pb.appendChild(info);
+  // en-tête collant : état en direct + onglets
+  const head=el('div','shead adhead');pb.appendChild(head);
+  const info=el('div','adi');head.appendChild(info);
+  const chip=(k,v)=>`<span><i>${k}</i>${v}</span>`;
   const upd=()=>{if(!info.isConnected)return clearInterval(iv);const m=biomeMix(G.d),Lg=leg(G.d);
-    info.textContent=`km ${fmt(G.d/1000,3)} · étape ${LEGS.indexOf(Lg)} ${Lg.b} (${fmt(Lg.d0/1000,1)}→${fmt((Lg.d0+Lg.len)/1000,1)} km)\nmélange ${m.a}→${m.b} ${Math.round(m.t*100)} % · alt ${fmt(elevMacro(G.d))} m · pente ${Math.round(gradeAt(G.d)*100)} %\nvitesse ${fmt(LIVE.v*3.6,1)} km/h · ${LIVE.mode} · ${LIVE.c?LIVE.c.T+' °C':''} ${weatherAt(now())}\nheure ${now().toLocaleTimeString('fr-FR')} ×${SPEED} · zoom ${ZOOMS[ZOOM].n} · ${W}×${H} px ×${PX} · tuiles ${tileCache.size}`};
+    info.innerHTML=chip('km',fmt(G.d/1000,2))+chip('monde',`<em style="background:${BCOL[Lg.b]}"></em>${BI[Lg.b].n}`)+chip('alt',fmt(elevMacro(G.d))+' m')+chip('pente',Math.round(gradeAt(G.d)*100)+' %')
+      +chip('vitesse',fmt(LIVE.v*3.6,1)+' km/h')+chip('mode',LIVE.mode==='rest'?'bivouac '+Math.round(G.rest.p*100)+' %':LIVE.mode)+chip('heure',hm(now())+(SPEED!==1?' ×'+SPEED:''))+chip('météo',WX[weatherAt(now())].ic+' '+(LIVE.c?LIVE.c.T+' °C':''))
+      +(m.t>.02&&m.t<.98?chip('mélange',`${m.a}→${m.b} ${Math.round(m.t*100)} %`):'')+chip('écran',`${W}×${H} ×${PX} · ${tileCache.size} tuiles`)};
   upd();const iv=setInterval(upd,500);
+  const tabs=el('div','scats');head.appendChild(tabs);
+  for(const[k,n]of[['monde','🗺 Monde'],['ciel','🌤 Ciel'],['coureur','🏃 Coureur'],['faune','🦊 Faune'],['divers','⚙ Divers']]){
+    const b=el('button',admTab===k?'on':'',n);b.onclick=()=>{admTab=k;store.set('admTab',k);pb.scrollTop=0;renderAdmin()};tabs.appendChild(b)}
 
-  h('Aller dans un monde');
-  grid(...Object.keys(BI).map(b=>btn(BI[b].n,()=>{let i=legAt(G.d)+1;ensure(G.d+120000);while(LEGS[i]&&LEGS[i].b!==b)i++;if(LEGS[i])jumpTo(LEGS[i].d0+80)},b===L.b)));
-  h('Position');
-  {const d=document.createElement('div');d.className='adr';const i=document.createElement('input');i.type='number';i.step='.1';i.value=(G.d/1000).toFixed(2);i.style.width='90px';
-   d.append('km',i,btn('Aller',()=>jumpTo(parseFloat(i.value)*1000||0)));pb.appendChild(d)}
-  grid(btn('−1 km',()=>jumpTo(G.d-1000)),btn('−100 m',()=>jumpTo(G.d-100)),btn('+100 m',()=>jumpTo(G.d+100)),btn('+1 km',()=>jumpTo(G.d+1000)),btn('+10 km',()=>jumpTo(G.d+10000)),btn('Départ',()=>jumpTo(0)));
-  h('Points d’intérêt');
-  const NM={ravito:'Ravito',fontaine:'Fontaine',ruisseau:'Ruisseau',buvette:'Buvette',cafe:'Café',sommet:'Sommet',panneau:'Entrée de paysage',depart:'Départ'};
-  grid(btn('Prochain ravito',()=>{const p=nextPoi(G.d+30,['ravito']);if(p)jumpTo(p.d-35)}),btn('Prochain refuge',()=>{let p=G.d+30;for(const q of poisIn(G.d+30,G.d+120000))if(q.refuge){jumpTo(q.d-35);break}}),
-    btn('Prochaine fontaine',()=>{const p=nextPoi(G.d+30,['fontaine']);if(p)jumpTo(p.d-35)}),btn('Prochain ruisseau',()=>{const p=nextPoi(G.d+30,['ruisseau']);if(p)jumpTo(p.d-35)}),btn('Prochaine buvette / café',()=>{const p=nextPoi(G.d+30,['buvette','cafe']);if(p)jumpTo(p.d-35)}),btn('Prochain sommet',()=>{const p=nextPoi(G.d+30,['sommet']);if(p)jumpTo(p.d-60)}));
-  for(const p of poisIn(G.d,G.d+60000).filter(p=>p.k!=='panneau').slice(0,10)){
-    const r=document.createElement('div');r.className='adl';
-    const s=document.createElement('span');s.textContent=`${fmt((p.d-G.d)/1000,1)} km · ${NM[p.k]||p.k} · ${p.n}${p.alt?' '+p.alt+' m':''} (${BI[leg(p.d).b].n.toLowerCase()})`;
-    r.append(s,btn('Aller',()=>jumpTo(p.d-35)));pb.appendChild(r)}
-  h('Heure et vitesse');
-  {const cur=now(),d=document.createElement('div');d.className='adr';const i=document.createElement('input');i.type='range';i.min=0;i.max=24;i.step=.25;i.value=cur.getHours()+cur.getMinutes()/60;
-   const o=document.createElement('b');o.textContent=hm(cur);i.oninput=()=>{setClock(+i.value,null);o.textContent=hm(now());tick()};d.append(i,o);pb.appendChild(d)}
-  grid(btn('Heure réelle',()=>{setClock(null,1);tick()},FH==null&&SPEED===1),...[1,10,60,600].map(v=>btn('×'+v,()=>setClock(undefined,v),SPEED===v)));
-  h('Météo');
-  const mf=store.get('meteoForce',null);
-  grid(btn('Auto',()=>setWeather(null),!mf),...Object.entries(WX).map(([k,w])=>btn(w.ic+' '+w.n,()=>setWeather(k),mf===k)));
-  h('Saison (couleurs des arbres)');
-  const sf=store.get('saison',null);
-  grid(btn('Auto',()=>{store.set('saison',null);clearTiles();decoCache.clear();tileBudget=999},!sf),...['printemps','ete','automne','hiver'].map(k=>btn(k,()=>{store.set('saison',k);clearTiles();decoCache.clear();tileBudget=999},sf===k)));
-  h('Faune');
-  {const d=document.createElement('div');d.className='adr';const sel=document.createElement('select');
-   sel.innerHTML=Object.entries(FAUNA).map(([k,f])=>`<option value="${k}">${f.n} (${f.b.join(', ')})</option>`).join('');
-   d.append(sel,btn('Faire apparaître',()=>spawnFauna(sel.value)));pb.appendChild(d)}
-  h('Coureur');
-  grid(btn('+1 000 pièces',()=>addCoins(1000)),btn('Eau pleine',()=>G.water=capL()),btn('Eau vide',()=>G.water=0),btn('Énergie pleine',()=>G.energy=100),btn('Énergie vide',()=>G.energy=0),
-    btn('Chaussures usées',()=>G.wear=GEAR[G.gear.shoes].life+1),btn('Chaussures neuves',()=>G.wear=0),btn('Tous les compagnons',()=>{for(const id in COMP){if(!G.comps.includes(id))G.comps.push(id);G.st.bio[COMP[id].b]=1}G.comp=G.comp||'chien'}),
-    btn('Tout l’équipement',()=>{for(const id in GEAR)if(!G.own.includes(id))G.own.push(id)}),btn('Valider les défis',()=>{for(const q of QUESTS)if(!G.q.includes(q.id))G.q.push(q.id)}),
-    btn('Remettre les défis à zéro',()=>{G.q=[];G.qSeen=0}),btn('Toutes les espèces',()=>{for(const k in FAUNA)G.seen[k]=G.seen[k]||1}));
-  h('Affichage');
-  grid(...ZOOMS.map((z,i)=>btn(z.n,()=>setZoom(i),ZOOM===i)),btn('Masquer l’onglet Admin',()=>{store.del('admin');$('#tAdmin').hidden=true;showTab('reglages')}));
+  if(admTab==='monde'){
+    // position : saisie + pas
+    const ps=sec('Position');
+    const r=el('div','adr'),i=el('input');i.type='number';i.step='.1';i.value=(G.d/1000).toFixed(2);i.style.width='84px';
+    const go=()=>jumpTo(parseFloat(i.value)*1000||0);i.onkeydown=e=>{if(e.key==='Enter'){go();renderAdmin()}};
+    r.append(el('span','adk','km'),i,btn('Aller',go,0,'pri'),btn('Départ',()=>jumpTo(0)));ps.appendChild(r);
+    grid(ps,...[[-10000,'−10 km'],[-1000,'−1 km'],[-100,'−100 m'],[100,'+100 m'],[1000,'+1 km'],[10000,'+10 km']].map(([d,t])=>btn(t,()=>jumpTo(G.d+d))));
+    // mondes regroupés par boucle
+    const ws=sec('Aller dans un monde','Le prochain passage de ce paysage sur ton parcours.');
+    for(const[reg,n]of[['alpes','Alpes'],['med','Sud'],['exo','Grand voyage']]){
+      const g=el('div','adw');g.appendChild(el('span','adk',n));const gg=el('div','adg');g.appendChild(gg);
+      for(const b of Object.keys(BI).filter(b=>BI[b].reg===reg)){const x=btn('',()=>{let i=legAt(G.d)+1;ensure(G.d+150000);while(LEGS[i]&&LEGS[i].b!==b)i++;if(LEGS[i])jumpTo(LEGS[i].d0+80)},b===L.b,'wb');
+        x.innerHTML=`<em style="background:${BCOL[b]}"></em>`;x.append(BI[b].n);gg.appendChild(x)}
+      ws.appendChild(g)}
+    // points d'intérêt
+    const NM={ravito:['⛺','Ravito'],fontaine:['💧','Fontaine'],ruisseau:['🏞','Ruisseau'],buvette:['🏠','Buvette'],cafe:['☕','Café'],sommet:['⛰','Sommet'],depart:['🏁','Départ']};
+    const pp=sec('Points d’intérêt');
+    grid(pp,...[['ravito','⛺ Ravito'],['refuge','🏔 Refuge'],['fontaine','💧 Fontaine'],['ruisseau','🏞 Ruisseau'],['buvette','🏠☕ Buvette / café'],['sommet','⛰ Sommet']].map(([k,t])=>btn(t+' suivant',()=>{
+      const p=k==='refuge'?poisIn(G.d+30,G.d+150000).find(q=>q.refuge):nextPoi(G.d+30,k==='buvette'?['buvette','cafe']:[k]);if(p)jumpTo(p.d-(k==='sommet'?60:35))})));
+    const list=el('div','adlist');pp.appendChild(list);
+    for(const p of poisIn(G.d,G.d+60000).filter(p=>NM[p.k]).slice(0,12)){
+      const r=el('div','adl'),ic=p.refuge?'🏔':NM[p.k][0];
+      const s=el('span');s.innerHTML=`<b>${fmt((p.d-G.d)/1000,1)} km</b> ${ic} `;s.append(`${p.n}${p.alt?' · '+p.alt+' m':''}`,el('small',null,' '+BI[leg(p.d).b].n.toLowerCase()));
+      r.append(s,btn('Aller',()=>jumpTo(p.d-35)));list.appendChild(r)}
+  }else if(admTab==='ciel'){
+    const hs_=sec('Heure');
+    {const cur=now(),d=el('div','adr'),i=el('input');i.type='range';i.min=0;i.max=24;i.step=.25;i.value=cur.getHours()+cur.getMinutes()/60;
+     const o=el('b','adv',hm(cur));i.oninput=()=>{setClock(+i.value,null);o.textContent=hm(now());tick()};d.append(i,o);hs_.appendChild(d)}
+    grid(hs_,...[[6,'🌅 Aube'],[12,'☀ Midi'],[18.5,'🌇 Soir'],[22,'🌙 Nuit']].map(([h2,t])=>btn(t,()=>{setClock(h2,null);tick()})),btn('Heure réelle',()=>{setClock(null,1);tick()},FH==null&&SPEED===1));
+    const sp=sec('Vitesse du temps','Accélère la course, la consommation et le ciel.');
+    grid(sp,...[1,10,60,600].map(v=>btn('×'+v,()=>setClock(undefined,v),SPEED===v)));
+    const mt=sec('Météo');const mf=store.get('meteoForce',null);
+    grid(mt,btn('Auto',()=>setWeather(null),!mf),...Object.entries(WX).map(([k,w])=>btn(w.ic+' '+w.n,()=>setWeather(k),mf===k)));
+    const sa=sec('Saison','Couleurs des arbres et des prés.');const sf=store.get('saison',null);
+    const setS=k=>{store.set('saison',k);clearTiles();decoCache.clear();tileBudget=999};
+    grid(sa,btn('Auto',()=>setS(null),!sf),...[['printemps','🌸 Printemps'],['ete','☀ Été'],['automne','🍂 Automne'],['hiver','❄ Hiver']].map(([k,t])=>btn(t,()=>setS(k),sf===k)));
+  }else if(admTab==='coureur'){
+    // jauges : état + boutons
+    const jg=sec('Jauges');
+    const gauge=(ic,label,val,acts)=>{const r=el('div','adl');const s=el('span');s.innerHTML=`${ic} <b>${label}</b> `;s.append(el('small',null,val));const g=el('div','adg');g.append(...acts);r.append(s,g);jg.appendChild(r)};
+    gauge('💧','Eau',fmt(G.water,2)+' / '+fmt(capL(),2)+' L',[btn('Vide',()=>{G.water=0;G.flask=0}),btn('Pleine',()=>G.water=capL())]);
+    gauge('⚡','Énergie',Math.round(G.energy)+' %',[btn('Vide',()=>{G.energy=0;G.stock={}}),btn('Pleine',()=>G.energy=100)]);
+    gauge('👟','Chaussures',fmt(Math.max(0,GEAR[G.gear.shoes].life-G.wear))+' km',[btn('Usées',()=>{G.wear=GEAR[G.gear.shoes].life+1;G.spare[G.gear.shoes]=0}),btn('Neuves',()=>G.wear=0)]);
+    gauge('◉','Pièces',fmt(Math.floor(G.coins)),[btn('+1 000',()=>addCoins(1000)),btn('+10 000',()=>addCoins(10000))]);
+    const bv=sec('Bivouac',G.rest?`${RESTWHY[G.rest.why][0]} · ${Math.round(G.rest.p*100)} %`:'Le coureur court.');
+    grid(bv,...Object.keys(RESTWHY).map(k=>btn('Arrêt : '+{eau:'eau',energie:'énergie',chaussures:'chaussures'}[k],()=>{if(!G.rest)stopRun(k);else G.rest.why=k},G.rest&&G.rest.why===k)),
+      btn('Finir le repos',()=>{if(G.rest)G.rest.p=1}),btn('Repartir',()=>{if(G.rest){G.rest.p=1;if(!shoesOk())G.wear=0;restart()}},0,'pri'));
+    const un=sec('Débloquer');
+    grid(un,btn('Tout l’équipement',()=>{for(const id in GEAR)if(!G.own.includes(id))G.own.push(id);if(!G.own.includes('filtre'))G.own.push('filtre')}),
+      btn('Tous les compagnons',()=>{for(const id in COMP){if(!G.comps.includes(id))G.comps.push(id);G.st.bio[COMP[id].b]=1}G.comp=G.comp||'chien'}),
+      btn('Toutes les espèces',()=>{for(const k in FAUNA)G.seen[k]=G.seen[k]||1}),btn('Valider les défis',()=>{for(const q of QUESTS)if(!G.q.includes(q.id))G.q.push(q.id)}),btn('Défis à zéro',()=>{G.q=[];G.qSeen=0}));
+  }else if(admTab==='faune'){
+    const here=Object.entries(FAUNA).filter(([,f])=>f.b.includes(L.b)),rest=Object.entries(FAUNA).filter(([,f])=>!f.b.includes(L.b));
+    const one=(t,arr,note)=>{const s=sec(t,note);grid(s,...arr.map(([k,f])=>{const b=btn(f.n,()=>spawnFauna(k),0,'fb');b.title=f.b.map(x=>BI[x]?BI[x].n:x).join(', ');if(G.seen[k])b.classList.add('seen');return b}))};
+    one('Ici · '+BI[L.b].n,here,here.length?'Clique pour faire apparaître l’animal.':'Aucune espèce propre à ce paysage.');
+    one('Ailleurs',rest,'Apparaissent ici quand même, hors de leur paysage. ✓ = déjà photographiée.');
+  }else{
+    const af=sec('Vue');grid(af,...ZOOMS.map((z,i)=>btn(z.n,()=>setZoom(i),ZOOM===i)));
+    const ad=sec('Onglet Admin','Pour le retrouver : ajoute ?admin à l’adresse.');
+    grid(ad,btn('Masquer l’onglet Admin',()=>{store.del('admin');$('#tAdmin').hidden=true;showTab('reglages')}));
+  }
   save();
 }
 requestAnimationFrame(loop);

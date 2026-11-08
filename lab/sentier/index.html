@@ -192,12 +192,20 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
 .set input[type=number]{width:60px;font:13px 'JetBrains Mono',monospace;padding:4px 6px;border:2px solid rgba(44,52,70,.25);border-radius:8px}
 .set select{font:13px 'JetBrains Mono',monospace;padding:4px}
 .adg{display:flex;flex-wrap:wrap;gap:5px}
-.adg .btn{grid-row:auto;grid-column:auto;padding:5px 10px;font-size:11px}
+.adg .btn{grid-row:auto;grid-column:auto;padding:5px 10px;font-size:11px;display:inline-flex;align-items:center;gap:6px}
 .adg .btn.cur{background:var(--accent);border-color:var(--accent);color:#fff}
-.adl{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(44,52,70,.08);font-size:12px}
-.adl .btn{padding:3px 9px;font-size:11px}
-#adInfo{font-size:11px;line-height:1.6;background:rgba(44,52,70,.06);border-radius:10px;padding:8px 10px;white-space:pre-wrap}
-.adr{display:flex;align-items:center;gap:8px;margin:6px 0}.adr input[type=range]{flex:1}
+.adg .btn.pri,.adr .btn.pri{background:var(--line);border-color:var(--line);color:#fff}
+.adg .btn em,.adi em{display:inline-block;width:9px;height:9px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+.adg .btn.fb.seen{opacity:.75}.adg .btn.fb.seen::before{content:'✓';font-size:9px;color:#3a9a5a}
+.adhead .adi{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11px;margin-bottom:9px;font-variant-numeric:tabular-nums}
+.adi span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}.adi i{font-style:normal;font-size:9px;text-transform:uppercase;letter-spacing:.06em;opacity:.5}
+.ads{margin:4px 0 14px}.ads h4{margin:0 0 6px;font-size:12px;letter-spacing:.02em}.adn{font-size:11px;opacity:.6;margin:-3px 0 7px}
+.adw{display:grid;grid-template-columns:86px 1fr;gap:8px;align-items:start;margin-bottom:7px}.adk{font-size:11px;opacity:.6;padding-top:5px}
+.adl{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(44,52,70,.08);font-size:12px}
+.adl small{opacity:.55;font-size:10px}.adl .btn{padding:3px 9px;font-size:11px}.adl .adg{flex:none}
+.adlist{margin-top:8px}
+.adr{display:flex;align-items:center;gap:8px;margin:0 0 7px}.adr input[type=range]{flex:1}.adr input[type=number]{font:inherit;padding:4px 6px;border-radius:7px;border:1px solid rgba(44,52,70,.2)}.adv{min-width:44px;text-align:right}
+@media (max-width:700px){.adw{grid-template-columns:1fr;gap:3px}.adk{padding-top:0}}
 @media (max-width:900px){#watch{min-width:0}#bag{width:220px}.toast{max-width:90vw;bottom:auto;top:16px}}
 /* téléphone : en-tête en icônes, tableau de bord compact en bas, sur toute la largeur */
 @media (max-width:700px),(max-height:500px){
@@ -313,11 +321,11 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
   </div>
   <div class="pb" id="pb"></div>
 </div></div>
-<script src="js/core.js?v=17"></script>
-<script src="js/world.js?v=17"></script>
-<script src="js/layers.js?v=17"></script>
-<script src="js/sprites.js?v=17"></script>
-<script src="js/game.js?v=17"></script>
-<script src="js/main.js?v=17"></script>
+<script src="js/core.js?v=18"></script>
+<script src="js/world.js?v=18"></script>
+<script src="js/layers.js?v=18"></script>
+<script src="js/sprites.js?v=18"></script>
+<script src="js/game.js?v=18"></script>
+<script src="js/main.js?v=18"></script>
 </body>
 </html>
