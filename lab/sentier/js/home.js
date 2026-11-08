@@ -15,10 +15,27 @@ function homeScene(g,t,night,part){
   // part 0 : le fond (maisons, fenêtres) ; part 1 : le coureur et ce qui est devant lui
   if(!part)g.drawImage(HV.back,0,0);else{drawSitter(g,t);g.drawImage(HV.front,0,0)}
 }
-// fenêtres éclairées : halo après la teinte de nuit
-function homeLights(a){
+// éclairage de nuit, en lumière additive après la teinte :
+// pass 0 (derrière le coureur) : halos des fenêtres, flaques de lumière au sol, applique de la véranda, lampadaires
+// pass 1 (devant) : ampoules, reflet chaud sur le coureur, papillons de nuit autour de l'applique
+function glow(x,y,r,c,al,sy=1){if(r<1||al<=0)return;ctx.save();ctx.translate(x,y);ctx.scale(1,sy);const g=ctx.createRadialGradient(0,0,0,0,0,r);
+  g.addColorStop(0,`rgba(${c},${al})`);g.addColorStop(.45,`rgba(${c},${al*.45})`);g.addColorStop(1,`rgba(${c},0)`);ctx.fillStyle=g;ctx.fillRect(-r,-r,r*2,r*2);ctx.restore()}
+function homeLights(a,pass,t=0){
   ctx.globalCompositeOperation='lighter';
-  for(const[x,y,w,h]of HV.lit){ctx.fillStyle=`rgba(255,190,110,${.28*a})`;ctx.fillRect(x-1,y-1,w+2,h+2);ctx.fillStyle=`rgba(255,220,150,${.5*a})`;ctx.fillRect(x,y,w,h)}
+  if(!pass){
+    for(const[x,y,w,h]of HV.lit){const fl=1-.06*Math.sin(t/900+x*.7)*(hs(x)<.3);glow(x+w/2,y+h/2,Math.max(w,h)*1.9,'255,176,92',.22*a*fl);ctx.fillStyle=`rgba(255,214,140,${.42*a*fl})`;ctx.fillRect(x,y,w,h)}
+    for(const[x,y,rx,ry]of HV.spill)glow(x,y,rx,'255,170,90',.2*a,ry/rx);
+    for(const L of HV.lamps){glow(L.gx,L.gy,L.grx*1.3,'255,200,120',.5*a,L.gry/L.grx);
+      // cône de lumière : de l'ampoule jusqu'au sol
+      const gr=ctx.createLinearGradient(0,L.y,0,L.gy);gr.addColorStop(0,`rgba(255,214,150,${.2*a})`);gr.addColorStop(1,`rgba(255,200,130,${.04*a})`);
+      ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(L.x-L.r*.15,L.y);ctx.lineTo(L.x+L.r*.15,L.y);ctx.lineTo(L.gx+L.grx*.8,L.gy);ctx.lineTo(L.gx-L.grx*.8,L.gy);ctx.closePath();ctx.fill()}
+    if(HV.porch){const p=HV.porch;glow(p.x,p.y,p.r,'255,184,96',.38*a);glow(p.fx,p.fy,p.frx,'255,170,90',.3*a,p.fry/p.frx)}
+  }else{
+    for(const L of HV.lamps){glow(L.x,L.y,L.r*.55,'255,236,190',.75*a);ctx.fillStyle=`rgba(255,246,220,${a})`;ctx.fillRect(Math.round(L.x)-1,Math.round(L.y),2,1)}
+    if(HV.porch){const p=HV.porch;glow(p.x,p.y,p.r*.22,'255,236,180',.8*a);ctx.fillStyle=`rgba(255,248,220,${a})`;ctx.fillRect(Math.round(p.x),Math.round(p.y),1,1);
+      if(HV.sit){const[sx,sy,s]=HV.sit;glow(sx+.15*s,sy-.4*s,.75*s,'255,170,90',.16*a)}
+      ctx.fillStyle=`rgba(255,240,210,${.7*a})`;for(let i=0;i<4;i++){const k=t/(380+i*90)+i*2.1;ctx.fillRect(Math.round(p.x+Math.cos(k)*p.r*.18*(1+i*.2)),Math.round(p.y+Math.sin(k*1.7)*p.r*.12),1,1)}}
+  }
   ctx.globalCompositeOperation='source-over';
 }
 
@@ -29,7 +46,7 @@ function buildHome(night){
   const col=(h,f=1)=>{const c=hex(h);return u32([clamp(c[0]*f,0,255),clamp(c[1]*f,0,255),clamp(c[2]*f,0,255)])};
   const mixc=(a,b,t)=>u32(mix(hex(a),hex(b),clamp(t,0,1)));
   const haze=(h,Z,f=1)=>{const c=hex(h),k=clamp((Z-12)/110,0,.6),hz=[150,184,200];return u32(mix([c[0]*f,c[1]*f,c[2]*f],hz,k))};
-  HV.lit=[];
+  HV.lit=[];HV.spill=[];HV.lamps=[];HV.porch=null;
 
   // --- remplissage d'un polygone plan : tex(X,Y,Z,x,y) → couleur ou null (transparent)
   function face(pts,tex){
@@ -108,7 +125,8 @@ function buildHome(night){
     if(sh)for(const s of[-1,1])R(a+s*(w/2+.05)-(s<0?.32:0),Y,a+s*(w/2+.05)+(s>0?.32:0),Y+h,(X1,Y1,Z1,x,y)=>haze(Math.floor((Y1-Y)/.16)%2?sh:'#185852',Z1));
     R(a-w/2-t,Y-t,a+w/2+t,Y+h+t,()=>haze(fr,o.side?X+30:Z));
     R(a-w/2,Y,a+w/2,Y+h,(X1,Y1,Z1,x,y)=>{const top=Y1>Y+h*.82,mul=Math.abs((o.side?Z1:X1)-a)<.04||Math.abs(Y1-Y-h/2)<.04;return mul?haze(fr,Z1):haze(top?gl2:gl,Z1,1-.12*((o.side?Z1:X1)>a))});
-    if(night){const T=o.side?P(X,Y+h*.85,a):P(a,Y+h*.85,Z),Bm=o.side?P(X,Y+h*.15,a):P(a,Y+h*.15,Z),l=o.side?P(X,Y,a-w*.35)[0]:P(a-w*.35,Y,Z)[0],r=o.side?P(X,Y,a+w*.35)[0]:P(a+w*.35,Y,Z)[0];HV.lit.push([Math.round(Math.min(l,r)),Math.round(T[1]),Math.max(1,Math.round(Math.abs(r-l))),Math.max(1,Math.round(Bm[1]-T[1]))])}
+    if(night){const T=o.side?P(X,Y+h*.85,a):P(a,Y+h*.85,Z),Bm=o.side?P(X,Y+h*.15,a):P(a,Y+h*.15,Z),l=o.side?P(X,Y,a-w*.35)[0]:P(a-w*.35,Y,Z)[0],r=o.side?P(X,Y,a+w*.35)[0]:P(a+w*.35,Y,Z)[0];HV.lit.push([Math.round(Math.min(l,r)),Math.round(T[1]),Math.max(1,Math.round(Math.abs(r-l))),Math.max(1,Math.round(Bm[1]-T[1]))]);
+      if(Y<2.5){const fl=o.fl||0,g0=o.side?P(X+1.3,fl,a):P(a,fl,Z-1.1),g1=o.side?P(X+.3,fl,a):P(a,fl,Z-.2),g2=o.side?P(X+2.3,fl,a):P(a,fl,Z-2);const rx=Math.abs(r-l)*1.5+2;HV.spill.push([g0[0],g0[1],rx,Math.max(1,Math.abs(g1[1]-g2[1])/2)])}}
   };
   const clap=(base,line,f=1)=>(X,Y,Z,x,y)=>haze((Y*100|0)%22<3?line:base,Z,f);
   const brick=(X,Y,Z,x,y)=>{const r=Math.floor(Y/.09),c=Math.floor(((X+Z)+(r%2)*.12)/.24);return haze(Y%.09<.02?'#a8483c':hs2(c,r)<.2?'#b04e3a':hs2(c,r)>.85?'#d07458':'#c05a42',Z,1)};
@@ -143,9 +161,10 @@ function buildHome(night){
   // rez-de-chaussée sous la véranda : porte à vitrail ovale, fenêtres
   const PZ=9,PF=.62;
   quad(-9.25,PF,A.z0,-8.15,PF+2.15,A.z0,(X,Y,Z)=>{const u=(X+8.7)/.38,v=(Y-PF-1.25)/.72;return u*u+v*v<1?haze(night?'#f2d08a':(Math.floor(X*14+Y*14)%2?'#cfe4ea':'#a8c8d4'),Z):haze('#1f6e6a',Z,Math.abs(X+8.7)>.5?.85:1)});
-  win(-10.9,1.35,A.z0,.8,1.25,{shut:'#1f6e6a'});win(-6.8,1.35,A.z0,.9,1.3,{shut:'#1f6e6a'});
+  win(-10.9,1.35,A.z0,.8,1.25,{shut:'#1f6e6a',fl:PF});win(-6.8,1.35,A.z0,.9,1.3,{shut:'#1f6e6a',fl:PF});
   // applique murale
-  quad(-7.95,2.1,A.z0-.01,-7.82,2.4,A.z0-.01,solid(col('#2a2a30')));
+  quad(-7.95,2.1,A.z0-.01,-7.82,2.4,A.z0-.01,solid(col('#2a2a30')));quad(-7.93,2.14,A.z0-.02,-7.84,2.3,A.z0-.02,solid(col(night?'#ffe6a0':'#d8d0b0')));
+  {const L=P(-7.88,2.22,A.z0-.05),F0=P(-8.3,PF,A.z0-1),F1=P(-8.3,PF,A.z0-.1),F2=P(-8.3,PF,A.z0-2);HV.porch={x:L[0],y:L[1],r:2.6*F/A.z0,fx:F0[0],fy:F0[1],frx:2.2*F/(A.z0-1),fry:Math.max(1,Math.abs(F1[1]-F2[1])/2)}}
   // plancher de la véranda : dessus en planches, nez et soubassement à croisillons
   quad(A.x0,PF,PZ,A.x1,PF,A.z0,(X,Y,Z)=>haze(Math.floor(X/.14)%2?'#7a5a3e':'#6a4c34',Z));
   quad(A.x0,0,PZ,A.x1,PF,PZ,(X,Y,Z,x,y)=>Y>PF-.1?col('#f4f0e6'):((x+y)%4===0||(x-y+400)%4===0)?col('#e8ece6'):col('#2a6a66'));
@@ -170,6 +189,10 @@ function buildHome(night){
   for(let k=0;k<3;k++){const h=PF*(3-k)/3,z=PZ-.32*(k+1);quad(-9.3,0,z,-8.1,h,z,(X,Y)=>Y>h-.06?col('#f4f0e6'):col('#7a5a3e'));quad(-9.3,h,z,-8.1,h,z+.32,solid(col(k%2?'#8a6a4a':'#6a4c34')))}
   // boîte aux lettres
   {const X=-4,Z=7.2;quad(X-.05,0,Z,X+.05,1.05,Z,solid(col('#6a4a2e')));quad(X-.22,1.05,Z-.25,X+.22,1.3,Z-.25,solid(col('#8aaecc')));quad(X-.22,1.3,Z-.25,X+.22,1.3,Z+.25,solid(col('#b8d0e2')));quad(X+.22,1.05,Z-.25,X+.22,1.3,Z+.25,solid(col('#6a8eac')));quad(X+.24,1.15,Z-.05,X+.26,1.5,Z-.05,solid(col('#d83a2e')))}
+  // lampadaires le long du trottoir
+  for(const Z of[17,36,62]){const X=-1.95;quad(X-.07,0,Z,X+.07,4.2,Z,solid(haze('#3a3e46',Z)));quad(X-.07,4.1,Z,X+.75,4.2,Z,solid(haze('#3a3e46',Z)));
+    quad(X+.5,3.98,Z,X+.85,4.12,Z,solid(haze(night?'#fff0c0':'#c8ccd0',Z)));
+    const hd=P(X+.68,3.98,Z),g0=P(X+.9,0,Z),g1=P(X+.9,0,Z-2.4),g2=P(X+.9,0,Z+2.4);HV.lamps.push({x:hd[0],y:hd[1],r:1.6*F/Z,gx:g0[0],gy:g0[1],grx:3.2*F/Z,gry:Math.max(1,Math.abs(g1[1]-g2[1])/2)})}
   // poteaux électriques et fils
   const poles=[[-2.2,7.5],[-2.2,30],[-2.2,58],[7,20],[7,48],[7,80]],ptop=9;
   for(const[X,Z]of poles){quad(X-.13,0,Z,X+.13,ptop,Z,(X1,Y,Z1,x,y)=>haze(hs2(x,Math.floor(y/3))<.3?'#6a4a32':'#7a5a3e',Z1));quad(X-1.1,ptop-.6,Z,X+1.1,ptop-.45,Z,solid(haze('#5a4030',Z)));

@@ -105,8 +105,8 @@ function draw(date,t){
     // deux passes : le fond puis le halo des fenêtres, ensuite le coureur et le premier plan par-dessus
     const tintIt=()=>{if(SK.ta>0){g.globalCompositeOperation='source-atop';g.fillStyle=rgba(SK.tint,SK.ta);g.fillRect(0,0,W,H);g.globalCompositeOperation='source-over'}
       if(W0.rain||wx==='nuages'||W0.fog){g.globalCompositeOperation='source-atop';g.fillStyle=W0.rain?'rgba(50,60,80,.26)':'rgba(70,80,100,.14)';g.fillRect(0,0,W,H);g.globalCompositeOperation='source-over'}};
-    homeScene(g,t,SK.dark>.35,0);tintIt();ctx.drawImage(sceneCv,0,0);if(SK.dark>.2)homeLights(Math.min(1,(SK.dark-.2)*1.4));
-    g.clearRect(0,0,W,H);homeScene(g,t,SK.dark>.35,1);tintIt();ctx.drawImage(sceneCv,0,0);return}
+    homeScene(g,t,SK.dark>.35,0);tintIt();ctx.drawImage(sceneCv,0,0);const la=SK.dark>.2?Math.min(1,(SK.dark-.2)*1.4):0;if(la)homeLights(la,0,t);
+    g.clearRect(0,0,W,H);homeScene(g,t,SK.dark>.35,1);tintIt();ctx.drawImage(sceneCv,0,0);if(la)homeLights(la,1,t);return}
   const alt=camMacro;
   const K=[.004,.009,.016,.024,.032];
   for(let li=0;li<5;li++){
