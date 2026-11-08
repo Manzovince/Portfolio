@@ -100,10 +100,10 @@ html.wface #face{display:block}html.wface #watch{display:none}
 #hr .h{display:inline-block;color:#ff6a6a;animation:beat 1s infinite}
 @keyframes beat{0%,60%,100%{transform:scale(1)}20%{transform:scale(1.3)}}
 #bag{width:auto;display:flex;flex-direction:column;gap:4px;order:1;padding:6px 7px}
-.vgs{display:flex;justify-content:space-between;gap:3px}
-.vg{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:28px}
+.vgs{display:flex;justify-content:center;gap:6px}
+.vg{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:14px}.vg span{display:none!important}
 .vg span{font-size:8.5px;font-variant-numeric:tabular-nums;white-space:nowrap;opacity:.9}
-.vg .t{width:6px;height:40px;background:rgba(255,255,255,.14);border-radius:4px;overflow:hidden;display:flex;align-items:flex-end}
+.vg .t{width:6px;height:52px;background:rgba(255,255,255,.14);border-radius:4px;overflow:hidden;display:flex;align-items:flex-end}
 .vg .t i{display:block;width:100%;border-radius:4px;transition:height .5s}
 .vg b{font-size:9px;font-weight:400;line-height:1}
 #profw{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);width:min(560px,calc(100vw - 560px));height:54px;pointer-events:none;z-index:1}
@@ -116,11 +116,11 @@ html.home #profw{display:none}
 .bar .t{height:6px;background:rgba(255,255,255,.14);border-radius:4px;overflow:hidden}
 .bar .t i{display:block;height:100%;border-radius:4px;transition:width .5s}
 .bar span:last-child{text-align:right;font-variant-numeric:tabular-nums;opacity:.85}
-#food{display:flex;flex-wrap:wrap;gap:2px;min-height:0;max-width:110px}
+#food{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:0}#food>span{display:none}
 #food button{border:0;background:rgba(255,255,255,.12);color:inherit;border-radius:6px;padding:0 4px;font:9.5px 'JetBrains Mono',monospace;cursor:pointer}
 #food button:hover{background:rgba(255,255,255,.24)}
-#next{opacity:.85;font-size:9px;display:flex;justify-content:space-between;gap:6px;border-top:1px solid rgba(255,255,255,.12);padding-top:4px}html.home #next{display:none}#next span{display:flex;gap:3px;white-space:nowrap}#next i{font-style:normal;opacity:.75}#next b{font-weight:700;font-variant-numeric:tabular-nums}
-#why{color:#ffc27a;font-size:10px;min-height:0}
+#next{opacity:.85;font-size:9px;display:flex;flex-direction:column;align-items:flex-start;gap:1px;border-top:1px solid rgba(255,255,255,.12);padding-top:4px}html.home #next{display:none}#next span{display:flex;gap:3px;white-space:nowrap}#next i{font-style:normal;opacity:.75}#next b{font-weight:700;font-variant-numeric:tabular-nums}
+#why{color:#ffc27a;font-size:9px;min-height:0;max-width:64px}#why:empty{display:none}
 #prof{width:100%;height:100%;display:block}
 html.nosearch #search{display:none!important}
 html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!important}
@@ -426,12 +426,12 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
   </div>
   <div class="pb" id="pb"></div>
 </div></div>
-<script src="js/core.js?v=37"></script>
-<script src="js/world.js?v=37"></script>
-<script src="js/layers.js?v=37"></script>
-<script src="js/sprites.js?v=37"></script>
-<script src="js/game.js?v=37"></script>
-<script src="js/home.js?v=37"></script>
-<script src="js/main.js?v=37"></script>
+<script src="js/core.js?v=38"></script>
+<script src="js/world.js?v=38"></script>
+<script src="js/layers.js?v=38"></script>
+<script src="js/sprites.js?v=38"></script>
+<script src="js/game.js?v=38"></script>
+<script src="js/home.js?v=38"></script>
+<script src="js/main.js?v=38"></script>
 </body>
 </html>
