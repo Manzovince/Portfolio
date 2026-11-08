@@ -156,7 +156,8 @@ let G=Object.assign(NEW(),store.get('save',{}));
 G.st=Object.assign(NEW().st,G.st);if(!G.spare)G.spare={};if(G.flask==null)G.flask=0;if(!G.comps){G.comps=G.dog?['chien']:[];G.comp=G.dog?'chien':null}if(!G.gear.style)G.gear.style='classique';if(!G.gear.biv)G.gear.biv='sac';if(!G.own.includes('sac'))G.own.push('sac');if(!G.own.includes('classique'))G.own.push('classique');if(G.qSeen==null)G.qSeen=G.q.length;G.auto=Object.assign(NEW().auto,G.auto);
 if(Q.has('km')){G.d=parseFloat(Q.get('km'))*1000;G.last=Date.now();Q.delete('km');history.replaceState(null,'',location.pathname+(Q.toString()?'?'+Q:''))}
 if(Q.has('tout')){G.coins+=99999;history.replaceState(null,'',location.pathname)}
-const save=()=>{G.last=Date.now();store.set('save',G)};
+let RESET=0;   // « Tout recommencer » : plus aucune sauvegarde avant le rechargement
+const save=()=>{if(RESET)return;G.last=Date.now();store.set('save',G)};
 const lvl=k=>G.up[k]||0;
 const capL=()=>GEAR[G.gear.bag].cap,slots=()=>GEAR[G.gear.bag].slots;
 const stockN=()=>Object.values(G.stock).reduce((a,b)=>a+b,0);

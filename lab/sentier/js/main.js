@@ -561,7 +561,11 @@ function renderSet(){
   sel.value=store.get('meteoForce','')||'';sel.onchange=()=>setWeather(sel.value||null);row('Météo',sel);
   h('Partie');
   const r=document.createElement('button');r.className='btn';r.textContent='Tout recommencer';
-  r.onclick=()=>{if(confirm('Effacer la course, les pièces et le carnet ?')){store.del('save');location.reload()}};row('Repartir du départ, km 0',r);
+  // confirmation en deux temps dans la page (les boîtes confirm() peuvent être bloquées)
+  let armed=0,tm;r.onclick=()=>{
+    if(!armed){armed=1;r.textContent='Sûr ? Tout sera effacé';r.classList.add('danger');tm=setTimeout(()=>{armed=0;r.textContent='Tout recommencer';r.classList.remove('danger')},4000);return}
+    clearTimeout(tm);RESET=1;store.del('save');store.del('seed');location.reload()};
+  row('Repartir du départ, km 0 (course, pièces, carnet, nouveau parcours)',r);
 }
 $('#modal').addEventListener('transitionend',()=>{});
 setInterval(()=>{if($('#modal').classList.contains('on')&&curTab==='boutique')renderShop()},4000);
