@@ -80,13 +80,13 @@ function draw(date,t){
   else{const h=date.getHours()+date.getMinutes()/60,u=((h+12-20)%24)/10,x=lerp(W*.15,W*.85,clamp(u,0,1)),y=H*.18+Math.abs(u-.5)*H*.2;
     ctx.globalAlpha=1-W0.cloud*.8;ctx.fillStyle='#eef0e0';ctx.beginPath();ctx.arc(Math.round(x),Math.round(y),4,0,7);ctx.fill();ctx.fillStyle=rgb(SK.top);ctx.beginPath();ctx.arc(Math.round(x)+2,Math.round(y)-1,3.4,0,7);ctx.fill();ctx.globalAlpha=1}
   // nuages : trois profondeurs (les lointains plus petits, plus bas et plus lents), plafond gris si couvert
-  const cpal=cloudPalette(SK,se,wx),wind=W0.wind?7:1.6,T=date.getTime()/1000;
-  if(wx==='nuages'||W0.rain||W0.fog){const dk=cloudDeck(cpal,W0.rain?.42:wx==='nuages'?.26:.2),ox=((T*wind*1.2+s/MPX*.01)%(W*2));ctx.globalAlpha=W0.fog?.7:1;ctx.drawImage(dk,-Math.round(ox),0);ctx.drawImage(dk,W*2-Math.round(ox),0);ctx.globalAlpha=1}
+  const cpal=cloudPalette(SK,se,wx),wind=W0.wind?2.5:.5,T=date.getTime()/1000;
+  if(wx==='nuages'||W0.rain||W0.fog){const dk=cloudDeck(cpal,W0.rain?.42:wx==='nuages'?.26:.2),ox=((T*wind*1.2+s/MPX*.004)%(W*2));ctx.globalAlpha=W0.fog?.7:1;ctx.drawImage(dk,-Math.round(ox),0);ctx.drawImage(dk,W*2-Math.round(ox),0);ctx.globalAlpha=1}
   const nC=Math.round(3+W0.cloud*9);
   for(let i=0;i<nC;i++){
     const z=hs(i*5.3),kind=wx==='voile'&&i%2?'ac':W0.rain&&i%3===0?'cb':'cu',c=cloudSprite(i%7,cpal,kind);
     const sc=.55+z*.6,cw=Math.round(c.width*sc),ch=Math.round(c.height*sc),span=W+cw*2;
-    const x=((hs(i*3.1)*span+T*wind*(.25+z*.9)+s/MPX*(.004+z*.02))%span)-cw,y=H*(.04+(1-z)*.3+hs(i*7.7)*.08)-(kind==='cb'?ch*.4:0);
+    const x=((hs(i*3.1)*span+T*wind*(.25+z*.9)+s/MPX*(.002+z*.008))%span)-cw,y=H*(.04+(1-z)*.3+hs(i*7.7)*.08)-(kind==='cb'?ch*.4:0);
     ctx.globalAlpha=lerp(.75,1,z);ctx.drawImage(c,Math.round(x),Math.round(y),cw,ch);
   }
   ctx.globalAlpha=1;
