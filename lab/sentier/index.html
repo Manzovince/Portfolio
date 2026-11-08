@@ -251,6 +251,8 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
 .rc button.buy{background:var(--accent);border-color:var(--accent);color:#fff}.rc button:disabled{opacity:.45;cursor:default}
 .rc.lock{opacity:.55;border-style:dashed}.rc.ok{border-color:#e8c03a}.rc.mine{border-color:var(--accent)}
 .qtop small{display:block;margin-top:8px;font-size:11px;opacity:.65}
+.wtog{position:fixed;right:8px;bottom:8px;z-index:4;width:26px;height:26px;border-radius:50%;border:0;background:var(--hud);color:var(--hud-ink);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:13px;line-height:26px;padding:0;cursor:pointer;opacity:.8;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.wtog:hover{opacity:1}html.nowatch .wtog{opacity:.55}html.nowatch #face,html.nowatch #watch{display:none!important}
 .snote{font-size:11px;opacity:.65;margin:0 0 8px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .stats div{background:rgba(44,52,70,.06);border-radius:10px;padding:8px}
@@ -364,6 +366,7 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
 </div>
   </main>
 </div>
+<button class="wtog" id="wTog" title="Masquer la montre" aria-label="Masquer la montre">⌚</button>
 <div id="profw"><canvas id="prof"></canvas></div>
 <div id="hudw">
 <div class="hud face" id="face" title="Montre (Réglages → style de la montre)">
@@ -426,12 +429,12 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
   </div>
   <div class="pb" id="pb"></div>
 </div></div>
-<script src="js/core.js?v=49"></script>
-<script src="js/world.js?v=49"></script>
-<script src="js/layers.js?v=49"></script>
-<script src="js/sprites.js?v=49"></script>
-<script src="js/game.js?v=49"></script>
-<script src="js/home.js?v=49"></script>
-<script src="js/main.js?v=49"></script>
+<script src="js/core.js?v=50"></script>
+<script src="js/world.js?v=50"></script>
+<script src="js/layers.js?v=50"></script>
+<script src="js/sprites.js?v=50"></script>
+<script src="js/game.js?v=50"></script>
+<script src="js/home.js?v=50"></script>
+<script src="js/main.js?v=50"></script>
 </body>
 </html>
