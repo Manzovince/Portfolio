@@ -479,7 +479,10 @@ function supSprite(v,f,happy){
   for(let j=1;j<=(K>1.2?2:1);j++){P(0,sh[1]-j,skin);P(face>0?1:-1+1,sh[1]-j,skin)}
   P(0,sh[1]-(K>1.2?3:2),hair);P(1,sh[1]-(K>1.2?3:2),hair);
   // accessoire : pancarte, drapeau ou cloche
-  if(prop<.3){const w=Math.round(5*K),h=Math.max(2,Math.round(2.5*K)),bx=aR[0]-w/2,by=aR[1]-h-1;for(let y=0;y<h;y++)for(let x=0;x<w;x++)P(bx+x,by+y,y===Math.floor(h/2)&&x>0&&x<w-1&&x%2?hex(['#e8483a','#2a6ad0','#1e1e22'][v%3]):hex('#f8f6f0'))}
+  if(prop<.3&&K>=1.5){const G3=['011','100','101','101','011'],O3=['111','101','101','101','111'],X1=['1','1','1','0','1'],w=15,h=9,bx=Math.round(aR[0]-w/2),by=Math.round(aR[1]-h-1),ink=hex(['#e8483a','#2a6ad0','#1e1e22'][v%3]);
+    line(aR[0],aR[1],aR[0],by+h,hex('#6a5a4a'));
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++)P(bx+x,by+y,hex('#f8f6f0'));
+    [[G3,2],[O3,6],[X1,11]].forEach(([g,gx])=>{for(let r=0;r<5;r++)for(let c=0;c<g[r].length;c++)if(g[r][c]==='1')P(bx+gx+c,by+2+r,ink)})}
   else if(prop<.5){const fc=hex(['#3a6ad0','#e8483a','#f0c030','#3ab86a'][v%4]);line(aR[0],aR[1],aR[0],aR[1]-3*K,hex('#6a5a4a'));for(let y=0;y<Math.round(2*K);y++)for(let x=0;x<=Math.round(2.5*K)-y;x++)P(aR[0]+1+x,aR[1]-3*K+y,fc)}
   else if(prop<.6)P(aL[0],aL[1]+1,hex('#e8c040'));
   const[cv,g]=canvasOf(SZ,SZ);g.putImageData(pb.img,0,0);
