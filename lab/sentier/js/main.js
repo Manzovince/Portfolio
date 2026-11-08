@@ -442,7 +442,7 @@ function showTab(t){if(t==='carnet')t=carSub;const grp=CSUB.includes(t)?'carnet'
   document.querySelectorAll('.nb[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===grp));
   $('#psub').hidden=grp!=='carnet';document.querySelectorAll('#psub button').forEach(b=>b.classList.toggle('on',b.dataset.sub===t));
   if(t==='journal')G.newSp=0;if(t==='defis')G.qSeen=G.q.length;hud();({boutique:renderShop,journal:renderCarnet,defis:renderDefis,reglages:renderSet,admin:renderAdmin,train:renderTrain})[t]()}
-const coinTxt=n=>fmt(n)+' ◉';
+const coinTxt=n=>fmt(n)+' ◉',xpTxt=n=>fmt(Math.floor(n))+' XP';
 function item(title,desc,btn,cls,on,fn,dis){
   const d=document.createElement('div');d.className='it'+(on?' on':'');
   d.innerHTML='<b></b><button></button><div class="d"></div>';d.querySelector('b').textContent=title;d.querySelector('.d').textContent=desc;
@@ -516,7 +516,7 @@ function renderTrain(){
   const pb=$('#pb'),keep=pb.scrollTop;pb.innerHTML='';requestAnimationFrame(()=>pb.scrollTop=keep);
   const tot=Object.keys(UPG).reduce((a,k)=>a+Math.min(lvl(k),UPG[k].max),0),mx=Object.values(UPG).reduce((a,u)=>a+u.max,0);
   const top=document.createElement('div');top.className='shead';
-  top.innerHTML=`<div class="sbal"><b>${coinTxt(Math.floor(G.coins))}</b><span>${tot} / ${mx} séances</span></div>`;pb.appendChild(top);
+  top.innerHTML=`<div class="sbal xp"><b>✦ ${xpTxt(G.xp)}</b><span>${tot} / ${mx} séances · +10 XP par km, +1 par 10 m D+</span></div>`;pb.appendChild(top);
   for(const[br,name,col]of BRANCH){
     const ks=Object.keys(UPG).filter(k=>UPG[k].br===br),bl=ks.reduce((a,k)=>a+Math.min(lvl(k),UPG[k].max),0),bm=ks.reduce((a,k)=>a+UPG[k].max,0);
     const sec=document.createElement('div');sec.className='tbr';sec.style.setProperty('--bc',col);
@@ -541,7 +541,7 @@ function renderTrain(){
   const b=f.querySelector('button');
   if(!op){b.disabled=true;b.textContent='Il faut '+(u.req||[]).filter(([p,n])=>lvl(p)<n).map(([p,n])=>UPG[p].n+' niv. '+n).join(' et ')}
   else if(full){b.disabled=true;b.textContent='Niveau max'}
-  else{b.className='buy';b.disabled=G.coins<c;b.textContent='S’entraîner · '+coinTxt(c);b.onclick=()=>{G.coins-=c;G.up[k]=l+1;save();renderTrain();hud();checkQuests()}}
+  else{b.className='buy';b.disabled=G.xp<c;b.textContent=G.xp<c?'Encore '+xpTxt(c-G.xp)+' à gagner':'S’entraîner · '+xpTxt(c);b.onclick=()=>{G.xp-=c;G.up[k]=l+1;save();renderTrain();hud();checkQuests()}}
   pb.appendChild(f);
   requestAnimationFrame(trLines);
 }
@@ -559,7 +559,7 @@ function renderCarnet(){
   const pb=$('#pb');pb.innerHTML='';const h=t=>{const e=document.createElement('h3');e.textContent=t;pb.appendChild(e)};
   h('Au compteur');
   const s=document.createElement('div');s.className='stats';
-  const S=[['Distance',fmt(G.d/1000,1)+' km'],['D+',fmt(G.dp)+' m'],['D−',fmt(G.dn)+' m'],['Temps',dur(G.t)],['Alt. max',fmt(G.st.maxAlt)+' m'],['Sommets',G.st.tops],['Ravitos',G.st.rav],['Mangé',G.st.eaten],['Pièces gagnées',fmt(G.tot)]];
+  const S=[['Distance',fmt(G.d/1000,1)+' km'],['D+',fmt(G.dp)+' m'],['D−',fmt(G.dn)+' m'],['Temps',dur(G.t)],['Alt. max',fmt(G.st.maxAlt)+' m'],['Sommets',G.st.tops],['Ravitos',G.st.rav],['Mangé',G.st.eaten],['Pièces gagnées',fmt(G.tot)],['Expérience',xpTxt(G.xp)]];
   s.innerHTML=S.map(([k,v])=>`<div><span>${k}</span><b>${v}</b></div>`).join('');pb.appendChild(s);
   h(`Espèces photographiées · ${Object.keys(G.seen).length}/${Object.keys(FAUNA).length}`);
   const gr=document.createElement('div');gr.className='sp-g';
@@ -615,7 +615,7 @@ function renderSet(){
   row('Repartir du départ, km 0 (course, pièces, carnet, nouveau parcours)',r);
 }
 $('#modal').addEventListener('transitionend',()=>{});
-setInterval(()=>{if($('#modal').classList.contains('on')&&curTab==='boutique')renderShop()},4000);
+setInterval(()=>{if($('#modal').classList.contains('on')&&curTab==='boutique')renderShop();if($('#modal').classList.contains('on')&&curTab==='train')renderTrain()},4000);
 
 /* ---------- onglet Admin (debug) ---------- */
 // un ?meteo= dans l'adresse l'emporterait sur le choix : on le retire
@@ -688,6 +688,7 @@ function renderAdmin(){
     gauge('⚡','Énergie',Math.round(G.energy)+' %',[btn('Vide',()=>{G.energy=0;G.stock={}}),btn('Pleine',()=>G.energy=100)]);
     gauge('👟','Chaussures',fmt(Math.max(0,GEAR[G.gear.shoes].life-G.wear))+' km',[btn('Usées',()=>{G.wear=GEAR[G.gear.shoes].life+1;G.spare[G.gear.shoes]=0}),btn('Neuves',()=>G.wear=0)]);
     gauge('◉','Pièces',fmt(Math.floor(G.coins)),[btn('+1 000',()=>addCoins(1000)),btn('+10 000',()=>addCoins(10000))]);
+    gauge('✦','Expérience',fmt(Math.floor(G.xp)),[btn('+500',()=>{G.xp+=500}),btn('+5 000',()=>{G.xp+=5000})]);
     const bv=sec('Bivouac',G.rest?`${RESTWHY[G.rest.why][0]} · ${Math.round(G.rest.p*100)} %`:'Le coureur court.');
     grid(bv,...Object.keys(RESTWHY).map(k=>btn('Arrêt : '+{eau:'eau',energie:'énergie',chaussures:'chaussures'}[k],()=>{if(!G.rest)stopRun(k);else G.rest.why=k},G.rest&&G.rest.why===k)),
       btn('Finir le repos',()=>{if(G.rest)G.rest.p=1}),btn('Repartir',()=>{if(G.rest){G.rest.p=1;if(!shoesOk())G.wear=0;restart()}},0,'pri'));
