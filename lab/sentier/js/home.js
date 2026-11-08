@@ -29,10 +29,10 @@ function homeLights(a,pass,t=0){
       // cône de lumière : de l'ampoule jusqu'au sol
       const gr=ctx.createLinearGradient(0,L.y,0,L.gy);gr.addColorStop(0,`rgba(255,214,150,${.2*a})`);gr.addColorStop(1,`rgba(255,200,130,${.04*a})`);
       ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(L.x-L.r*.15,L.y);ctx.lineTo(L.x+L.r*.15,L.y);ctx.lineTo(L.gx+L.grx*.8,L.gy);ctx.lineTo(L.gx-L.grx*.8,L.gy);ctx.closePath();ctx.fill()}
-    if(HV.porch){const p=HV.porch;glow(p.x,p.y,p.r,'255,184,96',.38*a);glow(p.fx,p.fy,p.frx,'255,170,90',.3*a,p.fry/p.frx)}
+    if(HV.porch){const p=HV.porch;glow(p.x,p.y,p.r*.75,'255,184,96',.2*a);glow(p.fx,p.fy,p.frx,'255,170,90',.2*a,p.fry/p.frx)}
   }else{
     for(const L of HV.lamps){glow(L.x,L.y,L.r*.55,'255,236,190',.75*a);ctx.fillStyle=`rgba(255,246,220,${a})`;ctx.fillRect(Math.round(L.x)-1,Math.round(L.y),2,1)}
-    if(HV.porch){const p=HV.porch;glow(p.x,p.y,p.r*.22,'255,236,180',.8*a);ctx.fillStyle=`rgba(255,248,220,${a})`;ctx.fillRect(Math.round(p.x),Math.round(p.y),1,1);
+    if(HV.porch){const p=HV.porch;glow(p.x,p.y,p.r*.12,'255,236,180',.45*a);ctx.fillStyle=`rgba(255,248,220,${a})`;ctx.fillRect(Math.round(p.x),Math.round(p.y),1,1);
       if(HV.sit){const[sx,sy,s]=HV.sit;glow(sx+.15*s,sy-.4*s,.75*s,'255,170,90',.16*a)}
       ctx.fillStyle=`rgba(255,240,210,${.7*a})`;for(let i=0;i<4;i++){const k=t/(380+i*90)+i*2.1;ctx.fillRect(Math.round(p.x+Math.cos(k)*p.r*.18*(1+i*.2)),Math.round(p.y+Math.sin(k*1.7)*p.r*.12),1,1)}}
   }
