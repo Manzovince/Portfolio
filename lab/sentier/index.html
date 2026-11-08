@@ -251,6 +251,9 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
 .rc button.buy{background:var(--accent);border-color:var(--accent);color:#fff}.rc button:disabled{opacity:.45;cursor:default}
 .rc.lock{opacity:.55;border-style:dashed}.rc.ok{border-color:#e8c03a}.rc.mine{border-color:var(--accent)}
 .qtop small{display:block;margin-top:8px;font-size:11px;opacity:.65}
+.fcol{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+#foodT{border:0;background:rgba(10,16,26,.55);box-shadow:0 0 0 1px rgba(255,255,255,.12);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border-radius:8px;width:26px;height:22px;padding:0;font-size:13px;line-height:22px;cursor:pointer;pointer-events:auto}
+#foodT:hover{background:rgba(10,16,26,.75)}html.nofood #food{display:none}html.nofood #foodT{opacity:.7}
 .wtog{position:fixed;right:8px;bottom:8px;z-index:4;width:26px;height:26px;border-radius:50%;border:0;background:var(--hud);color:var(--hud-ink);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:13px;line-height:26px;padding:0;cursor:pointer;opacity:.8;box-shadow:0 2px 6px rgba(0,0,0,.25)}
 .wtog:hover{opacity:1}html.nowatch .wtog{opacity:.55}html.nowatch #face,html.nowatch #watch{display:none!important}
 .snote{font-size:11px;opacity:.65;margin:0 0 8px}
@@ -399,7 +402,7 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
     <div class="vg" title="Énergie"><span id="tE"></span><div class="t"><i id="bE" style="background:#f2b43a"></i></div><b>⚡</b></div>
     <div class="vg" title="Usure des chaussures"><span id="tS"></span><div class="t"><i id="bS" style="background:#9ad06a"></i></div><b>👟</b></div>
   </div>
-  <div id="food"></div>
+  <div class="fcol"><button id="foodT" title="Masquer le sac" aria-label="Masquer le sac">🎒</button><div id="food"></div></div>
   <div id="why"></div>
 </div>
 <div class="hud" id="home" hidden>
@@ -429,12 +432,12 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
   </div>
   <div class="pb" id="pb"></div>
 </div></div>
-<script src="js/core.js?v=51"></script>
-<script src="js/world.js?v=51"></script>
-<script src="js/layers.js?v=51"></script>
-<script src="js/sprites.js?v=51"></script>
-<script src="js/game.js?v=51"></script>
-<script src="js/home.js?v=51"></script>
-<script src="js/main.js?v=51"></script>
+<script src="js/core.js?v=52"></script>
+<script src="js/world.js?v=52"></script>
+<script src="js/layers.js?v=52"></script>
+<script src="js/sprites.js?v=52"></script>
+<script src="js/game.js?v=52"></script>
+<script src="js/home.js?v=52"></script>
+<script src="js/main.js?v=52"></script>
 </body>
 </html>

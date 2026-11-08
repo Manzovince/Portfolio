@@ -450,6 +450,8 @@ function openModal(tab){$('#modal').classList.add('on');showTab(tab)}
 const closeModal=()=>{$('#modal').classList.remove('on');document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'))};
 $('#bCoins').onclick=()=>openModal('boutique');$('#bRace').onclick=()=>openModal('courses');$('#bCarnet').onclick=()=>openModal('carnet');$('#bBiome').onclick=()=>openModal('journal');$('#bSet').onclick=()=>openModal('reglages');
 document.documentElement.classList.remove('nobag');
+{const setF=v=>{document.documentElement.classList.toggle('nofood',!v);const b=$('#foodT');b.title=b.ariaLabel=v?'Masquer le sac':'Afficher le sac';store.set('foodOn',v)};
+ setF(store.get('foodOn',true));$('#foodT').onclick=()=>setF(document.documentElement.classList.contains('nofood'))}
 {const setW=v=>{document.documentElement.classList.toggle('nowatch',!v);const b=$('#wTog');b.title=b.ariaLabel=v?'Masquer la montre':'Afficher la montre';store.set('watchOn',v)};
  setW(store.get('watchOn',true));$('#wTog').onclick=()=>setW(document.documentElement.classList.contains('nowatch'))}
 $('#zIn').onclick=()=>setZoom(ZOOM+1);$('#zOut').onclick=()=>setZoom(ZOOM-1);$('#zLbl').textContent=ZOOMS[ZOOM].n;
