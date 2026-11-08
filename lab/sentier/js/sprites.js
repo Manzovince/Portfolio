@@ -665,6 +665,61 @@ function bigRuisseau(){
   return{cv:outlineCv(cv,'#1c2228',.4),ox:w>>1,oy:h};
 }
 
+/* ---------- bivouac : le coureur au repos, à l'échelle (f = image du feu) ---------- */
+const bivCache=new Map();
+function bivSprite(id,f){
+  const shirt=GEAR[G.gear.top].col,key=id+f+shirt+'z'+ZOOM;let o=bivCache.get(key);if(o)return o;
+  const K=ZOOMS[ZOOM].k,w=Mr(9),h=Mr(4),by=h-1,cx=Mr(3.6);
+  const cv=spr(w,h,pb=>{
+    const P=(x,y,c)=>pb.p(Math.round(x),Math.round(y),c),R=(x,y,ww,hh,c)=>pb.r(Math.round(x),Math.round(y),Math.max(1,Math.round(ww)),Math.max(1,Math.round(hh)),c);
+    const skin=c32('#e8b48c'),sh=c32(shirt),pants=c32('#2c3a52'),hair=c32('#4a3424'),gc=c32(GEAR[id].col),gd=c32('#3a3a40'),wd=c32('#7a5032'),wdD=c32('#4a2e1a');
+    // coureur assis, jambes allongées vers la droite
+    const sit=(x,y,dir=1)=>{const u=Mr(.1,1);R(x,y-Mr(.15,1),dir*Mr(.6,2),Mr(.15,1),pants);if(dir<0)R(x-Mr(.6,2),y-Mr(.15,1),Mr(.6,2),Mr(.15,1),pants);
+      R(x-u,y-Mr(.75,3),Mr(.22,2),Mr(.6,2),sh);R(x-u,y-Mr(1,4),Mr(.22,2),Mr(.25,2),skin);P(x-u,y-Mr(1,4),hair);P(x-u+1,y-Mr(1,4),hair);
+      R(x+dir*Mr(.2,1),y-Mr(.45,2),dir*Mr(.3,1),1,skin)};
+    // feu de camp qui crépite
+    const fire=x=>{R(x-Mr(.3,2),by,Mr(.6,3),1,wdD);P(x-Mr(.25,1),by-1,wd);P(x+Mr(.25,1),by-1,wd);
+      const fl=Mr(.45,3);for(let k=0;k<fl;k++){const hw=Math.max(0,Math.round((fl-k)*.35))-(f&&k===fl-1?1:0);for(let i=-hw;i<=hw;i++)P(x+i+(f&&k>1?1:0),by-1-k,c32(k<fl*.4?'#f2c84a':k<fl*.75?'#f08a2a':'#d8402e'))}
+      if(f)P(x+1,by-fl-Mr(.2,1),c32('#f2c84a'))};
+    switch(id){
+      case 'sac':{const L=Mr(2),hh=Mr(.4,2),x0=Mr(.8);R(x0-1,by,L+2,1,c32('#3a7a8a'));
+        for(let x=0;x<L;x++){const t=x/L,hy=Math.round(hh*(t<.2?.7+t*1.5:1-(t-.2)*.3));for(let y=0;y<hy;y++)P(x0+x,by-1-y,y===hy-1?c32('#e86a58'):gc)}
+        R(x0-Mr(.2,1),by-Mr(.35,2),Mr(.25,2),Mr(.25,2),skin);P(x0-Mr(.2,1),by-Mr(.35,2),hair);
+        R(x0+L+Mr(.4,2),by-Mr(.35,2),Mr(.3,2),Mr(.35,2),c32('#8a8f99'));fire(x0+L+Mr(1.6));break}
+      case 'tarp':{// tarp en appentis : un bâton, la toile tendue jusqu'au sol, l'ombre dessous
+        const a=Mr(.4),b=Mr(2.8),ph=Mr(1.15),sd=c32('#2e4a2e');R(b,by-ph,1,ph+1,gd);
+        for(let x=a;x<=b;x++){const t=(x-a)/(b-a),y=Math.round(by-ph*t);for(let yy=y+2;yy<=by;yy++)P(x,yy,sd);P(x,y,gc);P(x,y+1,(x&1)?gc:c32('#3a6a3a'))}
+        for(let k=0;k<Mr(.8,3);k++)P(b+1+k,by-ph+Math.round(k*ph/Mr(.8,3)),c32('#c8c0a0'));
+        R(a+Mr(.5),by,Mr(1.9),1,c32('#3a6a8a'));sit(b-Mr(.9),by);fire(b+Mr(1.6));break}
+      case 'tente':case 'tente4':{const big=id==='tente4',x0=Mr(.4),L=Mr(big?2.8:2.3),th=Mr(big?1.3:1),hi=c32(big?'#f6dc6a':'#f2a05a'),lo=c32(big?'#b8901a':'#b8501a');
+        for(let x=0;x<=L;x++){const t=x/L,hy=Math.round(th*Math.sqrt(Math.max(0,1-Math.pow((t-.45)/.55,2))));for(let y=0;y<hy;y++)P(x0+x,by-y,y>=hy-1?hi:(x>L*.45?lo:gc))}
+        if(big){for(let k=0;k<3;k++){const t=.2+k*.25;for(let y=0;y<th;y++){const x=x0+Math.round(L*t+(y-th/2)*.4);if(pb.b[(by-y)*pb.w+x])P(x,by-y,c32('#6a5a2a'))}}
+          R(x0-Mr(.4,2),by,1,1,gd);for(let k=0;k<Mr(.5,2);k++)P(x0-Mr(.4,2)+k,by-Mr(.9,3)+Math.round(k*1.6),gd)}
+        R(x0+Math.round(L*.62),by-Mr(.55,2),Mr(.4,2),Mr(.55,2)+1,c32('#2a1e14'));
+        sit(x0+L+Mr(.5),by);fire(x0+L+Mr(2));break}
+      case 'hamac':{const a=Mr(.4),b=Mr(3.6),ph=Mr(1.6);for(const x of[a,b]){R(x,by-ph-Mr(.5),Mr(.2,2),ph+Mr(.5)+1,wd);R(x-1,by-ph-Mr(.5),Mr(.2,2)+2,1,c32('#3e7a3a'))}
+        const sag=Mr(.7,3);for(let x=a+2;x<b;x++){const t=(x-a)/(b-a),y=by-ph+Math.round(Math.sin(t*Math.PI)*sag);R(x,y,1,2,gc)}
+        R(a+Mr(1.1),by-ph+sag-Mr(.25,1),Mr(.9,3),Mr(.2,1),sh);R(a+Mr(.85),by-ph+sag-Mr(.35,2),Mr(.22,2),Mr(.22,2),skin);
+        for(let y=0;y<Mr(.9,3);y+=2)P(a+Mr(1.6)+(y%4?1:0),by-ph-Mr(.4)+y,c32('#e8f0e8'));fire(b+Mr(1.4));break}
+      case 'igloo':{const x0=Mr(.4),r=Mr(1.2),ccx=x0+r,blk=c32('#f2f8fc'),ln=c32('#b8cce0'),sd=c32('#d0e0ee');
+        for(let y=0;y<=r;y++)for(let x=-r;x<=r;x++){if(x*x+y*y*1.15>r*r)continue;const row=Math.floor(y/Mr(.3,2)),col=Math.floor((x+r+row*2)/Mr(.5,2));
+          P(ccx+x,by-y,y%Mr(.3,2)===0||(x+r+row*2)%Mr(.5,2)===0?ln:x>r*.3?sd:blk)}
+        const ew=Mr(.5,2),eh=Mr(.55,2);for(let y=0;y<eh;y++)for(let x=0;x<Mr(.6,2);x++)P(ccx+r-1+x,by-y,y===eh-1||x===Mr(.6,2)-1?ln:blk);R(ccx+r-1,by-eh+2,1,eh-2,c32('#f2c860'));
+        R(ccx+Math.round(r*.55),by-Math.round(eh*.9),Mr(.25,1),Math.round(eh*.9),c32('#3a4a5a'));sit(ccx+r+Mr(1.2),by);break}
+      case 'garde':{const rf=bigRefuge();o={cv:rf.cv,ox:rf.ox,oy:rf.oy};return}
+      case 'van':{const x0=Mr(.3),L=Mr(4.8),vh=Mr(2.1),wr=Mr(.35,2),body=c32('#f2f0e8'),bodyD=c32('#c8c4b8'),acc=c32('#3aa0a0'),gl=c32('#4a6a8a');
+        for(let y=0;y<vh;y++)for(let x=0;x<L;x++){const rnd=(y>vh-Mr(.4,2)&&(x<Mr(.3,1)||x>L-Mr(.3,1)));if(rnd)continue;P(x0+x,by-wr-y,y<vh*.45?acc:y===Math.round(vh*.45)?bodyD:body)}
+        R(x0+L-Mr(.9),by-wr-vh+Mr(.3,1),Mr(.7,2),Mr(.6,2),gl);R(x0+Mr(.6),by-wr-vh+Mr(.35,1),Mr(1.4,3),Mr(.5,2),gl);R(x0+Mr(2.4),by-wr-vh+Mr(.35,1),Mr(.9,3),Mr(.5,2),c32('#f2c860'));
+        for(const wx of[x0+Mr(1),x0+L-Mr(1)]){for(let y=-wr;y<=wr;y++)for(let x=-wr;x<=wr;x++)if(x*x+y*y<=wr*wr)P(wx+x,by-wr+y+1,x*x+y*y<wr*wr/3?c32('#9a9a9a'):gd)}
+        // auvent rayé et chaise pliante
+        const aw=Mr(1.6);for(let x=0;x<aw;x++)P(x0+L+x,by-wr-vh+Mr(.5,2)+Math.round(x*.35),(x>>1)%2?acc:body);R(x0+L+aw-1,by-wr-vh+Mr(.5,2)+Math.round(aw*.35),1,vh,gd);
+        sit(x0+L+Mr(.6),by);R(x0+L+Mr(.45),by-Mr(.45,2),Mr(.5,2),1,c32('#3a6aa0'));break}
+    }
+  });
+  if(!o)o={cv:outlineCv(cv,'#1c1a1e',.4),ox:cx,oy:h};
+  bivCache.set(key,o);return o;
+}
+
 /* ---------- grands animaux dessinés à leur vraie taille (pixels nets à chaque zoom) ---------- */
 function cropCv(pb){let x0=pb.w,y0=pb.h,x1=-1,y1=-1;for(let y=0;y<pb.h;y++)for(let x=0;x<pb.w;x++)if(pb.b[y*pb.w+x]){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
   if(x1<0)return canvasOf(1,1)[0];const[c,g]=canvasOf(x1-x0+1,y1-y0+1);const[t,tg]=canvasOf(pb.w,pb.h);tg.putImageData(pb.img,0,0);g.drawImage(t,-x0,-y0);return c}

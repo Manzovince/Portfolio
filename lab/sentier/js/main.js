@@ -138,13 +138,14 @@ function draw(date,t){
   const fy=SY[RX]|0;
   if(G.comp&&COMP[G.comp]){const C=COMP[G.comp],K=ZOOMS[ZOOM].k;
     if(C.mv==='fly'){const fx=RX-Math.round(6*K)+Math.round(Math.sin(t/1700)*6*K),fy2=(SY[RX]|0)-Math.round(16*K)+Math.round(Math.sin(t/400)*2),cf=compFrame(G.comp,Math.floor(t/140)%4);g.drawImage(cf.cv,fx-cf.ox,fy2-cf.oy)}
-    else{const dx=RX-Math.round(8*K)+Math.round(Math.sin(t/2300)*5),gy0=SY[clamp(dx,0,W-1)]|0;
+    else{const dx=G.rest?RX+Math.round(Mr(4.6)):RX-Math.round(8*K)+Math.round(Math.sin(t/2300)*5),gy0=SY[clamp(dx,0,W-1)]|0;
       // la suricate s'arrête parfois pour faire le guet
       const stand=G.comp==='suricate'&&(t%9000)<1600,hop=C.mv==='hop'?Math.round(Math.abs(Math.sin(phase*Math.PI))*3):0;
-      const cf=compFrame(G.comp,stand?3:Math.floor(phase*4)%3);g.drawImage(cf.cv,dx-cf.ox,gy0-cf.oy+1-hop)}}
+      const cf=compFrame(G.comp,G.rest?0:stand?3:Math.floor(phase*4)%3);g.drawImage(cf.cv,dx-cf.ox,gy0-cf.oy+1-(G.rest?0:hop))}}
   // le coureur
-  const N=LIVE.mode==='run'?10:12,rf=runnerFrame(LIVE.mode,Math.floor(phase*N)%N,G.gear);
-  g.drawImage(rf.cv,RX-rf.ox,fy-rf.oy+1);
+  if(G.rest){const bv=bivSprite(G.gear.biv,Math.floor(t/220)%2),y=footY(RX-bv.ox,bv.cv.width,G.d,s);g.drawImage(bv.cv,RX-bv.ox,Math.round(y-bv.oy+1))}
+  else{const N=LIVE.mode==='run'?10:12,rf=runnerFrame(LIVE.mode,Math.floor(phase*N)%N,G.gear);
+  g.drawImage(rf.cv,RX-rf.ox,fy-rf.oy+1)}
   drawFauna(g,s,t);
   drawForeground(g,s);
   // teinte de l'heure
@@ -313,7 +314,7 @@ function hud(){
     $('.face .h').style.animationDuration=(60/hr).toFixed(2)+'s';
     $('#fDist').textContent=fmt(G.d/1000,2);$('#fPace').textContent=pace(LIVE.v);$('#fDp').textContent=fmt(G.dp);
     $('#fSub').textContent=`m · ${fmt(elevMacro(G.d))} m · ${(LIVE.grade>0?'+':'')+Math.round(LIVE.grade*100)} %`;
-  }$('#wCad').textContent=LIVE.cad+' spm';$('#wMode').textContent=LIVE.mode==='run'?'course':'marche';
+  }$('#wCad').textContent=LIVE.cad+' spm';$('#wMode').textContent=LIVE.mode==='run'?'course':LIVE.mode==='rest'?'bivouac':'marche';restUI();
   const cap=capL(),sh=GEAR[G.gear.shoes];
   $('#bW').style.width=G.water/cap*100+'%';$('#tW').textContent=fmt(G.water,2)+' L';
   $('#bE').style.width=G.energy+'%';$('#tE').textContent=Math.round(G.energy)+' %';
@@ -329,6 +330,19 @@ function hud(){
   $('#why').innerHTML=(bs?`<span style="color:#9ef09a">📣 encouragé +${Math.round((G.boost.k-1)*100)} % · ${bs} s</span> `:'')+(LIVE.why.length?'⚠ '+LIVE.why.join(' · '):'');
   drawProfile();
 }
+// panneau du bivouac : raison de l'arrêt, récupération, bouton Repartir
+function restUI(){
+  const el=$('#rest');if(!G.rest){el.hidden=true;return}el.hidden=false;
+  const R=G.rest,{m,pen}=restMin(),left=Math.max(0,Math.ceil((1-R.p)*m)),ok=shoesOk(),B=GEAR[G.gear.biv];
+  $('#rWhy').textContent=RESTWHY[R.why][1]+' '+RESTWHY[R.why][0];
+  $('#rBiv').textContent=B.n+(pen.length?' · ralenti par '+pen.join(', '):'');
+  $('#rBar').style.width=Math.round(R.p*100)+'%';
+  $('#rTxt').textContent=R.p>=1?'récupéré':'récupération '+Math.round(R.p*100)+' % · encore '+left+' min';
+  const b=$('#rGo');b.disabled=!canGo();b.textContent=!ok&&R.p>=1?'Acheter des chaussures':'Repartir';
+  if(!ok&&R.p>=1)b.disabled=false;
+}
+$('#rGo').onclick=()=>{if(!shoesOk()){shopCat='equip';shopSlot='shoes';store.set('shopCat','equip');store.set('shopSlot','shoes');openModal('boutique');return}if(restart()){save();hud()}};
+$('#rShop').onclick=()=>{shopCat='equip';shopSlot='biv';store.set('shopCat','equip');store.set('shopSlot','biv');openModal('boutique')};
 const pc=$('#prof'),pg=pc.getContext('2d');
 const BCOL={prairie:'#8fbf5a',foret:'#3e6a4c',alpage:'#a8c86a',crete:'#8a8b90',sommet:'#e8eef6',garrigue:'#9aa060',falaise:'#d8d0be',cote:'#4a96c0',hetraie:'#6a8a3e',lac:'#5aa0c0',glacier:'#c8dcf0',vignes:'#a8885a',lavande:'#9a7ac8',gorges:'#4ab8b0',ville:'#9aa2b4',desert:'#e8c080',canyon:'#c8603a',savane:'#d0b060',jungle:'#2e7a3a',volcan:'#4a4040',vieilleville:'#c8b898',foretneige:'#e8f0f8',plage:'#40c8d0'};
 function drawProfile(){
@@ -423,7 +437,7 @@ function item(title,desc,btn,cls,on,fn,dis){
   const b=d.querySelector('button');b.textContent=btn;if(cls)b.className=cls;b.disabled=!!dis;b.onclick=()=>{fn();save();renderShop();hud()};return d;
 }
 // boutique en rayons : une barre de catégories fixe, puis des grilles de cartes compactes
-const SICO={style:'🏃',shoes:'👟',top:'👕',head:'🧢',eyes:'🕶️',bag:'🎒',poles:'🥢',lamp:'🔦'};
+const SICO={biv:'⛺',style:'🏃',shoes:'👟',top:'👕',head:'🧢',eyes:'🕶️',bag:'🎒',poles:'🥢',lamp:'🔦'};
 let shopCat=store.get('shopCat','ravito'),shopSlot=store.get('shopSlot','shoes');
 const spareCost=id=>Math.max(20,Math.round(GEAR[id].p*.4));
 function card(o){

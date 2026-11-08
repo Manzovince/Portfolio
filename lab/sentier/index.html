@@ -122,6 +122,8 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
 .toast .ic{font-size:22px}
 .toast .t1{font-weight:800;font-size:14px}
 .toast .t2{font-size:12px;opacity:.75;margin-top:2px}
+#rest{position:relative;margin:16px auto 0;width:280px;text-align:left;pointer-events:auto;display:flex;flex-direction:column;gap:5px;padding:9px 11px;z-index:3}#rest[hidden]{display:none}#rest .rh{display:flex;justify-content:space-between;align-items:center;gap:6px}#rest .rh b{font-size:12px}#rest .rh button{background:none;border:0;font-size:14px;cursor:pointer;padding:0}#rest .rs{font-size:10px;opacity:.7}#rest .rt{height:5px;border-radius:3px;background:rgba(127,127,127,.3);overflow:hidden}#rest .rt i{display:block;height:100%;background:#9ad06a;transition:width .5s}#rest .rf{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px}#rest #rGo{font:inherit;font-size:11px;font-weight:800;padding:5px 12px;border-radius:8px;border:0;background:#3ab86a;color:#08100a;cursor:pointer}#rest #rGo:disabled{background:rgba(127,127,127,.35);color:inherit;opacity:.6;cursor:default}
+@media (max-width:700px),(max-height:500px){#rest{margin-top:10px;width:min(300px,calc(100vw - 32px))}}
 .cheer{position:fixed;z-index:6;pointer-events:none;font:800 14px 'JetBrains Mono',monospace;color:#fff;text-shadow:0 1px 0 #000,0 0 6px rgba(0,0,0,.5);white-space:nowrap}
 .flash{position:fixed;inset:0;background:#fff;pointer-events:none;opacity:0;z-index:4}
 
@@ -254,6 +256,12 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
       <input id="q" name="q" autofocus placeholder="Rechercher">
       <button type="button" id="eng" title="Changer de moteur"></button>
     </form>
+<div class="hud" id="rest" hidden>
+  <div class="rh"><b id="rWhy"></b><button id="rShop" title="Matériel de bivouac">⛺</button></div>
+  <div class="rs" id="rBiv"></div>
+  <div class="rt"><i id="rBar"></i></div>
+  <div class="rf"><span id="rTxt"></span><button id="rGo">Repartir</button></div>
+</div>
   </main>
 </div>
 <div id="hudw">
@@ -304,11 +312,11 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
   </div>
   <div class="pb" id="pb"></div>
 </div></div>
-<script src="js/core.js?v=14"></script>
-<script src="js/world.js?v=14"></script>
-<script src="js/layers.js?v=14"></script>
-<script src="js/sprites.js?v=14"></script>
-<script src="js/game.js?v=14"></script>
-<script src="js/main.js?v=14"></script>
+<script src="js/core.js?v=15"></script>
+<script src="js/world.js?v=15"></script>
+<script src="js/layers.js?v=15"></script>
+<script src="js/sprites.js?v=15"></script>
+<script src="js/game.js?v=15"></script>
+<script src="js/main.js?v=15"></script>
 </body>
 </html>

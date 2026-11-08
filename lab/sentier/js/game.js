@@ -39,9 +39,18 @@ const GEAR={
   robot:{s:'style',n:'Combinaison de robot',p:350,endu:.95,d:'Raide comme un piquet, mouvements économes : −5 % d’énergie.'},
   gambade:{s:'style',n:'Chaussettes à fleurs',p:150,fauna:1.15,d:'Sautille gaiement : les animaux se montrent plus souvent (+15 %).'},
   zombie:{s:'style',n:'Maquillage de zombie',p:280,nightS:1.06,d:'Bras tendus, démarche traînante, teint verdâtre : +6 % la nuit.'},
-  pingouin:{s:'style',n:'Costume de pingouin',p:500,cold:1,d:'Se dandine, ne craint ni le froid ni la neige.'}
+  pingouin:{s:'style',n:'Costume de pingouin',p:500,cold:1,d:'Se dandine, ne craint ni le froid ni la neige.'},
+  // bivouac : quand la course s'arrête (plus d'eau, d'énergie ou de chaussures), on récupère sur place ; rest = minutes pour récupérer à 100 %
+  sac:{s:'biv',n:'Sac de couchage',p:0,rest:45,col:'#c8402e',d:'Récupération en 45 min. Pluie, froid et vent la ralentissent.'},
+  tarp:{s:'biv',n:'Tarp et matelas',p:180,rest:35,rain:1,col:'#4a7a4a',d:'35 min. À l’abri de la pluie.'},
+  tente:{s:'biv',n:'Tente légère 1 place',p:450,rest:27,rain:1,cold:.5,col:'#e8782a',d:'27 min. Pluie, et le froid ne mord plus autant.'},
+  tente4:{s:'biv',n:'Tente 4 saisons',p:1100,rest:20,rain:1,cold:1,wind:1,col:'#e8c03a',d:'20 min. Rien ne passe : pluie, froid, vent.'},
+  hamac:{s:'biv',n:'Hamac moustiquaire',p:350,rest:40,fav:['jungle','plage','savane','gorges'],fr:15,rain:1,col:'#3a9a8a',d:'15 min dans la jungle, à la plage, en savane et dans les gorges ; 40 ailleurs.'},
+  igloo:{s:'biv',n:'Scie à neige (igloo)',p:700,rest:45,fav:['sommet','glacier','foretneige','crete'],fr:12,cold:1,wind:1,col:'#d8e8f4',d:'12 min dans la neige, bien au chaud ; 45 ailleurs.'},
+  garde:{s:'biv',n:'Nuitée en refuge gardé',p:2600,rest:12,rain:1,cold:1,wind:1,meal:1,col:'#8a6a4a',d:'12 min. Dîner chaud et pique-nique : sac d’encas refait gratuitement.'},
+  van:{s:'biv',n:'Van aménagé',p:4000,rest:10,rain:1,cold:1,wind:1,col:'#f2f0e8',d:'10 min partout, au chaud. Le van t’attend au bord du chemin.'}
 };
-const SLOTS=[['style','Style de course'],['shoes','Chaussures'],['top','Haut'],['head','Tête'],['eyes','Yeux'],['bag','Portage'],['poles','Bâtons'],['lamp','Frontale']];
+const SLOTS=[['style','Style de course'],['biv','Bivouac'],['shoes','Chaussures'],['top','Haut'],['head','Tête'],['eyes','Yeux'],['bag','Portage'],['poles','Bâtons'],['lamp','Frontale']];
 const FOOD={
   gel:{n:'Gel',e:12,p:3,ic:'🧪'},
   compote:{n:'Compote',e:14,p:4,ic:'🍏'},
@@ -140,11 +149,11 @@ const QUESTS=[
 
 /* ---------- état sauvegardé ---------- */
 const NEW=()=>({v:1,d:0,dp:0,dn:0,t:0,coins:30,tot:0,water:.5,energy:100,wear:0,
-  stock:{gel:2,banane:1},gear:{shoes:'route',top:'tshirt',head:null,eyes:null,bag:'gourde',poles:null,lamp:null},own:['route','tshirt','gourde'],
+  stock:{gel:2,banane:1},gear:{shoes:'route',top:'tshirt',head:null,eyes:null,bag:'gourde',poles:null,lamp:null,biv:'sac'},own:['route','tshirt','gourde','sac'],
   up:{},dog:0,seen:{},q:[],st:{tops:0,mer:0,nuit:0,pluie:0,rav:0,alpage:0,photos:0,maxAlt:0,eaten:0,wx:{},bio:{},froid:0,neige:0,fon:0,worn:0},
   auto:{eat:40,restock:{gel:3,barre:2}},last:Date.now(),sess:{d:0,dp:0}});
 let G=Object.assign(NEW(),store.get('save',{}));
-G.st=Object.assign(NEW().st,G.st);if(!G.spare)G.spare={};if(G.flask==null)G.flask=0;if(!G.comps){G.comps=G.dog?['chien']:[];G.comp=G.dog?'chien':null}if(!G.gear.style)G.gear.style='classique';if(!G.own.includes('classique'))G.own.push('classique');if(G.qSeen==null)G.qSeen=G.q.length;G.auto=Object.assign(NEW().auto,G.auto);
+G.st=Object.assign(NEW().st,G.st);if(!G.spare)G.spare={};if(G.flask==null)G.flask=0;if(!G.comps){G.comps=G.dog?['chien']:[];G.comp=G.dog?'chien':null}if(!G.gear.style)G.gear.style='classique';if(!G.gear.biv)G.gear.biv='sac';if(!G.own.includes('sac'))G.own.push('sac');if(!G.own.includes('classique'))G.own.push('classique');if(G.qSeen==null)G.qSeen=G.q.length;G.auto=Object.assign(NEW().auto,G.auto);
 if(Q.has('km')){G.d=parseFloat(Q.get('km'))*1000;G.last=Date.now();Q.delete('km');history.replaceState(null,'',location.pathname+(Q.toString()?'?'+Q:''))}
 if(Q.has('tout')){G.coins+=99999;history.replaceState(null,'',location.pathname)}
 const save=()=>{G.last=Date.now();store.set('save',G)};
@@ -159,7 +168,37 @@ function condAt(date,dm){
   const wx=weatherAt(date),alt=elevMacro(dm),T=tempAt(date,alt,wx),e=sunElev(date);
   return{wx,alt,T,night:e<-4,sun:e>8&&WX[wx].cloud<.5};
 }
+// bivouac : pourquoi on s'arrête, combien de minutes il faut pour récupérer ici
+const RESTWHY={eau:['Plus une goutte d’eau','💧'],energie:['Plus d’énergie, plus d’encas','⚡'],chaussures:['Semelles finies, pas de paire de rechange','👟']};
+function restMin(date=now(),dm=G.d){
+  const B=GEAR[G.gear.biv]||GEAR.sac,L=leg(dm),c=condAt(date,dm),pen=[];let m=B.fav&&B.fav.includes(L.b)?B.fr:B.rest;
+  if(WX[c.wx].rain&&!B.rain){m*=1.6;pen.push('pluie')}
+  if((c.T<4||c.night&&c.alt>1800)&&(B.cold||0)<1){m*=1+.5*(1-(B.cold||0));pen.push('froid')}
+  if(WX[c.wx].wind&&['crete','sommet','falaise','glacier'].includes(L.b)&&!B.wind){m*=1.3;pen.push('vent')}
+  return{m,pen};
+}
+const shoesOk=()=>G.wear<=GEAR[G.gear.shoes].life||(G.spare[G.gear.shoes]||0)>0;
+const canGo=()=>G.rest&&G.rest.p>=1&&shoesOk();
+function restStep(dt,date){
+  const R=G.rest,{m}=restMin(date);
+  R.p=Math.min(1,R.p+dt/(m*60));
+  G.water=Math.max(G.water,capL()*R.p);G.energy=Math.max(G.energy,100*R.p);
+  LIVE.hr=lerp(LIVE.hr,52,1-Math.exp(-dt/30));
+  Object.assign(LIVE,{v:0,mode:'rest',grade:gradeAt(G.d),why:[],c:condAt(date,G.d),cad:0});
+  if(R.p>=1&&!R.done){R.done=1;emit('Bien reposé',shoesOk()?'Clique sur « Repartir » quand tu veux.':'Il te faut une paire de chaussures pour repartir.','⛺')}
+}
+function stopRun(why){
+  G.rest={why,p:0,d:G.d,t:Date.now()};G.st.biv=(G.st.biv||0)+1;
+  emit('Bivouac · '+RESTWHY[why][0],GEAR[G.gear.biv].n+' : récupération en '+Math.round(restMin().m)+' min','⛺');
+}
+function restart(){
+  if(!canGo())return false;
+  const B=GEAR[G.gear.biv];G.rest=null;G.water=capL();G.energy=100;
+  if(B.meal)for(const[id,n]of Object.entries(G.auto.restock)){if(!FOOD[id])continue;while((G.stock[id]||0)<n&&stockN()<slots())G.stock[id]=(G.stock[id]||0)+1}
+  emit('C’est reparti !',B.meal?'Le gardien t’a refait ton sac d’encas':'Bidons pleins, jambes neuves','🏃');return true;
+}
 function step(dt,date){
+  if(G.rest)return restStep(dt,date);
   const s0=G.d,L=leg(s0),B=BI[L.b],c=condAt(date,s0),gr=gradeAt(s0);
   const sh=GEAR[G.gear.shoes],top=GEAR[G.gear.top],hd=G.gear.head&&GEAR[G.gear.head],why=[];
   let v0=9.2*(1+.04*lvl('vma'))*sh.spd*(GEAR[G.gear.bag].spd||1)*(G.wear>sh.life?.88:1);
@@ -205,6 +244,10 @@ function step(dt,date){
   if(n>0)addCoins(n*mult);
   if(de>0){G._dpc=(G._dpc||0)+de;if(G._dpc>=10){addCoins(Math.floor(G._dpc/10)*mult);G._dpc%=10}}
   for(const p of poisIn(s0,s1))passPoi(p);
+  // à bout : bivouac sur place
+  if(G.water<=0&&!G.flask)stopRun('eau');
+  else if(G.energy<=0&&!stockN())stopRun('energie');
+  else if(G.wear>sh.life&&!(G.spare[G.gear.shoes]>0))stopRun('chaussures');
   // fréquence cardiaque et cadence (affichage)
   const inten=mode==='hike'?.72+Math.max(0,gr-.14)*.6:gr>0?.68+gr*1.6:Math.max(.55,.68+gr*.8);
   const hrT=58+122*clamp(inten,0,1)+(hot?6:0)+(G.water<=0?10:0)+(c.alt>2200?5:0)-(G.energy<=0?12:0);
