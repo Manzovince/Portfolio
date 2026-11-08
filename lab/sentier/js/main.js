@@ -100,6 +100,11 @@ function draw(date,t){
 
   // --- la scène (teintée selon l'heure) ---
   const g=sg;g.clearRect(0,0,W,H);
+  // à la maison : la rue du village en perspective (js/home.js)
+  if(G.home){homeScene(g,t,SK.dark>.35);
+    if(SK.ta>0){g.globalCompositeOperation='source-atop';g.fillStyle=rgba(SK.tint,SK.ta);g.fillRect(0,0,W,H);g.globalCompositeOperation='source-over'}
+    if(W0.rain||wx==='nuages'||W0.fog){g.globalCompositeOperation='source-atop';g.fillStyle=W0.rain?'rgba(50,60,80,.26)':'rgba(70,80,100,.14)';g.fillRect(0,0,W,H);g.globalCompositeOperation='source-over'}
+    ctx.drawImage(sceneCv,0,0);if(SK.dark>.2)homeLights(Math.min(1,(SK.dark-.2)*1.4));return}
   const alt=camMacro;
   const K=[.004,.009,.016,.024,.032];
   for(let li=0;li<5;li++){
@@ -520,7 +525,7 @@ function renderShop(){
 /* ---------- l'écran d'accueil : la véranda ---------- */
 function homeUI(){
   const el=$('#home');if(!G.home){el.hidden=true;return}el.hidden=false;
-  const lt=G.lastTrain;$('#hoLast').textContent=lt?`Dernière sortie : ${fmt(lt.km,1)} km · ${fmtT(lt.t)} · +${fmt(Math.floor(lt.xp))} XP`:'Les baskets t’attendent sur la véranda.';
+  const lt=G.lastTrain&&G.lastTrain.km>=.05?G.lastTrain:null;$('#hoLast').textContent=lt?`Dernière sortie : ${fmt(lt.km,1)} km · ${fmtT(lt.t)} · +${fmt(Math.floor(lt.xp))} XP`:'Les baskets t’attendent sur la véranda.';
   const key=hoK+(hoV[hoK]||'')+G.race?.st+G.camp.ok.length+Math.floor(G.coins/5);if(el.dataset.k===key)return;el.dataset.k=key;
   el.querySelectorAll('.hseg button').forEach(b=>{b.classList.toggle('on',b.dataset.k===hoK);b.onclick=()=>{hoK=b.dataset.k;store.set('hoK',hoK);homeUI()}});
   const ch=$('#hoChips');ch.innerHTML='';
