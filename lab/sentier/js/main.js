@@ -590,7 +590,7 @@ function renderAdmin(){
   const chip=(k,v)=>`<span><i>${k}</i>${v}</span>`;
   const upd=()=>{if(!info.isConnected)return clearInterval(iv);const m=biomeMix(G.d),Lg=leg(G.d);
     info.innerHTML=chip('km',fmt(G.d/1000,2))+chip('monde',`<em style="background:${BCOL[Lg.b]}"></em>${BI[Lg.b].n}`)+chip('alt',fmt(elevMacro(G.d))+' m')+chip('pente',Math.round(gradeAt(G.d)*100)+' %')
-      +chip('vitesse',fmt(LIVE.v*3.6,1)+' km/h')+chip('mode',LIVE.mode==='rest'?'bivouac '+Math.round(G.rest.p*100)+' %':LIVE.mode)+chip('heure',hm(now())+(SPEED!==1?' ×'+SPEED:''))+chip('météo',WX[weatherAt(now())].ic+' '+(LIVE.c?LIVE.c.T+' °C':''))
+      +chip('vitesse',fmt(LIVE.v*3.6,1)+' km/h')+chip('mode',G.rest?'bivouac '+Math.round(G.rest.p*100)+' %':LIVE.mode==='rest'?'run':LIVE.mode)+chip('heure',hm(now())+(SPEED!==1?' ×'+SPEED:''))+chip('météo',WX[weatherAt(now())].ic+' '+(LIVE.c?LIVE.c.T+' °C':''))
       +(m.t>.02&&m.t<.98?chip('mélange',`${m.a}→${m.b} ${Math.round(m.t*100)} %`):'')+chip('écran',`${W}×${H} ×${PX} · ${tileCache.size} tuiles`)};
   upd();const iv=setInterval(upd,500);
   const tabs=el('div','scats');head.appendChild(tabs);

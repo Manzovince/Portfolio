@@ -194,7 +194,7 @@ function stopRun(why){
 }
 function restart(){
   if(!canGo())return false;
-  const B=GEAR[G.gear.biv];G.rest=null;G.water=capL();G.energy=100;
+  const B=GEAR[G.gear.biv];G.rest=null;LIVE.mode='run';G.water=capL();G.energy=100;
   if(B.meal)for(const[id,n]of Object.entries(G.auto.restock)){if(!FOOD[id])continue;while((G.stock[id]||0)<n&&stockN()<slots())G.stock[id]=(G.stock[id]||0)+1}
   emit('C’est reparti !',B.meal?'Le gardien t’a refait ton sac d’encas':'Bidons pleins, jambes neuves','🏃');return true;
 }
