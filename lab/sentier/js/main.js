@@ -49,7 +49,7 @@ function loop(t){
   const date=now();
   for(let k=0,sd=dt*SPEED;sd>0;k++){const d=Math.min(sd,1);step(d,date);sd-=d}
   phase+=dt*Math.min(SPEED,3)*(LIVE.cad||170)/120;   // cycles de foulée : cadence réelle (pas/min ÷ 2), indépendante de l'échelle
-  if(t>nextSpawn){spawnFauna();nextSpawn=t+(35000+Math.random()*70000)/((G.comp&&COMP[G.comp].fauna)||1)/((GEAR[G.gear.style]||{}).fauna||1)/Math.max(1,SPEED/4)}
+  if(t>nextSpawn){spawnFauna();nextSpawn=t+(35000+Math.random()*70000)/((G.comp&&COMP[G.comp].fauna)||1)/((GEAR[G.gear.style]||{}).fauna||1)/(1+.15*lvl('oeil'))/Math.max(1,SPEED/4)}
   // 30 i/s suffisent pour un paysage qui défile lentement
   if(++frame%2)return;
   tileBudget=frame<4?999:3;draw(date,t);
@@ -274,7 +274,7 @@ function hitFauna(e){
 }
 function photo(a,e){
   a.shot=performance.now();const f=FAUNA[a.id],first=!G.seen[a.id];G.seen[a.id]=(G.seen[a.id]||0)+1;if(first)G.newSp=1;G.st.photos++;
-  const r=Math.round(f.c*(first?3:1)*(1+.1*lvl('sponsor'))*((G.gear.eyes&&GEAR[G.gear.eyes].photo)||1)*((G.comp&&COMP[G.comp].photo)||1));addCoins(r);
+  const r=Math.round(f.c*(first?3:1)*(1+.1*lvl('sponsor'))*(1+.2*lvl('patience'))*((G.gear.eyes&&GEAR[G.gear.eyes].photo)||1)*((G.comp&&COMP[G.comp].photo)||1));addCoins(r);
   const fl=$('#flash');fl.animate([{opacity:.7},{opacity:0}],{duration:350});
   emit((first?'Nouvelle espèce · ':'')+f.n,'Photo dans le carnet · +'+r+' pièces','📷');
   if(f.sea)ANIM=ANIM.filter(x=>x!==a);
@@ -283,8 +283,8 @@ function photo(a,e){
 /* ---------- interface ---------- */
 function tick(){
   const d=now();$('#clock').textContent=hm(d);
-  const st=sunTimes(d),wx=weatherAt(d),T=tempAt(d,elevMacro(G.d),wx);
-  $('#date').innerHTML=`<b>${d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</b><span>☀ ${hm(st.rise)} – ${hm(st.set)}</span><span>${WX[wx].ic} ${WX[wx].n} · ${T}°</span>`;
+  const wx=weatherAt(d),T=tempAt(d,elevMacro(G.d),wx);
+  $('#date').innerHTML=`<b>${d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</b><span>${WX[wx].ic} ${WX[wx].n} · ${T}°</span>`;
   document.documentElement.classList.toggle('nuit',SK.dark>.45);
   document.body.style.background=rgb(SK.hor);
 }
@@ -301,7 +301,7 @@ function hud(){
   $('#nCoin').textContent=fmt(cn);
   // pastilles : un équipement abordable, une nouvelle espèce, des défis réussis non vus
   $('#dShop').hidden=!(Object.entries(GEAR).some(([id,g])=>g.p>0&&!G.own.includes(id)&&g.p<=G.coins)||(Object.entries(COMP).some(([id,c])=>G.st.bio[c.b]&&!G.comps.includes(id)&&G.coins>=c.p)));
-  $('#dCarnet').hidden=!G.newSp;
+  $('#dCarnet').hidden=!G.newSp;$('#dTrain').hidden=!Object.keys(UPG).some(upCan);
   const nd=G.q.length-(G.qSeen??G.q.length);$('#nDef').hidden=nd<=0;$('#nDef').textContent=nd;
   $('#wDist').innerHTML=fmt(G.d/1000,2)+'<small>km</small>';
   $('#wDp').innerHTML=fmt(G.dp)+'<small>m</small>';
@@ -426,7 +426,7 @@ if(store.get('watch','face')==='face')document.documentElement.classList.add('wf
 let curTab='boutique';
 function openModal(tab){$('#modal').classList.add('on');showTab(tab)}
 const closeModal=()=>{$('#modal').classList.remove('on');document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'))};
-$('#bCoins').onclick=()=>openModal('boutique');$('#bCarnet').onclick=$('#bBiome').onclick=()=>openModal('carnet');$('#bSet').onclick=()=>openModal('reglages');$('#bDefis').onclick=()=>openModal('defis');
+$('#bCoins').onclick=()=>openModal('boutique');$('#bCarnet').onclick=$('#bBiome').onclick=()=>openModal('carnet');$('#bSet').onclick=()=>openModal('reglages');$('#bDefis').onclick=()=>openModal('defis');$('#bTrain').onclick=()=>openModal('train');
 {const setBag=v=>{document.documentElement.classList.toggle('nobag',!v);const b=$('#bagT');b.title=b.ariaLabel=v?'Masquer le sac':'Afficher le sac';store.set('bag',v);dispatchEvent(new Event('resize'))};
  setBag(store.get('bag',true));$('#bagT').onclick=()=>setBag(document.documentElement.classList.contains('nobag'))}
 $('#zIn').onclick=()=>setZoom(ZOOM+1);$('#zOut').onclick=()=>setZoom(ZOOM-1);$('#zLbl').textContent=ZOOMS[ZOOM].n;
@@ -435,7 +435,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 document.querySelectorAll('.ph .tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 function showTab(t){curTab=t;document.querySelectorAll('.ph .tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   document.querySelectorAll('.nb[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
-  if(t==='carnet')G.newSp=0;if(t==='defis')G.qSeen=G.q.length;hud();({boutique:renderShop,carnet:renderCarnet,defis:renderDefis,reglages:renderSet,admin:renderAdmin})[t]()}
+  if(t==='carnet')G.newSp=0;if(t==='defis')G.qSeen=G.q.length;hud();({boutique:renderShop,carnet:renderCarnet,defis:renderDefis,reglages:renderSet,admin:renderAdmin,train:renderTrain})[t]()}
 const coinTxt=n=>fmt(n)+' ◉';
 function item(title,desc,btn,cls,on,fn,dis){
   const d=document.createElement('div');d.className='it'+(on?' on':'');
@@ -444,7 +444,7 @@ function item(title,desc,btn,cls,on,fn,dis){
 }
 // boutique en rayons : une barre de catégories fixe, puis des grilles de cartes compactes
 const SICO={biv:'⛺',style:'🏃',shoes:'👟',top:'👕',head:'🧢',eyes:'🕶️',bag:'🎒',poles:'🥢',lamp:'🔦'};
-let shopCat=store.get('shopCat','ravito'),shopSlot=store.get('shopSlot','shoes');
+let shopCat=store.get('shopCat','ravito');if(shopCat==='train')shopCat='ravito';let shopSlot=store.get('shopSlot','shoes');
 const spareCost=id=>Math.max(20,Math.round(GEAR[id].p*.4));
 function card(o){
   const d=document.createElement('div');d.className='scard'+(o.on?' on':'')+(o.lock?' lock':'');
@@ -460,7 +460,7 @@ function renderShop(){
   // barre fixe : pièces, sac, catégories
   const top=document.createElement('div');top.className='shead';
   top.innerHTML=`<div class="sbal"><b>${coinTxt(Math.floor(G.coins))}</b><span>sac ${stockN()}/${slots()} · ${fmt(G.water,2)}/${fmt(capL(),2)} L</span></div><div class="scats"></div>`;
-  const CATS=[['ravito','🍌 Ravito'],['equip','🎽 Équipement'],['style','🏃 Style'],['train','💪 Entraînement'],['comp','🐾 Compagnons']];
+  const CATS=[['ravito','🍌 Ravito'],['equip','🎽 Équipement'],['style','🏃 Style'],['comp','🐾 Compagnons']];
   for(const[k,n]of CATS){const b=document.createElement('button');b.textContent=n;b.className=shopCat===k?'on':'';b.onclick=()=>{shopCat=k;store.set('shopCat',k);pb.scrollTop=0;renderShop()};top.querySelector('.scats').appendChild(b)}
   pb.appendChild(top);
   const grid=(cls='')=>{const g=document.createElement('div');g.className='sgrid '+cls;pb.appendChild(g);return g};
@@ -495,10 +495,6 @@ function renderShop(){
     const g=grid('two');
     for(const[id,it]of Object.entries(GEAR)){if(it.s!=='style')continue;const own=G.own.includes(id),on=G.gear.style===id;
       g.appendChild(card({ic:'🏃',n:it.n,d:it.d,on,btn:on?'porté':own?'Mettre':coinTxt(it.p),buy:!own,dis:on||(!own&&G.coins<it.p),fn:()=>{if(!own){G.coins-=it.p;G.own.push(id)}G.gear.style=id}}))}
-  }else if(shopCat==='train'){
-    const g=grid('two');
-    for(const[k,u]of Object.entries(UPG)){const l=lvl(k),c=upCost(k,l);
-      g.appendChild(card({ic:'💪',n:u.n,d:u.d,badge:'niv. '+l,btn:coinTxt(c),buy:1,dis:G.coins<c,fn:()=>{G.coins-=c;G.up[k]=l+1}}))}
   }else{
     note('On les rencontre en traversant leur paysage, puis on les adopte ici. Un seul court avec toi.');
     const g=grid('two');
@@ -508,6 +504,51 @@ function renderShop(){
     if(G.comp)grid('two').appendChild(card({ic:'🏃',n:'Courir seul',d:'Laisser ton compagnon se reposer',btn:'Seul',fn:()=>{G.comp=null}}));
   }
 }
+/* ---------- entraînement : arbre de compétences ---------- */
+let trSel=store.get('trSel','vma');if(!UPG[trSel])trSel='vma';
+function renderTrain(){
+  const pb=$('#pb'),keep=pb.scrollTop;pb.innerHTML='';requestAnimationFrame(()=>pb.scrollTop=keep);
+  const tot=Object.keys(UPG).reduce((a,k)=>a+Math.min(lvl(k),UPG[k].max),0),mx=Object.values(UPG).reduce((a,u)=>a+u.max,0);
+  const top=document.createElement('div');top.className='shead';
+  top.innerHTML=`<div class="sbal"><b>${coinTxt(Math.floor(G.coins))}</b><span>${tot} / ${mx} séances</span></div>`;pb.appendChild(top);
+  for(const[br,name,col]of BRANCH){
+    const ks=Object.keys(UPG).filter(k=>UPG[k].br===br),bl=ks.reduce((a,k)=>a+Math.min(lvl(k),UPG[k].max),0),bm=ks.reduce((a,k)=>a+UPG[k].max,0);
+    const sec=document.createElement('div');sec.className='tbr';sec.style.setProperty('--bc',col);
+    sec.innerHTML=`<h3><span>${name}</span><small>${bl} / ${bm}</small></h3><div class="ttree"><svg class="tl"></svg></div>`;
+    const tr=sec.querySelector('.ttree');
+    for(let t=0;t<3;t++){const c=document.createElement('div');c.className='tcol';
+      for(const k of ks.filter(k=>UPG[k].t===t)){const u=UPG[k],l=lvl(k),op=upOpen(k);
+        const b=document.createElement('button');b.dataset.k=k;
+        b.className='tn'+(op?'':' lock')+(l>=u.max?' max':l?' has':'')+(upCan(k)?' can':'')+(trSel===k?' sel':'');
+        b.innerHTML=`<span class="ti">${op?u.ic:'🔒'}</span><span class="tt"></span><span class="tp">${Array.from({length:u.max},(_,i)=>`<i class="${i<l?'f':''}"></i>`).join('')}</span>`;
+        b.querySelector('.tt').textContent=u.n;b.title=u.n+' · '+u.fx(Math.max(1,l));
+        b.onclick=()=>{trSel=k;store.set('trSel',k);renderTrain()};c.appendChild(b)}
+      tr.appendChild(c)}
+    pb.appendChild(sec);
+  }
+  // fiche de la compétence choisie, collée en bas
+  const k=trSel,u=UPG[k],l=lvl(k),op=upOpen(k),c=upCost(k,l),full=l>=u.max,br=BRANCH.find(b=>b[0]===u.br);
+  const f=document.createElement('div');f.className='tfiche';f.style.setProperty('--bc',br[2]);
+  f.innerHTML=`<div class="fh"><span class="ti">${u.ic}</span><div><b></b><small>${br[1]} · niveau ${l} / ${u.max}</small></div></div><p class="fd"></p><div class="fx"></div><button></button>`;
+  f.querySelector('b').textContent=u.n;f.querySelector('.fd').textContent=u.d;
+  const fx=f.querySelector('.fx');fx.innerHTML=(l?`<span>Actuel</span><b>${u.fx(l)}</b>`:'')+(full?'':`<span>${l?'Niveau '+(l+1):'Niveau 1'}</span><b class="nx">${u.fx(l+1)}</b>`);
+  const b=f.querySelector('button');
+  if(!op){b.disabled=true;b.textContent='Il faut '+(u.req||[]).filter(([p,n])=>lvl(p)<n).map(([p,n])=>UPG[p].n+' niv. '+n).join(' et ')}
+  else if(full){b.disabled=true;b.textContent='Niveau max'}
+  else{b.className='buy';b.disabled=G.coins<c;b.textContent='S’entraîner · '+coinTxt(c);b.onclick=()=>{G.coins-=c;G.up[k]=l+1;save();renderTrain();hud();checkQuests()}}
+  pb.appendChild(f);
+  requestAnimationFrame(trLines);
+}
+// traits entre parents et enfants, recalculés sur la mise en page
+function trLines(){
+  document.querySelectorAll('.tbr .ttree').forEach(tr=>{
+    const svg=tr.querySelector('svg'),R=tr.getBoundingClientRect();svg.setAttribute('viewBox',`0 0 ${R.width} ${R.height}`);let h='';
+    tr.querySelectorAll('.tn').forEach(n=>{for(const[p,need]of UPG[n.dataset.k].req||[]){const a=tr.querySelector(`.tn[data-k="${p}"]`);if(!a)continue;
+      const A=a.getBoundingClientRect(),B=n.getBoundingClientRect(),x1=A.right-R.left,y1=A.top+A.height/2-R.top,x2=B.left-R.left,y2=B.top+B.height/2-R.top,mx=(x1+x2)/2,on=lvl(p)>=need;
+      h+=`<path d="M${x1} ${y1}C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" class="${on?'on':''}"/>`}});
+    svg.innerHTML=h});
+}
+addEventListener('resize',()=>{if(curTab==='train'&&$('#modal').classList.contains('on'))trLines()});
 function renderCarnet(){
   const pb=$('#pb');pb.innerHTML='';const h=t=>{const e=document.createElement('h3');e.textContent=t;pb.appendChild(e)};
   h('Au compteur');

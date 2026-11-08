@@ -166,6 +166,40 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
 .scard button{margin-top:4px;border:2px solid var(--line);background:#fff;color:var(--panel-ink);border-radius:999px;padding:4px 8px;font:700 11px 'JetBrains Mono',monospace;cursor:pointer;white-space:nowrap}
 .scard button.buy{background:var(--accent);border-color:var(--accent);color:#fff}.scard button:disabled{opacity:.4;cursor:default}
 .scard .sb{position:absolute;top:6px;right:6px;font-style:normal;font-size:10px;font-weight:800;background:var(--line);color:#fff;border-radius:999px;padding:1px 6px}
+/* arbre d'entraînement */
+.tbr{margin-bottom:12px}
+.tbr h3{display:flex;align-items:baseline;justify-content:space-between;margin:4px 0 6px;color:var(--bc)}
+.tbr h3 small{font-size:11px;color:var(--panel-ink);opacity:.5}
+.ttree{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--bc) 7%,transparent)}
+.ttree svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.ttree path{fill:none;stroke:var(--panel-ink);stroke-opacity:.18;stroke-width:2;stroke-dasharray:3 3}
+.ttree path.on{stroke:var(--bc);stroke-opacity:.8;stroke-dasharray:none}
+.tcol{display:flex;flex-direction:column;justify-content:center;gap:8px;position:relative}
+.tn{position:relative;display:grid;grid-template-columns:24px 1fr;grid-template-rows:auto auto;column-gap:5px;align-items:center;text-align:left;padding:5px 6px;border:2px solid color-mix(in srgb,var(--bc) 35%,transparent);border-radius:10px;background:var(--panel);color:var(--panel-ink);cursor:pointer;font:700 10.5px/1.15 'JetBrains Mono',monospace}
+.tn .ti{grid-row:1/3;font-size:16px;text-align:center}
+.tn .tt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tn .tp{display:flex;gap:2px;margin-top:3px}
+.tn .tp i{flex:1;max-width:9px;height:4px;border-radius:2px;background:color-mix(in srgb,var(--bc) 20%,transparent)}
+.tn .tp i.f{background:var(--bc)}
+.tn.has{border-color:var(--bc)}
+.tn.max{border-color:var(--bc);background:color-mix(in srgb,var(--bc) 16%,var(--panel))}
+.tn.lock{opacity:.45;border-style:dashed}
+.tn.can::after{content:'';position:absolute;top:-4px;right:-4px;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--panel)}
+.tn.sel{outline:2px solid var(--bc);outline-offset:2px}
+.tn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tfiche{position:sticky;bottom:-14px;margin:4px -2px -2px;padding:10px 12px 12px;background:var(--panel);border:2px solid var(--bc);border-radius:14px;box-shadow:0 -6px 18px rgba(20,30,40,.12)}
+.tfiche .fh{display:flex;gap:8px;align-items:center}
+.tfiche .fh .ti{font-size:22px}
+.tfiche .fh b{display:block;font-size:14px}
+.tfiche .fh small{font-size:11px;opacity:.6}
+.tfiche .fd{margin:6px 0;font-size:12px;opacity:.75}
+.tfiche .fx{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12px;margin-bottom:8px}
+.tfiche .fx span{opacity:.55}
+.tfiche .fx .nx{color:var(--bc)}
+.tfiche button{width:100%;padding:8px;border-radius:999px;border:2px solid var(--line);background:transparent;color:var(--panel-ink);font:800 12px 'JetBrains Mono',monospace;cursor:pointer}
+.tfiche button.buy{background:var(--bc);border-color:var(--bc);color:#fff}
+.tfiche button:disabled{opacity:.5;cursor:default}
+@media (max-width:560px){.ttree{gap:12px;padding:6px}.tn{grid-template-columns:16px 1fr;column-gap:3px;padding:4px;font-size:9.5px}.tn .ti{font-size:12px}.tn .tt{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word;hyphens:auto}}
 .snote{font-size:11px;opacity:.65;margin:0 0 8px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .stats div{background:rgba(44,52,70,.06);border-radius:10px;padding:8px}
@@ -253,6 +287,7 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
       <button class="nb coin" id="bCoins" data-tab="boutique" title="Boutique" aria-label="Boutique, pièces"><svg width="14" height="14" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><path fill="#c8901c" d="M2 0h3v1H2zM1 1h1v1H1zM5 1h1v1H5zM0 2h1v3H0zM6 2h1v3H6zM1 5h1v1H1zM5 5h1v1H5zM2 6h3v1H2z"/><path fill="#f2c64a" d="M2 1h3v1H2zM1 2h5v3H1zM2 5h3v1H2z"/><path fill="#fff0a0" d="M2 2h1v2H2z"/></svg><span id="nCoin">0</span><i class="dot" id="dShop" hidden></i></button>
       <span class="sep"></span>
       <button class="nb" id="bCarnet" data-tab="carnet" title="Carnet"><svg width="15" height="15" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M1 1h7v7H1zM2 2v5h1V2zM4 2v5h3V2z"/></svg><span class="lbl">Carnet</span><i class="dot" id="dCarnet" hidden></i></button>
+      <button class="nb" id="bTrain" data-tab="train" title="Entraînement"><svg width="15" height="15" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M0 3h1v3H0zM1 2h2v5H1zM3 4h3v1H3zM6 2h2v5H6zM8 3h1v3H8z"/></svg><span class="lbl">Entraînement</span><i class="dot" id="dTrain" hidden></i></button>
       <button class="nb" id="bDefis" data-tab="defis" title="Défis"><svg width="15" height="15" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2 0h2v3H2zM5 0h2v3H5zM3 3h3v1H3zM2 4h5v1H2zM1 5h7v2H1zM2 7h5v1H2zM3 8h3v1H3z"/></svg><span class="lbl">Défis</span><i class="badge" id="nDef" hidden></i></button>
       <span class="sep"></span>
       <button class="nb ico" id="bSet" data-tab="reglages" title="Réglages" aria-label="Réglages"><svg width="16" height="16" viewBox="0 0 11 11" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M4 0h3v1H4zM1 1h2v1H1zM4 1h3v1H4zM8 1h2v1H8zM1 2h9v1H1zM2 3h7v1H2zM0 4h4v1H0zM7 4h4v1H7zM0 5h4v1H0zM7 5h4v1H7zM0 6h4v1H0zM7 6h4v1H7zM2 7h7v1H2zM1 8h9v1H1zM1 9h2v1H1zM4 9h3v1H4zM8 9h2v1H8zM4 10h3v1H4z"/></svg></button>
@@ -315,6 +350,7 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
   <div class="ph">
     <button class="tab on" data-tab="boutique">Boutique</button>
     <button class="tab" data-tab="carnet">Carnet</button>
+    <button class="tab" data-tab="train">Entraînement</button>
     <button class="tab" data-tab="defis">Défis</button>
     <button class="tab" data-tab="reglages">Réglages</button>
     <button class="tab" data-tab="admin" id="tAdmin" hidden>Admin</button>
@@ -322,11 +358,11 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
   </div>
   <div class="pb" id="pb"></div>
 </div></div>
-<script src="js/core.js?v=22"></script>
-<script src="js/world.js?v=22"></script>
-<script src="js/layers.js?v=22"></script>
-<script src="js/sprites.js?v=22"></script>
-<script src="js/game.js?v=22"></script>
-<script src="js/main.js?v=22"></script>
+<script src="js/core.js?v=23"></script>
+<script src="js/world.js?v=23"></script>
+<script src="js/layers.js?v=23"></script>
+<script src="js/sprites.js?v=23"></script>
+<script src="js/game.js?v=23"></script>
+<script src="js/main.js?v=23"></script>
 </body>
 </html>

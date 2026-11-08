@@ -64,14 +64,28 @@ const FOOD={
   mangue:{n:'Mangue',e:26,p:10,ic:'🥭',reg:'exo'}
 };
 const FLASK={l:.5,p:25,max:3},FILTRE={p:150},BUVP=30;
+// entraînement : arbre de compétences en 4 branches ; t = palier (colonne), req = [[parent,niveau]]
+const BRANCH=[['vit','Vitesse','#e8603a'],['endu','Endurance','#3f9a5a'],['mont','Montagne','#3d7fc4'],['vie','Vie de coureur','#9a5cc0']];
+const pct=n=>Math.round(n)+' %';
 const UPG={
-  vma:{n:'Fractionné (VMA)',d:'+4 % de vitesse',b:60},
-  endu:{n:'Sortie longue',d:'−6 % d’énergie dépensée',b:50},
-  thermo:{n:'Acclimatation',d:'−6 % d’eau bue',b:50},
-  grimpe:{n:'Côtes',d:'+5 % en montée',b:70},
-  descente:{n:'Descente technique',d:'+5 % en descente',b:70},
-  sponsor:{n:'Sponsor',d:'+10 % de pièces',b:120},
-  bivouac:{n:'Bivouac',d:'+1 h de course hors onglet',b:150}
+  vma:{br:'vit',t:0,ic:'⚡',n:'Fractionné (VMA)',d:'Plus rapide partout.',fx:l=>'+'+pct(4*l)+' de vitesse',b:60,max:8},
+  seuil:{br:'vit',t:1,ic:'⏱',n:'Allure seuil',d:'Tient l’allure sur le plat.',fx:l=>'+'+pct(5*l)+' sur le plat',b:140,max:3,req:[['vma',2]]},
+  descente:{br:'vit',t:1,ic:'⤵',n:'Descente technique',d:'Lâche les freins dans les pentes.',fx:l=>'+'+pct(5*l)+' en descente',b:70,max:8,req:[['vma',1]]},
+  nuit:{br:'vit',t:2,ic:'🌙',n:'Sorties de nuit',d:'L’habitude de courir sans voir loin.',fx:l=>'−'+pct(25*l)+' de pénalité la nuit',b:220,max:3,req:[['seuil',1]]},
+  endu:{br:'endu',t:0,ic:'🔋',n:'Sortie longue',d:'Le moteur diesel.',fx:l=>'−'+pct(6*l)+' d’énergie dépensée',b:50,max:8},
+  thermo:{br:'endu',t:1,ic:'☀',n:'Acclimatation',d:'Transpire moins, boit moins.',fx:l=>'−'+pct(6*l)+' d’eau bue',b:50,max:8,req:[['endu',1]]},
+  estomac:{br:'endu',t:1,ic:'🍽',n:'Estomac d’acier',d:'Digère tout, même en côte.',fx:l=>'+'+pct(10*l)+' d’énergie par encas',b:160,max:3,req:[['endu',2]]},
+  rustic:{br:'endu',t:2,ic:'🧊',n:'Rusticité',d:'Le froid et la pluie, même pas mal.',fx:l=>'−'+pct(30*l)+' de pénalité froid et pluie',b:240,max:3,req:[['thermo',2]]},
+  mental:{br:'endu',t:2,ic:'🧠',n:'Mental d’ultra',d:'Avance quand plus rien ne va.',fx:l=>'−'+pct(25*l)+' de pénalité à sec ou sans énergie',b:300,max:3,req:[['estomac',1]]},
+  grimpe:{br:'mont',t:0,ic:'⛰',n:'Côtes',d:'Les répétitions en montée.',fx:l=>'+'+pct(5*l)+' en montée',b:70,max:8},
+  marche:{br:'mont',t:1,ic:'🥾',n:'Marche active',d:'Mains sur les cuisses, ça avance.',fx:l=>'+'+pct(6*l)+' en marche dans les raidillons',b:120,max:3,req:[['grimpe',1]]},
+  techn:{br:'mont',t:1,ic:'🪨',n:'Pied sûr',d:'Pierriers, racines, neige.',fx:l=>'−'+pct(20*l)+' de pénalité terrain technique',b:150,max:3,req:[['grimpe',2]]},
+  semelle:{br:'mont',t:2,ic:'👟',n:'Foulée légère',d:'Use moins ses chaussures.',fx:l=>'−'+pct(12*l)+' d’usure des semelles',b:200,max:3,req:[['techn',1]]},
+  sponsor:{br:'vie',t:0,ic:'🪙',n:'Sponsor',d:'Un logo sur le t-shirt.',fx:l=>'+'+pct(10*l)+' de pièces',b:120,max:8},
+  bivouac:{br:'vie',t:1,ic:'💤',n:'Sommeil',d:'Continue de courir quand l’onglet est fermé.',fx:l=>'+'+l+' h de course hors onglet',b:150,max:6,req:[['sponsor',1]]},
+  oeil:{br:'vie',t:1,ic:'👁',n:'Œil de lynx',d:'Repère les bêtes de loin.',fx:l=>'+'+pct(15*l)+' d’animaux',b:130,max:3,req:[['sponsor',1]]},
+  recup:{br:'vie',t:2,ic:'⛺',n:'Récupération',d:'Dort mieux au bivouac.',fx:l=>'−'+pct(12*l)+' de temps de repos',b:200,max:3,req:[['bivouac',1]]},
+  patience:{br:'vie',t:2,ic:'📷',n:'Patience',d:'Attend le bon cadrage.',fx:l=>'+'+pct(20*l)+' de pièces par photo',b:180,max:3,req:[['oeil',1]]}
 };
 // compagnons : on les rencontre dans un biome (b), puis on les adopte en boutique
 const COMP={
@@ -159,6 +173,9 @@ if(Q.has('tout')){G.coins+=99999;history.replaceState(null,'',location.pathname)
 let RESET=0;   // « Tout recommencer » : plus aucune sauvegarde avant le rechargement
 const save=()=>{if(RESET)return;G.last=Date.now();store.set('save',G)};
 const lvl=k=>G.up[k]||0;
+// une compétence s'achète si ses parents ont le niveau demandé (déjà entamée = toujours ouverte)
+const upOpen=k=>lvl(k)>0||(UPG[k].req||[]).every(([p,n])=>lvl(p)>=n);
+const upCan=k=>upOpen(k)&&lvl(k)<UPG[k].max&&G.coins>=upCost(k,lvl(k));
 const capL=()=>GEAR[G.gear.bag].cap,slots=()=>GEAR[G.gear.bag].slots;
 const stockN=()=>Object.values(G.stock).reduce((a,b)=>a+b,0);
 
@@ -172,7 +189,7 @@ function condAt(date,dm){
 // bivouac : pourquoi on s'arrête, combien de minutes il faut pour récupérer ici
 const RESTWHY={eau:['Plus une goutte d’eau','💧'],energie:['Plus d’énergie, plus d’encas','⚡'],chaussures:['Semelles finies, pas de paire de rechange','👟']};
 function restMin(date=now(),dm=G.d){
-  const B=GEAR[G.gear.biv]||GEAR.sac,L=leg(dm),c=condAt(date,dm),pen=[];let m=B.fav&&B.fav.includes(L.b)?B.fr:B.rest;
+  const B=GEAR[G.gear.biv]||GEAR.sac,L=leg(dm),c=condAt(date,dm),pen=[];let m=(B.fav&&B.fav.includes(L.b)?B.fr:B.rest)*(1-.12*lvl('recup'));
   if(WX[c.wx].rain&&!B.rain){m*=1.6;pen.push('pluie')}
   if((c.T<4||c.night&&c.alt>1800)&&(B.cold||0)<1){m*=1+.5*(1-(B.cold||0));pen.push('froid')}
   if(WX[c.wx].wind&&['crete','sommet','falaise','glacier'].includes(L.b)&&!B.wind){m*=1.3;pen.push('vent')}
@@ -205,23 +222,23 @@ function step(dt,date){
   let v0=9.2*(1+.04*lvl('vma'))*sh.spd*(GEAR[G.gear.bag].spd||1)*(G.wear>sh.life?.88:1);
   if(G.wear>sh.life)why.push('chaussures usées');
   let mode='run',v;
-  if(gr>.14){mode='hike';v=4.6*(G.gear.poles?GEAR[G.gear.poles].hike:1)*(1+.05*lvl('grimpe'))/(1+(gr-.14)*3)}
+  if(gr>.14){mode='hike';v=4.6*(G.gear.poles?GEAR[G.gear.poles].hike:1)*(1+.05*lvl('grimpe'))*(1+.06*lvl('marche'))/(1+(gr-.14)*3)}
   else if(gr>0)v=v0*(1+.05*lvl('grimpe')*Math.min(1,gr*8))/(1+gr*8);
   else{const d=-gr;v=v0*(1+Math.min(d,.1)*2.5-Math.max(0,d-.16)*3)*(1+.05*lvl('descente')*Math.min(1,d*8))}
   let k=1;
-  const snowy=L.b==='sommet'||L.b==='glacier',tech0=lerp(lerp(B.tech,1,sh.rock*.85),1,snowy&&G.gear.style==='pingouin'?.6:0),tech=lerp(tech0,1,(G.comp&&COMP[G.comp].tech)||0);if(tech<.99)why.push(L.b==='sommet'?'neige':'terrain technique');k*=tech;
+  const snowy=L.b==='sommet'||L.b==='glacier',tech0=lerp(lerp(B.tech,1,sh.rock*.85),1,snowy&&G.gear.style==='pingouin'?.6:0),tech=lerp(lerp(tech0,1,(G.comp&&COMP[G.comp].tech)||0),1,Math.min(1,.2*lvl('techn')));if(tech<.99)why.push(L.b==='sommet'?'neige':'terrain technique');k*=tech;
   const E0=(G.gear.eyes&&GEAR[G.gear.eyes])||{};
-  if(WX[c.wx].rain&&!E0.rain){const f=1-.1*(1-sh.grip)-(top.rain?0:.05);if(f<1)why.push('pluie');k*=f}
+  if(WX[c.wx].rain&&!E0.rain){const f=1-(.1*(1-sh.grip)+(top.rain?0:.05))*(1-.3*lvl('rustic'));if(f<1)why.push('pluie');k*=f}
   if(WX[c.wx].wind&&(L.b==='crete'||L.b==='sommet'||L.b==='falaise')&&!top.wind&&!E0.wind){k*=.9;why.push('vent')}
-  const cold=c.T<4;if(cold){const p=Math.max(top.cold||0,(hd&&hd.cold)||0,(GEAR[G.gear.style]||{}).cold||0);if(p<1){k*=1-.08*(1-p);why.push('froid')}}
-  if(c.night){let n=G.gear.lamp?GEAR[G.gear.lamp].night:.72;if(E0.night)n=1-(1-n)/2;if(n<1)why.push('nuit');k*=n}
+  const cold=c.T<4;if(cold){const p=Math.max(top.cold||0,(hd&&hd.cold)||0,(GEAR[G.gear.style]||{}).cold||0);if(p<1){k*=1-.08*(1-p)*(1-.3*lvl('rustic'));why.push('froid')}}
+  if(c.night){let n=G.gear.lamp?GEAR[G.gear.lamp].night:.72;if(E0.night)n=1-(1-n)/2;n=1-(1-n)*Math.max(0,1-.25*lvl('nuit'));if(n<1)why.push('nuit');k*=n}
   const ey=G.gear.eyes&&GEAR[G.gear.eyes];
   if(ey){if(ey.snow&&(L.b==='sommet'||L.b==='glacier'))k*=ey.snow;if(ey.sun&&c.sun)k*=ey.sun;if(ey.hot&&['desert','canyon','savane'].includes(L.b))k*=ey.hot}
   if(G.boost&&G.boost.t>Date.now())k*=G.boost.k;
   const CP=comp();if(CP.spd)k*=CP.spd;if(CP.up&&gr>.02)k*=CP.up;
-  const sty=GEAR[G.gear.style]||{};if(sty.nightS&&c.night)k*=sty.nightS;if(sty.up&&gr>.02)k*=sty.up;if(sty.down&&gr<-.02)k*=sty.down;if(sty.flat&&Math.abs(gr)<=.02)k*=sty.flat;
-  if(G.water<=0){k*=.62;why.push('déshydraté')}
-  if(G.energy<=0){k*=.5;mode='hike';why.push('coup de barre')}
+  const sty=GEAR[G.gear.style]||{};if(sty.nightS&&c.night)k*=sty.nightS;if(sty.up&&gr>.02)k*=sty.up;if(sty.down&&gr<-.02)k*=sty.down;if(sty.flat&&Math.abs(gr)<=.02)k*=sty.flat;if(Math.abs(gr)<=.03)k*=1+.05*lvl('seuil');
+  const mt=Math.min(1,.25*lvl('mental'));if(G.water<=0){k*=lerp(.62,1,mt);why.push('déshydraté')}
+  if(G.energy<=0){k*=lerp(.5,1,mt);mode='hike';why.push('coup de barre')}
   v=v*k/3.6;
   const eff=mode==='hike'?1.1:gr>0?1+gr*3:Math.max(.75,1+gr*1.5);
   // consommation
@@ -233,7 +250,7 @@ function step(dt,date){
   if(G.energy<G.auto.eat)autoEat();
   // déplacement
   const s1=s0+v*dt,de=elevMacro(s1)-elevMacro(s0);
-  G.d=s1;G.t+=dt;G.wear+=v*dt/1000;G.sess.d+=v*dt;
+  G.d=s1;G.t+=dt;G.wear+=v*dt/1000*(1-.12*lvl('semelle'));G.sess.d+=v*dt;
   // semelle usée : on enfile une paire de rechange du même modèle s'il en reste
   if(G.wear>sh.life&&(G.spare[G.gear.shoes]||0)>0){G.spare[G.gear.shoes]--;G.wear=0;emit('Nouvelle paire enfilée',`${sh.n} · encore ${G.spare[G.gear.shoes]} en réserve`,'👟')}
   if(de>0){G.dp+=de;G.sess.dp+=de}else G.dn-=de;
@@ -262,7 +279,7 @@ function autoEat(){
   ids.sort((a,b)=>Math.abs(FOOD[a].e-need*.6)-Math.abs(FOOD[b].e-need*.6));
   eat(ids[0],true);
 }
-function eat(id,auto){if(!G.stock[id])return;G.stock[id]--;if(!G.stock[id])delete G.stock[id];G.energy=Math.min(100,G.energy+FOOD[id].e);G.st.eaten++;if(!auto)emit(FOOD[id].n,'+'+FOOD[id].e+' d’énergie',FOOD[id].ic)}
+function eat(id,auto){if(!G.stock[id])return;G.stock[id]--;if(!G.stock[id])delete G.stock[id];const e=Math.round(FOOD[id].e*(1+.1*lvl('estomac')));G.energy=Math.min(100,G.energy+e);G.st.eaten++;if(!auto)emit(FOOD[id].n,'+'+e+' d’énergie',FOOD[id].ic)}
 function passPoi(p){
   const L=leg(p.d);
   if(p.k==='ravito'){
