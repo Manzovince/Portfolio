@@ -9,12 +9,11 @@ function homeCam(){
   const port=W<H*1.1;
   return{F:port?W*.62:W*.55,cx:W*(port?1:.8),hy:Math.round(H*(port?.36:.56)),cy:1.6};
 }
-function homeScene(g,t,night){
+function homeScene(g,t,night,part){
   const key=W+'x'+H+(night?'n':'d')+(typeof saison==='function'?saison():'');
   if(HV.key!==key){HV.key=key;buildHome(night)}
-  g.drawImage(HV.back,0,0);
-  drawSitter(g,t);
-  g.drawImage(HV.front,0,0);
+  // part 0 : le fond (maisons, fenêtres) ; part 1 : le coureur et ce qui est devant lui
+  if(!part)g.drawImage(HV.back,0,0);else{drawSitter(g,t);g.drawImage(HV.front,0,0)}
 }
 // fenêtres éclairées : halo après la teinte de nuit
 function homeLights(a){

@@ -101,10 +101,12 @@ function draw(date,t){
   // --- la scène (teintée selon l'heure) ---
   const g=sg;g.clearRect(0,0,W,H);
   // à la maison : la rue du village en perspective (js/home.js)
-  if(G.home){homeScene(g,t,SK.dark>.35);
-    if(SK.ta>0){g.globalCompositeOperation='source-atop';g.fillStyle=rgba(SK.tint,SK.ta);g.fillRect(0,0,W,H);g.globalCompositeOperation='source-over'}
-    if(W0.rain||wx==='nuages'||W0.fog){g.globalCompositeOperation='source-atop';g.fillStyle=W0.rain?'rgba(50,60,80,.26)':'rgba(70,80,100,.14)';g.fillRect(0,0,W,H);g.globalCompositeOperation='source-over'}
-    ctx.drawImage(sceneCv,0,0);if(SK.dark>.2)homeLights(Math.min(1,(SK.dark-.2)*1.4));return}
+  if(G.home){
+    // deux passes : le fond puis le halo des fenêtres, ensuite le coureur et le premier plan par-dessus
+    const tintIt=()=>{if(SK.ta>0){g.globalCompositeOperation='source-atop';g.fillStyle=rgba(SK.tint,SK.ta);g.fillRect(0,0,W,H);g.globalCompositeOperation='source-over'}
+      if(W0.rain||wx==='nuages'||W0.fog){g.globalCompositeOperation='source-atop';g.fillStyle=W0.rain?'rgba(50,60,80,.26)':'rgba(70,80,100,.14)';g.fillRect(0,0,W,H);g.globalCompositeOperation='source-over'}};
+    homeScene(g,t,SK.dark>.35,0);tintIt();ctx.drawImage(sceneCv,0,0);if(SK.dark>.2)homeLights(Math.min(1,(SK.dark-.2)*1.4));
+    g.clearRect(0,0,W,H);homeScene(g,t,SK.dark>.35,1);tintIt();ctx.drawImage(sceneCv,0,0);return}
   const alt=camMacro;
   const K=[.004,.009,.016,.024,.032];
   for(let li=0;li<5;li++){
@@ -539,11 +541,7 @@ function homeUI(){
   $('#hoGo').textContent=hoK==='libre'?'Partir en sortie libre':'Partir · '+(hoK==='dist'?fmt(hoV.dist/1000,hoV.dist%1000?1:0)+' km':fmtT(hoV.time));
   $('#hoGo').disabled=!!(G.race&&G.race.st!=='bib');
   $('#hoGo').onclick=()=>{if(startTraining(hoK,hoK==='libre'?0:hoV[hoK])){save();hud()}};
-  const hr=$('#hoRace');
-  if(G.race){hr.hidden=true}else{hr.hidden=false;const id=CAMP.find(i=>raceOpen(i)&&!G.camp.ok.includes(i));
-    if(!id){hr.innerHTML='<span>🏆 Campagne terminée ! Tu peux recourir chaque course.</span><button>Courses</button>'}
-    else{const C=RACES[id],I=raceInfo(id);hr.innerHTML=`<span>${C.ic} <b></b><small>${fmt(I.len/1000,1)} km · objectif ${tm(C.goal)} · dossard ${coinTxt(C.fee)}</small></span><button>Courses</button>`;hr.querySelector('b').textContent=C.n}
-    hr.querySelector('button').onclick=()=>openModal('courses')}
+
 }
 /* ---------- campagne : courses, dossard, panneau de course ---------- */
 function onRoute(){ensure(G.d);cam=elev(G.d);camMacro=elevMacro(G.d);ANIM=[];SUP_USED.clear();clearTiles();tileBudget=999;save();hud();if($('#modal').classList.contains('on')&&curTab==='courses')renderRaces()}
