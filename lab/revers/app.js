@@ -1,8 +1,9 @@
 // Interface de REVERS : vous (joueur 0, en bas) contre le bot (joueur 1, en haut).
-import * as E from './engine.js?v=2';
-import { chooseDraw, chooseAction } from './ai.js?v=2';
-import { faceHTML, backHTML } from './cards.js?v=2';
-import { mergeAgg, emptyAgg } from './sim.js?v=2';
+import * as E from './engine.js?v=3';
+import { chooseDraw, chooseAction } from './ai.js?v=3';
+import { faceHTML, backHTML } from './cards.js?v=3';
+import { mergeAgg, emptyAgg } from './sim.js?v=3';
+import { rulesHTML, SECTIONS } from './rules.js?v=3';
 
 const ME = 0, BOT = 1;
 const $ = id => document.getElementById(id);
@@ -331,7 +332,26 @@ $('bMenu').onclick = e => { e.stopPropagation(); setMenu(!top.classList.contains
 $('nav').addEventListener('click', () => setMenu(false));
 document.addEventListener('click', e => { if (!e.target.closest('.top')) setMenu(false); }, true);
 $('bNew').onclick = newGame;
-$('bRules').onclick = () => $('dlgRules').showModal();
+function openRules() {
+  $('rulesBody').innerHTML = rulesHTML();
+  $('rulesNav').innerHTML = SECTIONS.map(([id, t]) => `<button data-sec="${id}">${t}</button>`).join('');
+  $('dlgRules').showModal();
+  $('rulesBody').scrollTop = 0;
+  $('rulesNav').firstElementChild.classList.add('on');
+}
+$('bRules').onclick = openRules;
+$('rulesNav').addEventListener('click', e => {
+  const b = e.target.closest('[data-sec]'); if (!b) return;
+  const sec = $('r-' + b.dataset.sec), body = $('rulesBody');
+  body.scrollTo({ top: sec.offsetTop - body.offsetTop - 8, behavior: 'smooth' });
+});
+$('rulesBody').addEventListener('scroll', () => {
+  const body = $('rulesBody'); let cur = SECTIONS[0][0];
+  for (const [id] of SECTIONS) { const sec = $('r-' + id); if (sec && sec.offsetTop - body.offsetTop - 40 <= body.scrollTop) cur = id; }
+  for (const b of $('rulesNav').children) b.classList.toggle('on', b.dataset.sec === cur);
+}, { passive: true });
+// fermer une fenêtre en cliquant sur le fond
+for (const d of document.querySelectorAll('dialog.modal')) d.addEventListener('click', e => { if (e.target === d) d.close(); });
 $('bSim').onclick = () => $('dlgSim').showModal();
 $('bOpts').onclick = () => {
   const f = $('optForm');
@@ -363,7 +383,7 @@ $('simGo').onclick = () => {
   for (let w = 0; w < W; w++) {
     const from = w * per, to = Math.min(N, from + per);
     if (from >= to) { done++; continue; }
-    const wk = new Worker('worker.js?v=2', { type: 'module' });
+    const wk = new Worker('worker.js?v=3', { type: 'module' });
     wk.onmessage = e => {
       if (run !== simRun) return wk.terminate();
       prog += e.data.progress || 0; $('simProg').value = prog;

@@ -1,6 +1,6 @@
 // Simulation de masse bot contre bot (partagée par worker.js et tools/sim.mjs).
-import { newGame, mulberry32, forceOnBoard } from './engine.js?v=2';
-import { playTurn } from './ai.js?v=2';
+import { newGame, mulberry32, forceOnBoard } from './engine.js?v=3';
+import { playTurn } from './ai.js?v=3';
 
 export function emptyAgg() {
   return { n: 0, win: [0, 0], nul: 0, firstWins: 0, bySouv: 0, byForce: 0, turns: 0, traps: 0, checks: 0,

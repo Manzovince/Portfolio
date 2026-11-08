@@ -1,5 +1,5 @@
 // Rendu HTML des cartes (face et dos), partagé par le simulateur et la page des designs.
-import { CARDS, TNOM } from './engine.js?v=2';
+import { CARDS, TNOM } from './engine.js?v=3';
 
 export const GLYPH = {
   P: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="7"/><g stroke-width="3" stroke-linecap="round"><path d="M20 4v5M20 31v5M4 20h5M31 20h5M8.7 8.7l3.5 3.5M27.8 27.8l3.5 3.5M8.7 31.3l3.5-3.5M27.8 12.2l3.5-3.5"/></g></svg>',

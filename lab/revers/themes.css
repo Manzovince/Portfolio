@@ -51,7 +51,7 @@
 .th-signal .face .tc-frame::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 36%; background: var(--c); }
 .th-signal .tc-arrows { top: 6cqw; }
 .th-signal .tc-arrows i { color: rgba(0,0,0,.16); } .th-signal .tc-arrows i.on { color: #111; }
-.th-signal .tc-sup { width: 8cqw; height: 19cqw; }
+.th-signal .tc-sup { width: 10cqw; height: 24cqw; top: 45%; }
 .th-signal .tc-sup.on { background: #111; }
 .th-signal .tc-sup.l { border-radius: 0 4px 4px 0; } .th-signal .tc-sup.r { border-radius: 4px 0 0 4px; }
 .th-signal .tc-num { top: 39%; font-size: 54cqw; font-weight: 900; letter-spacing: -.04em; }
