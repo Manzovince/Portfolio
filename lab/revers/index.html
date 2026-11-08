@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Revers</title>
+<meta name="theme-color" content="#16201c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<header class="top">
+  <h1>REVERS</h1>
+  <button id="bMenu" class="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  <nav id="nav">
+    <button id="bNew">Nouvelle partie</button>
+    <button id="bRules">Règles</button>
+    <button id="bOpts">Options</button>
+    <button id="bSim">Simulation</button>
+    <a class="btn" href="cartes.html">Designs</a>
+  </nav>
+</header>
+
+<main id="table">
+  <section class="side top-side">
+    <div class="who">Bot <span id="botLvl"></span> · main <span id="botN">0</span></div>
+    <div class="hand bot" id="botHand"></div>
+    <div class="board" id="botBoard"></div>
+  </section>
+
+  <section class="mid">
+    <div class="pile" id="pile"></div>
+    <div class="market" id="market"></div>
+  </section>
+
+  <section class="side me">
+    <div class="board" id="myBoard"></div>
+    <div class="dock">
+      <div class="status" id="status"></div>
+      <div class="ctrl" id="ctrl"></div>
+      <div class="hand mine" id="myHand"></div>
+    </div>
+  </section>
+
+  <aside class="log" id="log"></aside>
+</main>
+
+<dialog id="dlgRules">
+  <form method="dialog"><button class="x">✕</button></form>
+  <h2>Règles de Revers</h2>
+  <div class="rules">
+    <p><b>But.</b> Capturer le <b>Souverain</b> adverse. Si la pioche s’épuise : 2 derniers tours, puis la plus grosse force <i>visible</i> sur la table gagne.</p>
+    <p><b>Les cartes ont deux vies.</b> La <b>face</b> (force, flèches) sert quand on joue la carte. Le <b>dos</b> (Plaine, Forêt, Montagne, Marais) sert quand elle est cachée ou au sommet de la pioche. L’adversaire voit les dos de votre main.</p>
+    <p><b>Table.</b> 5 colonnes, 2 rangées par joueur : le <b>Front</b> et la <b>Garde</b>. Chaque joueur commence avec son Souverain et son Ombre cachés en Garde. Les deux ont le même dos ⚜ : l’adversaire sait où sont vos Blasons, mais pas lequel est le vrai.</p>
+    <p><b>Tour.</b> ① <b>Puiser</b> : une carte du Marché (face visible) ou le sommet de la pioche à l’aveugle. Le sommet change, donc le <b>climat</b> change. Le premier joueur ne puise pas à son premier tour. Avec 7 cartes en main, on ne puise plus : le sommet de la pioche part à la défausse.<br>
+    ② <b>Une action</b> : <b>Déployer</b> (poser face visible), <b>Enfouir</b> (poser face cachée), <b>Frapper</b> ou <b>Manœuvrer</b> (échanger deux de vos cases voisines).<br>
+    En plus, une fois par tour, une <b>Embuscade</b> gratuite : retourner une de vos cartes cachées.</p>
+    <p><b>Frapper.</b> Une unité visible du Front frappe selon ses flèches ↖ ↑ ↗. Une unité de la Garde ne frappe que si sa case de Front est vide. Elle touche la carte d’en face (ou en diagonale) au Front, ou en Garde si le Front de cette colonne est vide. Si la force est au moins égale à la défense, la cible est capturée et va dans votre main.</p>
+    <p><b>Élan.</b> Après une capture, la même unité peut frapper une seconde fois dans le tour.</p>
+    <p><b>Défense.</b> Une unité visible défend avec sa force, +1 par voisine dont la flèche ◂ ▸ pointe vers elle. Une carte cachée défend avec son dos : Plaine 1, Forêt 2, Marais 2, Montagne 3, Blason 2.<br>
+    <b>Chez soi</b> : une unité dont le dos correspond au climat gagne +1.</p>
+    <p><b>Climat</b> (dos au sommet de la pioche) : Plaine : aucun effet · Forêt : les diagonales ne portent pas · Montagne : toutes les défenses +1 · Marais : Manœuvre interdite.</p>
+    <p><b>Blasons.</b> Frapper avec succès un Blason caché : si c’est l’<b>Ombre</b>, c’est un piège et votre attaquant passe chez l’adversaire. Si c’est le <b>Souverain</b>, il est <b>démasqué</b> (échec) : il défend désormais à 3 + soutiens. Une deuxième frappe réussie le capture.</p>
+    <p><b>Spécialistes</b> (un par terre) : 👁 Éclaireur (révélé : regarde une carte cachée) · 🌫 Brume (révélée : échange vos Blasons en secret, ou fait semblant) · 🛡 Bastion (les diagonales ne le visent pas) · ♞ Cavalier (Manœuvre avec n’importe quelle case, même sous Marais).</p>
+  </div>
+</dialog>
+
+<dialog id="dlgOpts">
+  <form method="dialog"><button class="x">✕</button></form>
+  <h2>Options</h2>
+  <form id="optForm" class="opts">
+    <label>Niveau du bot <select name="level"><option value="facile">Facile</option><option value="normal">Normal</option><option value="fort">Fort</option></select></label>
+    <label>Qui commence <select name="first"><option value="0">Vous</option><option value="1">Le bot</option><option value="r">Au hasard</option></select></label>
+    <label>Actions par tour <select name="actions"><option value="1">1</option><option value="2">2</option></select></label>
+    <label><input type="checkbox" name="elan"> Élan (seconde frappe après une capture)</label>
+    <label><input type="checkbox" name="parachute"> Parachutage (carte capturée dans la main)</label>
+    <label><input type="checkbox" name="firstNoDraw"> Le premier joueur ne puise pas au tour 1</label>
+    <label>Cartes en plus pour le second joueur <select name="bonus2"><option>0</option><option>1</option><option>2</option></select></label>
+    <label>Taille du marché <select name="market"><option>3</option><option>4</option><option>5</option></select></label>
+    <p class="hint">Les options s’appliquent à la prochaine partie et à la simulation.</p>
+    <button type="submit" class="primary">Enregistrer et rejouer</button>
+  </form>
+</dialog>
+
+<dialog id="dlgSim">
+  <form method="dialog"><button class="x">✕</button></form>
+  <h2>Simulation bot contre bot</h2>
+  <div class="opts row">
+    <label>Parties <input type="number" id="simN" value="500" min="10" max="20000" step="10"></label>
+    <label>J1 <select id="simA"><option>facile</option><option>normal</option><option selected>fort</option></select></label>
+    <label>J2 <select id="simB"><option>facile</option><option>normal</option><option selected>fort</option></select></label>
+    <button id="simGo" class="primary">Lancer</button>
+  </div>
+  <p class="hint">Utilise les options actuelles. Le premier joueur alterne d’une partie à l’autre.</p>
+  <progress id="simProg" value="0" max="1"></progress>
+  <div id="simOut"></div>
+</dialog>
+
+<div id="toast"></div>
+<script type="module" src="app.js?v=1"></script>
+</body>
+</html>

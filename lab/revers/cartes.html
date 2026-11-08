@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revers · designs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Archivo:wght@500;800;900&family=Shippori+Mincho:wght@500;800&family=Press+Start+2P&family=Josefin+Sans:wght@300;600&display=swap">
+<style>
+  :root { --bg: #16201c; --ink: #eef0e6; --dim: #8e9a92; --line: #33463d; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, sans-serif; }
+  header { padding: 18px 16px 6px; max-width: 1180px; margin: 0 auto; }
+  header h1 { margin: 0; letter-spacing: .3em; font-size: 22px; }
+  header p { color: var(--dim); max-width: 760px; }
+  header a { color: #e3b34f; }
+  .must { max-width: 1180px; margin: 0 auto 8px; padding: 0 16px; }
+  .must ul { margin: 6px 0 0; padding-left: 18px; color: #c6ccc2; columns: 2 320px; }
+  section.piste { max-width: 1180px; margin: 22px auto; padding: 18px 16px 22px; border-top: 1px solid var(--line); }
+  .piste h2 { margin: 0 0 2px; font-size: 19px; }
+  .piste .pitch { color: var(--dim); margin: 0 0 12px; max-width: 820px; }
+  .pc { display: flex; gap: 22px; flex-wrap: wrap; font-size: 13px; margin-bottom: 12px; color: #c6ccc2; }
+  .pc b { color: var(--ink); }
+  .stage { border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px; overflow-x: auto; }
+  .row { display: flex; gap: 12px; }
+  .row .lbl { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; opacity: .55; }
+
+  /* ---------- structure commune ---------- */
+  .tc { --w: 118px; width: var(--w); height: calc(var(--w) * 1.4); flex: none; position: relative; overflow: hidden; }
+  .tc svg { width: 100%; height: 100%; display: block; fill: currentColor; stroke: currentColor; }
+  .tc-arrows { position: absolute; top: 6px; left: 8px; right: 8px; display: flex; justify-content: space-between; }
+  .tc-arrows i { width: 28%; aspect-ratio: 1; }
+  .tc-sup { position: absolute; top: 47%; width: 12px; height: 18px; }
+  .tc-sup.l { left: 0; } .tc-sup.r { right: 0; }
+  .tc-num { position: absolute; left: 0; right: 0; top: 34%; text-align: center; line-height: 1; }
+  .tc-name { position: absolute; left: 6px; right: 6px; bottom: 30px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tc-home { position: absolute; bottom: 6px; right: 8px; width: 24px; height: 24px; }
+  .tc-text { position: absolute; left: 8px; right: 8px; bottom: 6px; font-size: 9px; line-height: 1.2; text-align: center; }
+  .tc.back { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .tc.back .tc-glyph { width: 46%; position: relative; z-index: 1; }
+  .tc.back .tc-label { position: relative; z-index: 1; margin-top: 6px; }
+  .tc.spec .tc-text, .tc.souv .tc-text, .tc.ombre .tc-text { display: block; }
+  .tc.unit .tc-text { display: none; }
+  .tc.spec .tc-name, .tc.blason .tc-name { bottom: 50px !important; }
+  .tc.spec .tc-num { top: 27% !important; }
+  .tc.blason .tc-arrows, .tc.blason .tc-sup, .tc.blason .tc-num { display: none; }
+  .tc.blason .tc-crown { position: absolute; top: 22%; left: 25%; width: 50%; }
+
+  /* ================= 1. Carte d'état-major ================= */
+  .th-carto .stage { background: #2a241b; }
+  .th-carto .tc { border-radius: 6px; font-family: "IM Fell English", Georgia, serif; color: #4a3520; background: #efe3c4; box-shadow: 0 3px 8px rgba(0,0,0,.5), inset 0 0 0 5px #efe3c4, inset 0 0 0 6px #8b6a43, inset 0 0 22px rgba(120,80,30,.35); }
+  .th-carto .face { --tint: #6b8f5a; }
+  .th-carto .t-P { --tint: #c59a3a; } .th-carto .t-F { --tint: #4f7a46; } .th-carto .t-M { --tint: #7c6f66; } .th-carto .t-A { --tint: #4f7b80; } .th-carto .t-B { --tint: #7a2f2f; }
+  .th-carto .face::before { content: ""; position: absolute; inset: 9px; border: 1px solid #8b6a43; border-radius: 3px; background: repeating-radial-gradient(circle at 70% 75%, transparent 0 9px, color-mix(in srgb, var(--tint) 22%, transparent) 9px 10px); }
+  .th-carto .tc-arrows i { opacity: .12; } .th-carto .tc-arrows i.on { opacity: 1; color: #8c2a1c; }
+  .th-carto .tc-sup.on { background: #8c2a1c; clip-path: polygon(0 0, 100% 50%, 0 100%); } .th-carto .tc-sup.l.on { clip-path: polygon(100% 0, 0 50%, 100% 100%); left: 9px; } .th-carto .tc-sup.r.on { right: 9px; }
+  .th-carto .tc-num { font-size: 58px; font-style: italic; }
+  .th-carto .tc-name { font-size: 13px; font-style: italic; letter-spacing: .04em; }
+  .th-carto .tc-home { color: var(--tint); }
+  .th-carto .tc-text { font-size: 9px; font-style: italic; }
+  .th-carto .back { background: repeating-radial-gradient(circle at 30% 70%, #efe3c4 0 7px, color-mix(in srgb, var(--tint) 55%, #efe3c4) 7px 8px), #efe3c4; color: var(--tint); }
+  .th-carto .back .tc-glyph { background: #efe3c4; border-radius: 50%; padding: 10px; box-shadow: 0 0 0 1px #8b6a43; width: 54%; }
+  .th-carto .back .tc-label { background: #efe3c4; padding: 0 8px; border: 1px solid #8b6a43; font-style: italic; color: #4a3520; }
+  .th-carto .blason .tc-crown { color: #7a2f2f; }
+
+  /* ================= 2. Signalétique ================= */
+  .th-signal .stage { background: #e9e9e4; }
+  .th-signal .tc { border-radius: 10px; font-family: Archivo, "Helvetica Neue", Arial, sans-serif; background: #fff; color: #111; box-shadow: 0 1px 0 #bbb, 0 4px 10px rgba(0,0,0,.12); }
+  .th-signal .t-P { --c: #f2b705; } .th-signal .t-F { --c: #12a150; } .th-signal .t-M { --c: #6b7a90; } .th-signal .t-A { --c: #0f8b8d; } .th-signal .t-B { --c: #5a2ca0; }
+  .th-signal .face::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 36%; background: var(--c); }
+  .th-signal .tc-arrows { top: 8px; }
+  .th-signal .tc-arrows i { color: rgba(0,0,0,.14); } .th-signal .tc-arrows i.on { color: #111; }
+  .th-signal .tc-sup { width: 10px; height: 22px; } .th-signal .tc-sup.on { background: #111; } .th-signal .tc-sup.l { border-radius: 0 4px 4px 0; } .th-signal .tc-sup.r { border-radius: 4px 0 0 4px; }
+  .th-signal .tc-num { top: 39%; font-size: 64px; font-weight: 900; letter-spacing: -.04em; }
+  .th-signal .tc-name { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; bottom: 28px; }
+  .th-signal .tc-home { color: var(--c); }
+  .th-signal .tc-text { font-weight: 500; }
+  .th-signal .back { background: var(--c); color: #fff; }
+  .th-signal .back::before { content: ""; position: absolute; inset: 10px; border: 3px solid rgba(255,255,255,.9); border-radius: 6px; }
+  .th-signal .back.t-P::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 10px, rgba(255,255,255,.18) 10px 20px); }
+  .th-signal .back.t-F::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle, rgba(255,255,255,.22) 3px, transparent 4px) 0 0/16px 16px; }
+  .th-signal .back.t-M::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent 0 9px, rgba(255,255,255,.2) 9px 12px); }
+  .th-signal .back.t-A::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0 8px, rgba(255,255,255,.2) 8px 11px); }
+  .th-signal .back.t-B::after { content: ""; position: absolute; inset: 0; background: repeating-conic-gradient(rgba(255,255,255,.16) 0 25%, transparent 0 50%) 0 0/20px 20px; }
+  .th-signal .back .tc-label { font-weight: 900; text-transform: uppercase; letter-spacing: .14em; font-size: 12px; }
+  .th-signal .blason .tc-crown { color: #fff; top: 6%; width: 44%; left: 28%; }
+
+  /* ================= 3. Estampe ================= */
+  .th-estampe .stage { background: #d9d1bf; }
+  .th-estampe .tc { border-radius: 3px; font-family: "Shippori Mincho", Georgia, serif; background: #f5efe0; color: #1b1b1b; box-shadow: 0 2px 6px rgba(60,40,10,.3); }
+  .th-estampe .face::after { content: ""; position: absolute; inset: 7px; border: 2px solid #1b1b1b; border-radius: 2px; pointer-events: none; }
+  .th-estampe .t-P { --c: #c9a227; } .th-estampe .t-F { --c: #2f5d3a; } .th-estampe .t-M { --c: #4a4a52; } .th-estampe .t-A { --c: #2b5d6b; } .th-estampe .t-B { --c: #b0261c; }
+  .th-estampe .tc-arrows { top: 12px; left: 14px; right: 14px; } .th-estampe .tc-arrows i { opacity: .1; } .th-estampe .tc-arrows i.on { opacity: 1; }
+  .th-estampe .tc-sup.on { background: #1b1b1b; width: 6px; height: 26px; } .th-estampe .tc-sup.l.on { left: 7px; } .th-estampe .tc-sup.r.on { right: 7px; }
+  .th-estampe .tc-num { top: 36%; left: 50%; right: auto; transform: translateX(-50%); width: 50px; height: 50px; line-height: 50px; font-size: 34px; font-weight: 800; color: #f5efe0; background: #b0261c; border-radius: 6px; box-shadow: inset 0 0 0 3px #f5efe0, inset 0 0 0 4px #b0261c; }
+  .th-estampe .tc-name { font-size: 13px; font-weight: 800; letter-spacing: .3em; bottom: 32px; }
+  .th-estampe .tc-home { color: var(--c); }
+  .th-estampe .tc-text { font-size: 7.5px; left: 12px; right: 12px; bottom: 11px; }
+  .th-estampe .spec .tc-name, .th-estampe .blason .tc-name { letter-spacing: .12em; }
+  .th-estampe .back { background: #f5efe0; color: var(--c); }
+  .th-estampe .back::before { content: ""; position: absolute; inset: 0; opacity: .9; }
+  .th-estampe .back.t-A::before { background: radial-gradient(circle at 50% 100%, transparent 0 8px, var(--c) 8px 10px, transparent 10px 14px, var(--c) 14px 16px, transparent 16px) 0 0/24px 14px; opacity: .35; }
+  .th-estampe .back.t-M::before { background: linear-gradient(to top, var(--c) 0 30%, transparent 30%), conic-gradient(from 135deg at 50% 40%, var(--c) 0 90deg, transparent 0) 0 100%/40px 100% repeat-x; opacity: .28; }
+  .th-estampe .back.t-F::before { background: conic-gradient(from 150deg at 50% 20%, var(--c) 0 60deg, transparent 0) 0 0/22px 26px; opacity: .3; }
+  .th-estampe .back.t-P::before { background: repeating-linear-gradient(170deg, transparent 0 9px, var(--c) 9px 10px); opacity: .45; }
+  .th-estampe .back.t-B::before { background: radial-gradient(circle, var(--c) 0 34%, transparent 35%) 50% 40%/100% 100% no-repeat; opacity: .9; }
+  .th-estampe .back .tc-glyph { background: #f5efe0; border: 2px solid #1b1b1b; border-radius: 50%; padding: 10px; width: 54%; }
+  .th-estampe .back.t-B .tc-glyph { background: transparent; border-color: #f5efe0; color: #f5efe0; }
+  .th-estampe .back .tc-label { background: #1b1b1b; color: #f5efe0; padding: 2px 10px; font-weight: 800; letter-spacing: .3em; font-size: 12px; }
+  .th-estampe .blason .tc-crown { color: #b0261c; }
+
+  /* ================= 4. Pixel ================= */
+  .th-pixel .stage { background: #1b1830; }
+  .th-pixel .tc { font-family: "Press Start 2P", monospace; background: #f2ead1; color: #222034; border: 4px solid #222034; box-shadow: 4px 4px 0 #000; image-rendering: pixelated; }
+  .th-pixel .t-P { --c: #fbb954; --d: #cd683d; } .th-pixel .t-F { --c: #5ac54f; --d: #33984b; } .th-pixel .t-M { --c: #9babb2; --d: #7f708a; } .th-pixel .t-A { --c: #4d9be6; --d: #3b5dc9; } .th-pixel .t-B { --c: #c32454; --d: #831c5d; }
+  .th-pixel .face { box-shadow: 4px 4px 0 #000, inset 0 0 0 4px var(--c); }
+  .th-pixel .tc-arrows { top: 10px; left: 10px; right: 10px; } .th-pixel .tc-arrows i { opacity: .12; } .th-pixel .tc-arrows i.on { opacity: 1; color: #c32454; }
+  .th-pixel .tc-sup.on { background: #3b5dc9; width: 8px; height: 16px; } .th-pixel .tc-sup.l.on { left: 4px; } .th-pixel .tc-sup.r.on { right: 4px; }
+  .th-pixel .tc-num { font-size: 36px; top: 37%; text-shadow: 3px 3px 0 var(--c); }
+  .th-pixel .tc-name { font-size: 7px; bottom: 30px; }
+  .th-pixel .tc-home { color: var(--d); }
+  .th-pixel .tc-text { font-size: 5.5px; line-height: 1.5; }
+  .th-pixel .back { background: repeating-conic-gradient(var(--c) 0 25%, var(--d) 0 50%) 0 0/16px 16px; color: #fff; }
+  .th-pixel .back .tc-glyph { background: var(--d); border: 4px solid #222034; padding: 8px; width: 56%; filter: drop-shadow(3px 3px 0 #000); }
+  .th-pixel .back .tc-label { background: #222034; color: #fff; padding: 4px 6px; font-size: 7px; }
+  .th-pixel .blason .tc-crown { color: #c32454; }
+
+  /* ================= 5. Art déco nocturne ================= */
+  .th-deco .stage { background: #070d1a; }
+  .th-deco .tc { border-radius: 8px; font-family: "Josefin Sans", "Futura", sans-serif; background: #0f1a2e; color: #e8cf8a; box-shadow: inset 0 0 0 2px #0f1a2e, inset 0 0 0 3px #c9a75a, inset 0 0 0 6px #0f1a2e, inset 0 0 0 7px #c9a75a55, 0 4px 14px rgba(0,0,0,.6); }
+  .th-deco .t-P { --c: #e0b24f; } .th-deco .t-F { --c: #5fb38a; } .th-deco .t-M { --c: #9fb2d0; } .th-deco .t-A { --c: #4fb0b8; } .th-deco .t-B { --c: #d06a8f; }
+  .th-deco .face::before { content: ""; position: absolute; left: 50%; top: 52%; width: 150px; height: 150px; transform: translate(-50%, -50%); background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--c) 18%, transparent) 0 5deg, transparent 5deg 15deg); border-radius: 50%; }
+  .th-deco .tc-arrows { top: 12px; left: 14px; right: 14px; } .th-deco .tc-arrows i { opacity: .12; } .th-deco .tc-arrows i.on { opacity: 1; color: #f3dc9c; }
+  .th-deco .tc-sup.on { background: #f3dc9c; width: 9px; height: 16px; } .th-deco .tc-sup.l.on { left: 8px; clip-path: polygon(100% 0, 0 50%, 100% 100%); } .th-deco .tc-sup.r.on { right: 8px; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .th-deco .tc-num { font-size: 60px; font-weight: 300; top: 33%; }
+  .th-deco .tc-name { font-size: 10px; font-weight: 600; letter-spacing: .35em; text-transform: uppercase; color: var(--c); }
+  .th-deco .tc-home { color: var(--c); }
+  .th-deco .tc-text { color: #bfae80; font-weight: 300; }
+  .th-deco .back { background: repeating-conic-gradient(from 0deg at 50% 100%, color-mix(in srgb, var(--c) 40%, #0f1a2e) 0 6deg, #0f1a2e 6deg 12deg); color: var(--c); }
+  .th-deco .back .tc-glyph { background: #0f1a2e; border: 1px solid #c9a75a; border-radius: 50% 50% 8px 8px; padding: 12px 10px; width: 54%; }
+  .th-deco .back .tc-label { background: #0f1a2e; border: 1px solid #c9a75a; padding: 3px 10px; font-size: 10px; letter-spacing: .4em; text-transform: uppercase; color: #e8cf8a; }
+  .th-deco .blason .tc-crown { color: #e8cf8a; }
+
+  @media (max-width: 600px) { .tc { --w: 96px; } .th-carto .tc-num, .th-deco .tc-num, .th-signal .tc-num { font-size: 46px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>REVERS · pistes de design</h1>
+  <p>Cinq directions pour le même paquet de 52 cartes. Chaque piste montre les quatre dos de terre, le dos Blason, puis six faces : une force 1 à 5 flèches, une force 2 avec soutiens, une force 3, une force 5, l’Éclaireur et le Souverain. <a href="index.html">← Retour au simulateur</a></p>
+</header>
+<div class="must">
+  <b>Ce que chaque design doit rendre lisible</b>
+  <ul>
+    <li>Le dos se reconnaît de loin, et pas seulement par sa couleur (motif + pictogramme, pour les daltoniens).</li>
+    <li>Les 3 flèches d’attaque : allumées ou éteintes, au même endroit sur toutes les cartes.</li>
+    <li>Les 2 soutiens latéraux ◂ ▸ sur les bords, pour qu’ils se « touchent » entre cartes voisines.</li>
+    <li>La force, en très gros. Lisible aussi à l’envers, puisque l’adversaire est en face.</li>
+    <li>La terre d’origine sur la face (bonus « chez soi »), rappelée par un petit pictogramme.</li>
+    <li>Le Souverain et l’Ombre ont le même dos, et leurs faces doivent pouvoir se confondre de loin.</li>
+  </ul>
+</div>
+<main id="pistes"></main>
+
+<script type="module">
+import { CARDS, TNOM } from './engine.js?v=1';
+import { GLYPH, ARROW } from './cards.js?v=1';
+
+const PISTES = [
+  { th: 'carto', name: '1 · Carte d’état-major',
+    pitch: 'Papier jauni, encre sépia, courbes de niveau. Chaque dos est un fragment de carte topographique : on « pose du terrain » sur la table. Ambiance campagne militaire du XVIIIe siècle, proche des échecs classiques.',
+    pros: 'très cohérent avec le thème des terres, chaleureux', cons: 'contraste plus faible, les dos se ressemblent si l’impression est terne' },
+  { th: 'signal', name: '2 · Signalétique',
+    pitch: 'Graphisme suisse : aplats francs, typo grasse, pictogrammes de panneau. Chaque terre a une couleur et un motif géométrique (rayures, pois, hachures, lignes). La lecture la plus rapide autour d’une table.',
+    pros: 'lisibilité maximale, facile à imprimer, accessible', cons: 'plus froid, moins d’univers' },
+  { th: 'estampe', name: '3 · Estampe',
+    pitch: 'Papier de riz, encre noire, sceau rouge pour la force. Les dos reprennent des motifs d’estampe : vagues pour le Marais, cimes pour la Montagne, pins pour la Forêt. Un style calme et stratégique, dans l’esprit du go ou du shogi.',
+    pros: 'élégant, très distinctif, la force en sceau se lit d’un coup d’œil', cons: 'demande une vraie illustration pour les motifs des dos' },
+  { th: 'pixel', name: '4 · Pixel',
+    pitch: 'Palette 8 bits, contours épais, ombres portées dures. Les dos sont des damiers de deux tons. Cohérent avec tes autres jeux en pixel art (Brumes, Pinfinity, Pêche Melba), parfait pour une version écran.',
+    pros: 'très lisible à l’écran, ludique, rapide à produire', cons: 'moins adapté à un jeu de cartes imprimé haut de gamme' },
+  { th: 'deco', name: '5 · Art déco nocturne',
+    pitch: 'Bleu nuit, filets dorés, rayons de soleil art déco. Les dos sont des éventails de lumière dans la couleur de chaque terre. Un jeu de salon qu’on sort le soir.',
+    pros: 'luxueux, superbe en dorure à chaud', cons: 'sombre : les flèches éteintes et les soutiens doivent bien contraster' },
+];
+const FACES = [12, 38, 5, 34, 23, 48];
+const BACKS = ['P', 'F', 'M', 'A', 'B'];
+
+function face(id) {
+  const c = CARDS[id];
+  const kind = c.kind === 'souv' || c.kind === 'ombre' ? `blason ${c.kind}` : c.kind;
+  const t = c.t;
+  const arrows = ['nw', 'n', 'ne'].map(d => `<i class="${c[d] ? 'on' : ''}">${ARROW[d]}</i>`).join('');
+  const name = c.kind === 'unit' ? TNOM[t] : c.name;
+  return `<div class="tc face t-${t} ${kind}">
+    <div class="tc-arrows">${arrows}</div>
+    <i class="tc-sup l${c.l ? ' on' : ''}"></i><i class="tc-sup r${c.r ? ' on' : ''}"></i>
+    ${c.kind === 'souv' || c.kind === 'ombre' ? `<div class="tc-crown">${GLYPH.B}</div>` : `<div class="tc-num">${c.f}</div>`}
+    <div class="tc-name">${name}</div>
+    ${c.text ? `<div class="tc-text">${c.text}</div>` : `<div class="tc-home">${GLYPH[t]}</div>`}
+  </div>`;
+}
+const back = t => `<div class="tc back t-${t}"><div class="tc-glyph">${GLYPH[t]}</div><div class="tc-label">${TNOM[t]}</div></div>`;
+
+document.getElementById('pistes').innerHTML = PISTES.map(p => `
+  <section class="piste th-${p.th}">
+    <h2>${p.name}</h2>
+    <p class="pitch">${p.pitch}</p>
+    <div class="pc"><span><b>+</b> ${p.pros}</span><span><b>−</b> ${p.cons}</span></div>
+    <div class="stage">
+      <div class="row"><span class="lbl">Dos</span>${BACKS.map(back).join('')}</div>
+      <div class="row"><span class="lbl">Faces</span>${FACES.map(face).join('')}</div>
+    </div>
+  </section>`).join('');
+</script>
+</body>
+</html>
