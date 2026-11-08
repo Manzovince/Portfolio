@@ -341,8 +341,7 @@ function hud(){
     for(const[id,n]of items){const b=document.createElement('button');b.title=FOOD[id].n+' · +'+FOOD[id].e+' (clic pour manger)';b.textContent=FOOD[id].ic+'×'+n;b.onclick=()=>eat(id);box.appendChild(b)}
     if(G.flask){const b=document.createElement('button');b.title='Gourde de secours (bue quand les bidons sont vides)';b.textContent='🧴×'+G.flask;b.onclick=()=>{if(G.water<capL()-.05){G.flask--;G.water=Math.min(capL(),G.water+FLASK.l)}};box.appendChild(b)}
     const sp=document.createElement('span');sp.style.cssText='opacity:.55;font-size:8.5px;align-self:center;margin-left:auto';sp.textContent=stockN()+'/'+slots();box.appendChild(sp)}
-  const nr=nextPoi(G.d,['ravito']),nf=nextPoi(G.d,G.own.includes('filtre')?['fontaine','ravito','buvette','cafe','ruisseau']:['fontaine','ravito','buvette','cafe']);
-  $('#next').innerHTML=`<span title="Prochain ravito"><i>⛺</i><b>${nr?fmt((nr.d-G.d)/1000,1):'—'}</b></span><span title="Prochain point d’eau"><i>💧</i><b>${nf?fmt((nf.d-G.d)/1000,1):'—'}</b></span>`;document.documentElement.classList.toggle('home',!!G.home);
+  document.documentElement.classList.toggle('home',!!G.home);
   const bs=G.boost&&G.boost.t>Date.now()?Math.ceil((G.boost.t-Date.now())/1000):0;
   $('#why').innerHTML=(bs?`<span style="color:#9ef09a">📣 encouragé +${Math.round((G.boost.k-1)*100)} % · ${bs} s</span> `:'')+(LIVE.why.length?'⚠ '+LIVE.why.join(' · '):'');
   drawProfile();
