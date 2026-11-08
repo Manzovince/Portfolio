@@ -6,7 +6,7 @@ let hoK=store.get('hoK','dist'),hoV=store.get('hoV',{dist:5000,time:2700}),raArm
 const cv=$('#scene'),ctx=cv.getContext('2d');
 const[sceneCv,sg]=canvasOf(1,1);
 function resize(){
-  const base=Math.max(1,Math.round(Math.min(innerHeight/430,innerWidth/380)));PX=base+ZOOM;ZS=PX/base;MPX=ZOOMS[ZOOM].mpx;
+  const base=Math.max(1,Math.round(Math.min(innerHeight/430,innerWidth/380)));PX=base+(typeof G!=='undefined'&&G.home?2:ZOOM);resize.home=typeof G!=='undefined'&&!!G.home;ZS=PX/base;MPX=ZOOMS[ZOOM].mpx;
   decoCache.clear();runCache.clear();if(typeof microCache!=='undefined')microCache.clear();
   W=Math.ceil(innerWidth/PX);H=Math.ceil(innerHeight/PX);
   // sur mobile, le sol passe juste au-dessus du tableau de bord et le paysage garde des proportions de paysage
@@ -549,7 +549,7 @@ function homeUI(){
 
 }
 /* ---------- campagne : courses, dossard, panneau de course ---------- */
-function onRoute(){ensure(G.d);cam=elev(G.d);camMacro=elevMacro(G.d);ANIM=[];SUP_USED.clear();clearTiles();tileBudget=999;save();hud();if($('#modal').classList.contains('on')&&curTab==='courses')renderRaces()}
+function onRoute(){if(resize.home!==!!G.home)resize();ensure(G.d);cam=elev(G.d);camMacro=elevMacro(G.d);ANIM=[];SUP_USED.clear();clearTiles();tileBudget=999;save();hud();if($('#modal').classList.contains('on')&&curTab==='courses')renderRaces()}
 const tm=s=>{s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s/60)%60,x=s%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
 const toShop=slot=>{shopCat='equip';shopSlot=slot;store.set('shopCat','equip');store.set('shopSlot',slot);openModal('boutique')};
 function raceUI(){
