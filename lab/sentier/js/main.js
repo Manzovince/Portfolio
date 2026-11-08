@@ -303,7 +303,11 @@ tick();setInterval(tick,5000);
 
 const pace=v=>{if(v<.3)return'—';const s=1000/v,m=Math.floor(s/60);return m+':'+String(Math.round(s%60)).padStart(2,'0')};
 const dur=s=>{const h=Math.floor(s/3600),m=Math.floor(s/60)%60;return h+':'+String(m).padStart(2,'0')+':'+String(Math.floor(s%60)).padStart(2,'0')};
-function hud(){
+// la montre ne compte que la sortie en cours (entraînement ou course), à zéro à la maison
+function sessStats(){const R=G.race,T=G.train;
+  if(R&&(R.st==='run'||R.st==='fin'))return{d:G.d,dp:G.dp-(R.dp0||G.dp),t:R.t||0};
+  if(T)return{d:G.d-T.d0,dp:G.dp-T.dp0,t:T.t};return{d:0,dp:0,t:0}}
+function hud(){const SS=sessStats();
   const L=leg(G.d);
   $('#bName').textContent=BI[L.b].n;
   {let i=legAt(G.d);while(LEGS[i+1]&&LEGS[i+1].b===L.b)i++;const nx=LEGS[i+1],rest=(LEGS[i].d0+LEGS[i].len-G.d)/1000;
@@ -317,20 +321,20 @@ function hud(){
   $('#sJ').hidden=!G.newSp;$('#sT').hidden=!tr;$('#sD').hidden=nd<=0;$('#sD').textContent=nd;
   $('#dRace').hidden=!!G.race||!CAMP.some(id=>raceOpen(id)&&!G.camp.ok.includes(id)&&G.coins>=RACES[id].fee);
   $('#nDef').hidden=nd<=0;$('#nDef').textContent=nd;$('#dCarnet').hidden=nd>0||!(G.newSp||tr);
-  $('#wDist').innerHTML=fmt((onRace()?G.d:G.odo)/1000,2)+'<small>km</small>';
-  $('#wDp').innerHTML=fmt(G.dp)+'<small>m</small>';
+  $('#wDist').innerHTML=fmt(SS.d/1000,2)+'<small>km</small>';
+  $('#wDp').innerHTML=fmt(SS.dp)+'<small>m</small>';
   $('#wPace').innerHTML=pace(LIVE.v)+'<small>/km</small>';
   $('#wHr').textContent=Math.round(LIVE.hr);$('#hr .h').style.animationDuration=(60/LIVE.hr).toFixed(2)+'s';
   $('#wAlt').innerHTML=fmt(elevMacro(G.d))+'<small>m</small>';
   $('#wGr').innerHTML=(LIVE.grade>0?'+':'')+Math.round(LIVE.grade*100)+'<small>%</small>';
-  $('#wTime').textContent=dur(G.t);
+  $('#wTime').textContent=dur(SS.t);
   // cadran de montre
   if(document.documentElement.classList.contains('wface')){
     const hr=LIVE.hr,pc=clamp((hr/190-.5)/.5,0,1),z=hr<114?1:hr<133?2:hr<152?3:hr<171?4:5,ZC=['#8a8f99','#3a8ae0','#3ab86a','#f0a030','#e8483a'];
     $('#fHr').textContent=Math.round(hr);
     const a=(150+pc*240)*Math.PI/180;$('#fMark').setAttribute('cx',(50+46.5*Math.cos(a)).toFixed(2));$('#fMark').setAttribute('cy',(50+46.5*Math.sin(a)).toFixed(2));
     $('.face .h').style.animationDuration=(60/hr).toFixed(2)+'s';
-    $('#fDist').textContent=fmt((onRace()?G.d:G.odo)/1000,2);$('#fPace').textContent=pace(LIVE.v);$('#fDp').textContent=fmt(G.dp);
+    $('#fDist').textContent=fmt(SS.d/1000,2);$('#fPace').textContent=pace(LIVE.v);$('#fDp').textContent=fmt(SS.dp);
   }$('#wCad').textContent=LIVE.cad+' spm';$('#wMode').textContent=LIVE.mode==='run'?'course':LIVE.mode==='rest'?'bivouac':'marche';restUI();if(UIREADY){raceUI();homeUI()}
   const cap=capL(),sh=GEAR[G.gear.shoes];
   $('#bW').style.height=G.water/cap*100+'%';$('#tW').textContent=fmt(G.water,1)+' L';
