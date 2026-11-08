@@ -655,6 +655,8 @@ function renderAdmin(){
     one('Ailleurs',rest,'Apparaissent ici quand même, hors de leur paysage. ✓ = déjà photographiée.');
   }else{
     const af=sec('Vue');grid(af,...ZOOMS.map((z,i)=>btn(z.n,()=>setZoom(i),ZOOM===i)));
+    const ds=sec('Design','Tous les sprites et assets sur une seule page, pour travailler leur dessin.');
+    {const a=el('a','btn pri','Ouvrir la planche des sprites ↗');a.href='sprites.html';a.target='_blank';a.style.textDecoration='none';grid(ds,a)}
     const ad=sec('Onglet Admin','Pour le retrouver : ajoute ?admin à l’adresse.');
     grid(ad,btn('Masquer l’onglet Admin',()=>{store.del('admin');$('#tAdmin').hidden=true;showTab('reglages')}));
   }

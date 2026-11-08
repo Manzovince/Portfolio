@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sentier · planche des sprites</title>
+<link rel="icon" href="icon.svg">
+<style>
+:root{--bg:#f2efe8;--ink:#1d2430;--mut:#6a7280;--card:#fff;--line:#2c3446;--acc:#e8783a}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.4 'JetBrains Mono',ui-monospace,monospace}
+header{position:sticky;top:0;z-index:5;background:rgba(242,239,232,.94);backdrop-filter:blur(6px);border-bottom:1px solid rgba(44,52,70,.12);padding:10px 16px}
+.top{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+h1{font-size:15px;margin:0 8px 0 0}
+.grp{display:flex;gap:4px;align-items:center}
+.grp>span{font-size:11px;color:var(--mut);margin-right:2px}
+button,select,input{font:inherit;font-size:12px}
+.seg button{border:2px solid rgba(44,52,70,.15);background:#fff;border-radius:999px;padding:3px 10px;cursor:pointer;color:var(--ink)}
+.seg button.on{background:var(--line);border-color:var(--line);color:#fff}
+input[type=search]{border:1px solid rgba(44,52,70,.2);border-radius:8px;padding:4px 8px;width:160px}
+nav{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+nav a{font-size:11px;color:var(--ink);text-decoration:none;padding:2px 8px;border-radius:999px;background:rgba(44,52,70,.07)}
+nav a:hover{background:rgba(44,52,70,.15)}
+main{padding:8px 16px 60px}
+section{margin:22px 0;scroll-margin-top:110px}
+section>h2{font-size:14px;margin:0 0 2px;display:flex;gap:8px;align-items:baseline}
+section>h2 small{font-weight:400;color:var(--mut);font-size:11px}
+section>p{margin:0 0 10px;color:var(--mut);font-size:11px}
+h3{font-size:12px;margin:14px 0 6px;color:var(--mut);font-weight:700}
+.grid{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.card{background:var(--card);border-radius:10px;padding:8px;box-shadow:0 1px 0 rgba(0,0,0,.06);display:flex;flex-direction:column;gap:5px;align-items:center;min-width:70px;cursor:zoom-in}
+.card .stage{display:flex;align-items:flex-end;justify-content:center;border-radius:6px;padding:6px;overflow:hidden}
+.card canvas{image-rendering:pixelated;display:block}
+.card b{font-size:11px;font-weight:700;text-align:center;max-width:220px}
+.card i{font-style:normal;font-size:10px;color:var(--mut)}
+.card.hide{display:none}
+body.bg-sky .stage{background:linear-gradient(#8fb2d8,#dce6ea)}
+body.bg-grass .stage{background:#8cb860}
+body.bg-dark .stage{background:#1a1e28}
+body.bg-check .stage{background:repeating-conic-gradient(#e4e0d8 0 25%,#fff 0 50%) 0 0/12px 12px}
+.sw{display:flex;gap:3px;flex-wrap:wrap}.sw span{width:22px;height:22px;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.pal{display:grid;grid-template-columns:120px 1fr;gap:6px 12px;align-items:center;font-size:11px}
+.pal .row{display:flex;gap:10px;flex-wrap:wrap}.pal .row>div{display:flex;gap:4px;align-items:center}.pal .row em{font-style:normal;color:var(--mut);font-size:10px;width:14px}
+#big{position:fixed;inset:0;background:rgba(20,22,28,.82);display:none;align-items:center;justify-content:center;z-index:9;cursor:zoom-out;flex-direction:column;gap:10px;color:#fff}
+#big.on{display:flex}#big canvas{image-rendering:pixelated;max-width:92vw;max-height:80vh;background:repeating-conic-gradient(#3a3e48 0 25%,#2e323c 0 50%) 0 0/16px 16px}
+#big b{font-size:13px}
+#err{color:#c8402e;font-size:12px;white-space:pre-wrap}
+@media (max-width:700px){input[type=search]{width:120px}}
+</style>
+</head>
+<body class="bg-sky">
+<header>
+  <div class="top">
+    <h1>Sentier · sprites</h1>
+    <div class="grp seg" id="zoomSeg"><span>Zoom</span></div>
+    <div class="grp seg" id="magSeg"><span>Loupe</span></div>
+    <div class="grp seg" id="bgSeg"><span>Fond</span></div>
+    <label class="grp"><input type="checkbox" id="ref" checked> <span>coureur pour l’échelle</span></label>
+    <label class="grp"><input type="checkbox" id="anim" checked> <span>animer</span></label>
+    <input type="search" id="q" placeholder="Filtrer…">
+  </div>
+  <nav id="nav"></nav>
+</header>
+<main id="main"><div id="err"></div></main>
+<div id="big"><canvas id="bigCv"></canvas><b id="bigT"></b><span id="bigI" style="font-size:11px;opacity:.7"></span></div>
+
+<script src="js/core.js?v=22"></script>
+<script src="js/world.js?v=22"></script>
+<script src="js/layers.js?v=22"></script>
+<script src="js/sprites.js?v=22"></script>
+<script src="js/game.js?v=22"></script>
+<script>
+'use strict';
+/* Planche de debug : tous les sprites et assets du jeu, rendus par le code du jeu lui-même.
+   Aucune sauvegarde n'est écrite depuis cette page. */
+RESET=1;
+const PREF=k=>'sprites.'+k,pget=(k,d)=>{try{const v=localStorage.getItem(PREF(k));return v==null?d:JSON.parse(v)}catch(e){return d}},pset=(k,v)=>{try{localStorage.setItem(PREF(k),JSON.stringify(v))}catch(e){}};
+let MAG=pget('mag',3),BG=pget('bg','sky'),REF=pget('ref',true),ANIMON=pget('anim',true);
+ZOOM=pget('zoom',1);MPX=ZOOMS[ZOOM].mpx;
+const timers=[];
+const asCv=o=>o instanceof HTMLCanvasElement?o:o.cv;
+
+/* ---------- contrôles ---------- */
+function seg(id,items,cur,fn){const el=document.getElementById(id);el.querySelectorAll('button').forEach(b=>b.remove());
+  for(const[v,t]of items){const b=document.createElement('button');b.textContent=t;b.className=v===cur?'on':'';b.onclick=()=>fn(v);el.appendChild(b)}}
+function controls(){
+  seg('zoomSeg',ZOOMS.map((z,i)=>[i,z.n]),ZOOM,v=>{ZOOM=v;MPX=ZOOMS[v].mpx;pset('zoom',v);controls();render()});
+  seg('magSeg',[[1,'×1'],[2,'×2'],[3,'×3'],[4,'×4'],[6,'×6']],MAG,v=>{MAG=v;pset('mag',v);controls();render()});
+  seg('bgSeg',[['sky','ciel'],['grass','herbe'],['dark','nuit'],['check','damier']],BG,v=>{BG=v;pset('bg',v);controls();document.body.className='bg-'+v});
+  document.body.className='bg-'+BG;
+}
+$('#ref').checked=REF;$('#ref').onchange=e=>{REF=e.target.checked;pset('ref',REF);render()};
+$('#anim').checked=ANIMON;$('#anim').onchange=e=>{ANIMON=e.target.checked;pset('anim',ANIMON);render()};
+$('#q').oninput=()=>filter();
+function filter(){const q=$('#q').value.trim().toLowerCase();document.querySelectorAll('.card').forEach(c=>c.classList.toggle('hide',!!q&&!c.dataset.k.includes(q)))}
+
+/* ---------- cartes ---------- */
+let SEC;
+function section(id,title,note){const s=document.createElement('section');s.id=id;s.innerHTML=`<h2>${title}<small></small></h2>`;if(note){const p=document.createElement('p');p.textContent=note;s.appendChild(p)}
+  $('#main').appendChild(s);SEC=s;const a=document.createElement('a');a.href='#'+id;a.textContent=title;$('#nav').appendChild(a);return s}
+function sub(t){const h=document.createElement('h3');h.textContent=t;SEC.appendChild(h);const g=document.createElement('div');g.className='grid';SEC.appendChild(g);return g}
+function count(){for(const s of document.querySelectorAll('section'))s.querySelector('h2 small').textContent=s.querySelectorAll('.card').length+' éléments'}
+const runnerRef=()=>runnerFrame('run',3,G.gear);
+// frames : liste de sprites (canvas ou {cv,ox,oy}) ; on aligne tout sur le pied
+function card(grid,name,frames,info='',opt={}){
+  if(!Array.isArray(frames))frames=[frames];frames=frames.filter(Boolean);if(!frames.length)return;
+  const cvs=frames.map(asCv),ref=opt.ref!==false&&REF?asCv(runnerRef()):null;
+  const w=Math.max(...cvs.map(c=>c.width))+(ref?ref.width+4:0),h=Math.max(...cvs.map(c=>c.height),ref?ref.height:0);
+  const d=document.createElement('div');d.className='card';d.dataset.k=(name+' '+info+' '+(opt.k||'')).toLowerCase();
+  const st=document.createElement('div');st.className='stage';const out=document.createElement('canvas');out.width=w;out.height=h;
+  const m=opt.mag||MAG;out.style.width=w*m+'px';out.style.height=h*m+'px';st.appendChild(out);
+  const g=out.getContext('2d');g.imageSmoothingEnabled=false;
+  const paint=i=>{g.clearRect(0,0,w,h);const c=cvs[i%cvs.length];g.drawImage(c,0,h-c.height);if(ref)g.drawImage(ref,w-ref.width,h-ref.height)};
+  paint(0);if(cvs.length>1&&ANIMON){let i=0;timers.push(setInterval(()=>paint(++i),opt.ms||120))}
+  const c0=cvs[0];d.append(st);const b=document.createElement('b');b.textContent=name;d.appendChild(b);
+  const it=document.createElement('i');it.textContent=`${c0.width}×${c0.height} px${cvs.length>1?' · '+cvs.length+' images':''}${info?' · '+info:''}`;d.appendChild(it);
+  d.onclick=()=>big(cvs,name,it.textContent);
+  grid.appendChild(d);
+}
+function big(cvs,name,info){const bc=$('#bigCv'),c=cvs[0],m=Math.max(2,Math.floor(Math.min(innerWidth*.9/c.width,innerHeight*.75/c.height)));
+  bc.width=c.width;bc.height=c.height;bc.style.width=c.width*m+'px';bc.style.height=c.height*m+'px';const g=bc.getContext('2d');let i=0;
+  const paint=()=>{g.clearRect(0,0,c.width,c.height);g.drawImage(cvs[i++%cvs.length],0,0)};paint();
+  clearInterval(big.t);if(cvs.length>1)big.t=setInterval(paint,140);$('#bigT').textContent=name;$('#bigI').textContent=info+' · loupe ×'+m;$('#big').classList.add('on')}
+$('#big').onclick=()=>{$('#big').classList.remove('on');clearInterval(big.t)};
+addEventListener('keydown',e=>{if(e.key==='Escape')$('#big').onclick()});
+const legOf=b=>{ensure(400000);return LEGS.find(L=>L.b===b)};
+
+/* ---------- rendu de toute la planche ---------- */
+function render(){
+  timers.forEach(clearInterval);timers.length=0;
+  // les caches des sprites sont indexés par zoom ; on vide ceux qui ne le sont pas
+  for(const k in POIS_SPR)delete POIS_SPR[k];bivCache.clear();
+  const keepY=scrollY;$('#main').innerHTML='<div id="err"></div>';$('#nav').innerHTML='';
+  const K=ZOOMS[ZOOM].k;
+  try{
+  // coureur
+  section('coureur','Coureur','Toutes les images d’une foulée, pour chaque style. L’équipement porté est celui de ta partie.');
+  for(const mode of['run','hike']){const g=sub(mode==='run'?'Course':'Marche (montée raide)');
+    for(const[id,it]of Object.entries(GEAR).filter(([,x])=>x.s==='style')){const N=mode==='run'?10:12;
+      card(g,it.n,Array.from({length:N},(_,f)=>runnerFrame(mode,f,{...G.gear,style:id})),id,{ref:false,ms:70,k:'coureur style'})}}
+  for(const[slot,label]of SLOTS){if(slot==='style'||slot==='biv')continue;const g=sub('Tenue · '+label);
+    for(const[id,it]of Object.entries(GEAR).filter(([,x])=>x.s===slot)){
+      card(g,it.n,Array.from({length:10},(_,f)=>runnerFrame('run',f,{...G.gear,[slot]:id})),id,{ref:false,ms:70,k:'tenue '+slot})}}
+  // compagnons
+  section('compagnons','Compagnons');
+  {const g=sub('Les 7 compagnons');for(const[id,C]of Object.entries(COMP))card(g,C.n,[0,1,2,3].map(f=>compFrame(id,f)),id+' · '+C.b,{ms:150,k:'compagnon'})}
+  // faune
+  section('faune','Faune','Taille réelle par rapport au coureur. Les grands animaux sont dessinés au zoom choisi ; l’icône du carnet est à côté.');
+  for(const[reg,n]of[['alpes','Alpes'],['med','Sud'],['exo','Grand voyage']]){const g=sub(n);
+    for(const[id,f]of Object.entries(FAUNA).filter(([,f])=>f.b.some(b=>BI[b]&&BI[b].reg===reg)))card(g,f.n,faunaSprite(id),`${id} · ${f.h} m${f.fly?' · vol':''}${f.sea?' · mer':''}`,{k:'faune '+f.b.join(' ')})}
+  {const g=sub('Icônes du carnet');for(const[id,f]of Object.entries(FAUNA))card(g,f.n,faunaIcon(id),id,{ref:false,k:'icone carnet'})}
+  // points d'intérêt
+  section('poi','Points d’intérêt');
+  {const g=sub('Structures');const L=b=>legOf(b).d0+50;
+    card(g,'Arche de départ',poiSprite({k:'depart',d:0}),'depart');card(g,'Refuge',poiSprite({k:'ravito',refuge:1,d:L('alpage')}),'ravito refuge');
+    card(g,'Ravito',poiSprite({k:'ravito',d:L('prairie')}),'ravito');card(g,'Fontaine (Alpes)',poiSprite({k:'fontaine',d:L('foret')}),'fontaine');
+    card(g,'Fontaine (Sud)',poiSprite({k:'fontaine',d:L('garrigue')}),'fontaine');card(g,'Sommet',poiSprite({k:'sommet',d:L('sommet')}),'sommet');card(g,'Panneau',poiSprite({k:'panneau',d:L('prairie')}),'panneau')}
+  {const g=sub('Points d’eau');card(g,'Ruisseau',poiSprite({k:'ruisseau',d:0}),'ruisseau');card(g,'Buvette',poiSprite({k:'buvette',d:0}),'buvette');card(g,'Café',poiSprite({k:'cafe',d:0}),'cafe')}
+  // bivouac
+  section('bivouac','Bivouac','Le coureur au repos, avec le feu qui crépite.');
+  {const g=sub('Matériel');for(const[id,it]of Object.entries(GEAR).filter(([,x])=>x.s==='biv'))card(g,it.n,[0,1].map(f=>bivSprite(id,f)),id,{ms:220,k:'bivouac'})}
+  // supporters
+  section('supporters','Supporters','Variantes tirées au hasard ; certaines tiennent une pancarte GO! ou un drapeau.');
+  {const g=sub('Au repos');for(let v=0;v<24;v++)card(g,'#'+v,[0,1].map(f=>supSprite(v,f,0)),'',{ms:420,k:'supporter'})}
+  {const g=sub('Encouragés (après un clic)');for(let v=0;v<12;v++)card(g,'#'+v,[0,1].map(f=>supSprite(v,f,1)),'',{ms:160,k:'supporter content'})}
+  // décor
+  section('decor','Décor au bord du sentier','Arbres et objets posés derrière le chemin. Quatre variantes tirées par type.');
+  {const kinds=[...new Set(Object.values(DECOR).flatMap(D=>D.t.map(t=>t[0])))];
+   const trees=kinds.filter(k=>TREE[k]||k==='larch'||k==='leafy'),props=kinds.filter(k=>!trees.includes(k));
+   const g1=sub('Arbres et rochers');for(const k of trees)for(let v=0;v<4;v++)card(g1,k+' '+(v+1),decoSprite(k,v),'',{k:'decor arbre '+k});
+   const g2=sub('Objets');for(const k of props)for(let v=0;v<(['cow','parasol','vine','lavrow'].includes(k)?3:1);v++)card(g2,k+(v?' '+(v+1):''),decoSprite(k,v),'',{k:'decor objet '+k});
+   const g3=sub('Où on les trouve');for(const[b,D]of Object.entries(DECOR)){const d=document.createElement('div');d.className='card';d.dataset.k=('decor '+b+' '+D.t.map(t=>t[0]).join(' ')).toLowerCase();d.style.cursor='default';d.innerHTML=`<b>${BI[b].n}</b><i>${D.t.map(t=>t[0]).join(' · ')}</i>`;g3.appendChild(d)}}
+  // micro
+  section('micro','Petits détails du talus','Herbes, fleurs, cailloux… teintés par le paysage.');
+  for(const[b,M]of Object.entries(MICRO)){const g=sub(BI[b].n);for(const[k]of M.t)for(let v=0;v<2;v++)card(g,k,microSprite(k,b,v),b,{ref:false,k:'micro '+b})}
+  // nuages
+  section('nuages','Nuages','Palettes : midi, coucher de soleil, nuit, pluie.');
+  for(const[n,se,wx]of[['Midi',40,'clair'],['Coucher',2,'voile'],['Nuit',-14,'clair'],['Pluie',30,'pluie']]){const g=sub(n),pal=cloudPalette(skyAt(se),se,wx);
+    for(const kind of['cu','ac','cb'])for(let i=0;i<2;i++)card(g,kind+' '+(i+1),cloudSprite(i,pal,kind),n.toLowerCase(),{ref:false,mag:Math.max(1,MAG-1),k:'nuage '+kind})}
+  // paysages
+  section('paysages','Paysages','Les 5 plans de chaque paysage, empilés comme en jeu (sans le sol ni la météo).');
+  {const g=sub('Plans de fond');const sk=skyAt(30);
+    for(const b of Object.keys(BI)){const L=legOf(b);if(!L)continue;const d=L.d0+L.len*.5,w=TW*2,h=H;
+      const cv=document.createElement('canvas');cv.width=w;cv.height=h;const gg=cv.getContext('2d');
+      const gr=gg.createLinearGradient(0,0,0,h);gr.addColorStop(0,rgb(sk.top));gr.addColorStop(.6,rgb(sk.mid));gr.addColorStop(1,rgb(sk.hor));gg.fillStyle=gr;gg.fillRect(0,0,w,h);
+      for(let li=0;li<5;li++){const lx=d*SPD[li]/MPX+RX,ti=Math.floor(lx/TW)-1;gg.drawImage(genTile(li,ti),0,-MARG);gg.drawImage(genTile(li,ti+1),TW,-MARG)}
+      card(g,BI[b].n,cv,b+' · '+BI[b].reg,{ref:false,mag:Math.max(1,Math.floor(MAG/2)),k:'paysage '+b})}}
+  // palettes
+  section('palettes','Palettes du sol','Chemin (p), herbe (g), pierres (s), fleurs (fl), touffes (tu).');
+  {const box=document.createElement('div');box.className='pal';SEC.appendChild(box);
+   const sw=(cols)=>`<div class="sw">${cols.map(c=>`<span title="${rgb(c)}" style="background:${rgb(c)}"></span>`).join('')}</div>`;
+   for(const[b,P]of Object.entries(GP)){box.insertAdjacentHTML('beforeend',`<b>${BI[b]?BI[b].n:b}${P.urban?' · '+P.urban:''}</b><div class="row"><div><em>p</em>${sw(P.p)}</div><div><em>g</em>${sw(P.g)}</div><div><em>s</em>${sw(P.s)}</div><div><em>fl</em>${sw(P.fl)}</div>${P.tu?`<div><em>tu</em>${sw([P.tu])}</div>`:''}</div>`)}}
+  // police
+  section('police','Police pixel 3×5','Les lettres disponibles pour les panneaux.');
+  {const g=sub('Glyphes');const txt=Object.keys(FONT).join('');const cv=spr(txt.length*4+3,9,pb=>pxText(pb,txt,2,2,c32('#1d2430')));card(g,'Alphabet',cv,txt,{ref:false,mag:MAG+1,k:'police'});
+   for(const w of['DÉPART','REFUGE','BUVETTE','CAFÉ','GO!']){const c=spr(w.length*4+3,9,pb=>pxText(pb,w,2,2,c32('#1d2430')));card(g,w,c,'',{ref:false,mag:MAG+1,k:'police'})}}
+  }catch(e){$('#err').textContent='Erreur pendant le rendu : '+e.message+'\n'+e.stack;console.error(e)}
+  count();filter();requestAnimationFrame(()=>{const h=!render.done&&location.hash&&document.querySelector(location.hash);render.done=1;if(h)h.scrollIntoView();else scrollTo(0,keepY)});
+}
+controls();render();
+</script>
+</body>
+</html>
