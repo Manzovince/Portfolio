@@ -318,7 +318,6 @@ function hud(){
     const a=(150+pc*240)*Math.PI/180;$('#fMark').setAttribute('cx',(50+46.5*Math.cos(a)).toFixed(2));$('#fMark').setAttribute('cy',(50+46.5*Math.sin(a)).toFixed(2));
     $('.face .h').style.animationDuration=(60/hr).toFixed(2)+'s';
     $('#fDist').textContent=fmt(G.d/1000,2);$('#fPace').textContent=pace(LIVE.v);$('#fDp').textContent=fmt(G.dp);
-    $('#fSub').textContent=`m · ${fmt(elevMacro(G.d))} m · ${(LIVE.grade>0?'+':'')+Math.round(LIVE.grade*100)} %`;
   }$('#wCad').textContent=LIVE.cad+' spm';$('#wMode').textContent=LIVE.mode==='run'?'course':LIVE.mode==='rest'?'bivouac':'marche';restUI();
   const cap=capL(),sh=GEAR[G.gear.shoes];
   $('#bW').style.width=G.water/cap*100+'%';$('#tW').textContent=fmt(G.water,2)+' L';
