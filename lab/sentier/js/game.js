@@ -164,10 +164,10 @@ const QUESTS=[
 /* ---------- état sauvegardé ---------- */
 const NEW=()=>({v:1,d:0,dp:0,dn:0,t:0,coins:30,tot:0,water:.5,energy:100,wear:0,
   stock:{gel:2,banane:1},gear:{shoes:'route',top:'tshirt',head:null,eyes:null,bag:'gourde',poles:null,lamp:null,biv:'sac'},own:['route','tshirt','gourde','sac'],
-  up:{},xp:0,odo:0,camp:{ok:[],best:{},place:{},fin:{}},race:null,lastRes:null,dog:0,seen:{},q:[],st:{tops:0,mer:0,nuit:0,pluie:0,rav:0,alpage:0,photos:0,maxAlt:0,eaten:0,wx:{},bio:{},froid:0,neige:0,fon:0,worn:0},
+  up:{},xp:0,odo:0,camp:{ok:[],best:{},place:{},fin:{}},race:null,lastRes:null,home:1,train:null,lastTrain:null,trainPos:0,dog:0,seen:{},q:[],st:{tops:0,mer:0,nuit:0,pluie:0,rav:0,alpage:0,photos:0,maxAlt:0,eaten:0,wx:{},bio:{},froid:0,neige:0,fon:0,worn:0},
   auto:{eat:40,restock:{gel:3,barre:2}},last:Date.now(),sess:{d:0,dp:0}});
-let G=Object.assign(NEW(),store.get('save',{}));
-G.st=Object.assign(NEW().st,G.st);if(!G.spare)G.spare={};if(G.flask==null)G.flask=0;if(G.xp==null)G.xp=0;if(!G.odo)G.odo=G.d;if(!G.camp)G.camp=NEW().camp;if(!G.comps){G.comps=G.dog?['chien']:[];G.comp=G.dog?'chien':null}if(!G.gear.style)G.gear.style='classique';if(!G.gear.biv)G.gear.biv='sac';if(!G.own.includes('sac'))G.own.push('sac');if(!G.own.includes('classique'))G.own.push('classique');if(G.qSeen==null)G.qSeen=G.q.length;G.auto=Object.assign(NEW().auto,G.auto);
+const SV0=store.get('save',{});let G=Object.assign(NEW(),SV0);
+G.st=Object.assign(NEW().st,G.st);if(!G.spare)G.spare={};if(G.flask==null)G.flask=0;if(G.xp==null)G.xp=0;if(SV0.v&&SV0.odo==null)G.odo=SV0.d||0;if(!G.camp)G.camp=NEW().camp;if(SV0.v&&SV0.home==null){G.trainPos=SV0.d||0;G.home=G.race&&G.race.st!=='bib'?0:1;if(G.home)G.d=HOME_D}if(!G.comps){G.comps=G.dog?['chien']:[];G.comp=G.dog?'chien':null}if(!G.gear.style)G.gear.style='classique';if(!G.gear.biv)G.gear.biv='sac';if(!G.own.includes('sac'))G.own.push('sac');if(!G.own.includes('classique'))G.own.push('classique');if(G.qSeen==null)G.qSeen=G.q.length;G.auto=Object.assign(NEW().auto,G.auto);
 if(Q.has('km')){G.d=parseFloat(Q.get('km'))*1000;G.last=Date.now();Q.delete('km');history.replaceState(null,'',location.pathname+(Q.toString()?'?'+Q:''))}
 if(Q.has('tout')){G.coins+=99999;history.replaceState(null,'',location.pathname)}
 let RESET=0;   // « Tout recommencer » : plus aucune sauvegarde avant le rechargement
@@ -213,7 +213,8 @@ function takeBib(id){const C=RACES[id];if(G.race||!raceOpen(id)||G.coins<C.fee)r
 function dropBib(){if(G.race&&G.race.st==='bib')G.race=null}
 function startRace(){
   const R=G.race;if(!R||R.st!=='bib'||reqMissing(R.id).length)return false;
-  Object.assign(R,{st:'run',trainD:G.d,t:0,dp0:G.dp});G.rest=null;LIVE.mode='run';
+  if(ROUTE.id==='train')G.trainPos=G.d;G.train=null;G.home=0;
+  Object.assign(R,{st:'run',t:0,dp0:G.dp});G.rest=null;LIVE.mode='run';
   useRoute(R.id);G.d=0;G.water=capL();G.energy=100;
   emit('Partez !',RACES[R.id].n+' · '+fmt(raceInfo(R.id).len/1000,1)+' km','🏁');if(typeof onRoute==='function')onRoute();return true;
 }
@@ -227,7 +228,28 @@ function finishRace(dnf,why){
   else{G.camp.dnf=(G.camp.dnf||0)+1;emit('Abandon · '+C.n,why||'Tu rends ton dossard.','🚩')}
   G.lastRes=res;R.st='fin';if(dnf)backToTrain();
 }
-function backToTrain(){const R=G.race;if(!R)return;G.race=null;useRoute('train');G.d=R.trainD||G.d;G.rest=null;LIVE.mode='run';G.water=Math.max(G.water,capL()*.5);G.energy=Math.max(G.energy,50);if(typeof onRoute==='function')onRoute()}
+function backToTrain(){if(!G.race)return;G.race=null;goHome()}
+/* ---------- la maison et les entraînements programmés ---------- */
+// k = 'dist' (goal en m), 'time' (goal en s) ou 'libre'
+function startTraining(k,goal){
+  if(G.race&&G.race.st!=='bib')return false;
+  useRoute('train');G.d=G.trainPos||0;G.home=0;G.rest=null;LIVE.mode='run';G.water=capL();G.energy=100;
+  G.train={k,goal,t:0,d0:G.d,dp0:G.dp,xp0:G.xp,c0:G.tot};
+  emit('C’est parti',k==='dist'?'Sortie de '+fmt(goal/1000,goal%1000?1:0)+' km':k==='time'?'Sortie de '+fmtT(goal):'Sortie libre, rentre quand tu veux','🏃');
+  if(typeof onRoute==='function')onRoute();return true;
+}
+function endTraining(why){
+  const T=G.train;if(!T)return;
+  G.lastTrain={k:T.k,goal:T.goal,km:(G.d-T.d0)/1000,t:T.t,dp:G.dp-T.dp0,xp:G.xp-T.xp0,coins:G.tot-T.c0,done:why!=='stop',at:Date.now()};
+  emit(why==='stop'?'De retour à la maison':'Séance terminée',fmt(G.lastTrain.km,2)+' km · '+fmtT(T.t)+' · +'+fmt(Math.floor(G.lastTrain.xp))+' XP','🏠');
+  goHome();
+}
+function goHome(){
+  if(ROUTE.id==='train')G.trainPos=G.d;
+  G.train=null;G.home=1;G.rest=null;useRoute('home');G.d=HOME_D;G.water=capL();G.energy=100;LIVE.mode='home';
+  if(typeof onRoute==='function')onRoute();
+}
+const fmtT=s=>{s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s/60)%60;return h?h+' h'+(m?' '+String(m).padStart(2,'0'):''):m+' min'};
 const lvl=k=>G.up[k]||0;
 // une compétence s'achète si ses parents ont le niveau demandé (déjà entamée = toujours ouverte)
 const upOpen=k=>lvl(k)>0||(UPG[k].req||[]).every(([p,n])=>lvl(p)>=n);
@@ -273,6 +295,7 @@ function restart(){
   emit('C’est reparti !',B.meal?'Le gardien t’a refait ton sac d’encas':'Bidons pleins, jambes neuves','🏃');return true;
 }
 function step(dt,date){
+  if(G.home){G.water=capL();G.energy=100;LIVE.hr=lerp(LIVE.hr,58,1-Math.exp(-dt/30));Object.assign(LIVE,{v:0,mode:'home',grade:0,why:[],c:condAt(date,G.d),cad:0});return}
   if(G.rest)return restStep(dt,date);
   const s0=G.d,L=leg(s0),B=BI[L.b],c=condAt(date,s0),gr=gradeAt(s0);
   const sh=GEAR[G.gear.shoes],top=GEAR[G.gear.top],hd=G.gear.head&&GEAR[G.gear.head],why=[];
@@ -307,12 +330,13 @@ function step(dt,date){
   if(G.energy<G.auto.eat)autoEat();
   // déplacement
   const s1=s0+v*dt,de=elevMacro(s1)-elevMacro(s0);
-  G.d=s1;G.t+=dt;G.odo+=v*dt;if(racing())G.race.t+=dt;else if(G.race&&G.race.st==='fin'&&G.d>raceInfo(G.race.id).len+220)backToTrain();G.wear+=v*dt/1000*(1-.12*lvl('semelle'));G.sess.d+=v*dt;
+  G.d=s1;G.t+=dt;G.odo+=v*dt;if(G.train){const T=G.train;T.t+=dt;if(T.k==='dist'&&G.d-T.d0>=T.goal||T.k==='time'&&T.t>=T.goal){endTraining('done');return}}
+  if(racing())G.race.t+=dt;else if(G.race&&G.race.st==='fin'&&G.d>raceInfo(G.race.id).len+220)backToTrain();G.wear+=v*dt/1000*(1-.12*lvl('semelle'));G.sess.d+=v*dt;
   // semelle usée : on enfile une paire de rechange du même modèle s'il en reste
   if(G.wear>sh.life&&(G.spare[G.gear.shoes]||0)>0){G.spare[G.gear.shoes]--;G.wear=0;emit('Nouvelle paire enfilée',`${sh.n} · encore ${G.spare[G.gear.shoes]} en réserve`,'👟')}
   if(de>0){G.dp+=de;G.sess.dp+=de}else G.dn-=de;
   // expérience : 10 par km, 1 par 10 m de D+ (sert à l'entraînement)
-  if(!onRace())G.xp+=v*dt/100+Math.max(0,de)/10;
+  if(!onRace()&&!G.home)G.xp+=v*dt/100+Math.max(0,de)/10;
   G.st.maxAlt=Math.max(G.st.maxAlt,elevMacro(s1));
   if(c.night)G.st.nuit+=v*dt;if(WX[c.wx].rain)G.st.pluie+=v*dt;G.st.wx[c.wx]=(G.st.wx[c.wx]||0)+v*dt;if(c.T<0)G.st.froid+=v*dt;if(WX[c.wx].rain&&(c.alt>2100||c.T<1))G.st.neige+=v*dt;if(G.wear>sh.life&&!G._worn){G._worn=1;G.st.worn++}else if(G.wear<sh.life)G._worn=0;
   // pièces : 1 tous les 100 m (× biome), 1 tous les 10 m de D+
@@ -379,3 +403,4 @@ function catchUp(sec){
 }
 // une course en cours reprend sur son tracé
 if(G.race&&(G.race.st==='run'||G.race.st==='fin'))useRoute(G.race.id);
+else if(G.home){useRoute('home');G.d=HOME_D}

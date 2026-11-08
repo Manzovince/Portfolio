@@ -160,6 +160,8 @@ function poiSprite(p){
   let o;
   if(p.k==='depart')return POIS_SPR[key]=bigArch();
   if(p.k==='arrivee')return POIS_SPR[key]=bigArch('ARRIVÉE');
+  if(p.k==='maison')return bigHouse(p.v,typeof SK!=='undefined'&&SK.dark>.35);
+  if(p.k==='boite'||p.k==='cloture'||p.k==='poteau')return homeProp(p.k);
   if(p.k==='ravito'&&p.refuge)return POIS_SPR[key]=bigRefuge();
   if(p.k==='buvette')return POIS_SPR[key]=bigBuvette();
   if(p.k==='cafe')return POIS_SPR[key]=bigCafe();
@@ -502,7 +504,7 @@ function supportersIn(a,b){
   }
   const C=70;
   for(let c=Math.floor((a-20)/C);c<=Math.ceil((b+20)/C);c++){
-    const dm=c*C+hs(c*2.3)*C*.6,bi=leg(dm).b,pr=ROUTE.id!=='train'?.3:['ville','vieilleville'].includes(bi)?.18:bi==='prairie'||bi==='plage'?.08:.035;
+    const dm=c*C+hs(c*2.3)*C*.6,bi=leg(dm).b,pr=ROUTE.id==='home'?0:ROUTE.id!=='train'?.3:['ville','vieilleville'].includes(bi)?.18:bi==='prairie'||bi==='plage'?.08:.035;
     if(hs(c*4.7)<pr)out.push({id:'c'+c,dm,n:hs(c*9.1)<.6?1:2});
   }
   return out.filter(g=>g.dm>=a-30&&g.dm<=b+30);
@@ -827,3 +829,95 @@ const BIGB={aigle:{span:2.6,c:{b:'#5a3e28',w:'#6a4a30',l:'#8a6a48',t:'#2a1e14',h
   fregate:{span:2.4,c:{b:'#1e1e24',w:'#1e1e24',l:'#3a3a44',t:'#0e0e12',h:'#2a2a30',k:'#d83a2a'}},
   pelican:{span:2.4,pouch:1,c:{b:'#8a7a6a',w:'#9a8a78',l:'#c8b8a4',t:'#3a3430',h:'#e8e0d0',k:'#e8b040'}},
   ara:{span:2,c:{b:'#d8302a',w:'#d8302a',l:'#f0c030',t:'#2a5ad0',h:'#d8302a',k:'#f4f0e8'}}};
+
+/* ---------- la maison (écran d'accueil) ---------- */
+// v0 : maison en bardage blanc, toit vert d'eau, véranda avec banc ; v1 : maison de brique voisine
+const HOUSE={};
+function bigHouse(v,night){
+  const key='h'+v+(night?'n':'')+'z'+ZOOM;if(HOUSE[key])return HOUSE[key];
+  const wW=Mr(v?7.5:8.5),f1=Mr(2.9),f2=Mr(2.5),rH=Mr(v?2.4:3.4),ov=Mr(.5),fnd=Mr(.6),chim=Mr(1.2);
+  const w=wW+ov*2+2,h=fnd+f1+f2+rH+chim,x0=ov+1,by=h-1,B=y=>by-y;
+  const C=v?{w1:'#c0583e',w2:'#a8483a',w3:'#d06a50',tr:'#f6f2ea',rf:'#4a4c58',rfD:'#383a44',rfL:'#62646e',sh:null,door:'#3a4a5a',fnd:'#8a8478'}
+           :{w1:'#eeeae0',w2:'#d2ccbe',w3:'#fbf9f2',tr:'#fbf9f2',rf:'#2a8a84',rfD:'#1e6a66',rfL:'#3aa49c',sh:'#1f6e6a',door:'#1f6e6a',fnd:'#2a6a66'};
+  const benchX=x0+Math.round(wW*.24);
+  const cv=spr(w,h,pb=>{
+    const P=(x,y,c)=>pb.p(Math.round(x),Math.round(y),c),R=(x,y,ww,hh,c)=>pb.r(Math.round(x),Math.round(y),Math.max(1,Math.round(ww)),Math.max(1,Math.round(hh)),c);
+    const w1=c32(C.w1),w2=c32(C.w2),w3=c32(C.w3),tr=c32(C.tr),rf=c32(C.rf),rfD=c32(C.rfD),rfL=c32(C.rfL),glass=c32(night?'#f6d27a':'#6e98b8'),glassL=c32(night?'#fff0b0':'#b8d4e4'),frame=c32(night?'#c89a40':'#3a4a5a');
+    const lap=Math.max(2,Mr(.22,2));
+    // murs : bardage à clin (v0) ou brique (v1)
+    for(let y=fnd;y<fnd+f1+f2;y++)for(let x=0;x<wW;x++){let c;
+      if(v){const row=Math.floor(y/2),off=(row%2)*2;c=y%2===0||(x+off)%5===0?w2:(hs2(Math.floor((x+off)/5),row)<.25?w3:w1)}
+      else c=(y-fnd)%lap===0?w2:(x===wW-1?w2:w1);
+      P(x0+x,B(y),c)}
+    // soubassement
+    R(x0,B(fnd-1),wW,fnd,c32(C.fnd));if(!v)for(let y=0;y<fnd-1;y++)for(let x=0;x<wW;x++)if((x+y)%4===0||(x-y+40)%4===0)P(x0+x,B(y),c32('#e8ece8'));
+    // bandeau entre les étages et angles
+    R(x0-1,B(fnd+f1),wW+2,Math.max(1,Mr(.15,1)),tr);R(x0,B(fnd+f1+f2-1),1,f1+f2,tr);R(x0+wW-1,B(fnd+f1+f2-1),1,f1+f2,tr);
+    // toit à deux pans (pignon), rive blanche, rangs de bardeaux
+    const top=fnd+f1+f2;
+    for(let j=0;j<rH;j++){const hw=Math.round((wW/2+ov)*(j+1)/rH),y=B(top+rH-1-j);
+      for(let i=-hw;i<=hw;i++){const xx=x0+Math.floor(wW/2)+i,edge=hw-Math.abs(i)<Math.max(1,Mr(.18,1));P(xx,y,edge?tr:(j%3===2?rfD:i<0?rfL:rf))}}
+    R(x0-ov,B(top),wW+ov*2,1,tr);
+    // lucarne dans le pignon
+    {const gw=Mr(.7,3),gh=Mr(.9,3),gx=x0+Math.floor(wW/2)-Math.floor(gw/2),gy=B(top+Math.round(rH*.15)+gh);R(gx-1,gy-1,gw+2,gh+2,tr);R(gx,gy,gw,gh,glass);P(gx,gy,glassL);R(gx+Math.floor(gw/2),gy,1,gh,tr)}
+    // cheminée
+    {const cx=x0+Math.round(wW*.72),cw=Mr(.6,3),ch=Math.round(rH*.55)+chim;R(cx,B(top+ch),cw,ch,c32('#9a4a3a'));R(cx-1,B(top+ch),cw+2,1,c32('#6a3a2e'))}
+    // fenêtres à l'étage
+    const win=(fx,y0,ww,hh)=>{const wx=x0+Math.round(wW*fx)-Math.floor(ww/2),wy=B(y0+hh);R(wx-1,wy-1,ww+2,hh+2,tr);R(wx,wy,ww,hh,glass);R(wx,wy,ww,1,frame);P(wx,wy+1,glassL);R(wx,wy+Math.floor(hh/2),ww,1,tr);
+      if(C.sh){const sw=Mr(.3,1);R(wx-1-sw,wy-1,sw,hh+2,c32(C.sh));R(wx+ww+1,wy-1,sw,hh+2,c32(C.sh))}};
+    for(const fx of[.3,.7])win(fx,fnd+f1+Mr(.6),Mr(.85,3),Mr(1.3,4));
+    // rez-de-chaussée : porte et fenêtre
+    const pf=fnd;   // plancher de la véranda
+    {const dw=Mr(.95,3),dh=Mr(2.05,6),dx=x0+Math.round(wW*.52);R(dx-1,B(pf+dh),dw+2,dh+1,tr);R(dx,B(pf+dh-1),dw,dh,c32(C.door));
+      const ow=Math.max(1,Math.round(dw*.45)),oh=Math.round(dh*.55);for(let y=0;y<oh;y++){const t=Math.abs(y/oh-.5)*2,hw2=Math.round(ow/2*Math.sqrt(1-t*t));R(dx+Math.floor(dw/2)-hw2,B(pf+dh-Math.round(dh*.15)-y),hw2*2||1,1,y%2?glassL:glass)}
+      P(dx+dw-2,B(pf+Math.round(dh*.45)),c32('#e8c040'));
+      R(dx+dw+Mr(.25,1),B(pf+Math.round(dh*.8)),Mr(.15,1),Mr(.35,2),c32('#2a2a30'));P(dx+dw+Mr(.25,1),B(pf+Math.round(dh*.8))+Mr(.35,2),c32(night?'#fff0a0':'#f2e0a0'))}
+    win(.8,pf+Mr(.8),Mr(.9,3),Mr(1.3,4));
+    if(!v){
+      // véranda : toit, poteaux, garde-corps, plancher, marches, banc
+      const pr=Mr(.45,2),ph=Mr(2.5,7);
+      for(let y=0;y<pr;y++)R(x0-ov+y,B(pf+ph+pr-y),wW+ov*2-y*2,1,y===pr-1?tr:(y%2?rf:rfD));
+      R(x0-ov+1,B(pf+ph),wW+ov*2-2,1,tr);
+      const posts=[0,.36,.66,1].map(f=>x0-ov+2+Math.round((wW+ov*2-5)*f)),pw=Mr(.16,1);
+      for(const px of posts)R(px,B(pf+ph-1),pw,ph,tr);
+      R(x0-ov+1,B(pf),wW+ov*2-2,Math.max(2,Mr(.18,2)),c32('#7a5a3a'));R(x0-ov+1,B(pf),wW+ov*2-2,1,c32('#9a7a52'));
+      const rh=Mr(.85,3);
+      for(const[a,b]of[[posts[0],posts[1]],[posts[2],posts[3]]]){R(a,B(pf+rh),b-a,1,tr);R(a,B(pf+Math.max(1,Mr(.12,1))),b-a,1,tr);for(let x=a+2;x<b;x+=2)R(x,B(pf+rh-1),1,rh-1,(x/2)%2?tr:c32(C.sh))}
+      // marches sous la porte
+      const sx=posts[1]+pw,sw=posts[2]-posts[1]-pw,ns=Math.max(2,Math.round(fnd/2));
+      for(let k=0;k<ns;k++){const yy=Math.round(fnd*(k+1)/ns);R(sx-k,B(yy-1),sw+k*2,Math.max(1,Math.round(fnd/ns)),k%2?c32('#9a7a52'):c32('#f2eee6'))}
+      // banc
+      const bw=Mr(1.5,5),bh=Mr(.45,2);R(benchX-Math.round(bw*.55),B(pf+bh),bw,1,c32('#4a4e58'));R(benchX-Math.round(bw*.55),B(pf+bh+Mr(.45,2)),bw,1,c32('#4a4e58'));
+      for(const lx of[benchX-Math.round(bw*.5),benchX+Math.round(bw*.4)])R(lx,B(pf+bh-1),1,bh,c32('#3a3e48'));
+      // jardinière
+      R(posts[3]-Mr(.6,2),B(pf+Mr(.3,1)),Mr(.5,2),Mr(.3,1),c32('#a8583a'));for(let k=0;k<3;k++)P(posts[3]-Mr(.6,2)+k,B(pf+Mr(.3,1)+1+k%2),c32(k%2?'#e85a7a':'#4a9a4a'))}
+    else{
+      // petit porche à colonnes blanches
+      const dx=x0+Math.round(wW*.52),pw=Mr(2.4,7),ph=Mr(2.5,7);R(dx-Math.round(pw*.35),B(pf+ph+1),pw,2,c32(C.rfD));R(dx-Math.round(pw*.35),B(pf+ph-1),pw,1,tr);
+      for(const px of[dx-Math.round(pw*.3),dx+Math.round(pw*.6)])R(px,B(pf+ph-2),Mr(.16,1),ph-1,tr);
+      for(let k=0;k<3;k++)R(dx-k,B(Math.round(fnd*(k+1)/3)-1),Mr(1,3)+k*2,Math.max(1,Math.round(fnd/3)),c32('#b8584a'))}
+  });
+  return HOUSE[key]={cv:outlineCv(cv,'#1c2224',.45),ox:v?Math.floor(w/2):benchX+1,oy:h,porch:fnd};
+}
+// boîte aux lettres, clôture en bois, poteau électrique
+function homeProp(k){
+  const key=k+'z'+ZOOM;if(HOUSE[key])return HOUSE[key];let w,h,fn;
+  if(k==='boite'){w=Mr(.6,4)+2;h=Mr(1.25,6);fn=pb=>{const by=h-1;pb.r(Math.floor(w/2)-1,by-Mr(.9,4),Math.max(1,Mr(.1,1)),Mr(.9,4)+1,c32('#6a4a2e'));const bw=Mr(.55,4),bh=Mr(.3,3);pb.r(1,by-Mr(.9,4)-bh,bw,bh,c32('#9ab8d0'));pb.r(1,by-Mr(.9,4)-bh,bw,1,c32('#c8dcea'));pb.r(bw,by-Mr(.9,4)-bh-2,1,3,c32('#d83a2e'))}}
+  else if(k==='cloture'){w=Mr(6);h=Mr(1.3,5);fn=pb=>{const by=h-1,pl=Math.max(2,Mr(.14,2));for(let x=0;x<w;x+=pl+1){const hh=h-1-((x/(pl+1))%2);for(let i=0;i<pl;i++)pb.r(x+i,by-hh+(i===0||i===pl-1?1:0),1,hh,i?c32('#b08a62'):c32('#c8a47a'))}pb.r(0,by-Math.round(h*.7),w,1,c32('#8a6a48'));pb.r(0,by-Math.round(h*.25),w,1,c32('#8a6a48'))}}
+  else{w=Mr(1.6,7);h=Mr(9,40);fn=pb=>{const by=h-1,pw=Math.max(2,Mr(.25,2)),cx=Math.floor(w/2)-1;pb.r(cx,0,pw,h,c32('#7a5a3e'));pb.r(cx+pw-1,0,1,h,c32('#5a4030'));pb.r(0,Mr(.6,2),w,1,c32('#5a4030'));for(const x of[0,w-1])pb.p(x,Mr(.6,2)-1,c32('#d8dce0'));pb.r(cx,by-Mr(2.4,10),pw,Mr(.5,2),c32('#e8e0c8'))}}
+  const cv=spr(w,h,fn);return HOUSE[key]={cv:outlineCv(cv,'#1c2224',.4),ox:Math.floor(w/2),oy:h};
+}
+// le coureur assis sur le banc de la véranda (pieds au plancher)
+function homeSit(f){
+  const key='sit'+f+GEAR[G.gear.top].col+GEAR[G.gear.shoes].col+'z'+ZOOM;if(HOUSE[key])return HOUSE[key];
+  const w=Mr(1.3,6),h=Mr(1.45,9),by=h-1,hx=Mr(.35,2);
+  const cv=spr(w,h,pb=>{const R=(x,y,ww,hh,c)=>pb.r(Math.round(x),Math.round(y),Math.max(1,Math.round(ww)),Math.max(1,Math.round(hh)),c);
+    const sk=c32('#e8b48c'),sh=c32(GEAR[G.gear.top].col),pa=c32('#2c3a52'),hair=c32('#4a3424'),shoe=c32(GEAR[G.gear.shoes].col);
+    const seat=Mr(.45,3),kx=hx+Mr(.42,2)+(f?1:0);
+    R(kx-1,by,Mr(.3,2),1,shoe);R(kx-1,by-seat+1,Mr(.14,1),seat-1,sk);                 // tibia + chaussure
+    R(hx,by-seat-Mr(.14,1)+1,kx-hx+1,Mr(.16,1),pa);                                  // cuisse
+    const th=Mr(.62,4),tw=Mr(.26,2);R(hx-1,by-seat-th+1,tw,th,sh);                    // buste
+    R(hx+tw-1,by-seat-th+Mr(.12,1)+1,Mr(.1,1),Mr(.35,2),sh);R(hx+tw-1,by-seat-Mr(.12,1),kx-hx-tw+1,1,sk); // bras posé sur le genou
+    const hd=Mr(.24,3);R(hx-1,by-seat-th-hd+1-(f?0:0),hd,hd,sk);R(hx-1,by-seat-th-hd+1,hd,1,hair);pb.p(hx-1,by-seat-th-hd+2,hair);pb.p(hx-2+hd,by-seat-th-Math.round(hd/2),c32('#2a2a30'))});
+  return HOUSE[key]={cv:outlineCv(cv,'#1c1820',.4),ox:hx,oy:h};
+}

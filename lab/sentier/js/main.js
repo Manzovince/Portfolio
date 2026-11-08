@@ -1,4 +1,7 @@
 'use strict';
+// état des panneaux d'accueil et de course (déclaré tôt : hud() s'en sert dès le chargement)
+const HO={dist:[3000,5000,8000,10000,15000,21100,30000],time:[1200,1800,2700,3600,5400,7200,10800]};
+let hoK=store.get('hoK','dist'),hoV=store.get('hoV',{dist:5000,time:2700}),raArm=0,UIREADY=0;
 /* ---------- canvas & dimensions ---------- */
 const cv=$('#scene'),ctx=cv.getContext('2d');
 const[sceneCv,sg]=canvasOf(1,1);
@@ -112,7 +115,7 @@ function draw(date,t){
   // décor au bord du sentier (derrière le chemin)
   const dm0=s-RX*MPX-12,dm1=s+(W-RX)*MPX+12;
   for(let cell=Math.floor(dm0/CELL);cell<=Math.ceil(dm1/CELL);cell++){
-    const d=decoAt(cell);if(!d)continue;
+    const d=decoAt(cell);if(!d)continue;if(G.home&&Math.abs(cell*CELL-HOME_D)<36)continue;
     const dm=cell*CELL+hs(cell*9.1)*CELL*.6,sp2=decoSprite(d.k,d.v),x=RX+(dm-s)/MPX;
     const y=footY(x-sp2.ox,sp2.cv.width,dm,s)-1-d.back;
     g.drawImage(sp2.cv,Math.round(x-sp2.ox),Math.round(y-sp2.oy+1));
@@ -138,12 +141,13 @@ function draw(date,t){
   const fy=SY[RX]|0;
   if(G.comp&&COMP[G.comp]){const C=COMP[G.comp],K=ZOOMS[ZOOM].k;
     if(C.mv==='fly'){const fx=RX-Math.round(6*K)+Math.round(Math.sin(t/1700)*6*K),fy2=(SY[RX]|0)-Math.round(16*K)+Math.round(Math.sin(t/400)*2),cf=compFrame(G.comp,Math.floor(t/140)%4);g.drawImage(cf.cv,fx-cf.ox,fy2-cf.oy)}
-    else{const dx=G.rest?RX+Math.round(Mr(4.6)):RX-Math.round(8*K)+Math.round(Math.sin(t/2300)*5),gy0=SY[clamp(dx,0,W-1)]|0;
+    else{const dx=G.home?RX+Math.round(Mr(5.6)):G.rest?RX+Math.round(Mr(4.6)):RX-Math.round(8*K)+Math.round(Math.sin(t/2300)*5),gy0=SY[clamp(dx,0,W-1)]|0;
       // la suricate s'arrête parfois pour faire le guet
       const stand=G.comp==='suricate'&&(t%9000)<1600,hop=C.mv==='hop'?Math.round(Math.abs(Math.sin(phase*Math.PI))*3):0;
-      const cf=compFrame(G.comp,G.rest?0:stand?3:Math.floor(phase*4)%3);g.drawImage(cf.cv,dx-cf.ox,gy0-cf.oy+1-(G.rest?0:hop))}}
+      const still=G.rest||G.home,cf=compFrame(G.comp,still?0:stand?3:Math.floor(phase*4)%3);g.drawImage(cf.cv,dx-cf.ox,gy0-cf.oy+1-(still?0:hop))}}
   // le coureur
-  if(G.rest){const bv=bivSprite(G.gear.biv,Math.floor(t/220)%2),y=footY(RX-bv.ox,bv.cv.width,G.d,s);g.drawImage(bv.cv,RX-bv.ox,Math.round(y-bv.oy+1))}
+  if(G.home){const hs0=bigHouse(0,SK.dark>.35),y=footY(RX-hs0.ox,hs0.cv.width,HOME_D,s)-hs0.porch,o=homeSit(Math.floor(t/1700)%3===0?1:0);g.drawImage(o.cv,RX-o.ox,Math.round(y-o.oy+1))}
+  else if(G.rest){const bv=bivSprite(G.gear.biv,Math.floor(t/220)%2),y=footY(RX-bv.ox,bv.cv.width,G.d,s);g.drawImage(bv.cv,RX-bv.ox,Math.round(y-bv.oy+1))}
   else{const N=LIVE.mode==='run'?10:12,rf=runnerFrame(LIVE.mode,Math.floor(phase*N)%N,G.gear);
   g.drawImage(rf.cv,RX-rf.ox,fy-rf.oy+1)}
   drawFauna(g,s,t);
@@ -297,6 +301,7 @@ function hud(){
   $('#bName').textContent=BI[L.b].n;
   {let i=legAt(G.d);while(LEGS[i+1]&&LEGS[i+1].b===L.b)i++;const nx=LEGS[i+1],rest=(LEGS[i].d0+LEGS[i].len-G.d)/1000;
    $('#bSub').textContent=nx?`encore ${fmt(rest,1)} km · puis ${BI[nx.b].n.toLowerCase()}`:''}
+  if(G.home){$('#bName').textContent='À la maison';$('#bSub').textContent='Le Planay, fond de vallée'}
   const cn=Math.floor(G.coins);if(cn>(hud.c??cn)){const b=$('#bCoins');b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump')}hud.c=cn;
   $('#nCoin').textContent=fmt(cn);
   // pastilles : un équipement abordable, une nouvelle espèce, des défis réussis non vus
@@ -319,7 +324,7 @@ function hud(){
     const a=(150+pc*240)*Math.PI/180;$('#fMark').setAttribute('cx',(50+46.5*Math.cos(a)).toFixed(2));$('#fMark').setAttribute('cy',(50+46.5*Math.sin(a)).toFixed(2));
     $('.face .h').style.animationDuration=(60/hr).toFixed(2)+'s';
     $('#fDist').textContent=fmt((onRace()?G.d:G.odo)/1000,2);$('#fPace').textContent=pace(LIVE.v);$('#fDp').textContent=fmt(G.dp);
-  }$('#wCad').textContent=LIVE.cad+' spm';$('#wMode').textContent=LIVE.mode==='run'?'course':LIVE.mode==='rest'?'bivouac':'marche';restUI();raceUI();
+  }$('#wCad').textContent=LIVE.cad+' spm';$('#wMode').textContent=LIVE.mode==='run'?'course':LIVE.mode==='rest'?'bivouac':'marche';restUI();if(UIREADY){raceUI();homeUI()}
   const cap=capL(),sh=GEAR[G.gear.shoes];
   $('#bW').style.width=G.water/cap*100+'%';$('#tW').textContent=fmt(G.water,2)+' L';
   $('#bE').style.width=G.energy+'%';$('#tE').textContent=Math.round(G.energy)+' %';
@@ -512,15 +517,38 @@ function renderShop(){
     if(G.comp)grid('two').appendChild(card({ic:'🏃',n:'Courir seul',d:'Laisser ton compagnon se reposer',btn:'Seul',fn:()=>{G.comp=null}}));
   }
 }
+/* ---------- l'écran d'accueil : la véranda ---------- */
+function homeUI(){
+  const el=$('#home');if(!G.home){el.hidden=true;return}el.hidden=false;
+  const lt=G.lastTrain;$('#hoLast').textContent=lt?`Dernière sortie : ${fmt(lt.km,1)} km · ${fmtT(lt.t)} · +${fmt(Math.floor(lt.xp))} XP`:'Les baskets t’attendent sur la véranda.';
+  const key=hoK+(hoV[hoK]||'')+G.race?.st+G.camp.ok.length+Math.floor(G.coins/5);if(el.dataset.k===key)return;el.dataset.k=key;
+  el.querySelectorAll('.hseg button').forEach(b=>{b.classList.toggle('on',b.dataset.k===hoK);b.onclick=()=>{hoK=b.dataset.k;store.set('hoK',hoK);homeUI()}});
+  const ch=$('#hoChips');ch.innerHTML='';
+  if(hoK==='libre'){const p=document.createElement('p');p.textContent='Pas d’objectif : le coureur court jusqu’à ce que tu le fasses rentrer.';ch.appendChild(p)}
+  else for(const v of HO[hoK]){const b=document.createElement('button');b.textContent=hoK==='dist'?(v===21100?'semi':fmt(v/1000)+' km'):fmtT(v);b.className=hoV[hoK]===v?'on':'';b.onclick=()=>{hoV[hoK]=v;store.set('hoV',hoV);homeUI()};ch.appendChild(b)}
+  $('#hoGo').textContent=hoK==='libre'?'Partir en sortie libre':'Partir · '+(hoK==='dist'?fmt(hoV.dist/1000,hoV.dist%1000?1:0)+' km':fmtT(hoV.time));
+  $('#hoGo').disabled=!!(G.race&&G.race.st!=='bib');
+  $('#hoGo').onclick=()=>{if(startTraining(hoK,hoK==='libre'?0:hoV[hoK])){save();hud()}};
+  const hr=$('#hoRace');
+  if(G.race){hr.hidden=true}else{hr.hidden=false;const id=CAMP.find(i=>raceOpen(i)&&!G.camp.ok.includes(i));
+    if(!id){hr.innerHTML='<span>🏆 Campagne terminée ! Tu peux recourir chaque course.</span><button>Courses</button>'}
+    else{const C=RACES[id],I=raceInfo(id);hr.innerHTML=`<span>${C.ic} <b></b><small>${fmt(I.len/1000,1)} km · objectif ${tm(C.goal)} · dossard ${coinTxt(C.fee)}</small></span><button>Courses</button>`;hr.querySelector('b').textContent=C.n}
+    hr.querySelector('button').onclick=()=>openModal('courses')}
+}
 /* ---------- campagne : courses, dossard, panneau de course ---------- */
 function onRoute(){ensure(G.d);cam=elev(G.d);camMacro=elevMacro(G.d);ANIM=[];SUP_USED.clear();clearTiles();tileBudget=999;save();hud();if($('#modal').classList.contains('on')&&curTab==='courses')renderRaces()}
 const tm=s=>{s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s/60)%60,x=s%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
 const toShop=slot=>{shopCat='equip';shopSlot=slot;store.set('shopCat','equip');store.set('shopSlot',slot);openModal('boutique')};
-let raArm=0;
 function raceUI(){
   const el=$('#race'),R=G.race,res=!R||R.st==='fin'?G.lastRes:null;
-  if(!R&&!res||G.rest){el.hidden=true;return}el.hidden=false;
   const go=$('#raGo'),x=$('#raX'),bar=$('#raBar');
+  if(!R&&G.train&&!G.rest){const T=G.train,km=(G.d-T.d0)/1000;el.hidden=false;el.className='hud run';
+    $('#raN').textContent='🏃 Entraînement · '+(T.k==='dist'?fmt(T.goal/1000,T.goal%1000?1:0)+' km':T.k==='time'?fmtT(T.goal):'sortie libre');$('#raB').textContent='+'+fmt(Math.floor(G.xp-T.xp0))+' XP';
+    $('#raS').innerHTML=`<b class="big">${tm(T.t)}</b><span>${fmt(km,2)} km · ${fmt(G.dp-T.dp0)} m D+</span>`;
+    const f=T.k==='dist'?km*1000/T.goal:T.k==='time'?T.t/T.goal:0;bar.parentNode.hidden=T.k==='libre';bar.style.width=clamp(f,0,1)*100+'%';
+    $('#raT').textContent=T.k==='dist'?'encore '+fmt(Math.max(0,T.goal/1000-km),2)+' km':T.k==='time'?'encore '+fmtT(Math.max(0,T.goal-T.t)):'Rentre quand tu veux.';
+    go.hidden=true;x.hidden=false;x.classList.remove('danger');x.textContent='🏠 Rentrer à la maison';x.onclick=()=>{endTraining('stop');save();hud()};return}
+  if(!R&&!res||G.rest){el.hidden=true;return}el.hidden=false;
   if(R&&R.st==='bib'){const C=RACES[R.id],I=raceInfo(R.id),miss=reqMissing(R.id);el.className='hud bib';
     $('#raN').textContent='🎽 '+C.n;$('#raB').textContent='n° '+R.bib;
     $('#raS').innerHTML=(C.req&&C.req.length?C.req.map(k=>`<span class="${REQ[k].ok()?'ok':'no'}">${REQ[k].ok()?'✓':'✗'} ${REQ[k].n}</span>`).join(''):'<span class="ok">✓ Pas de matériel obligatoire</span>');
@@ -541,7 +569,7 @@ function raceUI(){
   else{$('#raS').innerHTML=`<b class="big">${tm(res.t)}</b><span>${res.place}<sup>e</sup> sur ${fmt(res.n)}${res.pb?' · record perso':''}</span>`;
     $('#raT').innerHTML=res.ok?(res.first?`Objectif atteint ! +${fmt(C.prize)} ◉`+(res.next?` · <b>${RACES[res.next].n}</b> débloqué`:' · campagne terminée !'):'Objectif atteint.'):`Objectif ${tm(C.goal)} manqué de ${tm(res.t-C.goal)}. Entraîne-toi et retente.`}
   go.hidden=false;go.disabled=false;go.textContent='Les courses';go.onclick=()=>openModal('courses');
-  x.hidden=false;x.classList.remove('danger');x.textContent=R?'Retour à l’entraînement':'Fermer';x.onclick=()=>{if(R)backToTrain();G.lastRes=null;save();hud()};
+  x.hidden=false;x.classList.remove('danger');x.textContent=R?'Rentrer à la maison':'Fermer';x.onclick=()=>{if(R)backToTrain();G.lastRes=null;save();hud()};
 }
 function renderRaces(){
   const pb=$('#pb'),keep=pb.scrollTop;pb.innerHTML='';requestAnimationFrame(()=>pb.scrollTop=keep);
@@ -769,3 +797,4 @@ function renderAdmin(){
   save();
 }
 requestAnimationFrame(loop);
+UIREADY=1;hud();

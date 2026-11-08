@@ -132,10 +132,15 @@ function extraWater(L){
 // RACES est défini dans game.js ; un tracé de course = ses étapes, ses ravitos officiels, puis une arrivée
 let ROUTE={id:'train',gen:genNext},legI=0;
 const ROUTES={train:ROUTE};
+// la maison : un bout de vallée fixe, la véranda à HOME_D
+const HOME_D=300;
 function raceGen(id){
   let built=0;
   return function(){
     if(built){const L=LEGS[LEGS.length-1];pushLeg(L.b,5,endE,{fix:1});return}   // après l'arrivée : on trottine encore un peu
+    if(id==='home'){built=1;endE=840;pushLeg('prairie',1.2,845,{fix:1});
+      poi(HOME_D,'maison','Maison',{v:0});poi(HOME_D+15.5,'maison','Voisins',{v:1});poi(HOME_D+6.5,'boite','Boîte aux lettres');poi(HOME_D-9.5,'cloture','Clôture');poi(HOME_D-13.5,'poteau','Poteau');poi(HOME_D+25,'poteau','Poteau');
+      POIS.sort((a,b)=>a.d-b.d);return}
     const C=RACES[id];built=1;endE=C.e0;
     for(const[b,km,e1,o]of C.legs){const L=pushLeg(b,km,e1,Object.assign({fix:1},o||{}));if(L.shape==='peak')poi(L.d0+L.len*.5,'sommet',o.top,{alt:Math.round(o.ep)})}
     poi(12,'depart','Départ');
