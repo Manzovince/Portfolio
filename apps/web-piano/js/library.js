@@ -3,13 +3,13 @@
 // Imported files are kept in this browser (IndexedDB), so they can be opened
 // again later without looking for the file. Nothing leaves the device.
 
-const DB_NAME = "webPiano";
+const DB_NAME = "octave";
 const STORE = "songs";
 
 // `fitsLumi`: every note within C3–B4, the 24 keys of one LUMI at its default octave
 export const EXAMPLES = [
-    { id: "example:clair", title: "Au clair de la lune", composer: "Traditionnel", url: "songs/au-clair-de-la-lune.mid?v=1", fileName: "au-clair-de-la-lune.mid", fitsLumi: true },
-    { id: "example:ode", title: "Ode à la joie", composer: "Beethoven", url: "songs/ode-a-la-joie.mid?v=1", fileName: "ode-a-la-joie.mid" },
+    { id: "example:clair", title: "Au clair de la lune", composer: "trad", url: "songs/au-clair-de-la-lune.mid", fileName: "au-clair-de-la-lune.mid", fitsLumi: true },
+    { id: "example:ode", title: "Ode à la joie", composer: "Beethoven", url: "songs/ode-a-la-joie.mid", fileName: "ode-a-la-joie.mid" },
 ];
 
 let dbPromise = null;

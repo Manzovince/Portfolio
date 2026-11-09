@@ -7,21 +7,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Vincent Manzoni">
     <meta name="description"
-        content="Web Piano by Vincent Manzoni: a browser piano that names your chords, writes them on a staff and lights up an LED strip above the keys through an ESP32.">
-    <meta name="keywords" content="web piano, Web MIDI, ESP32, Arduino, LED strip, chord recognition, music learning, piano, Vincent Manzoni">
-    <meta property="og:title" content="Vincent Manzoni / Web Piano">
+        content="Octave by Vincent Manzoni: a piano in the browser with an FM synthesizer, songs that fall onto the keys, chord exercises and a touch-first interface.">
+    <meta name="keywords" content="Octave, web piano, FM synthesizer, DX7, Web MIDI, learn piano, chord recognition, ROLI LUMI, Vincent Manzoni">
+    <meta property="og:title" content="Vincent Manzoni / Octave">
     <meta property="og:description"
-        content="A browser piano that names your chords, writes them on a staff and lights up an LED strip above the keys.">
-    <meta property="og:image" content="https://manzovince.com/assets/img/og-web-piano.png">
+        content="A piano, an FM synth and a teacher in the browser, made for fingers and MIDI keyboards.">
+    <meta property="og:image" content="https://manzovince.com/assets/img/og-web-piano.png?v=20261109">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:url" content="https://manzovince.com/web-piano.html">
     <meta property="og:site_name" content="Vincent Manzoni Portfolio">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Vincent Manzoni / Web Piano">
-    <meta name="twitter:description" content="A browser piano that names your chords, writes them on a staff and lights up an LED strip above the keys.">
-    <meta name="twitter:image" content="https://manzovince.com/assets/img/og-web-piano.png">
+    <meta name="twitter:title" content="Vincent Manzoni / Octave">
+    <meta name="twitter:description" content="A piano, an FM synth and a teacher in the browser, made for fingers and MIDI keyboards.">
+    <meta name="twitter:image" content="https://manzovince.com/assets/img/og-web-piano.png?v=20261109">
     <link rel="canonical" href="https://manzovince.com/web-piano.html">
     <!-- Styles -->
     <link rel="icon" href="/assets/icons/favicon.png">
@@ -32,26 +32,26 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <!-- Title -->
-    <title>Vincent Manzoni / Web Piano</title>
+    <title>Vincent Manzoni / Octave</title>
 </head>
 
 <body>
     <!-- Navigation -->
-    <site-nav page-name="Web Piano"></site-nav>
+    <site-nav page-name="Octave"></site-nav>
 
     <main id="project-page">
         <div class="project-header">
             <div class="project-infos">
-                <h4>Web Piano</h4>
+                <h4>Octave</h4>
                 <p data-i18n="webPianoIntro"></p>
                 <ul class="tag-list">
-                    <div class="tag">Arduino</div>
+                    <div class="tag" data-i18n="tagMusic"></div>
                     <div class="tag" data-i18n="tagDesign"></div>
                     <div class="tag" data-i18n="tagDev"></div>
                 </ul>
             </div>
-            <img src="/assets/img/web-piano-app.webp" data-i18n-alt="webPianoAppAlt"
-                alt="The web piano naming a chord above the keyboard, with the notes written on a grand staff">
+            <img src="/assets/img/web-piano-app.webp?v=20261109" data-i18n-alt="webPianoAppAlt"
+                alt="Octave's Play screen: a G major seventh chord named above rising notes, with a grand piano on the left half of the keyboard and an FM electric piano on the right">
             <a href="./web-piano/" class="project-button" data-i18n="webPianoOpen"></a>
         </div>
 
@@ -60,16 +60,30 @@
             alt="First prototype: a sine wave drawn above a one-octave keyboard">
 
         <div>
-            <h6 data-i18n="webPianoLightsTitle"></h6>
-            <p data-i18n="webPianoLights"></p>
+            <h6 data-i18n="webPianoPlayTitle"></h6>
+            <p data-i18n="webPianoPlay"></p>
         </div>
 
         <div>
             <h6 data-i18n="webPianoLearnTitle"></h6>
             <p data-i18n="webPianoLearn"></p>
         </div>
-        <img src="/assets/img/web-piano-scale.webp" data-i18n-alt="webPianoScaleAlt" loading="lazy"
-            alt="Settings panel of the web piano, with the scale guide marking the notes of a scale on the keys">
+        <img src="/assets/img/web-piano-learn.webp?v=20261109" data-i18n-alt="webPianoLearnAlt" loading="lazy"
+            alt="Learning Ode to Joy: notes falling onto the keyboard below the staff, the next key to play glowing">
+
+        <div>
+            <h6 data-i18n="webPianoCreateTitle"></h6>
+            <p data-i18n="webPianoCreate"></p>
+        </div>
+        <img src="/assets/img/web-piano-create.webp?v=20261109" data-i18n-alt="webPianoCreateAlt" loading="lazy"
+            alt="The FM editor: the graph of six operators on the left, the settings and envelope of operator 1 on the right">
+
+        <div>
+            <h6 data-i18n="webPianoTouchTitle"></h6>
+            <p data-i18n="webPianoTouch"></p>
+        </div>
+        <img src="/assets/img/web-piano-phones.webp?v=20261109" data-i18n-alt="webPianoPhonesAlt" loading="lazy"
+            alt="Octave on two phones: the Play screen with a grand piano, and a chord exercise with its notes lit on the keys">
 
         <div>
             <h6 data-i18n="webPianoLearnedTitle"></h6>
@@ -86,7 +100,7 @@
     </div>
     <site-footer></site-footer>
 </body>
-<script src="/assets/js/script.js?v=20261016b"></script>
+<script src="/assets/js/script.js?v=20261109o"></script>
 <script src="/assets/js/line-animation.js?v=20261016b"></script>
 
 </html>

@@ -1,35 +1,30 @@
-// === Note colours, shared by the keys, the piano roll and the LED strip ===
+// Note colours shared by the keys, the roll, the waterfall and the staff.
+// "parts" follows the two sounds (A / B, or right / left hand in a song).
+import { S, on } from './store.js?v=202611091';
+import { LOWEST, HIGHEST } from './notes.js?v=202611091';
 
-import { LOWEST, HIGHEST } from "./piano.js?v=20261101n";
-
-const ACCENT = { r: 68, g: 172, b: 163 }; // the site's teal, hsl(175 43% 47%)
-
-export function hsvToRgb(h, s = 1, v = 1) {
-    const i = Math.floor(h * 6);
-    const f = h * 6 - i;
-    const p = v * (1 - s);
-    const q = v * (1 - f * s);
-    const t = v * (1 - (1 - f) * s);
-    const [r, g, b] = [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][((i % 6) + 6) % 6];
-    return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+export function hsv(h, s = 1, v = 1) {
+  const i = Math.floor(h * 6), f = h * 6 - i;
+  const p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+  const [r, g, b] = [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][((i % 6) + 6) % 6];
+  return `rgb(${Math.round(r * 255)} ${Math.round(g * 255)} ${Math.round(b * 255)})`;
 }
 
-// Full-brightness colour of a note in a given mode
-export function noteColor(midi, mode) {
-    switch (mode) {
-        case "octave":
-            return hsvToRgb((midi % 12) / 12, 0.75);
-        case "mono":
-            return ACCENT;
-        case "rainbow":
-        default:
-            // Stop short of red at the top so both ends stay distinguishable
-            return hsvToRgb(((midi - LOWEST) / (HIGHEST - LOWEST)) * 0.85, 0.75);
-    }
+let cache = null;
+export function palette() {
+  if (cache) return cache;
+  const css = getComputedStyle(document.documentElement);
+  const v = k => css.getPropertyValue(k).trim();
+  cache = { a: v('--a'), b: v('--b'), text: v('--text'), dim: v('--dim'), faint: v('--faint'), line: v('--line'), line2: v('--line2'), panel: v('--panel'), bg: v('--bg'), accent: v('--accent'), danger: v('--danger') };
+  return cache;
 }
+on('theme', () => { cache = null; });
 
-export const rgbString = ({ r, g, b }, alpha = 1) => `rgb(${r} ${g} ${b} / ${alpha})`;
-
-export function scaleColor({ r, g, b }, factor) {
-    return { r: Math.round(r * factor), g: Math.round(g * factor), b: Math.round(b * factor) };
+// `side` 0/1 = part A/B (or right/left hand)
+export function noteColor(midi, side = 0) {
+  switch (S.view.colors) {
+    case 'rainbow': return hsv(((midi - LOWEST) / (HIGHEST - LOWEST)) * 0.85, 0.62, 0.95);
+    case 'octave': return hsv((midi % 12) / 12, 0.6, 0.95);
+    default: return side ? palette().b : palette().a;
+  }
 }

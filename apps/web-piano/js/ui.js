@@ -1,580 +1,196 @@
-// === Interface: chord readout, top bar, settings drawer ===
+// Small DOM helpers (from Phase) and touch controls (pill sliders, knobs, segmented
+// choices, toggles). Every control reads through get() and writes through
+// set(v), and exposes el.refresh() so panels can resync after outside changes.
 
-import { subscribe, soundingNotes, isPedalDown } from "./piano.js?v=20261101n";
-import { settings, setSetting, onSettingChange, resetSynth } from "./settings.js?v=20261101n";
-import {
-    t, chordQuality, inversionName, intervalName, scaleName, currentNotation,
-    getLanguage, setLanguage, onLanguageChange, applyStaticText,
-} from "./i18n.js?v=20261101n";
-import {
-    detectChord, chordSymbol, noteName, spellPc, spelledOctave, pitchClass,
-    intervalBetween, scaleContext, scaleNotes, SCALES,
-} from "./theory.js?v=20261101n";
-import { midiStatus, onMidiStatus, connectMidi } from "./midi.js?v=20261101n";
-import { ledState, onLedState, connectLeds } from "./leds.js?v=20261101n";
-import { lumiState, onLumiState, lumiCount, lumiKeyCount, retryLumi } from "./lumi.js?v=20261101n";
-import { needsUnlock, onAudioStateChange } from "./audio.js?v=20261101n";
-import { keysHint, shiftView } from "./keyboard.js?v=20261101n";
-import {
-    clearScore, hasScore, onScoreChange, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi,
-} from "./score.js?v=20261101n";
-import { resetUsage } from "./roll.js?v=20261101n";
-import { EXAMPLES, importedSongs, addSong, songFile, removeSong, onLibraryChange } from "./library.js?v=20261101n";
-import {
-    currentSong, openSongFile, closeSong, playSong, pauseSong, seekSong, setSongSpeed,
-    isSongPlaying, songPosition, songSpeed, onSongChange, onSongPosition,
-    songPart, setSongPart, isWaitingForPlayer,
-} from "./song.js?v=20261101n";
-import { setPracticing, isPracticing, onPracticeChange } from "./practice.js?v=20261101n";
+export function h(tag, attrs = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (k === 'html') el.innerHTML = v;
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : document.createTextNode(kid));
+  return el;
+}
 
-const $ = selector => document.querySelector(selector);
-const finePointer = matchMedia("(hover: hover) and (pointer: fine)");
-const WHITE_LETTER = { 0: 0, 2: 1, 4: 2, 5: 3, 7: 4, 9: 5, 11: 6 }; // pc -> letter index
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
-// === Chord readout ===
-
-let hasPlayed = false;
-let readoutQueued = false;
-
-function describe(notes) {
-    const notation = currentNotation();
-    const context = scaleContext(settings.scaleRoot, settings.scaleType);
-    const pcs = [...new Set(notes.map(pitchClass))];
-    let chord = null;
-    let symbol = "";
-    let name = "";
-
-    if (pcs.length === 1) {
-        const sp = spellPc(pcs[0], null, context);
-        symbol = noteName(sp, notation) + (notes.length === 1 ? spelledOctave(notes[0], sp) : "");
-        if (notes.length > 1) name = t("octave");
-    } else {
-        chord = detectChord(notes, context);
-        if (pcs.length === 2) {
-            const low = notes[0];
-            const high = notes.find(m => pitchClass(m) !== pitchClass(low));
-            const { semis, octaves } = intervalBetween(low, high);
-            name = intervalName(semis) + (octaves ? ` ${t("plusOctave", { n: octaves })}` : "");
-            symbol = chord
-                ? chordSymbol(chord, notation)
-                : [low, high].map(m => noteName(spellPc(pitchClass(m), null, context), notation)).join(" – ");
-        } else if (chord) {
-            symbol = chordSymbol(chord, notation);
-            name = `${noteName(chord.root, notation)} ${chordQuality(chord.id)}`;
-            if (chord.inversion !== "root") {
-                name += ` · ${inversionName(chord.inversion, { bass: noteName(chord.bass, notation) })}`;
-            }
-        } else {
-            name = t("noChord");
-        }
+// Horizontal drag slider shaped like a pill: label left, value right, fill bar.
+export function param({ label, min = 0, max = 99, step = 1, get, set, fmt = v => v, def, bipolar = false, sens = 1 }) {
+  const fill = h('i', { class: 'fill' });
+  const val = h('b');
+  const el = h('div', { class: 'param' + (bipolar ? ' bi' : ''), role: 'slider', 'aria-label': label, tabindex: 0 }, fill, h('span', {}, label), val);
+  const refresh = () => {
+    const v = get();
+    const f = (v - min) / (max - min);
+    if (bipolar) {
+      const z = (0 - min) / (max - min);
+      fill.style.left = Math.min(f, z) * 100 + '%';
+      fill.style.width = Math.abs(f - z) * 100 + '%';
+    } else fill.style.width = f * 100 + '%';
+    val.textContent = fmt(v);
+    el.setAttribute('aria-valuenow', v);
+  };
+  let start = null, lastTap = 0;
+  el.addEventListener('pointerdown', e => {
+    el.setPointerCapture(e.pointerId);
+    start = { x: e.clientX, v: get(), w: el.clientWidth, moved: false };
+    el.classList.add('drag');
+  });
+  el.addEventListener('pointermove', e => {
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    if (Math.abs(dx) > 3) start.moved = true;
+    // full range over ~1.3 widths; fine control near the start of a drag
+    const range = max - min;
+    let v = start.v + (dx / (start.w * 1.3)) * range * sens;
+    v = clamp(Math.round(v / step) * step, min, max);
+    if (v !== get()) { set(+v.toFixed(4)); refresh(); }
+  });
+  const end = () => {
+    if (start && !start.moved) {
+      const now = performance.now();
+      if (now - lastTap < 320 && def != null) { set(def); refresh(); }
+      lastTap = now;
     }
-
-    const names = notes.map(m => noteName(spellPc(pitchClass(m), chord, context), notation));
-    return { symbol, name, names };
+    start = null; el.classList.remove('drag');
+  };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+  el.addEventListener('keydown', e => {
+    const d = { ArrowRight: step, ArrowUp: step, ArrowLeft: -step, ArrowDown: -step }[e.key];
+    if (d) { e.preventDefault(); set(clamp(+(get() + d).toFixed(4), min, max)); refresh(); }
+  });
+  el.refresh = refresh;
+  refresh();
+  return el;
 }
 
-// Notes struck since the keyboard was last silent: shown (dimmed) once
-// everything is released, so even a very short tap gets named
-let lastStrike = [];
-let strikeOver = true;
-
-function trackStrike(event) {
-    // A song overlaps its notes: name what sounds together, not everything since the last silence
-    if (event.type === "on" && event.source?.startsWith("song")) {
-        lastStrike = soundingNotes();
-        strikeOver = true;
-        return;
-    }
-    if (event.type === "on") {
-        if (strikeOver) lastStrike = [];
-        strikeOver = false;
-        if (!lastStrike.includes(event.midi)) lastStrike.push(event.midi);
-    } else if (event.type === "off" && soundingNotes().length === 0) {
-        strikeOver = true;
-    }
+// Rotary knob, vertical drag. Big, for the Play screen and FX.
+export function knob({ label, min = 0, max = 1, get, set, fmt = v => Math.round(v * 100), def, bipolar = false, size = 'm' }) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 64 64');
+  const arc = (a0, a1) => {
+    const r = 26, cx = 32, cy = 32;
+    const p = a => [cx + r * Math.sin(a), cy - r * Math.cos(a)];
+    const [x0, y0] = p(a0), [x1, y1] = p(a1);
+    const large = Math.abs(a1 - a0) > Math.PI ? 1 : 0;
+    const sweep = a1 > a0 ? 1 : 0;
+    return `M${x0.toFixed(2)} ${y0.toFixed(2)} A26 26 0 ${large} ${sweep} ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+  };
+  const A0 = -Math.PI * 0.75, A1 = Math.PI * 0.75;
+  const track = document.createElementNS(NS, 'path');
+  track.setAttribute('d', arc(A0, A1)); track.setAttribute('class', 'k-track');
+  const prog = document.createElementNS(NS, 'path'); prog.setAttribute('class', 'k-val');
+  const dot = document.createElementNS(NS, 'circle'); dot.setAttribute('r', 3.2); dot.setAttribute('class', 'k-dot');
+  svg.append(track, prog, dot);
+  const val = h('b');
+  const el = h('div', { class: 'knob knob-' + size, role: 'slider', 'aria-label': label, tabindex: 0 }, svg, h('span', {}, label), val);
+  const refresh = () => {
+    const v = get();
+    const f = (v - min) / (max - min);
+    const a = A0 + f * (A1 - A0);
+    const from = bipolar ? 0 : A0;
+    prog.setAttribute('d', Math.abs(a - from) < 0.01 ? '' : arc(Math.min(from, a), Math.max(from, a)));
+    dot.setAttribute('cx', 32 + 18 * Math.sin(a));
+    dot.setAttribute('cy', 32 - 18 * Math.cos(a));
+    val.textContent = fmt(v);
+  };
+  let start = null, lastTap = 0;
+  el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); start = { y: e.clientY, x: e.clientX, v: get(), moved: false }; el.classList.add('drag'); });
+  el.addEventListener('pointermove', e => {
+    if (!start) return;
+    const d = (start.y - e.clientY) + (e.clientX - start.x) * 0.5;
+    if (Math.abs(d) > 3) start.moved = true;
+    const v = clamp(start.v + (d / 160) * (max - min), min, max);
+    set(v); refresh();
+  });
+  const end = () => {
+    if (start && !start.moved) { const now = performance.now(); if (now - lastTap < 320 && def != null) { set(def); refresh(); } lastTap = now; }
+    start = null; el.classList.remove('drag');
+  };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+  el.addEventListener('keydown', e => {
+    const d = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
+    if (d) { e.preventDefault(); set(clamp(get() + d * (max - min) / 50, min, max)); refresh(); }
+  });
+  el.refresh = refresh;
+  refresh();
+  return el;
 }
 
-function renderReadout() {
-    readoutQueued = false;
-    const sounding = soundingNotes();
-    const notes = sounding.length ? sounding : [...lastStrike].sort((a, b) => a - b);
-    $("#readout").classList.toggle("idle", sounding.length === 0);
-    $("#pedal").hidden = !isPedalDown();
-    $("#unlock").hidden = !needsUnlock();
-    if (!notes.length) return;
-
-    if (!hasPlayed) {
-        hasPlayed = true;
-        $("#hint").hidden = true;
-    }
-    const { symbol, name, names } = describe(notes);
-    $("#chordSymbol").textContent = symbol;
-    $("#chordName").textContent = name;
-    $("#noteNames").replaceChildren(...names.map(n => {
-        const chip = document.createElement("span");
-        chip.textContent = n;
-        return chip;
-    }));
+// Row of mutually exclusive buttons.
+export function seg({ options, get, set, cls = '' }) {
+  const el = h('div', { class: 'seg ' + cls, role: 'radiogroup' });
+  const btns = options.map(([v, label]) => {
+    const b = h('button', { type: 'button', role: 'radio', onclick: () => { set(v); refresh(); } }, label);
+    b._v = v;
+    return b;
+  });
+  el.append(...btns);
+  const refresh = () => btns.forEach(b => { const on = b._v === get(); b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+  el.refresh = refresh;
+  refresh();
+  return el;
 }
 
-function queueReadout() {
-    if (readoutQueued) return;
-    readoutQueued = true;
-    requestAnimationFrame(renderReadout);
+export function toggle({ label, get, set, cls = '' }) {
+  const el = h('button', { type: 'button', class: 'tog ' + cls, role: 'switch', onclick: () => { set(!get()); refresh(); } }, h('i'), label);
+  const refresh = () => { el.classList.toggle('on', !!get()); el.setAttribute('aria-checked', !!get()); };
+  el.refresh = refresh;
+  refresh();
+  return el;
 }
 
-function renderHint() {
-    $("#hintMain").textContent = t("hint");
-    $("#hintKeys").textContent = finePointer.matches ? t("hintKeys", { keys: keysHint() }) : t("hintTouch");
-    $("#shortKeys").textContent = keysHint();
+export function toast(msg) {
+  const t = h('div', { class: 'toast' }, msg);
+  document.body.append(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2200);
 }
 
-// === Top bar ===
-
-function renderMidi() {
-    const { state, names } = midiStatus();
-    const pill = $("#midiStatus");
-    pill.dataset.state = state;
-    pill.disabled = state !== "prompt" && state !== "denied";
-    const label = {
-        idle: "", prompt: t("midiConnect"), denied: t("midiDenied"), unsupported: t("midiUnsupported"),
-        none: t("midiNone"),
-        connected: names.length === 1 ? names[0] : t("midiDevices", { n: names.length }),
-    }[state];
-    pill.querySelector("span").textContent = label;
-    pill.hidden = state === "idle";
+export function icon(name) {
+  const P = {
+    play: '<circle cx="12" cy="12" r="3.2"/><circle cx="12" cy="12" r="8.5" fill="none"/>',
+    edit: '<circle cx="7" cy="6" r="2.4"/><circle cx="17" cy="6" r="2.4"/><circle cx="12" cy="18" r="2.4"/><path d="M8.5 7.8 11 16M15.5 7.8 13 16" fill="none"/>',
+    sounds: '<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',
+    arp: '<path d="M4 18h3v-4h3v-4h3V6h3v4h3v4" fill="none"/>',
+    seq: '<rect x="3.5" y="9" width="3" height="6" rx="1"/><rect x="8.5" y="9" width="3" height="6" rx="1"/><rect x="13.5" y="9" width="3" height="6" rx="1"/><rect x="18.5" y="9" width="2.5" height="6" rx="1"/>',
+    fx: '<path d="M3 12c2.5-6 4.5-6 6 0s3.5 6 6 0 4-6 6 0" fill="none"/>',
+    gear: '<g fill="none"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></g>',
+    start: '<path d="M8 5l11 7-11 7z"/>',
+    stop: '<rect x="6" y="6" width="12" height="12" rx="1.5"/>',
+    rec: '<circle cx="12" cy="12" r="6"/>',
+    prev: '<path d="M15 5l-7 7 7 7" fill="none"/>',
+    next: '<path d="M9 5l7 7-7 7" fill="none"/>',
+    learn: '<path d="M4 6.5C6.5 5 9.5 5 12 6.5V19c-2.5-1.5-5.5-1.5-8 0z" fill="none"/><path d="M20 6.5C17.5 5 14.5 5 12 6.5V19c2.5-1.5 5.5-1.5 8 0z" fill="none"/>',
+    create: '<path d="M4 7h10M18 7h2M4 17h3M11 17h9" fill="none"/><circle cx="16" cy="7" r="2.2" fill="none"/><circle cx="9" cy="17" r="2.2" fill="none"/>',
+    piano: '<rect x="3" y="5" width="18" height="14" rx="2" fill="none"/><path d="M7.5 5v8M12 5v8M16.5 5v8M7.5 13v6M12 13v6M16.5 13v6" fill="none"/>',
+    upload: '<path d="M12 16V4M7 9l5-5 5 5M5 20h14" fill="none"/>',
+    download: '<path d="M12 4v12M7 11l5 5 5-5M5 20h14" fill="none"/>',
+    trash: '<path d="M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13" fill="none"/>',
+    close: '<path d="M6 6l12 12M18 6 6 18" fill="none"/>',
+    back: '<path d="M14 6l-6 6 6 6" fill="none"/>',
+    restart: '<path d="M5 12a7 7 0 1 0 2-5" fill="none"/><path d="M5 4v4h4" fill="none"/>',
+    pause: '<rect x="6.5" y="5" width="3.5" height="14" rx="1"/><rect x="14" y="5" width="3.5" height="14" rx="1"/>',
+    score: '<path d="M3 7h18M3 11h18M3 15h18" fill="none" opacity=".55"/><path d="M14 17V6l5-1.5" fill="none"/><circle cx="12" cy="17" r="2.3"/>',
+    roll: '<rect x="5" y="4" width="3" height="9" rx="1.2"/><rect x="10.5" y="8" width="3" height="6" rx="1.2"/><rect x="16" y="3" width="3" height="12" rx="1.2"/><path d="M3 19h18" fill="none"/>',
+    split: '<path d="M12 4v16" fill="none"/><rect x="3" y="7" width="6" height="10" rx="2" fill="none"/><rect x="15" y="7" width="6" height="10" rx="2" fill="none"/>',
+    panel: '<rect x="3" y="5" width="18" height="14" rx="2" fill="none"/><path d="M15 5v14" fill="none"/>',
+    target: '<circle cx="12" cy="12" r="8" fill="none"/><circle cx="12" cy="12" r="4" fill="none"/><circle cx="12" cy="12" r="1.2"/>',
+    music: '<path d="M9 18V6l10-2v12" fill="none"/><circle cx="7" cy="18" r="2.3"/><circle cx="17" cy="16" r="2.3"/>',
+    plus: '<path d="M12 5v14M5 12h14" fill="none"/>',
+    skip: '<path d="M6 5l9 7-9 7z"/><rect x="16" y="5" width="2.6" height="14" rx="1"/>',
+    expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none"/>',
+    bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" fill="none"/>',
+    keys: '<rect x="3" y="6" width="18" height="12" rx="1.5" fill="none"/><path d="M8 6v12M13 6v12M18 6v12" fill="none"/>',
+  }[name];
+  const s = document.createElement('span');
+  s.className = 'ic';
+  s.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${P}</svg>`;
+  return s;
 }
-
-function renderSound() {
-    const button = $("#soundBtn");
-    button.setAttribute("aria-pressed", settings.sound);
-    button.setAttribute("aria-label", settings.sound ? t("soundOn") : t("soundOff"));
-    button.title = button.getAttribute("aria-label");
-}
-
-function renderLed() {
-    const state = settings.ledEnabled ? ledState() : "off";
-    const pill = $("#ledPill");
-    pill.hidden = !settings.ledEnabled;
-    pill.dataset.state = state;
-    const text = { off: t("ledOff"), connecting: t("ledConnecting"), connected: t("ledConnected"), failed: t("ledFailed") }[state];
-    pill.querySelector("span").textContent = `LED · ${text}`;
-    $("#ledStatusRow").hidden = !settings.ledEnabled;
-    $("#ledStatus").textContent = text;
-    $("#ledStatus").dataset.state = state;
-    $("#ledRetry").hidden = state !== "failed" || !settings.ledEnabled;
-    $("#ledHint").hidden = !(state === "failed" && location.protocol === "https:");
-}
-
-function renderLumi() {
-    const state = settings.lumiEnabled ? lumiState() : "off";
-    const text = {
-        off: t("lumiWaiting"), unsupported: t("lumiUnsupported"), denied: t("lumiDenied"), none: t("lumiNone"),
-        connected: t("lumiConnected", { n: lumiCount(), keys: lumiKeyCount() }),
-    }[state];
-    $("#lumiStatusRow").hidden = !settings.lumiEnabled;
-    $("#lumiStatus").textContent = text;
-    $("#lumiStatus").dataset.state = state === "connected" ? "connected" : state === "none" ? "off" : "failed";
-    $("#lumiRetry").hidden = state !== "denied" && state !== "off";
-}
-
-// === Settings drawer ===
-
-function openDrawer(open) {
-    const drawer = $("#settings");
-    drawer.classList.toggle("open", open);
-    drawer.setAttribute("aria-hidden", !open);
-    drawer.inert = !open;
-    $("#scrim").classList.toggle("visible", open);
-    $("#settingsBtn").setAttribute("aria-expanded", open);
-    if (open) drawer.querySelector('[role="tab"][aria-selected="true"]')?.focus();
-    else $("#settingsBtn").focus();
-}
-
-const TABS = ["sound", "display", "keyboard", "lights"];
-
-function showTab(name) {
-    if (!TABS.includes(name)) name = TABS[0];
-    document.querySelectorAll("[data-tab]").forEach(tab => {
-        const selected = tab.dataset.tab === name;
-        tab.setAttribute("aria-selected", selected);
-        tab.tabIndex = selected ? 0 : -1;
-    });
-    document.querySelectorAll("[data-panel]").forEach(panel => (panel.hidden = panel.dataset.panel !== name));
-    $(".panels").scrollTop = 0;
-}
-
-function bindTabs() {
-    showTab(settings.settingsTab);
-    const tabs = $(".tabs");
-    tabs.addEventListener("click", e => {
-        const tab = e.target.closest("[data-tab]");
-        if (tab) setSetting("settingsTab", tab.dataset.tab);
-    });
-    // Arrow keys move between tabs, as in any tab list
-    tabs.addEventListener("keydown", e => {
-        const step = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
-        if (!step) return;
-        e.preventDefault();
-        e.stopPropagation(); // not an octave change
-        const next = TABS[(TABS.indexOf(settings.settingsTab) + step + TABS.length) % TABS.length];
-        setSetting("settingsTab", next);
-        tabs.querySelector(`[data-tab="${next}"]`).focus();
-    });
-}
-
-function fillScaleOptions() {
-    const notation = currentNotation();
-    const root = $("#scaleRoot");
-    root.replaceChildren(...Array.from({ length: 12 }, (_, pc) => {
-        // Black keys can be read both ways: offer "C♯ / D♭"
-        const label = WHITE_LETTER[pc] !== undefined
-            ? noteName({ letter: WHITE_LETTER[pc], acc: 0 }, notation)
-            : `${noteName({ letter: WHITE_LETTER[pc - 1], acc: 1 }, notation)} / ${noteName({ letter: WHITE_LETTER[pc + 1], acc: -1 }, notation)}`;
-        return new Option(label, pc);
-    }));
-    root.value = settings.scaleRoot;
-
-    const type = $("#scaleType");
-    type.replaceChildren(new Option(t("scaleNone"), ""), ...Object.keys(SCALES).map(k => new Option(scaleName(k), k)));
-    type.value = settings.scaleType;
-    renderScaleNotes();
-}
-
-function renderScaleNotes() {
-    const notes = scaleNotes(settings.scaleRoot, settings.scaleType);
-    $("#scaleRoot").disabled = !notes.length;
-    $("#scaleNotes").textContent = notes.map(n => noteName(n.spelling, currentNotation())).join("  ");
-    $("#scaleNotes").hidden = !notes.length;
-}
-
-function syncControls() {
-    document.querySelectorAll("[data-setting]").forEach(el => {
-        const value = settings[el.dataset.setting];
-        if (el.type === "checkbox") el.checked = value;
-        else if (el.matches(".segmented")) {
-            const current = el.dataset.setting === "notation" ? currentNotation() : value;
-            el.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.value === String(current)));
-        } else el.value = value;
-    });
-    document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === getLanguage()));
-    $("#volumeValue").textContent = `${Math.round(settings.volume * 100)}%`;
-    $("#intensityValue").textContent = `${Math.round(settings.ledIntensity * 100)}%`;
-    $("#tempoValue").textContent = `${settings.tempo} BPM`;
-    $("#tempoRow").hidden = $("#tempoHelp").hidden = !settings.showStaff;
-    $("#ledOptions").hidden = !settings.ledEnabled;
-    $("#lumiOptions").hidden = !settings.lumiEnabled;
-    $("#lumiModeHelp").hidden = $("#lumiGuideColorRow").hidden = !settings.lumiKeyLights;
-    $("#lumiBrightnessValue").textContent = `${Math.round(settings.lumiBrightness * 100)}%`;
-    $("#instrument").disabled = !settings.sound;
-    $("#synthOptions").hidden = settings.instrument === "piano";
-    document.querySelectorAll("[data-out]").forEach(out => {
-        out.textContent = formatSynth(out.dataset.out, settings[out.dataset.out]);
-    });
-}
-
-function formatSynth(key, value) {
-    if (key === "synthSustain" || key === "delayMix" || key === "delayFeedback") return `${Math.round(value * 100)}%`;
-    return value < 1 ? `${Math.round(value * 1000)} ms` : `${value.toFixed(2)} s`;
-}
-
-function bindControls() {
-    document.querySelectorAll("[data-setting]").forEach(el => {
-        const key = el.dataset.setting;
-        if (el.matches(".segmented")) {
-            el.addEventListener("click", e => {
-                const button = e.target.closest("button");
-                if (button) setSetting(key, button.dataset.value);
-            });
-        } else if (el.type === "checkbox") {
-            el.addEventListener("change", () => setSetting(key, el.checked));
-        } else if (el.type === "range") {
-            el.addEventListener("input", () => setSetting(key, Number(el.value)));
-        } else if (el.type === "color") {
-            el.addEventListener("input", () => setSetting(key, el.value));
-        } else if (el.type === "text") {
-            el.addEventListener("change", () => setSetting(key, el.value.trim()));
-        } else {
-            el.addEventListener("change", () => setSetting(key, el.dataset.type === "number" ? Number(el.value) : el.value));
-        }
-    });
-    document.querySelectorAll("[data-lang]").forEach(b => b.addEventListener("click", () => setLanguage(b.dataset.lang)));
-}
-
-// === Wiring ===
-
-function renderAllText() {
-    applyStaticText();
-    renderHint();
-    renderMidi();
-    renderSound();
-    renderLed();
-    renderLumi();
-    fillScaleOptions();
-    syncControls();
-    hasPlayed && renderReadout();
-}
-
-// === Songs (MIDI files) ===
-
-const formatTime = ms => {
-    const seconds = Math.floor(ms / 1000);
-    return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-};
-
-function renderSong() {
-    const song = currentSong();
-    document.body.classList.toggle("song-open", Boolean(song));
-    $("#songBar").hidden = !song;
-    if (!song) return;
-    const playing = isSongPlaying();
-    const play = $("#songPlay");
-    play.querySelector("use").setAttribute("href", playing ? "#i-pause" : "#i-play");
-    play.setAttribute("aria-label", t(playing ? "songPause" : "songPlay"));
-    play.title = play.getAttribute("aria-label");
-    $("#songTitle").textContent = song.title;
-    $("#songPart").value = songPart();
-    $("#songWait").hidden = !isWaitingForPlayer();
-    $("#songSpeed").querySelectorAll("button").forEach(b =>
-        b.setAttribute("aria-pressed", Number(b.dataset.speed) === songSpeed()));
-    renderSongPosition();
-}
-
-let seeking = false;
-function renderSongPosition() {
-    const song = currentSong();
-    if (!song) return;
-    const position = songPosition();
-    $("#songTime").textContent = `${formatTime(position)} / ${formatTime(song.durationMs)}`;
-    if (!seeking) $("#songSeek").value = Math.round(position / song.durationMs * 1000);
-}
-
-let errorTimer = null;
-// `keep`: a file picked or dropped goes into the library; songs opened from it are already there
-async function openSong(file, { keep = true } = {}) {
-    try {
-        await openSongFile(file);
-        setPracticing(false);
-        setSongPart(settings.songStartPart);
-        // The song is meant to be read: bring the staff back if it was hidden
-        setSetting("showStaff", true);
-        hasPlayed = true;
-        $("#hint").hidden = true;
-        if (keep) addSong(file, currentSong().title);
-        return true;
-    } catch (err) {
-        console.warn("MIDI file:", err);
-        $("#songError").textContent = t("songError");
-        $("#songError").hidden = false;
-        clearTimeout(errorTimer);
-        errorTimer = setTimeout(() => ($("#songError").hidden = true), 4000);
-        return false;
-    }
-}
-
-// === Song library ===
-
-let currentSongId = null;
-
-async function openLibrarySong(id) {
-    try {
-        if (await openSong(await songFile(id), { keep: false })) currentSongId = id;
-    } catch (err) {
-        console.warn("Library:", err);
-    }
-    $("#libraryDialog").close();
-}
-
-function songItem({ id, title, meta, removable }) {
-    const item = document.createElement("li");
-    item.className = "song-item";
-    item.setAttribute("aria-current", id === currentSongId && Boolean(currentSong()));
-    const open = document.createElement("button");
-    open.type = "button";
-    open.className = "song-pick";
-    open.innerHTML = `<span class="song-badge"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-music" /></svg></span>
-        <span class="song-text"><span class="song-name"></span><span class="song-meta"></span></span>`;
-    open.querySelector(".song-name").textContent = title;
-    open.querySelector(".song-meta").textContent = meta;
-    open.addEventListener("click", () => openLibrarySong(id));
-    item.append(open);
-    if (removable) {
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "icon-button small song-delete";
-        remove.title = remove.ariaLabel = t("deleteSong");
-        remove.innerHTML = `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trash" /></svg>`;
-        remove.addEventListener("click", () => {
-            if (confirm(t("deleteConfirm", { title }))) removeSong(id);
-        });
-        item.append(remove);
-    }
-    return item;
-}
-
-async function renderLibrary() {
-    const date = new Intl.DateTimeFormat(getLanguage(), { day: "numeric", month: "short", year: "numeric" });
-    $("#exampleList").replaceChildren(...EXAMPLES.map(e =>
-        songItem({ id: e.id, title: e.title, meta: t("exampleMeta", { composer: e.composer }) + (e.fitsLumi ? ` · ${t("fitsLumi")}` : "") })));
-    const imported = await importedSongs();
-    $("#importedList").replaceChildren(...imported.map(song =>
-        songItem({ id: song.id, title: song.title, meta: t("importedMeta", { date: date.format(song.addedAt) }), removable: true })));
-    $("#libraryEmpty").hidden = imported.length > 0;
-}
-
-function openLibrary() {
-    if ($("#settings").classList.contains("open")) openDrawer(false);
-    renderLibrary();
-    $("#libraryDialog").showModal();
-}
-
-function bindLibrary() {
-    const dialog = $("#libraryDialog");
-    const input = $("#songFile");
-    $("#openLibrary").addEventListener("click", openLibrary);
-    $("#openLibrarySettings").addEventListener("click", openLibrary);
-    $("#closeLibrary").addEventListener("click", () => dialog.close());
-    dialog.addEventListener("click", e => e.target === dialog && dialog.close());
-    $("#importSong").addEventListener("click", () => input.click());
-    document.querySelectorAll(".example-song").forEach(button =>
-        button.addEventListener("click", () => openLibrarySong(EXAMPLES.find(e => e.id === "example:ode").id)));
-    onLibraryChange(() => dialog.open && renderLibrary());
-    onLanguageChange(() => dialog.open && renderLibrary());
-}
-
-function bindSong() {
-    const input = $("#songFile");
-    input.addEventListener("change", async () => {
-        const file = input.files[0];
-        input.value = "";
-        if (file && await openSong(file)) {
-            currentSongId = null;
-            $("#libraryDialog").close();
-        }
-    });
-    // A MIDI file dropped anywhere on the page opens too
-    window.addEventListener("dragover", e => e.preventDefault());
-    window.addEventListener("drop", e => {
-        e.preventDefault();
-        const file = [...(e.dataTransfer?.files ?? [])].find(f => /\.midi?$/i.test(f.name) || f.type.includes("midi"));
-        if (file) openSong(file).then(ok => ok && (currentSongId = null));
-    });
-
-    $("#songPlay").addEventListener("click", () => (isSongPlaying() ? pauseSong() : playSong()));
-    $("#songClose").addEventListener("click", closeSong);
-    $("#songPart").addEventListener("change", e => {
-        setSongPart(e.target.value);
-        setSetting("songStartPart", e.target.value); // the next song opens the same way
-    });
-    $("#songSpeed").addEventListener("click", e => {
-        const button = e.target.closest("button");
-        if (button) setSongSpeed(Number(button.dataset.speed));
-    });
-    const seek = $("#songSeek");
-    seek.addEventListener("input", () => {
-        seeking = true;
-        seekSong(Number(seek.value) / 1000 * currentSong().durationMs);
-    });
-    seek.addEventListener("change", () => (seeking = false));
-
-    onSongChange(renderSong);
-    onSongPosition(renderSongPosition);
-    // An exercise and a song do not mix: starting one closes the other
-    onPracticeChange(() => isPracticing() && closeSong());
-}
-
-// === Whole score dialog ===
-
-function renderScoreState(played = hasScore()) {
-    $("#scoreEmpty").hidden = played;
-    $("#clearStaff").disabled = !played; // nothing to clear yet
-    $("#fullScore").hidden = !played;
-    ["#exportPng", "#exportSvg", "#exportMidi"].forEach(id => ($(id).disabled = !played));
-    // A song came from a MIDI file already: only its images can be downloaded
-    $("#exportMidi").hidden = Boolean(currentSong());
-    $("#scoreTitle").textContent = currentSong()?.title ?? t("scoreTitle");
-}
-
-function bindScoreDialog() {
-    const dialog = $("#scoreDialog");
-    $("#openScore").addEventListener("click", () => {
-        renderScoreState();
-        dialog.showModal();
-        showFullScore($("#fullScore"));
-    });
-    $("#closeScore").addEventListener("click", () => dialog.close());
-    // A click on the backdrop closes it too
-    dialog.addEventListener("click", e => e.target === dialog && dialog.close());
-    // "close" fires a little later: ignore it if the dialog was opened again since
-    dialog.addEventListener("close", () => !dialog.open && hideFullScore());
-    // Building an image takes a moment: keep the button busy meanwhile
-    [["#exportPng", exportPng], ["#exportSvg", exportSvg], ["#exportMidi", exportMidi]].forEach(([id, run]) => {
-        const button = $(id);
-        button.addEventListener("click", async () => {
-            button.disabled = true;
-            try {
-                await run();
-            } catch (err) {
-                console.warn("Export failed:", err);
-            } finally {
-                renderScoreState();
-            }
-        });
-    });
-    onScoreChange(renderScoreState);
-    renderScoreState();
-}
-
-export function initUI() {
-    bindControls();
-    renderAllText();
-
-    $("#soundBtn").addEventListener("click", () => setSetting("sound", !settings.sound));
-    $("#settingsBtn").addEventListener("click", () => openDrawer(true));
-    $("#closeSettings").addEventListener("click", () => openDrawer(false));
-    $("#scrim").addEventListener("click", () => openDrawer(false));
-    document.addEventListener("keydown", e => {
-        if (e.key === "Escape" && $("#settings").classList.contains("open")) openDrawer(false);
-    });
-    $("#settings").inert = true;
-    bindTabs();
-    $("#midiStatus").addEventListener("click", connectMidi);
-    $("#ledRetry").addEventListener("click", connectLeds);
-    $("#lumiRetry").addEventListener("click", retryLumi);
-    $("#clearStaff").addEventListener("click", clearScore);
-    bindScoreDialog();
-    bindSong();
-    bindLibrary();
-    $("#resetUsage").addEventListener("click", resetUsage);
-    $("#resetSynth").addEventListener("click", resetSynth);
-    $("#octDown").addEventListener("click", () => shiftView(-1));
-    $("#octUp").addEventListener("click", () => shiftView(1));
-
-    onMidiStatus(renderMidi);
-    onLedState(renderLed);
-    onLumiState(renderLumi);
-    onAudioStateChange(queueReadout);
-    finePointer.addEventListener("change", renderHint);
-    document.addEventListener("keylabels", renderHint);
-    onLanguageChange(renderAllText);
-    onSettingChange(key => {
-        syncControls();
-        if (key === "sound") renderSound();
-        if (key === "settingsTab") showTab(settings.settingsTab);
-        if (key === "ledEnabled") renderLed();
-        if (key === "lumiEnabled" || key === "lumiBlocks") renderLumi();
-        if (key === "notation") {
-            fillScaleOptions();
-            hasPlayed && renderReadout();
-        }
-        if (key === "scaleRoot" || key === "scaleType") {
-            renderScaleNotes();
-            hasPlayed && renderReadout();
-        }
-    });
-    subscribe(event => {
-        trackStrike(event);
-        queueReadout();
-    });
-}
-

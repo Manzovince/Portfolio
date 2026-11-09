@@ -8,7 +8,7 @@
 // other. The song then waits on each chord of their part until its notes are
 // played, and marks them on the keys (and the LED strip) in the meantime.
 
-import { subscribe, press, liftSource, setPedal } from "./piano.js?v=20261101n";
+import { subscribe, press, liftSource, setPedal } from "./notes.js?v=202611091";
 
 const SOURCE = "song";
 const TICK_MS = 10;          // playback clock
@@ -43,6 +43,7 @@ export const onSongPosition = fn => positionListeners.add(fn);
 export const songPart = () => part;
 export const isWaitingForPlayer = () => waiting;
 export const onSongGuide = fn => guideListeners.add(fn);
+export const awaitedChord = () => (song && part !== "listen" ? song.parts[part][expected] ?? null : null);
 
 const notifyGuide = () => guideListeners.forEach(fn => fn());
 
@@ -232,8 +233,12 @@ function assignHands(notes) {
     }
 }
 
-export async function openSongFile(file) {
+export async function openSongFile(file, meta = {}) {
     const next = buildSong(readFile(await file.arrayBuffer()), file.name);
+    next.id = meta.id ?? null;
+    if (meta.title) next.title = meta.title;
+    next.lo = Math.min(...next.notes.map(n => n.midi));
+    next.hi = Math.max(...next.notes.map(n => n.midi));
     closeSong();
     song = next;
     resetExpected();

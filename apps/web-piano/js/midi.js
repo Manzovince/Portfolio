@@ -1,86 +1,62 @@
-// === MIDI input (Web MIDI API) ===
+// Web MIDI input. iOS Safari has no Web MIDI: on iPhone / iPad open the app in
+// a browser that adds it (Web MIDI Browser). Outputs are only used by lumi.js,
+// and only when the LUMI guide lights are switched on.
+import { press, lift, setPedal, allNotesOff } from './notes.js?v=202611091';
+import * as E from './engine.js?v=202611091';
+import { S } from './store.js?v=202611091';
 
-import { press, lift, setPedal, allOff } from "./piano.js?v=20261101n";
-import { settings } from "./settings.js?v=20261101n";
-
-let status = { state: "idle", names: [] };
-const listeners = new Set();
 let access = null;
-const accessListeners = new Set();
+let stateCb = () => {};
+const accessCbs = new Set();
+export let status = { state: 'idle', inputs: [] };
 
-export const midiStatus = () => status;
-export const onMidiStatus = fn => listeners.add(fn);
-// The MIDIAccess object, shared with the LUMI module which sends to the outputs
+export const onMidiState = fn => { stateCb = fn; };
 export const midiAccess = () => access;
-export const onMidiAccess = fn => accessListeners.add(fn);
+export const onMidiAccess = fn => accessCbs.add(fn);
 
-function setStatus(next) {
-    status = next;
-    listeners.forEach(fn => fn(status));
+function parse(d) {
+  const st = d[0] & 0xf0, a = d[1], b = d[2] ?? 0;
+  switch (st) {
+    case 0x90: b > 0 ? press(a, b, 'midi') : lift(a); break;
+    case 0x80: lift(a); break;
+    case 0xb0:
+      if (a === 64) setPedal(b >= 64);
+      else if (a === 1) E.modWheel(b / 127);
+      else if (a === 120 || a === 123) allNotesOff();
+      break;
+    case 0xe0: if (S.midi.bend) E.bend(((((b << 7) | a) - 8192) / 8192) * S.midi.bendRange); break;
+  }
 }
 
-export function handleMidiMessage(data) {
-    const [statusByte, data1, data2 = 0] = data;
-    switch (statusByte & 0xf0) {
-        case 0x90: // note on (velocity 0 means note off)
-            if (data2 > 0) press(data1, data2, "midi");
-            else lift(data1);
-            break;
-        case 0x80: // note off
-            lift(data1);
-            break;
-        case 0xb0: // control change
-            if (data1 === 64) setPedal(data2 >= 64); // sustain pedal
-            if (data1 === 120 || data1 === 123) allOff(); // all sound / all notes off
-            break;
-    }
+function update() {
+  const inputs = [...access.inputs.values()];
+  const sel = S.midi.input;
+  for (const inp of inputs) inp.onmidimessage = sel === 'all' || sel === inp.id ? e => parse(e.data) : null;
+  status = { state: inputs.length ? 'connected' : 'none', inputs: inputs.map(i => ({ id: i.id, name: i.name || 'MIDI' })) };
+  stateCb(status);
+  accessCbs.forEach(fn => fn(access));
 }
 
-function bind(next) {
-    if (access && access !== next) {
-        access.onstatechange = null;
-        access.inputs.forEach(input => (input.onmidimessage = null));
-    }
+export function selectInput(id) {
+  S.midi.input = id;
+  if (access) update();
+}
+
+// SysEx is a separate permission, only asked for when the LUMI lights are on
+export async function connectMidi(sysex = S.lumi.enabled) {
+  if (!navigator.requestMIDIAccess) {
+    status = { state: 'unsupported', inputs: [] };
+    return stateCb(status);
+  }
+  try {
+    const next = await navigator.requestMIDIAccess({ sysex });
+    if (access && access !== next) { access.onstatechange = null; access.inputs.forEach(i => (i.onmidimessage = null)); }
     access = next;
-    const update = () => {
-        const inputs = [...access.inputs.values()];
-        inputs.forEach(input => (input.onmidimessage = e => handleMidiMessage(e.data)));
-        setStatus({ state: inputs.length ? "connected" : "none", names: inputs.map(i => i.name) });
-        accessListeners.forEach(fn => fn(access));
-    };
     access.onstatechange = update;
     update();
-}
-
-// Ask for MIDI access (may show a permission prompt). Lighting a LUMI needs
-// SysEx, a separate permission: if it is refused, plain MIDI input still works.
-export function connectMidi(sysex = settings.lumiEnabled) {
-    if (!navigator.requestMIDIAccess) {
-        setStatus({ state: "unsupported", names: [] });
-        return;
-    }
-    navigator.requestMIDIAccess({ sysex }).then(bind).catch(() => {
-        if (sysex) return connectMidi(false);
-        setStatus({ state: "denied", names: [] });
-    });
-}
-
-// Connect straight away only if the visitor already granted access before,
-// so that opening the page never starts with a permission prompt.
-export async function initMidi() {
-    if (!navigator.requestMIDIAccess) {
-        setStatus({ state: "unsupported", names: [] });
-        return;
-    }
-    try {
-        if (settings.lumiEnabled) {
-            const sysex = await navigator.permissions.query({ name: "midi", sysex: true });
-            if (sysex.state === "granted") return connectMidi(true);
-        }
-        const permission = await navigator.permissions.query({ name: "midi" });
-        if (permission.state === "granted") return connectMidi(false);
-        setStatus({ state: permission.state === "denied" ? "denied" : "prompt", names: [] });
-    } catch {
-        setStatus({ state: "prompt", names: [] });
-    }
+  } catch {
+    if (sysex) return connectMidi(false);
+    status = { state: 'denied', inputs: [] };
+    stateCb(status);
+  }
 }

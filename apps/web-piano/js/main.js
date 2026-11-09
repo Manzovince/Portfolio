@@ -1,24 +1,176 @@
-import { initKeyboard } from "./keyboard.js?v=20261101n";
-import { initRoll } from "./roll.js?v=20261101n";
-import { initWave } from "./wave.js?v=20261101n";
-import { initScore } from "./score.js?v=20261101n";
-import { initMidi } from "./midi.js?v=20261101n";
-import { initLeds } from "./leds.js?v=20261101n";
-import { initLumi } from "./lumi.js?v=20261101n";
-import { unlockAudio } from "./audio.js?v=20261101n";
-import { initUI } from "./ui.js?v=20261101n";
-import { initPractice } from "./practice.js?v=20261101n";
+// Octave — boot, shell (top bar, mode switch, keyboard dock), screen switching.
+import { h, icon, seg, toast } from './ui.js?v=202611091';
+import { S, save, on, emit } from './store.js?v=202611091';
+import * as E from './engine.js?v=202611091';
+import { applyAll, seq, seqPlay, seqHasNotes, learnSplit } from './perform.js?v=202611091';
+import { connectMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611091';
+import { createDock, bindComputerKeys, setGuide, applyDock } from './keys.js?v=202611091';
+import { currentGuide, onGuideChange, refreshGuide } from './guide.js?v=202611091';
+import { initLumi } from './lumi.js?v=202611091';
+import { t, noteLabel } from './i18n.js?v=202611091';
+import { renderPlay } from './play.js?v=202611091';
+import { renderLearn } from './learn.js?v=202611091';
+import { renderCreate, soundName } from './create.js?v=202611091';
+import { renderSettings, applyTheme } from './settings.js?v=202611091';
+import { allNotesOff } from './notes.js?v=202611091';
 
-initKeyboard(document.getElementById("keyboard"));
-initRoll(document.getElementById("roll"), document.getElementById("usage"));
-initWave(document.getElementById("wave"));
-initUI();
-initPractice();
-initScore(document.getElementById("score"));
+const MODES = [['play', 'play', 'modePlay'], ['learn', 'learn', 'modeLearn'], ['create', 'create', 'modeCreate']];
+
+const app = document.getElementById('app');
+const top = h('header', { class: 'top' });
+const view = h('main', { class: 'view' });
+const dock = createDock();
+const sheet = h('div', { class: 'sheet', hidden: true, onclick: e => { if (e.target === sheet) ctx.closeSheet(); } });
+const sheetBox = h('div', { class: 'sheet-box', role: 'dialog' });
+sheet.append(sheetBox);
+app.append(top, view, dock);
+document.body.append(sheet);
+
+let subs = [];
+const ctx = {
+  graphs: [],
+  sub(evt, fn) { subs.push(on(evt, fn)); },
+  // cleanup functions registered by the current screen
+  onLeave(fn) { subs.push(fn); },
+  go(mode, tab) {
+    S.mode = mode;
+    if (tab && mode === 'create') S.createTab = tab;
+    if (tab && mode === 'learn') S.learnTab = tab;
+    save(); render();
+  },
+  rerender: () => render(),
+  openSheet(fill = renderSettings) {
+    sheetBox.textContent = '';
+    sheetBox.className = 'sheet-box';
+    fill(sheetBox, ctx);
+    sheet.hidden = false;
+  },
+  closeSheet() {
+    sheet.hidden = true;
+    sheetBox.dispatchEvent(new Event('close'));
+    learnSplit(null);
+  },
+  learnSplit(cb) {
+    learnSplit(key => { S.split.point = key; S.split.on = true; save(); emit('split'); toast(t('splitAt', { note: noteLabel(key) })); cb && cb(); });
+  },
+};
+
+// ── top bar ──
+const logo = h('div', { class: 'logo', 'aria-hidden': 'true' }, h('span', {}, 'OCTAVE'));
+const modes = h('nav', { class: 'modes', 'aria-label': t('modes') });
+const chips = h('div', { class: 'parts' });
+const transport = h('button', { type: 'button', class: 'transport-mini', onclick: () => seqPlay() });
+const midiPill = h('button', { type: 'button', class: 'midi', onclick: () => ctx.openSheet() });
+const gear = h('button', { type: 'button', class: 'gear', onclick: () => ctx.openSheet() }, icon('gear'));
+top.append(logo, modes, h('div', { class: 'spacer' }), chips, transport, midiPill, gear);
+
+function paintModes() {
+  modes.textContent = '';
+  for (const [id, ic, label] of MODES) {
+    modes.append(h('button', { type: 'button', class: 'mode' + (S.mode === id ? ' on' : ''), 'aria-pressed': S.mode === id, onclick: () => ctx.go(id) }, icon(ic), h('span', {}, t(label))));
+  }
+  gear.setAttribute('aria-label', t('settings'));
+  transport.setAttribute('aria-label', t('seqPlay'));
+}
+
+function paintTop() {
+  chips.textContent = '';
+  const n = S.split.on ? 2 : 1;
+  for (let i = 0; i < n; i++) {
+    const pt = S.parts[i];
+    chips.append(h('button', {
+      type: 'button', class: 'part p' + i + (S.edit === i ? ' on' : ''),
+      onclick: () => {
+        // first tap selects the part, a tap on the selected one opens its sounds
+        if (S.edit === i) ctx.go('create', 'sounds');
+        else { S.edit = i; save(); emit('part'); }
+      },
+    }, h('b', {}, i ? 'B' : 'A'), h('span', {}, soundName(pt) + (pt.dirty ? '*' : ''))));
+  }
+  transport.hidden = !seqHasNotes() && !seq.playing;
+  transport.textContent = '';
+  transport.append(icon(seq.playing ? 'stop' : 'start'));
+  transport.classList.toggle('on', seq.playing);
+  document.documentElement.dataset.part = S.edit;
+}
+
+function paintMidi(st = midiStatusNow) {
+  const label = { idle: t('midiIdle'), connected: st.inputs.map(i => i.name).join(', ') || 'MIDI', none: t('midiNone'), unsupported: t('midiUnsupported'), denied: t('midiDenied') }[st.state];
+  midiPill.className = 'midi ' + st.state;
+  midiPill.title = label;
+  midiPill.textContent = '';
+  midiPill.append(h('i'), h('span', {}, label));
+}
+
+function render() {
+  if (!S.split.on) S.edit = 0;
+  subs.forEach(u => u()); subs = [];
+  ctx.graphs = [];
+  view.textContent = '';
+  view.className = 'view v-' + S.mode;
+  document.documentElement.dataset.mode = S.mode;
+  ({ play: renderPlay, learn: renderLearn, create: renderCreate }[S.mode] || renderPlay)(view, ctx);
+  paintModes();
+  paintTop();
+  refreshGuide();
+}
+
+on('voice', render);
+on('part', render);
+on('split', render);
+on('patch', paintTop);
+on('seq', paintTop);
+on('lang', () => { render(); paintMidi(); if (!sheet.hidden) ctx.openSheet(); });
+on('theme', () => { if (S.mode !== 'learn') render(); });
+
+// Guide (exercise / song) on the keys
+setGuide(() => currentGuide());
+onGuideChange(() => setGuide(() => currentGuide()));
+
+E.onMeter(m => {
+  const arr = S.edit === 0 ? m.a : m.b;
+  for (const g of ctx.graphs) g.meter(arr);
+});
+
+onMidiState(st => {
+  paintMidi(st);
+  if (!sheet.hidden && sheetBox.dataset.kind === 'settings') ctx.openSheet();
+});
+
+// ── start: audio needs a gesture ──
+const start = document.getElementById('start');
+let starting = null;
+async function boot() {
+  starting ??= (async () => {
+    try {
+      await E.startAudio();
+      applyAll();
+      start.classList.add('gone');
+      setTimeout(() => start.remove(), 400);
+    } catch (err) {
+      starting = null;
+      start.querySelector('p').textContent = t('audioError') + ' ' + (err?.message || err);
+    }
+  })();
+  return starting;
+}
+start.addEventListener('click', boot);
+addEventListener('keydown', () => boot(), { once: true });
+
+applyTheme();
+matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => applyTheme());
+document.documentElement.lang = S.lang;
+document.getElementById('start-tap').textContent = t('startTap');
+if (!navigator.requestMIDIAccess) document.getElementById('start-hint').textContent = t('startNoMidi');
+
+paintMidi();
+render();
+bindComputerKeys();
 initLumi();
-initMidi();
-initLeds();
+connectMidi();
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+on('tempo', () => E.setFx(S.fx, S.tempo));
+document.addEventListener('visibilitychange', () => { if (document.hidden) allNotesOff(); });
 
-// Audio can only start from a user gesture: any tap, click or key press will do
-["pointerdown", "keydown", "touchend"].forEach(type =>
-    window.addEventListener(type, unlockAudio, { capture: true, passive: true }));
+// console handle for testing without a keyboard
+import('./notes.js?v=202611091').then(N => { window.octave = { S, press: N.press, lift: N.lift, emit, applyDock }; });

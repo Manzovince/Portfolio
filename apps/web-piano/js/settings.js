@@ -1,91 +1,94 @@
-// === Settings: persisted per browser, observable ===
+// Settings sheet and theme.
+import { h, param, seg, toggle, toast } from './ui.js?v=202611091';
+import { S, save, emit, resetAll } from './store.js?v=202611091';
+import * as E from './engine.js?v=202611091';
+import { allOff } from './perform.js?v=202611091';
+import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611091';
+import { t, noteLabel, setLang } from './i18n.js?v=202611091';
+import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES } from './lumi.js?v=202611091';
 
-const STORAGE_KEY = "webPiano.settings";
-
-const DEFAULTS = {
-    settingsTab: "sound", // last tab opened in the settings drawer
-    sound: true,
-    instrument: "piano",
-    volume: 0.8,
-    // Envelope and echo of the synth voices (the piano keeps its own sound)
-    synthAttack: 0.01,
-    synthDecay: 0.25,
-    synthSustain: 0.55,
-    synthRelease: 0.35,
-    delayMix: 0,
-    delayTime: 0.3,
-    delayFeedback: 0.35,
-    showWave: true,
-    notation: null, // null = follow the language (solfège in French)
-    colorMode: "rainbow",
-    showStaff: true,
-    songStartPart: "right", // listen | right | left | both: how songs open from the library
-    tempo: 80, // beats per minute, used to write note lengths on the staff
-    showRoll: true,
-    showUsage: false,
-    showLabels: true,
-    showKeyboard: true,
-    keyboardSize: "auto", // auto (fits the screen) | lumi | 88 | 61 | 49 | 37 | 25
-    scaleRoot: 0,
-    scaleType: "",
-    ledEnabled: false,
-    ledHost: "192.168.1.17:81",
-    ledIntensity: 0.2,
-    ledEffect: "key",
-    lumiEnabled: false,
-    lumiBlocks: "auto", // auto (one per LUMI port found) | 1 | 2
-    lumiBrightness: 0.6,
-    lumiMode: "rainbow", // rainbow | single | piano | night
-    lumiColor: "#44aca3",
-    lumiRootColor: "#f2b84b",
-    lumiOctave: 0,
-    lumiScaleSync: true,
-    lumiKeyLights: true, // show the notes to play during exercises and songs
-    lumiGuideColor: "#2ec4b6",
-    practiceKind: "chords",
-    practiceChords: "triads",
-    practiceScales: "majorScales",
-    practiceRoots: "naturals",
-    practiceHints: true,
-};
-
-function load() {
-    try {
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if (!saved || typeof saved !== "object") return {};
-        // Keep only known keys with the expected type
-        return Object.fromEntries(Object.entries(saved).filter(([key, value]) =>
-            key in DEFAULTS && (DEFAULTS[key] === null || typeof value === typeof DEFAULTS[key])));
-    } catch {
-        return {};
-    }
+// 'auto' follows the device; 'light' / 'dark' force it
+export function applyTheme() {
+  const th = S.theme || 'auto';
+  if (th === 'auto') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = th;
+  const light = th === 'light' || (th === 'auto' && matchMedia('(prefers-color-scheme: light)').matches);
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', light ? '#f3f4f7' : '#0b0c10');
+  emit('theme');
 }
 
-function save() {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    } catch {
-        // Storage blocked (private mode): settings still apply for this visit
-    }
-}
+const row = (label, control) => h('div', { class: 'row' }, h('span', { class: 'lab' }, label), control);
 
-export const settings = { ...DEFAULTS, ...load() };
+export function renderSettings(box, ctx) {
+  box.dataset.kind = 'settings';
+  const st = midiStatus;
+  const ms = { idle: t('midiIdle'), connected: t('midiConnected'), none: t('midiNone'), unsupported: t('midiUnsupported'), denied: t('midiDenied') }[st.state];
+  const kb = () => { save(); emit('kb'); };
+  const lumi = key => { save(); lumiSettingChanged(key); emit('kb'); };
 
-const listeners = new Set();
+  const input = h('select', { class: 'select', 'aria-label': t('midiInput'), onchange: e => { selectInput(e.target.value); save(); } },
+    h('option', { value: 'all' }, t('allInputs')),
+    ...st.inputs.map(i => h('option', { value: i.id, selected: S.midi.input === i.id }, i.name)));
 
-export function setSetting(key, value) {
-    if (settings[key] === value) return;
-    settings[key] = value;
-    save();
-    listeners.forEach(fn => fn(key, value));
-}
+  const learn = h('button', { type: 'button', class: 'btn ghost', onclick: () => { learn.textContent = t('playAKey'); ctx.learnSplit(() => { learn.textContent = t('learn'); splitP.refresh(); }); } }, t('learn'));
+  const splitP = param({ label: t('splitPoint'), min: 24, max: 108, get: () => S.split.point, set: v => { S.split.point = v; save(); emit('split'); }, fmt: v => noteLabel(v) });
+  const sign = v => (v > 0 ? '+' : '') + v;
 
-export const SYNTH_KEYS = ["synthAttack", "synthDecay", "synthSustain", "synthRelease", "delayMix", "delayTime", "delayFeedback"];
+  let armedReset = false;
+  const lumiLine = { off: t('lumiOff'), unsupported: t('midiUnsupported'), denied: t('lumiDenied'), none: t('lumiNone'), connected: t('lumiConnected', { n: lumiCount() }) }[lumiState()] || '';
 
-export function resetSynth() {
-    SYNTH_KEYS.forEach(key => setSetting(key, DEFAULTS[key]));
-}
-
-export function onSettingChange(fn) {
-    listeners.add(fn);
+  box.append(
+    h('div', { class: 'sheet-head' }, h('h2', {}, t('settings')), h('button', { type: 'button', class: 'btn', onclick: () => ctx.closeSheet() }, t('close'))),
+    h('div', { class: 'sheet-cols' },
+      h('div', { class: 'card' },
+        h('h3', {}, t('general')),
+        row(t('language'), seg({ options: [['fr', 'Français'], ['en', 'English']], get: () => S.lang, set: v => setLang(v) })),
+        row(t('theme'), seg({ options: [['auto', t('auto')], ['light', t('light')], ['dark', t('dark')]], get: () => S.theme, set: v => { S.theme = v; save(); applyTheme(); } })),
+        row(t('noteNames'), seg({ options: [['auto', t('auto')], ['english', 'C D E'], ['solfege', 'Do Ré Mi']], get: () => S.notation, set: v => { S.notation = v; save(); emit('lang'); } })),
+        row(t('colors'), seg({ cls: 'wrap', options: [['parts', t('colParts')], ['rainbow', t('colRainbow')], ['octave', t('colOctave')]], get: () => S.view.colors, set: v => { S.view.colors = v; save(); emit('theme'); } })),
+        toggle({ label: t('showScope'), get: () => S.view.scope, set: v => { S.view.scope = v; save(); } }),
+        toggle({ label: t('showChords'), get: () => S.view.chordNames, set: v => { S.view.chordNames = v; save(); } })),
+      h('div', { class: 'card' },
+        h('h3', {}, t('screenKeys')),
+        row(t('dock'), seg({ options: [['full', t('dockFull')], ['mini', t('dockMini')]], get: () => S.kb.dock, set: v => { S.kb.dock = v; kb(); } })),
+        row(t('keySize'), seg({ options: [['s', 'S'], ['m', 'M'], ['l', 'L']], get: () => S.kb.size, set: v => { S.kb.size = v; kb(); } })),
+        row(t('labels'), seg({ options: [['c', t('labelsC')], ['all', t('labelsAll')], ['none', t('none')]], get: () => S.kb.labels, set: v => { S.kb.labels = v; kb(); } })),
+        row(t('range'), seg({ options: [['free', t('rangeFree')], ['lumi', 'LUMI']], get: () => S.kb.follow, set: v => { S.kb.follow = v; kb(); } })),
+        h('p', { class: 'hint' }, t('computerKeysHint'))),
+      h('div', { class: 'card' },
+        h('h3', {}, t('midiKeyboard')),
+        h('p', { class: 'midi-line ' + st.state }, h('i'), ms, st.inputs.length ? ' · ' + st.inputs.map(i => i.name).join(', ') : ''),
+        st.state === 'connected' ? input : null,
+        h('button', { type: 'button', class: 'btn ghost', onclick: () => connectMidi() }, t('rescan')),
+        row(t('velocity'), seg({ cls: 'wrap', options: [['soft', t('velSoft')], ['normal', t('velNormal')], ['hard', t('velHard')], ['fixed', t('velFixed')]], get: () => S.midi.velCurve, set: v => { S.midi.velCurve = v; save(); } })),
+        h('div', { class: 'row' }, toggle({ label: 'Pitch bend', get: () => S.midi.bend, set: v => { S.midi.bend = v; if (!v) E.bend(0); save(); } }),
+          param({ label: t('bendRange'), min: 1, max: 12, get: () => S.midi.bendRange, set: v => { S.midi.bendRange = v; save(); }, fmt: v => '±' + v })),
+        param({ label: t('polyphony'), min: 4, max: 24, get: () => S.midi.poly, set: v => { S.midi.poly = v; E.setPoly(v); save(); }, fmt: v => t('voices', { n: v }) })),
+      h('div', { class: 'card' },
+        h('h3', {}, t('twoSounds')),
+        toggle({ label: t('splitToggle'), get: () => S.split.on, set: v => { S.split.on = v; if (!v) S.edit = 0; allOff(); save(); emit('split'); } }),
+        h('div', { class: 'row' }, splitP, learn),
+        h('div', { class: 'grid2' },
+          param({ label: t('octaveA'), min: -3, max: 3, bipolar: true, def: 0, get: () => S.parts[0].octave, set: v => { S.parts[0].octave = v; save(); }, fmt: sign }),
+          param({ label: t('octaveB'), min: -3, max: 3, bipolar: true, def: 0, get: () => S.parts[1].octave, set: v => { S.parts[1].octave = v; save(); }, fmt: sign }))),
+      h('div', { class: 'card' },
+        h('h3', {}, 'LUMI'),
+        toggle({ label: t('lumiEnable'), get: () => S.lumi.enabled, set: v => { S.lumi.enabled = v; lumi('enabled'); ctx.openSheet(); } }),
+        S.lumi.enabled ? h('p', { class: 'midi-line ' + lumiState() }, h('i'), lumiLine) : null,
+        S.lumi.enabled ? row(t('lumiBlocks'), seg({ options: [['auto', t('auto')], ['1', '1 · 24'], ['2', '2 · 48']], get: () => S.lumi.blocks, set: v => { S.lumi.blocks = v; lumi('blocks'); } })) : null,
+        S.lumi.enabled ? param({ label: t('lumiOctave'), min: -3, max: 3, bipolar: true, def: 0, get: () => S.lumi.octave, set: v => { S.lumi.octave = v; lumi('octave'); }, fmt: sign }) : null,
+        S.lumi.enabled ? toggle({ label: t('lumiGuide'), get: () => S.lumi.guide, set: v => { S.lumi.guide = v; lumi('guide'); } }) : null,
+        S.lumi.enabled ? h('div', { class: 'row' }, h('span', { class: 'lab' }, t('lumiGuideColor')), h('input', { type: 'color', class: 'color', value: S.lumi.color, oninput: e => { S.lumi.color = e.target.value; lumi('color'); } })) : null,
+        S.lumi.enabled ? row(t('lumiRestore'), seg({ cls: 'wrap', options: LUMI_MODES.map(m => [m, t('lumiMode_' + m)]), get: () => S.lumi.restore, set: v => { S.lumi.restore = v; lumi('restore'); } })) : null,
+        h('p', { class: 'hint' }, t('lumiHelp'))),
+      h('div', { class: 'card help' },
+        h('h3', {}, t('help')),
+        h('p', {}, t('helpIos')),
+        h('p', {}, t('helpSplit')),
+        h('p', {}, t('helpSound')),
+        h('button', { type: 'button', class: 'btn ghost', onclick: () => { allOff(); toast(t('allSoundsOff')); } }, t('allSoundsOff')),
+        h('button', { type: 'button', class: 'btn ghost danger', onclick: e => {
+          if (!armedReset) { armedReset = true; e.currentTarget.textContent = t('resetConfirm'); setTimeout(() => { armedReset = false; }, 3000); return; }
+          resetAll();
+        } }, t('reset')))));
 }

@@ -10,10 +10,22 @@
 // When a MIDI file is open, the staff shows that song instead, with its own
 // rhythm and time signature, and turns its lines as the song plays.
 
-import { subscribe } from "./piano.js?v=20261101n";
-import { settings, onSettingChange } from "./settings.js?v=20261101n";
-import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=20261101n";
-import { currentSong, onSongChange, onSongPosition } from "./song.js?v=20261101n";
+import { subscribe } from "./notes.js?v=202611091";
+import { S, on } from "./store.js?v=202611091";
+import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=202611091";
+import { currentSong, onSongChange, onSongPosition } from "./song.js?v=202611091";
+
+// The staff shows the open song on the Learn screen, what is played elsewhere
+let songMode = false;
+const activeSong = () => (songMode ? currentSong() : null);
+import { palette } from "./colors.js?v=202611091";
+
+const settings = {
+    get scaleRoot() { return S.scale.root; },
+    get scaleType() { return S.scale.type; },
+    get tempo() { return S.tempo; },
+    get showStaff() { return !!container; },
+};
 
 const VEXFLOW_URL = "https://cdn.jsdelivr.net/npm/vexflow@5.0.0/build/esm/entry/vexflow.js";
 // The music font as a data URL, embedded in exported images so they draw anywhere
@@ -31,11 +43,11 @@ const VALUES = [
     [0.25, "16", 0], [0.5, "8", 0], [0.75, "8", 1], [1, "q", 0],
     [1.5, "q", 1], [2, "h", 0], [3, "h", 1], [4, "w", 0],
 ];
-const SCREEN = { ink: "#e9dbc7", accent: "#44aca3", rest: "rgb(233 219 199 / 0.55)" };
+const screen = () => { const P = palette(); return { ink: P.text, accent: P.accent, rest: P.dim }; };
 const PAPER = { ink: "#141414", accent: "#141414", rest: "#6b6b6b", background: "#ffffff" };
 
 let VF = null;
-let container;
+let container = null;
 let groups = []; // { start, midis: Set, ends: Map midi -> release time | null }
 let played = []; // every note and pedal move with its real timing, for the MIDI file
 let drawQueued = false;
@@ -64,7 +76,7 @@ function releaseOf(group) {
 
 // Time signature: the song's, or 4/4 for what is played
 function meter() {
-    const [count, unit] = currentSong()?.timeSignature ?? [4, 4];
+    const [count, unit] = activeSong()?.timeSignature ?? [4, 4];
     return { text: `${count}/${unit}`, beats: count * 4 / unit };
 }
 
@@ -91,7 +103,7 @@ function songRhythm(songGroups) {
 
 // Turn the chords into a sequence of notes and rests with their values
 function rhythm(now) {
-    if (currentSong()) return songRhythm(currentSong().groups);
+    if (activeSong()) return songRhythm(activeSong().groups);
     const beatMs = 60000 / settings.tempo;
     const items = [];
     groups.forEach((group, i) => {
@@ -339,12 +351,12 @@ function drawLine(ctx, x, y, width, line, { colors, highlight, ending }) {
 function draw() {
     drawQueued = false;
     if (!VF) return;
-    const song = currentSong();
+    const song = activeSong();
     const bars = song ? null : measures(rhythm(performance.now()));
     scheduleLiveRefresh();
     if (fullView && fullStale) drawFull(bars ?? measures(rhythm()));
     if (!settings.showStaff) return;
-    const width = container.clientWidth;
+    const width = container?.clientWidth;
     if (!width) return;
     const scale = width < 600 ? 0.72 : 0.85;
     const logicalWidth = width / scale;
@@ -359,25 +371,25 @@ function draw() {
         const { lines, lineOf } = layoutSong(logicalWidth - 32);
         const index = lineOf.get(songCursor) ?? 0;
         drawLine(ctx, 16, 0, logicalWidth - 32, lines[index], {
-            colors: SCREEN, highlight: songCursor, ending: index === lines.length - 1 ? "end" : "bar",
+            colors: screen(), highlight: songCursor, ending: index === lines.length - 1 ? "end" : "bar",
         });
         return;
     }
     // Only the latest measures fit: older ones scroll off to the left
     const line = lastMeasures(bars, logicalWidth - 32);
-    drawLine(ctx, 16, 0, logicalWidth - 32, line, { colors: SCREEN, highlight: groups.at(-1), ending: "open" });
+    drawLine(ctx, 16, 0, logicalWidth - 32, line, { colors: screen(), highlight: groups.at(-1), ending: "open" });
 }
 
 // The song cut into justified lines for a staff width, kept until it changes
 function layoutSong(width) {
-    if (songLayout?.width === width && songLayout.song === currentSong()) return songLayout;
+    if (songLayout?.width === width && songLayout.song === activeSong()) return songLayout;
     const lines = layoutLines(measures(rhythm()), width);
     lines.slice(0, -1).forEach(line => justify(line, width));
     const lineOf = new Map();
     lines.forEach((line, i) => line.forEach(entry => entry.bar.forEach(piece => {
         if (piece.group && !lineOf.has(piece.group)) lineOf.set(piece.group, i);
     })));
-    songLayout = { width, song: currentSong(), lines, lineOf };
+    songLayout = { width, song: activeSong(), lines, lineOf };
     return songLayout;
 }
 
@@ -386,7 +398,7 @@ function drawFull(bars) {
     const width = fullView.clientWidth;
     if (!width) return;
     fullStale = false;
-    const song = currentSong();
+    const song = activeSong();
     const scale = width < 600 ? 0.72 : 0.85;
     const logicalWidth = width / scale;
     const lines = layoutLines(bars, logicalWidth - 32);
@@ -399,7 +411,7 @@ function drawFull(bars) {
     const ctx = renderer.getContext();
     ctx.scale(scale, scale);
     lines.forEach((line, i) => drawLine(ctx, 16, i * SYSTEM_HEIGHT, logicalWidth - 32, line, {
-        colors: SCREEN,
+        colors: screen(),
         highlight: song ? null : groups.at(-1),
         ending: i < lines.length - 1 ? "bar" : song ? "end" : "open",
     }));
@@ -443,8 +455,8 @@ export function clearScore() {
 
 // === Whole score and downloads ===
 
-export function hasScore() {
-    return Boolean(currentSong()) || groups.length > 0;
+export function hasScore(song = songMode) {
+    return (song && Boolean(currentSong())) || groups.length > 0;
 }
 
 // Called when the score goes from empty to played (and back)
@@ -458,9 +470,11 @@ function notifyChange() {
 
 const fullObserver = new ResizeObserver(() => queueDraw());
 
-export function showFullScore(element) {
+export function showFullScore(element, song = songMode) {
+    songMode = song;
     fullView = element;
     fullObserver.observe(element);
+    loadVexflow();
     queueDraw();
 }
 
@@ -472,7 +486,7 @@ export function hideFullScore() {
 function fileName(extension) {
     const d = new Date();
     const pad = n => String(n).padStart(2, "0");
-    return `web-piano-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.${extension}`;
+    return `octave-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.${extension}`;
 }
 
 function download(blob, name) {
@@ -574,33 +588,44 @@ function midiFile() {
 }
 
 export function exportMidi() {
-    if (!groups.length || currentSong()) return;
+    if (!groups.length || activeSong()) return;
     download(new Blob([midiFile()], { type: "audio/midi" }), fileName("mid"));
 }
 
-function applyVisibility() {
-    document.body.classList.toggle("staff-hidden", !settings.showStaff);
-    queueDraw();
+// Show the one-line staff in an element (or nowhere with null)
+const mountObserver = new ResizeObserver(() => queueDraw(false));
+export function mountStaff(element, song = false) {
+    if (container) mountObserver.unobserve(container);
+    container = element;
+    songMode = song;
+    songLayout = null;
+    if (container) {
+        mountObserver.observe(container);
+        loadVexflow();
+        queueDraw();
+    }
 }
 
-export async function initScore(element) {
-    container = element;
-    applyVisibility();
-    new ResizeObserver(() => queueDraw(false)).observe(container);
-    try {
-        VF = await import(VEXFLOW_URL);
-        await document.fonts.load("30px Bravura").catch(() => {});
-        queueDraw();
-    } catch (err) {
-        // Offline or CDN down: the piano works without the staff
-        console.warn("Staff unavailable:", err);
-        document.body.classList.add("staff-unavailable");
-    }
+let loading = null;
+export function loadVexflow() {
+    loading ??= (async () => {
+        try {
+            VF = await import(VEXFLOW_URL);
+            await document.fonts.load("30px Bravura").catch(() => {});
+            queueDraw();
+        } catch (err) {
+            // Offline or CDN down: everything else works without the staff
+            console.warn("Staff unavailable:", err);
+            document.documentElement.classList.add("staff-unavailable");
+        }
+    })();
+    return loading;
 }
 
 subscribe(event => {
     // While a song is open, the staff shows the song, not what is played
-    if (currentSong()) return;
+    // Notes played by the song itself are not the player's
+    if (String(event.source ?? "").startsWith("song")) return;
     if (event.type === "on") {
         const wasEmpty = !hasScore();
         played.push({ type: "note", midi: event.midi, velocity: event.velocity, time: event.time, end: null });
@@ -645,7 +670,7 @@ onSongChange(() => {
 
 // Move the cursor to the chord being played; redraw when it changes
 onSongPosition(ms => {
-    const song = currentSong();
+    const song = activeSong();
     if (!song) return;
     let cursor = null;
     for (const group of song.groups) {
@@ -657,7 +682,7 @@ onSongPosition(ms => {
     queueDraw(false);
 });
 
-onSettingChange(key => {
-    if (key === "showStaff") applyVisibility();
-    if (key === "scaleRoot" || key === "scaleType" || key === "tempo") queueDraw();
-});
+on("scale", () => queueDraw());
+on("tempo", () => queueDraw());
+on("theme", () => queueDraw());
+on("lang", () => queueDraw());

@@ -1,155 +1,126 @@
-// === Piano roll (notes rising from the keys) and note-usage histogram ===
+// Play screen stage: notes rise from the keys they were played on, over a
+// faint oscilloscope of the sound. Columns come from the keyboard dock.
+import { subscribe } from './notes.js?v=202611091';
+import { geometry, onLayout } from './keys.js?v=202611091';
+import { partOf } from './perform.js?v=202611091';
+import { noteColor, palette } from './colors.js?v=202611091';
+import { analyser, busy } from './engine.js?v=202611091';
+import { S } from './store.js?v=202611091';
 
-import { subscribe } from "./piano.js?v=20261101n";
-import { settings, onSettingChange } from "./settings.js?v=20261101n";
-import { keyGeometry, onKeyboardLayout } from "./keyboard.js?v=20261101n";
-import { noteColor, rgbString } from "./colors.js?v=20261101n";
+const SPEED = 0.085; // px per ms
+const MAX = 1500;
+let timeline = []; // { midi, velocity, start, end, side }
+let canvas = null, g = null, raf = 0, size = { w: 0, h: 0, left: 0 };
+let wave = null, gain = 1, quiet = 0;
 
-const SPEED = 0.09;     // CSS pixels per millisecond
-const MAX_NOTES = 2000;
-
-let rollCanvas, rollCtx, usageCanvas, usageCtx;
-let geometry = new Map();
-let timeline = [];      // { midi, velocity, start, end }
-let usage = new Array(128).fill(0);
-let running = false;
-
-// Match the canvas backing store to its CSS size and the screen density
-function fit(canvas, ctx) {
-    const dpr = window.devicePixelRatio || 1;
-    const { width, height } = canvas.getBoundingClientRect();
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return { width, height };
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.roundRect(x, y, w, h, Math.min(r, w / 2, h / 2));
-    ctx.fill();
-}
-
-// === Roll ===
-
-let rollSize = { width: 0, height: 0 };
-let rollLeft = 0;
-
-function drawRoll() {
-    const now = performance.now();
-    const { width, height } = rollSize;
-    rollCtx.clearRect(0, 0, width, height);
-
-    // Faint guide line at every C, to read the octaves
-    rollCtx.fillStyle = "rgb(233 219 199 / 0.04)";
-    geometry.forEach((g, midi) => {
-        if (midi % 12 === 0) rollCtx.fillRect(Math.round(g.x - rollLeft), 0, 1, height);
-    });
-
-    // Drop notes that scrolled off the top
-    timeline = timeline.filter(n => n.end === null || height - (now - n.end) * SPEED > 0);
-
-    for (const n of timeline) {
-        const g = geometry.get(n.midi);
-        if (!g) continue;
-        const top = height - (now - n.start) * SPEED;
-        const bottom = height - (n.end === null ? 0 : (now - n.end) * SPEED);
-        const inset = g.black ? 1 : Math.max(1, g.w * 0.12);
-        rollCtx.fillStyle = rgbString(noteColor(n.midi, settings.colorMode), 0.35 + 0.55 * n.velocity / 127);
-        roundRect(rollCtx, g.x - rollLeft + inset, top, g.w - inset * 2, Math.max(2, bottom - top), 3);
-    }
-    return timeline.length > 0;
-}
-
-function loop() {
-    const busy = settings.showRoll && drawRoll();
-    if (busy) requestAnimationFrame(loop);
-    else running = false;
-}
-
-function wake() {
-    if (running || !settings.showRoll) return;
-    running = true;
-    requestAnimationFrame(loop);
-}
-
-// === Usage histogram ===
-
-let usageSize = { width: 0, height: 0 };
-
-function drawUsage() {
-    if (!settings.showUsage) return;
-    const { width, height } = usageSize;
-    const left = usageCanvas.getBoundingClientRect().left;
-    usageCtx.clearRect(0, 0, width, height);
-    const max = Math.max(1, ...usage);
-    geometry.forEach((g, midi) => {
-        if (!usage[midi]) return;
-        const h = Math.max(2, (usage[midi] / max) * (height - 4));
-        const inset = g.black ? 1 : Math.max(1, g.w * 0.18);
-        usageCtx.fillStyle = rgbString(noteColor(midi, settings.colorMode), g.black ? 0.55 : 0.8);
-        roundRect(usageCtx, g.x - left + inset, height - h, g.w - inset * 2, h, 2);
-    });
-}
-
-export function resetUsage() {
-    usage.fill(0);
-    drawUsage();
-}
-
-// === Layout ===
-
-function relayout() {
-    geometry = keyGeometry();
-    rollSize = fit(rollCanvas, rollCtx);
-    rollLeft = rollCanvas.getBoundingClientRect().left;
-    usageSize = fit(usageCanvas, usageCtx);
-    drawRoll();
-    drawUsage();
+subscribe(e => {
+  if (e.type === 'on') {
+    timeline.push({ midi: e.midi, velocity: e.velocity, start: e.time, end: null, side: partOf(e.midi) });
+    if (timeline.length > MAX) timeline.splice(0, timeline.length - MAX);
     wake();
-}
-
-function applyVisibility() {
-    rollCanvas.hidden = !settings.showRoll;
-    usageCanvas.hidden = !settings.showUsage;
-    relayout();
-}
-
-export function initRoll(roll, usageEl) {
-    rollCanvas = roll;
-    rollCtx = roll.getContext("2d");
-    usageCanvas = usageEl;
-    usageCtx = usageEl.getContext("2d");
-    onKeyboardLayout(relayout);
-    new ResizeObserver(relayout).observe(roll);
-    applyVisibility();
-}
-
-export function clearRoll() {
-    timeline = timeline.filter(n => n.end === null);
-}
-
-subscribe(event => {
-    if (event.type === "on") {
-        timeline.push({ midi: event.midi, velocity: event.velocity, start: event.time, end: null });
-        if (timeline.length > MAX_NOTES) timeline.splice(0, timeline.length - MAX_NOTES);
-        usage[event.midi]++;
-        drawUsage();
-        wake();
-    } else if (event.type === "off") {
-        for (let i = timeline.length - 1; i >= 0; i--) {
-            if (timeline[i].midi === event.midi && timeline[i].end === null) {
-                timeline[i].end = event.time;
-                break;
-            }
-        }
+  } else if (e.type === 'off') {
+    for (let i = timeline.length - 1; i >= 0; i--) {
+      if (timeline[i].midi === e.midi && timeline[i].end === null) { timeline[i].end = e.time; break; }
     }
+  }
 });
 
-onSettingChange(key => {
-    if (key === "showRoll" || key === "showUsage") applyVisibility();
-    if (key === "colorMode") {
-        drawUsage();
-        wake();
+export function clearRoll() { timeline = timeline.filter(n => n.end === null); }
+
+function fit() {
+  if (!canvas) return;
+  const r = canvas.getBoundingClientRect();
+  const dpr = devicePixelRatio || 1;
+  canvas.width = Math.round(r.width * dpr);
+  canvas.height = Math.round(r.height * dpr);
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  size = { w: r.width, h: r.height, left: r.left };
+  wake();
+}
+
+let unLayout = null;
+export function mountRoll(el) {
+  canvas = el;
+  g = el.getContext('2d');
+  new ResizeObserver(fit).observe(el);
+  unLayout?.();
+  unLayout = onLayout(fit);
+  fit();
+}
+
+function drawScope(now) {
+  const an = S.view.scope && analyser();
+  if (!an) return false;
+  if (!wave || wave.length !== an.fftSize) wave = new Float32Array(an.fftSize);
+  an.getFloatTimeDomainData(wave);
+  let peak = 0;
+  for (let i = 0; i < wave.length; i += 4) peak = Math.max(peak, Math.abs(wave[i]));
+  if (peak < 0.0015) return false;
+  gain += (Math.min(6, 0.7 / peak) - gain) * 0.08;
+  let s0 = 0;
+  for (let i = 1; i < wave.length - 1024; i++) if (wave[i - 1] < 0 && wave[i] >= 0) { s0 = i; break; }
+  const { w, h } = size, mid = h * 0.42, amp = h * 0.26 * gain;
+  const col = palette().accent;
+  const grad = g.createLinearGradient(0, 0, w, 0);
+  grad.addColorStop(0, 'transparent');
+  grad.addColorStop(0.2, col);
+  grad.addColorStop(0.8, col);
+  grad.addColorStop(1, 'transparent');
+  g.save();
+  g.globalAlpha = 0.28;
+  g.strokeStyle = grad;
+  g.lineWidth = 1.5;
+  g.lineJoin = 'round';
+  g.beginPath();
+  for (let i = 0; i < 1024; i++) {
+    const x = (i / 1023) * w, y = mid - wave[s0 + i] * amp;
+    i ? g.lineTo(x, y) : g.moveTo(x, y);
+  }
+  g.stroke();
+  g.restore();
+  return true;
+}
+
+function frame() {
+  raf = 0;
+  if (!canvas || !canvas.isConnected) return;
+  const now = performance.now();
+  const { w, h, left } = size;
+  g.clearRect(0, 0, w, h);
+  const geo = geometry();
+  const P = palette();
+  // a faint line at every C, to read the octaves
+  g.fillStyle = P.line;
+  for (const [m, k] of geo) if (m % 12 === 0) g.fillRect(Math.round(k.x - left), 0, 1, h);
+  if (S.split.on && geo.get(S.split.point)) {
+    g.fillStyle = P.b; g.globalAlpha = 0.35;
+    g.fillRect(Math.round(geo.get(S.split.point).x - left) - 1, 0, 2, h);
+    g.globalAlpha = 1;
+  }
+  const sound = drawScope(now);
+  timeline = timeline.filter(n => n.end === null || h - (now - n.end) * SPEED > 0);
+  for (const n of timeline) {
+    const k = geo.get(n.midi);
+    if (!k) continue;
+    const top = h - (now - n.start) * SPEED;
+    const bottom = h - (n.end === null ? 0 : (now - n.end) * SPEED);
+    const inset = k.black ? 1 : Math.max(1, k.w * 0.14);
+    g.globalAlpha = 0.35 + 0.6 * n.velocity / 127;
+    g.fillStyle = noteColor(n.midi, n.side);
+    g.beginPath();
+    g.roundRect(k.x - left + inset, top, k.w - inset * 2, Math.max(3, bottom - top), Math.min(5, (k.w - inset * 2) / 2));
+    g.fill();
+    if (n.end === null) {
+      // glow where the note leaves the key
+      g.globalAlpha = 0.25;
+      g.fillRect(k.x - left + inset - 2, h - 3, k.w - inset * 2 + 4, 3);
     }
-});
+  }
+  g.globalAlpha = 1;
+  quiet = sound || timeline.length || busy() ? 0 : quiet + 1;
+  if (quiet < 30) raf = requestAnimationFrame(frame);
+}
+
+export function wake() {
+  if (!raf && canvas && canvas.isConnected) { quiet = 0; raf = requestAnimationFrame(frame); }
+}

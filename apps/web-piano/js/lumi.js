@@ -9,10 +9,29 @@
 //   brightness, a note-off gives the key back to the LUMI. Used only to show
 //   the notes to play during an exercise or while learning a song.
 
-import { settings, onSettingChange } from "./settings.js?v=20261101n";
-import { midiAccess, onMidiAccess, connectMidi } from "./midi.js?v=20261101n";
-import { onLightsChange, guideActive, currentGuide } from "./lights.js?v=20261101n";
-import { pitchClass } from "./theory.js?v=20261101n";
+import { S, on } from "./store.js?v=202611091";
+import { midiAccess, onMidiAccess, connectMidi } from "./midi.js?v=202611091";
+import { onGuideChange, guideActive, currentGuide } from "./guide.js?v=202611091";
+import { pitchClass } from "./theory.js?v=202611091";
+import { setLumiRange } from "./keys.js?v=202611091";
+
+// The LUMI is left alone: its own mode stays on, except while a guide is shown
+// (an exercise or a song being learnt), when the notes to play are lit. Then
+// the "restore" settings below are sent to bring back the chosen look.
+const settings = {
+    get lumiEnabled() { return S.lumi.enabled; },
+    get lumiBlocks() { return S.lumi.blocks; },
+    get lumiOctave() { return S.lumi.octave; },
+    get lumiBrightness() { return S.lumi.brightness; },
+    get lumiMode() { return S.lumi.restore; },
+    get lumiColor() { return S.lumi.restoreColor; },
+    get lumiRootColor() { return S.lumi.restoreRoot; },
+    get lumiKeyLights() { return S.lumi.guide; },
+    get lumiGuideColor() { return S.lumi.color; },
+    get lumiScaleSync() { return false; },
+    get scaleType() { return ""; },
+    get scaleRoot() { return 0; },
+};
 
 const ROLI = [0x00, 0x21, 0x10];
 const LUMI_ID = 0x37;
@@ -134,7 +153,6 @@ function queue(...names) {
     }, 40);
 }
 
-const pushAll = () => queue("mode", "brightness", "color", "rootColor", "octave", "scale", "key");
 
 // === Single keys ===
 
@@ -280,8 +298,8 @@ function refresh() {
     const changed = outputs.map(o => o.id).join() !== before;
     setState(outputs.length ? "connected" : "none");
     if (changed && outputs.length) {
-        pushAll();
         lit = new Map();
+        guideLook = false;
         sendRaw([0xd0, 127]); // channel pressure: full brightness for the keys lit from here
         requestKeys();
     }
@@ -292,11 +310,18 @@ export const retryLumi = () => connectMidi(true);
 
 export function initLumi() {
     onMidiAccess(refresh);
-    onLightsChange(onLights);
+    onGuideChange(onLights);
+    setLumiRange(() => (state === "connected" || settings.lumiEnabled ? { lo: lumiLowest(), hi: lumiLowest() + lumiKeyCount() - 1 } : null));
     refresh();
 }
 
-onSettingChange(key => {
+// The settings sheet calls this after changing S.lumi.<key>
+export function lumiSettingChanged(key) {
+    onSettingChange({ enabled: "lumiEnabled", blocks: "lumiBlocks", octave: "lumiOctave", brightness: "lumiBrightness",
+        restore: "lumiMode", restoreColor: "lumiColor", restoreRoot: "lumiRootColor", guide: "lumiKeyLights", color: "lumiGuideColor" }[key] ?? key);
+}
+
+function onSettingChange(key) {
     const map = {
         lumiBrightness: ["brightness"], lumiMode: ["mode"], lumiColor: ["color"], lumiRootColor: ["rootColor"],
         lumiOctave: ["octave"], scaleType: ["scale", "key"], scaleRoot: ["key"], lumiScaleSync: ["scale", "key"],
@@ -316,4 +341,4 @@ onSettingChange(key => {
         requestKeys();
     }
     if (map[key]) queue(...map[key]);
-});
+}
