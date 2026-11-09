@@ -1,9 +1,9 @@
 // Audio graph: FM worklet → global filter → chorus → delay + reverb sends →
 // compressor → master. Everything here runs on the main thread; the voices
 // themselves live in fm-worklet.js.
-import { ALGORITHMS } from './algorithms.js?v=202611091432';
+import { ALGORITHMS } from './algorithms.js?v=202611091438';
 
-const V = '?v=202611091432';
+const V = '?v=202611091438';
 let ctx, node, nodes = {};
 let meterCb = () => {};
 export const audio = () => ctx;

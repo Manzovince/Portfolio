@@ -1,12 +1,12 @@
 // Phase — boot, shell (top bar + tab rail), screen switching, meters.
-import { h, icon, toast, noteName } from './ui.js?v=202611091432';
-import { S, save, on, emit } from './store.js?v=202611091432';
-import * as E from './engine.js?v=202611091432';
-import { applyAll, midiEvent, seq, seqPlay, keyOn, keyOff } from './perform.js?v=202611091432';
-import { connectMidi, onMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611091432';
-import { bindComputerKeys } from './keys.js?v=202611091432';
-import * as P from './panels.js?v=202611091432';
-import { tempoParam } from './panels.js?v=202611091432';
+import { h, icon, toast, noteName } from './ui.js?v=202611091438';
+import { S, save, on, emit } from './store.js?v=202611091438';
+import * as E from './engine.js?v=202611091438';
+import { applyAll, midiEvent, seq, seqPlay, keyOn, keyOff } from './perform.js?v=202611091438';
+import { connectMidi, onMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611091438';
+import { bindComputerKeys } from './keys.js?v=202611091438';
+import * as P from './panels.js?v=202611091438';
+import { tempoParam } from './panels.js?v=202611091438';
 
 const TABS = [
   ['play', 'Jouer', P.renderPlay],
@@ -60,7 +60,11 @@ function paintTop() {
   const n = S.split.on ? 2 : 1;
   for (let i = 0; i < n; i++) {
     const pt = S.parts[i];
-    chips.append(h('button', { type: 'button', class: 'part p' + i + (S.edit === i ? ' on' : ''), onclick: () => { S.edit = i; save(); emit('part'); } },
+    chips.append(h('button', { type: 'button', class: 'part p' + i + (S.edit === i ? ' on' : ''), 'aria-label': (i ? 'B' : 'A') + ' : ' + pt.patch.name + (S.edit === i ? ', choisir un son' : ', sélectionner'), onclick: () => {
+        // first tap selects the part, a tap on the active part opens its sound list
+        if (S.edit === i) ctx.go('sounds');
+        else { S.edit = i; save(); emit('part'); }
+      } },
       h('b', {}, i ? 'B' : 'A'), h('span', {}, pt.patch.name + (pt.dirty ? '*' : '')),
       S.split.on ? h('small', {}, i ? '≥ ' + noteName(S.split.point) : '< ' + noteName(S.split.point)) : null));
   }

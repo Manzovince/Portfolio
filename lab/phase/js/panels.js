@@ -1,14 +1,14 @@
 // The six screens (Jouer, Éditer, Sons, Arp, Séq, Effets) and the settings sheet.
-import { h, param, knob, seg, toggle, noteName, toast, icon } from './ui.js?v=202611091432';
-import { S, banks, save, saveBanks, emit, on, resetAll } from './store.js?v=202611091432';
-import { FACTORY, CATEGORIES } from './presets.js?v=202611091432';
-import { clonePatch, parseSyx, buildSyx } from './dx7.js?v=202611091432';
-import { createGraph, ratioText } from './graph.js?v=202611091432';
-import { createKeys } from './keys.js?v=202611091432';
-import * as E from './engine.js?v=202611091432';
-import { applyPart, seq, seqPlay, seqRest, seqPosition, arpClear, allOff } from './perform.js?v=202611091432';
-import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611091432';
-import { ALGORITHMS } from './algorithms.js?v=202611091432';
+import { h, param, knob, seg, toggle, noteName, toast, icon } from './ui.js?v=202611091438';
+import { S, banks, save, saveBanks, emit, on, resetAll } from './store.js?v=202611091438';
+import { FACTORY, CATEGORIES } from './presets.js?v=202611091438';
+import { clonePatch, parseSyx, buildSyx } from './dx7.js?v=202611091438';
+import { createGraph, ratioText } from './graph.js?v=202611091438';
+import { createKeys } from './keys.js?v=202611091438';
+import * as E from './engine.js?v=202611091438';
+import { applyPart, seq, seqPlay, seqRest, seqPosition, arpClear, allOff } from './perform.js?v=202611091438';
+import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611091438';
+import { ALGORITHMS } from './algorithms.js?v=202611091438';
 
 // Subscriptions made while rendering a screen are dropped on the next render.
 let CTX = null;

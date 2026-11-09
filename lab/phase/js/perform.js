@@ -1,8 +1,8 @@
 // What happens between a key press and the engine: split, octave, velocity
 // curve, arpeggiator, sequencer (playback, step recording, transpose) and the
 // shared tempo clock.
-import * as E from './engine.js?v=202611091432';
-import { S, save, emit } from './store.js?v=202611091432';
+import * as E from './engine.js?v=202611091438';
+import { S, save, emit } from './store.js?v=202611091438';
 
 const held = new Map(); // physical key → { part, note, arp } | { transpose: true }
 export const pressed = new Set();

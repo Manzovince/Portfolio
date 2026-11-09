@@ -1,9 +1,9 @@
 // On-screen keyboard (multi-touch, glissando) for playing without the LUMI,
 // plus the computer keyboard for desktop testing.
-import { h } from './ui.js?v=202611091432';
-import { S, save } from './store.js?v=202611091432';
-import { keyOn, keyOff, pressed } from './perform.js?v=202611091432';
-import { noteName } from './ui.js?v=202611091432';
+import { h } from './ui.js?v=202611091438';
+import { S, save } from './store.js?v=202611091438';
+import { keyOn, keyOff, pressed } from './perform.js?v=202611091438';
+import { noteName } from './ui.js?v=202611091438';
 
 const BLACK = [1, 3, 6, 8, 10];
 
