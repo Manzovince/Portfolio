@@ -1,14 +1,14 @@
 // The six screens (Jouer, Éditer, Sons, Arp, Séq, Effets) and the settings sheet.
-import { h, param, knob, seg, toggle, noteName, toast, icon } from './ui.js?v=202611091428';
-import { S, banks, save, saveBanks, emit, on, resetAll } from './store.js?v=202611091428';
-import { FACTORY, CATEGORIES } from './presets.js?v=202611091428';
-import { clonePatch, parseSyx, buildSyx } from './dx7.js?v=202611091428';
-import { createGraph, ratioText } from './graph.js?v=202611091428';
-import { createKeys } from './keys.js?v=202611091428';
-import * as E from './engine.js?v=202611091428';
-import { applyPart, seq, seqPlay, seqRest, seqPosition, arpClear, allOff } from './perform.js?v=202611091428';
-import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611091428';
-import { ALGORITHMS } from './algorithms.js?v=202611091428';
+import { h, param, knob, seg, toggle, noteName, toast, icon } from './ui.js?v=202611091432';
+import { S, banks, save, saveBanks, emit, on, resetAll } from './store.js?v=202611091432';
+import { FACTORY, CATEGORIES } from './presets.js?v=202611091432';
+import { clonePatch, parseSyx, buildSyx } from './dx7.js?v=202611091432';
+import { createGraph, ratioText } from './graph.js?v=202611091432';
+import { createKeys } from './keys.js?v=202611091432';
+import * as E from './engine.js?v=202611091432';
+import { applyPart, seq, seqPlay, seqRest, seqPosition, arpClear, allOff } from './perform.js?v=202611091432';
+import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611091432';
+import { ALGORITHMS } from './algorithms.js?v=202611091432';
 
 // Subscriptions made while rendering a screen are dropped on the next render.
 let CTX = null;
@@ -495,6 +495,16 @@ export function renderFx(view) {
 }
 
 // ── Réglages (sheet) ────────────────────────────────────────
+// 'auto' follows the phone; 'light' / 'dark' force it.
+export function applyTheme() {
+  const t = S.settings.theme || 'auto';
+  if (t === 'auto') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = t;
+  const light = t === 'light' || (t === 'auto' && matchMedia('(prefers-color-scheme: light)').matches);
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', light ? '#f3f4f7' : '#0b0c10');
+  emit('theme');
+}
+
 export function renderSettings(box, ctx) {
   const T = S.settings;
   const st = midiStatus;
@@ -526,6 +536,7 @@ export function renderSettings(box, ctx) {
         h('div', { class: 'row' }, toggle({ label: 'Pitch bend', get: () => T.bend, set: v => { T.bend = v; if (!v) E.bend(0); save(); } }),
           param({ label: 'Amplitude', min: 1, max: 12, get: () => T.bendRange, set: v => { T.bendRange = v; save(); }, fmt: v => '±' + v })),
         param({ label: 'Polyphonie', min: 4, max: 24, get: () => T.poly, set: v => { T.poly = v; E.setPoly(v); save(); }, fmt: v => v + ' voix' }),
+        h('div', { class: 'row' }, h('span', { class: 'lab' }, 'Thème'), seg({ options: [['auto', 'Auto'], ['light', 'Clair'], ['dark', 'Sombre']], get: () => T.theme || 'auto', set: v => { T.theme = v; applyTheme(); save(); } })),
         toggle({ label: 'Clavier à l’écran', get: () => T.screenKeys, set: v => { T.screenKeys = v; save(); ctx.rerender(); } }),
         h('button', { type: 'button', class: 'btn ghost', onclick: () => { allOff(); toast('Tous les sons coupés'); } }, 'Couper tous les sons'),
         h('button', { type: 'button', class: 'btn ghost danger', onclick: e => {

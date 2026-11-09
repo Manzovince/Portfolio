@@ -1,6 +1,6 @@
 // App state, persisted in localStorage (wrapped: private mode can throw).
-import { FACTORY } from './presets.js?v=202611091428';
-import { clonePatch } from './dx7.js?v=202611091428';
+import { FACTORY } from './presets.js?v=202611091432';
+import { clonePatch } from './dx7.js?v=202611091432';
 
 const KEY = 'phase.state.v1';
 const BANKS = 'phase.banks.v1';
@@ -25,7 +25,7 @@ function defaults() {
       reverb: { on: true, size: 0.45, tone: 0.6, mix: 0.25 },
       master: 0.8,
     },
-    settings: { input: 'all', velCurve: 'normal', bendRange: 2, bend: true, poly: 16, screenKeys: true, keysOctave: 4 },
+    settings: { input: 'all', velCurve: 'normal', bendRange: 2, bend: true, poly: 16, screenKeys: true, keysStart: 48, theme: 'auto' },
     tab: 'play',
   };
 }

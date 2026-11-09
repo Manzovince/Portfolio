@@ -1,12 +1,12 @@
 // Phase — boot, shell (top bar + tab rail), screen switching, meters.
-import { h, icon, toast, noteName } from './ui.js?v=202611091428';
-import { S, save, on, emit } from './store.js?v=202611091428';
-import * as E from './engine.js?v=202611091428';
-import { applyAll, midiEvent, seq, seqPlay, keyOn, keyOff } from './perform.js?v=202611091428';
-import { connectMidi, onMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611091428';
-import { bindComputerKeys } from './keys.js?v=202611091428';
-import * as P from './panels.js?v=202611091428';
-import { tempoParam } from './panels.js?v=202611091428';
+import { h, icon, toast, noteName } from './ui.js?v=202611091432';
+import { S, save, on, emit } from './store.js?v=202611091432';
+import * as E from './engine.js?v=202611091432';
+import { applyAll, midiEvent, seq, seqPlay, keyOn, keyOff } from './perform.js?v=202611091432';
+import { connectMidi, onMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611091432';
+import { bindComputerKeys } from './keys.js?v=202611091432';
+import * as P from './panels.js?v=202611091432';
+import { tempoParam } from './panels.js?v=202611091432';
 
 const TABS = [
   ['play', 'Jouer', P.renderPlay],
@@ -78,6 +78,7 @@ function paintMidi(st = midiStatusNow) {
 }
 
 function render() {
+  if (!S.split.on) S.edit = 0; // part B only exists with the split
   subs.forEach(u => u()); subs = [];
   ctx.graphs = []; ctx.scope = null; ctx.keys = null; ctx.seqPaint = null;
   P.bindCtx(ctx);
@@ -164,6 +165,9 @@ start.addEventListener('click', async () => {
   }
 });
 
+P.applyTheme();
+matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => P.applyTheme());
+on('theme', () => render());
 paintMidi();
 render();
 loop();

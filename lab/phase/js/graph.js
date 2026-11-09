@@ -1,7 +1,7 @@
 // Animated operator graph: who modulates whom in the current algorithm.
 // Carriers sit on the bottom row and feed the output bus; edge brightness and
 // the flowing dashes follow each modulator's live level from the worklet.
-import { ALGORITHMS, layout } from './algorithms.js?v=202611091428';
+import { ALGORITHMS, layout } from './algorithms.js?v=202611091432';
 
 const NS = 'http://www.w3.org/2000/svg';
 const mk = (tag, attrs = {}) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
