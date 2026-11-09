@@ -1,5 +1,5 @@
 // Offline cache: network-first so updates land, cache fallback when offline.
-const CACHE = 'phase-202611091438';
+const CACHE = 'phase-202611091446';
 self.addEventListener('install', e => { self.skipWaiting(); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));

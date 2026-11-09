@@ -1,7 +1,7 @@
 // Factory sounds. Written from scratch for Phase in DX7 terms; none are copies
 // of a commercial ROM. o(coarse, fine, level, rates, levels, extras), ops
 // listed 1 → 6. `d` in extras is detune relative to centre (-7…+7).
-import { initOp, initPatch } from './dx7.js?v=202611091438';
+import { initOp, initPatch } from './dx7.js?v=202611091446';
 
 const o = (coarse, fine, ol, r, l, x = {}) => {
   const { d = 0, ...rest } = x;
@@ -23,7 +23,7 @@ function P(name, cat, alg, fb, ops, x = {}) {
 
 const VIB = (pmd = 10, delay = 45) => ({ wave: 4, speed: 34, delay, pmd, pms: 3, sync: 0 });
 
-export const CATEGORIES = ['Pianos', 'Basses', 'Cloches', 'Nappes', 'Leads', 'Orgues', 'Percus'];
+export const CATEGORIES = ['Basiques', 'Pianos', 'Basses', 'Cloches', 'Nappes', 'Leads', 'Orgues', 'Percus'];
 
 export const FACTORY = [
   // ── Pianos ──
@@ -277,5 +277,44 @@ export const FACTORY = [
     o(0, 0, 76, [99, 60, 30, 45], [99, 0, 0, 0], { fixed: 1, coarse: 3, fine: 12 }),
     o(1, 0, 70, [99, 70, 30, 45], [99, 0, 0, 0]),
     o(5, 31, 82, [99, 40, 30, 45], [99, 0, 0, 0]),
+  ]),
+
+  // ── Basiques : formes d'onde simples (ajoutées à la fin pour garder les numéros des autres) ──
+  P('Sinus', 'Basiques', 32, 0, [
+    o(1, 0, 99, [99, 99, 99, 80], [99, 99, 99, 0]),
+    OFF(), OFF(), OFF(), OFF(), OFF(),
+  ]),
+  P('Triangle', 'Basiques', 5, 0, [
+    o(1, 0, 99, [99, 99, 99, 80], [99, 99, 99, 0]),
+    o(2, 0, 60, [99, 99, 99, 80], [99, 99, 99, 0]),
+  ]),
+  P('Carré', 'Basiques', 5, 0, [
+    o(1, 0, 99, [99, 99, 99, 80], [99, 99, 99, 0]),
+    o(2, 0, 76, [99, 99, 99, 80], [99, 99, 99, 0]),
+  ]),
+  P('Scie', 'Basiques', 32, 5, [
+    OFF(), OFF(), OFF(), OFF(), OFF(),
+    o(1, 0, 99, [99, 99, 99, 80], [99, 99, 99, 0]),
+  ]),
+  P('Impulsion', 'Basiques', 5, 0, [
+    o(1, 0, 99, [99, 99, 99, 80], [99, 99, 99, 0]),
+    o(1, 0, 82, [99, 99, 99, 80], [99, 99, 99, 0]),
+  ]),
+  P('Sinus + octave', 'Basiques', 32, 0, [
+    o(1, 0, 99, [99, 99, 99, 80], [99, 99, 99, 0]),
+    o(2, 0, 88, [99, 99, 99, 80], [99, 99, 99, 0]),
+    OFF(), OFF(), OFF(), OFF(),
+  ]),
+  P('Sinus doux', 'Basiques', 32, 0, [
+    o(1, 0, 99, [45, 99, 99, 45], [99, 99, 99, 0]),
+    OFF(), OFF(), OFF(), OFF(), OFF(),
+  ]),
+  P('Bip', 'Basiques', 32, 0, [
+    o(1, 0, 99, [99, 60, 99, 75], [99, 0, 0, 0]),
+    OFF(), OFF(), OFF(), OFF(), OFF(),
+  ], { transpose: 36 }),
+  P('Bruit', 'Basiques', 32, 7, [
+    OFF(), OFF(), OFF(), OFF(), OFF(),
+    o(0, 0, 99, [99, 99, 99, 75], [99, 99, 99, 0], { fixed: 1, coarse: 3, fine: 60 }),
   ]),
 ];

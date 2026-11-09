@@ -1,12 +1,12 @@
 // Phase — boot, shell (top bar + tab rail), screen switching, meters.
-import { h, icon, toast, noteName } from './ui.js?v=202611091438';
-import { S, save, on, emit } from './store.js?v=202611091438';
-import * as E from './engine.js?v=202611091438';
-import { applyAll, midiEvent, seq, seqPlay, keyOn, keyOff } from './perform.js?v=202611091438';
-import { connectMidi, onMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611091438';
-import { bindComputerKeys } from './keys.js?v=202611091438';
-import * as P from './panels.js?v=202611091438';
-import { tempoParam } from './panels.js?v=202611091438';
+import { h, icon, toast, noteName } from './ui.js?v=202611091446';
+import { S, save, on, emit } from './store.js?v=202611091446';
+import * as E from './engine.js?v=202611091446';
+import { applyAll, midiEvent, seq, seqPlay, keyOn, keyOff } from './perform.js?v=202611091446';
+import { connectMidi, onMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611091446';
+import { bindComputerKeys } from './keys.js?v=202611091446';
+import * as P from './panels.js?v=202611091446';
+import { tempoParam } from './panels.js?v=202611091446';
 
 const TABS = [
   ['play', 'Jouer', P.renderPlay],
