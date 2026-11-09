@@ -1,19 +1,22 @@
 // Play screen: the stage (rising notes over the oscilloscope, or the staff of
 // what is played), the chord readout, and the side panel for the sound.
-import { h, icon, knob, param, seg, toggle, toast } from './ui.js?v=202611091';
-import { S, save, emit } from './store.js?v=202611091';
-import * as E from './engine.js?v=202611091';
-import { subscribe, soundingNotes } from './notes.js?v=202611091';
-import { applyPart, seq, seqPlay, seqHasNotes, arpClear, allOff } from './perform.js?v=202611091';
-import { mountRoll, clearRoll, wake } from './roll.js?v=202611091';
-import { mountStaff, clearScore, hasScore, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi } from './score.js?v=202611091';
-import { detectChord, chordSymbol, scaleContext, intervalBetween, spellPc, pitchClass, SCALES } from './theory.js?v=202611091';
-import { t, chordQuality, inversionName, intervalName, scaleName, spelled, notation, noteLabel } from './i18n.js?v=202611091';
-import { createGraph } from './graph.js?v=202611091';
-import { soundName, soundMeta, stepVoice, loadVoice } from './create.js?v=202611091';
-import { PIANO_SOUNDS } from './engine.js?v=202611091';
-import { setSide } from './keys.js?v=202611091';
-import { currentSong } from './song.js?v=202611091';
+import { h, icon, knob, param, seg, toggle, toast } from './ui.js?v=202611092';
+import { S, save, emit } from './store.js?v=202611092';
+import * as E from './engine.js?v=202611092';
+import { subscribe, soundingNotes } from './notes.js?v=202611092';
+import { applyPart, seq, seqPlay, seqHasNotes, arpClear, allOff } from './perform.js?v=202611092';
+import { mountRoll, clearRoll, wake } from './roll.js?v=202611092';
+import { mountStaff, clearScore, hasScore, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi } from './score.js?v=202611092';
+import { detectChord, chordSymbol, scaleContext, intervalBetween, spellPc, pitchClass, SCALES } from './theory.js?v=202611092';
+import { t, chordQuality, inversionName, intervalName, scaleName, spelled, notation, noteLabel } from './i18n.js?v=202611092';
+import { createGraph } from './graph.js?v=202611092';
+import { soundName, soundMeta, stepVoice, loadVoice } from './create.js?v=202611092';
+import { PIANO_SOUNDS } from './engine.js?v=202611092';
+import { setSide } from './keys.js?v=202611092';
+import { currentSong } from './song.js?v=202611092';
+import { isRecording, startRecording, stopRecording, recordingMs, takes, playTake, stopTake, playingTake, takeProgress, deleteTake, renameTake, exportTakeMidi, exportTakeAudio, audioExportSupported } from './recorder.js?v=202611092';
+import { suggestState, playSuggestion } from './suggest.js?v=202611092';
+import { on } from './store.js?v=202611092';
 
 export function renderPlay(view, ctx) {
   setSide(null);
@@ -23,7 +26,10 @@ export function renderPlay(view, ctx) {
   const hint = h('div', { class: 'stage-hint' }, h('b', {}, t('playHint')), h('span', {}, t('playHint2')));
   const viewSeg = seg({ cls: 'stage-seg', options: [['roll', [icon('roll'), h('span', {}, t('viewRoll'))]], ['staff', [icon('score'), h('span', {}, t('viewStaff'))]]], get: () => S.playView, set: v => { S.playView = v; save(); ctx.rerender(); } });
   const panelBtn = h('button', { type: 'button', class: 'icon-btn panel-btn' + (S.panel ? ' on' : ''), 'aria-label': t('soundPanel'), 'aria-pressed': S.panel, onclick: () => { S.panel = !S.panel; save(); ctx.rerender(); } }, icon('panel'));
-  const tools = h('div', { class: 'stage-tools' }, viewSeg, panelBtn);
+  const recBtn = recButton(ctx);
+  const takesBtn = h('button', { type: 'button', class: 'icon-btn', 'aria-label': t('takes'), title: t('takes'), onclick: () => ctx.openSheet(takesSheet) }, icon('takes'));
+  const sugBtn = h('button', { type: 'button', class: 'icon-btn' + (S.suggest.on ? ' on' : ''), 'aria-label': t('suggestions'), title: t('suggestions'), 'aria-pressed': S.suggest.on, onclick: () => { S.suggest.on = !S.suggest.on; save(); emit('suggest'); ctx.rerender(); } }, icon('bulb'));
+  const tools = h('div', { class: 'stage-tools' }, recBtn, takesBtn, sugBtn, viewSeg, panelBtn);
 
   if (S.playView === 'staff') {
     const staff = h('div', { class: 'staff-live' });
@@ -38,6 +44,7 @@ export function renderPlay(view, ctx) {
   } else {
     stage.append(canvas, readout, hint, tools);
   }
+  if (S.suggest.on) stage.append(suggestStrip(ctx));
 
   const body = h('div', { class: 'play' + (S.panel ? '' : ' no-panel') }, stage);
   if (S.panel) body.append(sidePanel(ctx));
@@ -152,4 +159,99 @@ export function fullScoreSheet(box, ctx) {
     hasScore(song) ? view : h('p', { class: 'muted' }, t('scoreEmpty')));
   if (hasScore(song)) requestAnimationFrame(() => showFullScore(view, song));
   box.addEventListener('close', () => hideFullScore(), { once: true });
+}
+
+
+// ── recorder ───────────────────────────────────────────────────
+const fmtMs = ms => { const s = Math.floor(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+
+function recButton(ctx) {
+  const label = h('span', {});
+  const btn = h('button', { type: 'button', class: 'rec-btn', onclick: () => {
+    if (isRecording()) {
+      const take = stopRecording();
+      toast(take ? t('takeSaved', { n: take.n }) : t('takeEmpty'));
+    } else startRecording();
+  } }, h('i'), label);
+  let raf = 0;
+  const paint = () => {
+    const on = isRecording();
+    btn.classList.toggle('on', on);
+    btn.setAttribute('aria-pressed', on);
+    btn.setAttribute('aria-label', on ? t('recStop') : t('recStart'));
+    label.textContent = on ? (recordingMs() ? fmtMs(recordingMs()) : t('recWaiting')) : 'REC';
+    cancelAnimationFrame(raf);
+    if (on && btn.isConnected) raf = requestAnimationFrame(() => setTimeout(paint, 250));
+  };
+  ctx.sub('rec', paint);
+  ctx.onLeave(() => cancelAnimationFrame(raf));
+  paint();
+  return btn;
+}
+
+export function takesSheet(box, ctx) {
+  box.dataset.kind = 'takes';
+  const list = h('div', { class: 'takes' });
+  const fill = () => {
+    list.textContent = '';
+    if (!takes.length) { list.append(h('p', { class: 'muted' }, t('takesEmpty'))); return; }
+    for (const take of takes) {
+      const playing = playingTake() === take.id;
+      const bar = h('i', { class: 'take-bar' });
+      const name = h('input', { class: 'name take-name', value: take.name || t('takeN', { n: take.n }), maxlength: 40, 'aria-label': t('name'), onchange: e => renameTake(take.id, e.target.value) });
+      const date = new Date(take.date).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      const audioBtn = h('button', { type: 'button', class: 'btn ghost', disabled: !audioExportSupported(), onclick: () => {
+        const ok = exportTakeAudio(take.id, st => { if (st === 'recording') toast(t('audioRecording', { d: fmtMs(take.dur + 1800) })); if (st === 'done') toast(t('audioDone')); });
+        if (!ok) toast(t('audioUnavailable'));
+      } }, icon('download'), t('audio'));
+      list.append(h('div', { class: 'take' + (playing ? ' playing' : '') },
+        h('button', { type: 'button', class: 'take-play', 'aria-label': playing ? t('stop') : t('playL'), onclick: () => { playing ? stopTake() : playTake(take.id, fill); } }, icon(playing ? 'stop' : 'start')),
+        h('div', { class: 'take-main' }, name, h('small', {}, `${date} · ${fmtMs(take.dur)} · ${take.events.filter(e => e.on != null).length} ${t('notesWord')}`), bar),
+        h('div', { class: 'take-actions' },
+          h('button', { type: 'button', class: 'btn ghost', onclick: () => exportTakeMidi(take.id) }, icon('download'), 'MIDI'),
+          audioBtn,
+          h('button', { type: 'button', class: 'icon-btn', 'aria-label': t('delete'), onclick: () => deleteTake(take.id) }, icon('trash')))));
+      if (playing) {
+        const tickBar = () => { if (!bar.isConnected || playingTake() !== take.id) return; bar.style.width = takeProgress() * 100 + '%'; requestAnimationFrame(tickBar); };
+        tickBar();
+      }
+    }
+  };
+  box.append(
+    h('div', { class: 'sheet-head' }, h('h2', {}, t('takes')), h('button', { type: 'button', class: 'btn', onclick: () => ctx.closeSheet() }, t('close'))),
+    h('p', { class: 'hint' }, t('takesHint')),
+    list);
+  const un = on('rec', () => { if (list.isConnected) fill(); });
+  box.addEventListener('close', () => { un(); }, { once: true });
+  fill();
+}
+
+// ── chord suggestions ──────────────────────────────────────────
+function suggestStrip(ctx) {
+  const wrap = h('div', { class: 'suggest' });
+  const paint = () => {
+    const { key, chords, current, next } = suggestState();
+    wrap.textContent = '';
+    if (!chords.length) return;
+    const tonic = chords[0].chord;
+    const keyName = spelled(tonic.root) + ' ' + (chords[0].quality === 'min' ? t('keyMinor') : t('keyMajor'));
+    wrap.append(h('div', { class: 'suggest-key' },
+      h('b', {}, keyName),
+      h('small', {}, key.guessed ? t('keyGuessed') : t('keyFromScale')),
+      h('button', { type: 'button', class: 'chip' + (S.suggest.keys ? ' on' : ''), 'aria-pressed': S.suggest.keys, onclick: () => { S.suggest.keys = !S.suggest.keys; save(); emit('suggest'); } }, t('onKeys'))));
+    const row = h('div', { class: 'suggest-row' });
+    for (const c of chords) {
+      const rank = next.indexOf(c.i);
+      row.append(h('button', {
+        type: 'button',
+        class: 'sug' + (c.i === current ? ' now' : '') + (rank >= 0 ? ' next r' + rank : ''),
+        onclick: () => playSuggestion(c),
+      }, h('small', {}, c.roman), h('b', {}, chordSymbol(c.chord, notation()))));
+    }
+    wrap.append(row);
+  };
+  ctx.sub('suggest', paint);
+  ctx.sub('scale', paint);
+  paint();
+  return wrap;
 }

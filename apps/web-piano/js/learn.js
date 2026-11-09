@@ -1,18 +1,18 @@
 // Learn screen: Songs (library, then the song falling onto the keys with its
 // staff above, waiting for the player's hand) and Exercises (chords, scales).
-import { h, icon, seg, toggle, toast } from './ui.js?v=202611091';
-import { S, save } from './store.js?v=202611091';
-import { t, chordQuality, scaleName, spelled, notation } from './i18n.js?v=202611091';
-import { chordSymbol } from './theory.js?v=202611091';
-import { EXAMPLES, importedSongs, addSong, songFile, removeSong, onLibraryChange } from './library.js?v=202611091';
-import { currentSong, openSongFile, closeSong, playSong, pauseSong, isSongPlaying, seekSong, songPosition, setSongPart, setSongSpeed, songPart, onSongChange, onSongPosition, isWaitingForPlayer } from './song.js?v=202611091';
-import { mountFall } from './fall.js?v=202611091';
-import { mountStaff } from './score.js?v=202611091';
-import { setOverride, setSide } from './keys.js?v=202611091';
-import { LEVELS, setPracticing, practiceState, onPracticeChange, skip, nextTarget, refreshPractice } from './practice.js?v=202611091';
-import { soundingNotes } from './notes.js?v=202611091';
-import { pitchClass, defaultSpelling } from './theory.js?v=202611091';
-import { fullScoreSheet } from './play.js?v=202611091';
+import { h, icon, seg, toggle, toast } from './ui.js?v=202611092';
+import { S, save } from './store.js?v=202611092';
+import { t, chordQuality, scaleName, spelled, notation } from './i18n.js?v=202611092';
+import { chordSymbol } from './theory.js?v=202611092';
+import { EXAMPLES, importedSongs, addSong, songFile, removeSong, onLibraryChange } from './library.js?v=202611092';
+import { currentSong, openSongFile, closeSong, playSong, pauseSong, isSongPlaying, seekSong, songPosition, setSongPart, setSongSpeed, songPart, onSongChange, onSongPosition, isWaitingForPlayer } from './song.js?v=202611092';
+import { mountFall } from './fall.js?v=202611092';
+import { mountStaff, drawSingleNote } from './score.js?v=202611092';
+import { setOverride, setSide } from './keys.js?v=202611092';
+import { LEVELS, setPracticing, practiceState, onPracticeChange, skip, nextTarget, refreshPractice, readingRange } from './practice.js?v=202611092';
+import { soundingNotes } from './notes.js?v=202611092';
+import { pitchClass, defaultSpelling, spelledOctave } from './theory.js?v=202611092';
+import { fullScoreSheet } from './play.js?v=202611092';
 
 export function renderLearn(view, ctx) {
   const nav = seg({ cls: 'subnav', options: [['songs', t('tabSongs')], ['drills', t('tabDrills')]], get: () => S.learnTab, set: v => { S.learnTab = v; save(); ctx.rerender(); } });
@@ -139,13 +139,20 @@ function renderPlayer(view, ctx, bar) {
 function renderDrills(view, ctx) {
   const P = S.practice;
   const levels = () => Object.keys(LEVELS[P.kind]).map(k => [k, t(k)]);
-  const levelSeg = seg({ cls: 'wrap', options: levels(), get: () => (P.kind === 'chords' ? P.chords : P.scales), set: v => { if (P.kind === 'chords') P.chords = v; else P.scales = v; save(); nextTarget(); } });
+  const levelKey = { chords: 'chords', scales: 'scales', reading: 'reading' }[P.kind] || 'chords';
+  if (!LEVELS[P.kind]) P.kind = 'chords';
+  const reading = P.kind === 'reading';
+  // reading asks for exact pitches: the keyboard shows the whole range of the level
+  const fitKeys = () => setOverride(reading ? readingRange() : null);
+  fitKeys();
+  ctx.onLeave(() => setOverride(null));
+  const levelSeg = seg({ cls: 'wrap', options: levels(), get: () => P[levelKey], set: v => { P[levelKey] = v; save(); fitKeys(); nextTarget(); } });
   const config = h('div', { class: 'card drill-config' },
-    seg({ cls: 'big-seg', options: [['chords', t('drillChords')], ['scales', t('drillScales')]], get: () => P.kind, set: v => { P.kind = v; save(); ctx.rerender(); } }),
+    seg({ cls: 'big-seg', options: [['chords', t('drillChords')], ['scales', t('drillScales')], ['reading', t('drillReading')]], get: () => P.kind, set: v => { P.kind = v; save(); ctx.rerender(); } }),
     h('h3', {}, t('level')), levelSeg,
-    h('h3', {}, t('roots')),
-    seg({ options: [['naturals', t('rootsNaturals')], ['all', t('rootsAll')]], get: () => P.roots, set: v => { P.roots = v; save(); nextTarget(); } }),
-    toggle({ label: t('showNotes'), get: () => P.hints, set: v => { P.hints = v; save(); refreshPractice(); } }));
+    reading ? null : h('h3', {}, t('roots')),
+    reading ? null : seg({ options: [['naturals', t('rootsNaturals')], ['all', t('rootsAll')]], get: () => P.roots, set: v => { P.roots = v; save(); nextTarget(); } }),
+    toggle({ label: reading ? t('showKey') : t('showNotes'), get: () => P.hints, set: v => { P.hints = v; save(); refreshPractice(); } }));
 
   const prompt = h('p', { class: 'drill-prompt' });
   const symbol = h('div', { class: 'drill-symbol' });
@@ -164,7 +171,15 @@ function renderDrills(view, ctx) {
     card.dataset.feedback = fb.kind;
     feedback.textContent = fb.text;
     stats.textContent = st.done ? t('drillStats', { done: st.done, streak: st.streak }) : t('drillStart');
-    if (target.kind === 'chords') {
+    if (target.kind === 'reading') {
+      prompt.textContent = t('drillReadNote');
+      symbol.classList.add('staff-note');
+      const sig = target.midi + ':' + target.spelling.acc + ':' + target.clef;
+      if (symbol.dataset.sig !== sig) { symbol.dataset.sig = sig; drawSingleNote(symbol, target); }
+      name.textContent = fb.kind === 'success' || P.hints ? spelled(target.spelling) + spelledOctave(target.midi, target.spelling) : '';
+      chips.replaceChildren();
+    } else if (target.kind === 'chords') {
+      symbol.classList.remove('staff-note'); delete symbol.dataset.sig;
       prompt.textContent = t('drillPlayChord');
       symbol.textContent = chordSymbol(target.chord, notation());
       name.textContent = spelled(target.chord.root) + ' ' + chordQuality(target.type);
@@ -172,6 +187,7 @@ function renderDrills(view, ctx) {
       chips.replaceChildren(...target.notes.map(n => chip(held.has(n.pc) || P.hints ? spelled(n.spelling) : '?', held.has(n.pc) ? 'good' : '')),
         ...[...held].filter(pc => !target.pcs.has(pc)).map(pc => chip(spelled(defaultSpelling(pc)), 'bad')));
     } else {
+      symbol.classList.remove('staff-note'); delete symbol.dataset.sig;
       prompt.textContent = t('drillPlayScale');
       symbol.textContent = spelled(target.notes[0].spelling);
       name.textContent = t('drillScaleOf', { name: scaleName(target.type).toLowerCase() });

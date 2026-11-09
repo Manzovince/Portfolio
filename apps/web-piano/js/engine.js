@@ -3,9 +3,9 @@
 //   piano sampler, one tone stage per part  ──┴→ input → DJ filter → chorus
 //   → delay + reverb sends → compressor → master
 // Each of the two parts (A, B) is either the sampled piano or an FM patch.
-import { ALGORITHMS } from './algorithms.js?v=202611091';
+import { ALGORITHMS } from './algorithms.js?v=202611092';
 
-const V = '?v=202611091';
+const V = '?v=202611092';
 const SAMPLE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 // The sampled piano in a few colours: shelf (dB above 2.5 kHz), lowpass (Hz), damper (s)
@@ -187,6 +187,31 @@ export function setFx(fx, tempo) {
 }
 
 export const analyser = () => nodes.analyser || null;
+
+// Metronome tick, straight to the output (no effects): a short pitched blip
+export function click(t, accent, volume = 0.6) {
+  if (!ctx || !nodes.master) return;
+  const o = new OscillatorNode(ctx, { type: 'sine', frequency: accent ? 1760 : 1180 });
+  const g = new GainNode(ctx, { gain: 0 });
+  const at = Math.max(t, ctx.currentTime);
+  g.gain.setValueAtTime(0, at);
+  g.gain.linearRampToValueAtTime(volume * (accent ? 0.5 : 0.32), at + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, at + 0.06);
+  o.connect(g).connect(ctx.destination);
+  o.start(at);
+  o.stop(at + 0.08);
+}
+
+// Everything audible (after the master volume), for recording to an audio file
+let captureNode = null;
+export function captureStream() {
+  if (!ctx || !nodes.master) return null;
+  if (!captureNode) {
+    captureNode = ctx.createMediaStreamDestination();
+    nodes.master.connect(captureNode);
+  }
+  return captureNode.stream;
+}
 
 // ── piano sampler ──────────────────────────────────────────────
 const samples = new Map(); // midi -> Promise<AudioBuffer>

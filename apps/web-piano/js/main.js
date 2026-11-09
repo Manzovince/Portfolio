@@ -1,18 +1,19 @@
 // Octave — boot, shell (top bar, mode switch, keyboard dock), screen switching.
-import { h, icon, seg, toast } from './ui.js?v=202611091';
-import { S, save, on, emit } from './store.js?v=202611091';
-import * as E from './engine.js?v=202611091';
-import { applyAll, seq, seqPlay, seqHasNotes, learnSplit } from './perform.js?v=202611091';
-import { connectMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611091';
-import { createDock, bindComputerKeys, setGuide, applyDock } from './keys.js?v=202611091';
-import { currentGuide, onGuideChange, refreshGuide } from './guide.js?v=202611091';
-import { initLumi } from './lumi.js?v=202611091';
-import { t, noteLabel } from './i18n.js?v=202611091';
-import { renderPlay } from './play.js?v=202611091';
-import { renderLearn } from './learn.js?v=202611091';
-import { renderCreate, soundName } from './create.js?v=202611091';
-import { renderSettings, applyTheme } from './settings.js?v=202611091';
-import { allNotesOff } from './notes.js?v=202611091';
+import { h, icon, seg, toast, toggle, param } from './ui.js?v=202611092';
+import { setMetro, metroBeat } from './metronome.js?v=202611092';
+import { S, save, on, emit } from './store.js?v=202611092';
+import * as E from './engine.js?v=202611092';
+import { applyAll, seq, seqPlay, seqHasNotes, learnSplit } from './perform.js?v=202611092';
+import { connectMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611092';
+import { createDock, bindComputerKeys, setGuide, applyDock } from './keys.js?v=202611092';
+import { currentGuide, onGuideChange, refreshGuide } from './guide.js?v=202611092';
+import { initLumi } from './lumi.js?v=202611092';
+import { t, noteLabel } from './i18n.js?v=202611092';
+import { renderPlay } from './play.js?v=202611092';
+import { renderLearn } from './learn.js?v=202611092';
+import { renderCreate, soundName } from './create.js?v=202611092';
+import { renderSettings, applyTheme } from './settings.js?v=202611092';
+import { allNotesOff } from './notes.js?v=202611092';
 
 const MODES = [['play', 'play', 'modePlay'], ['learn', 'learn', 'modeLearn'], ['create', 'create', 'modeCreate']];
 
@@ -62,7 +63,56 @@ const chips = h('div', { class: 'parts' });
 const transport = h('button', { type: 'button', class: 'transport-mini', onclick: () => seqPlay() });
 const midiPill = h('button', { type: 'button', class: 'midi', onclick: () => ctx.openSheet() });
 const gear = h('button', { type: 'button', class: 'gear', onclick: () => ctx.openSheet() }, icon('gear'));
-top.append(logo, modes, h('div', { class: 'spacer' }), chips, transport, midiPill, gear);
+const metroDots = h('span', { class: 'metro-dots' });
+const metroBtn = h('button', { type: 'button', class: 'metro-btn', onclick: e => { e.stopPropagation(); toggleMetroPop(); } }, icon('metro'), metroDots);
+const metroPop = h('div', { class: 'metro-pop', hidden: true, onclick: e => e.stopPropagation() });
+top.append(logo, modes, h('div', { class: 'spacer' }), chips, transport, metroBtn, midiPill, gear);
+document.body.append(metroPop);
+
+function paintMetroBtn() {
+  metroBtn.classList.toggle('on', S.metro.on);
+  metroBtn.setAttribute('aria-label', t('metronome'));
+  metroDots.textContent = '';
+  if (S.metro.on) for (let i = 0; i < S.metro.beats; i++) metroDots.append(h('i'));
+}
+function toggleMetroPop(open = metroPop.hidden) {
+  metroPop.hidden = !open;
+  if (!open) return;
+  metroPop.textContent = '';
+  const r = metroBtn.getBoundingClientRect();
+  metroPop.style.top = r.bottom + 8 + 'px';
+  metroPop.style.right = Math.max(8, innerWidth - r.right - 60) + 'px';
+  metroPop.append(
+    toggle({ label: t('metronome'), cls: 'big', get: () => S.metro.on, set: v => { boot(); setMetro(v); } }),
+    param({ label: t('tempo'), min: 40, max: 220, get: () => S.tempo, set: v => { S.tempo = v; save(); emit('tempo'); }, fmt: v => v + ' bpm', sens: 0.6 }),
+    h('div', { class: 'row' }, h('span', { class: 'lab' }, t('beats')),
+      seg({ options: [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [6, '6']], get: () => S.metro.beats, set: v => { S.metro.beats = v; save(); emit('metroBeats'); paintMetroBtn(); } })),
+    toggle({ label: t('metroSound'), get: () => S.metro.sound, set: v => { S.metro.sound = v; save(); } }),
+    h('div', { class: 'row tap-row' }, h('button', { type: 'button', class: 'btn ghost', onclick: tapTempo }, t('tapTempo')), h('span', { class: 'hint' }, t('tapHint'))));
+}
+// tap tempo: the average of the last taps
+let taps = [];
+function tapTempo() {
+  const now = performance.now();
+  taps = taps.filter(x => now - x < 2500);
+  taps.push(now);
+  if (taps.length < 2) return;
+  const avg = (taps[taps.length - 1] - taps[0]) / (taps.length - 1);
+  S.tempo = Math.max(40, Math.min(220, Math.round(60000 / avg)));
+  save(); emit('tempo');
+  toggleMetroPop(true);
+}
+document.addEventListener('click', () => { if (!metroPop.hidden) metroPop.hidden = true; });
+on('metro', paintMetroBtn);
+// beat dots follow the clicks
+(function metroLoop() {
+  requestAnimationFrame(metroLoop);
+  if (!S.metro.on) return;
+  const b = metroBeat();
+  [...metroDots.children].forEach((d, i) => d.classList.toggle('lit', i === b));
+  metroBtn.classList.toggle('down', b === 0);
+})();
+paintMetroBtn();
 
 function paintModes() {
   modes.textContent = '';
@@ -120,7 +170,7 @@ on('part', render);
 on('split', render);
 on('patch', paintTop);
 on('seq', paintTop);
-on('lang', () => { render(); paintMidi(); if (!sheet.hidden) ctx.openSheet(); });
+on('lang', () => { render(); paintMidi(); paintMetroBtn(); if (!sheet.hidden) ctx.openSheet(); });
 on('theme', () => { if (S.mode !== 'learn') render(); });
 
 // Guide (exercise / song) on the keys
@@ -173,4 +223,4 @@ on('tempo', () => E.setFx(S.fx, S.tempo));
 document.addEventListener('visibilitychange', () => { if (document.hidden) allNotesOff(); });
 
 // console handle for testing without a keyboard
-import('./notes.js?v=202611091').then(N => { window.octave = { S, press: N.press, lift: N.lift, emit, applyDock }; });
+import('./notes.js?v=202611092').then(N => { window.octave = { S, press: N.press, lift: N.lift, emit, applyDock }; });

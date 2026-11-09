@@ -1,10 +1,10 @@
 // Exercises: chords (play the chord shown, any octave or inversion) and scales
 // (one octave up then back down, starting anywhere). Logic only: the Learn
 // screen draws the state and listens to onPracticeChange.
-import { subscribe, soundingNotes } from './notes.js?v=202611091';
-import { S } from './store.js?v=202611091';
-import { buildChord, scaleNotes, pitchClass, defaultSpelling, SCALES } from './theory.js?v=202611091';
-import { t, spelled } from './i18n.js?v=202611091';
+import { subscribe, soundingNotes } from './notes.js?v=202611092';
+import { S } from './store.js?v=202611092';
+import { buildChord, scaleNotes, pitchClass, defaultSpelling, SCALES } from './theory.js?v=202611092';
+import { t, spelled } from './i18n.js?v=202611092';
 
 export const LEVELS = {
   chords: {
@@ -12,6 +12,12 @@ export const LEVELS = {
     allTriads: ['maj', 'min', 'dim', 'aug', 'sus2', 'sus4'],
     sevenths: ['dom7', 'maj7', 'min7', 'hdim7', 'dim7'],
     allChords: ['maj', 'min', 'dim', 'aug', 'sus2', 'sus4', 'dom7', 'maj7', 'min7', 'hdim7', 'dim7', 'six', 'min6'],
+  },
+  reading: {
+    trebleEasy: { lo: 60, hi: 79, clefs: ['treble'] },
+    bassEasy: { lo: 41, hi: 60, clefs: ['bass'] },
+    grandStaff: { lo: 41, hi: 79, clefs: ['treble', 'bass'] },
+    withAccidentals: { lo: 41, hi: 79, clefs: ['treble', 'bass'], accidentals: true },
   },
   scales: {
     majorScales: ['major'],
@@ -41,6 +47,7 @@ export const refreshPractice = () => changed();
 // Notes to mark: strong = play these now, soft = the rest of the scale
 export function practiceGuide() {
   if (!active || !target || !S.practice.hints) return null;
+  if (target.kind === 'reading') return { midis: new Set([target.midi]) };
   if (target.kind === 'chords') return { strong: target.pcs, soft: new Set() };
   const next = target.steps[target.position];
   return { strong: new Set(next === undefined ? [] : [next.pc]), soft: new Set(target.notes.map(n => n.pc)) };
@@ -48,9 +55,37 @@ export function practiceGuide() {
 
 const pick = list => list[Math.floor(Math.random() * list.length)];
 
+// Range of the current note-reading level, so the keyboard can show all of it
+export function readingRange() {
+  const L = LEVELS.reading[S.practice.reading] || LEVELS.reading.trebleEasy;
+  return { lo: L.lo, hi: L.hi };
+}
+
+const SHARP = [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [3, 0], [3, 1], [4, 0], [4, 1], [5, 0], [5, 1], [6, 0]];
+const FLAT = [[0, 0], [1, -1], [1, 0], [2, -1], [2, 0], [3, 0], [4, -1], [4, 0], [5, -1], [5, 0], [6, -1], [6, 0]];
+
+function readingTarget() {
+  const L = LEVELS.reading[S.practice.reading] || LEVELS.reading.trebleEasy;
+  const black = m => [1, 3, 6, 8, 10].includes(m % 12);
+  const pool = [];
+  for (let m = L.lo; m <= L.hi; m++) if (L.accidentals || !black(m)) pool.push(m);
+  let midi;
+  do { midi = pick(pool); } while (target && target.kind === 'reading' && target.midi === midi && pool.length > 1);
+  const useFlat = black(midi) && Math.random() < 0.5;
+  const [letter, acc] = (useFlat ? FLAT : SHARP)[midi % 12];
+  // middle C may sit on either staff; elsewhere the staff follows the note
+  const clef = L.clefs.length === 1 ? L.clefs[0] : midi > 60 ? 'treble' : midi < 60 ? 'bass' : pick(L.clefs);
+  return { kind: 'reading', midi, clef, spelling: { letter, acc }, pcs: new Set([midi % 12]) };
+}
+
 export function nextTarget() {
   const P = S.practice;
   const kind = P.kind;
+  if (kind === 'reading') {
+    target = readingTarget();
+    locked = false; attemptMissed = false; missedStep = -1; feedback = { kind: '', text: '' };
+    return changed();
+  }
   const level = kind === 'chords' ? P.chords : P.scales;
   const types = LEVELS[kind][level] ?? Object.values(LEVELS[kind])[0];
   const roots = ROOTS[P.roots] ?? ROOTS.all;
@@ -134,9 +169,17 @@ export function setPracticing(on) {
   else { target = null; changed(); }
 }
 
+function checkReading(e) {
+  if (e.type !== 'on') return;
+  if (e.midi === target.midi) return succeed();
+  if (e.midi % 12 === target.midi % 12) return miss(t(e.midi < target.midi ? 'drillHigherOct' : 'drillLowerOct'));
+  miss(t('drillNotThisNote', { note: nameOfPc(e.midi % 12) }));
+}
+
 subscribe(e => {
   if (!active || !target || locked || (e.type !== 'on' && e.type !== 'off')) return;
-  if (String(e.source).startsWith('song')) return;
-  if (target.kind === 'chords') checkChord(e);
+  if (String(e.source).startsWith('song') || String(e.source).startsWith('take') || String(e.source).startsWith('suggest')) return;
+  if (target.kind === 'reading') checkReading(e);
+  else if (target.kind === 'chords') checkChord(e);
   else checkScale(e);
 });
