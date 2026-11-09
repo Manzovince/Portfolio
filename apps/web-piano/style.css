@@ -68,9 +68,12 @@ p { margin: 0; }
 /* ── top bar ── */
 .top { height: 56px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 10px; border-bottom: 1px solid var(--line); }
 .logo { font-weight: 800; letter-spacing: .22em; font-size: 12px; color: var(--accent); padding: 0 6px 0 4px; }
-.modes { display: flex; gap: 2px; padding: 3px; background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; }
-.mode { display: flex; align-items: center; gap: 7px; height: 40px; padding: 0 14px 0 11px; border-radius: 11px; color: var(--dim); font-weight: 600; font-size: 14px; }
-.mode.on { background: var(--bg); color: var(--text); box-shadow: 0 1px 0 var(--line2), 0 0 0 1px var(--line); }
+.modes { display: flex; gap: 2px; align-self: stretch; margin-left: 6px; }
+.mode { position: relative; display: flex; align-items: center; gap: 8px; height: 100%; padding: 0 16px; color: var(--dim); font-weight: 600; font-size: 14px; transition: color .15s; }
+.mode::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--accent); transform: scaleX(0); transition: transform .2s; }
+.mode:hover { color: var(--text); }
+.mode.on { color: var(--text); }
+.mode.on::after { transform: scaleX(1); }
 .mode.on .ic { color: var(--accent); }
 .parts { display: flex; gap: 6px; min-width: 0; }
 .part { display: flex; align-items: center; gap: 7px; height: 40px; padding: 0 12px 0 5px; border-radius: 20px; background: var(--panel2); border: 1px solid var(--line); min-width: 0; max-width: 200px; }
@@ -397,7 +400,7 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
 @media (max-width: 760px) {
   .top { gap: 4px; padding: 0 6px; }
   .logo { display: none; }
-  .mode { padding: 0 11px; }
+  .mode { padding: 0 12px; }
   .parts { display: none; }
   .library { grid-template-columns: 1fr; }
   .drills { grid-template-columns: 1fr; }
@@ -444,7 +447,6 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
 /* Phone landscape: every pixel of height counts */
 @media (max-height: 460px) {
   .top { height: 48px; }
-  .mode { height: 36px; }
   .part { height: 36px; }
   .side { gap: 8px; padding: 8px 10px; }
   .preset .nav { height: 48px; }

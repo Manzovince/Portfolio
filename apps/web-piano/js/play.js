@@ -1,22 +1,22 @@
 // Play screen: the stage (rising notes over the oscilloscope, or the staff of
 // what is played), the chord readout, and the side panel for the sound.
-import { h, icon, knob, param, seg, toggle, toast } from './ui.js?v=202611092';
-import { S, save, emit } from './store.js?v=202611092';
-import * as E from './engine.js?v=202611092';
-import { subscribe, soundingNotes } from './notes.js?v=202611092';
-import { applyPart, seq, seqPlay, seqHasNotes, arpClear, allOff } from './perform.js?v=202611092';
-import { mountRoll, clearRoll, wake } from './roll.js?v=202611092';
-import { mountStaff, clearScore, hasScore, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi } from './score.js?v=202611092';
-import { detectChord, chordSymbol, scaleContext, intervalBetween, spellPc, pitchClass, SCALES } from './theory.js?v=202611092';
-import { t, chordQuality, inversionName, intervalName, scaleName, spelled, notation, noteLabel } from './i18n.js?v=202611092';
-import { createGraph } from './graph.js?v=202611092';
-import { soundName, soundMeta, stepVoice, loadVoice } from './create.js?v=202611092';
-import { PIANO_SOUNDS } from './engine.js?v=202611092';
-import { setSide } from './keys.js?v=202611092';
-import { currentSong } from './song.js?v=202611092';
-import { isRecording, startRecording, stopRecording, recordingMs, takes, playTake, stopTake, playingTake, takeProgress, deleteTake, renameTake, exportTakeMidi, exportTakeAudio, audioExportSupported } from './recorder.js?v=202611092';
-import { suggestState, playSuggestion } from './suggest.js?v=202611092';
-import { on } from './store.js?v=202611092';
+import { h, icon, knob, param, seg, toggle, toast } from './ui.js?v=202611093';
+import { S, save, emit } from './store.js?v=202611093';
+import * as E from './engine.js?v=202611093';
+import { subscribe, soundingNotes } from './notes.js?v=202611093';
+import { applyPart, seq, seqPlay, seqHasNotes, arpClear, allOff } from './perform.js?v=202611093';
+import { mountRoll, clearRoll, wake } from './roll.js?v=202611093';
+import { mountStaff, clearScore, hasScore, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi } from './score.js?v=202611093';
+import { detectChord, chordSymbol, scaleContext, intervalBetween, spellPc, pitchClass, SCALES } from './theory.js?v=202611093';
+import { t, chordQuality, inversionName, intervalName, scaleName, spelled, notation, noteLabel } from './i18n.js?v=202611093';
+import { createGraph } from './graph.js?v=202611093';
+import { soundName, soundMeta, stepVoice, loadVoice } from './create.js?v=202611093';
+import { PIANO_SOUNDS } from './engine.js?v=202611093';
+import { setSide } from './keys.js?v=202611093';
+import { currentSong } from './song.js?v=202611093';
+import { isRecording, startRecording, stopRecording, recordingMs, takes, playTake, stopTake, playingTake, takeProgress, deleteTake, renameTake, exportTakeMidi, exportTakeAudio, audioExportSupported } from './recorder.js?v=202611093';
+import { suggestState, playSuggestion } from './suggest.js?v=202611093';
+import { on } from './store.js?v=202611093';
 
 export function renderPlay(view, ctx) {
   setSide(null);
