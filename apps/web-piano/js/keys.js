@@ -3,13 +3,13 @@
 // key is struck), sized from the screen and the key-size setting. "mini": a
 // thin strip of all 88 keys that only shows what sounds, for MIDI players.
 // It also gives the roll and the waterfall their columns (geometry()).
-import { h, icon } from './ui.js?v=202611103';
-import { S, save, on, emit } from './store.js?v=202611103';
-import { press, lift, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from './notes.js?v=202611103';
-import { partOf } from './perform.js?v=202611103';
-import { noteColor } from './colors.js?v=202611103';
-import { noteLabel, t } from './i18n.js?v=202611103';
-import { pitchClass, scaleNotes } from './theory.js?v=202611103';
+import { h, icon } from './ui.js?v=202611104';
+import { S, save, on, emit } from './store.js?v=202611104';
+import { press, lift, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from './notes.js?v=202611104';
+import { partOf } from './perform.js?v=202611104';
+import { noteColor } from './colors.js?v=202611104';
+import { noteLabel, t } from './i18n.js?v=202611104';
+import { pitchClass, scaleNotes } from './theory.js?v=202611104';
 
 const BLACK = new Set([1, 3, 6, 8, 10]);
 const isBlack = m => BLACK.has(((m % 12) + 12) % 12);
@@ -202,6 +202,46 @@ on('theme', () => paint());
 on('lang', () => build());
 on('kb', () => applyDock());
 
+// ── keyboard layout, to name the keys in the hints (AZERTY, QWERTY, QWERTZ) ──
+const LAYOUTS = {
+  qwerty: {},
+  azerty: { KeyA: 'Q', KeyQ: 'A', KeyW: 'Z', KeyZ: 'W' },
+  qwertz: { KeyY: 'Z', KeyZ: 'Y' },
+};
+const guessLayout = () => {
+  const l = (navigator.language || '').toLowerCase();
+  if (l.startsWith('fr') && l !== 'fr-ca' && l !== 'fr-ch') return 'azerty';
+  if (/^(de|cs|sk|hu|sl|hr)\b/.test(l) || l === 'fr-ch') return 'qwertz';
+  return 'qwerty';
+};
+let layout = guessLayout();
+const keyLabel = code => LAYOUTS[layout][code] || code.replace('Key', '');
+const keyList = codes => codes.map(keyLabel).join(' ');
+export const keyVars = () => ({
+  keys: keyList(['KeyA', 'KeyW', 'KeyS', 'KeyE', 'KeyD']),
+  white: keyList(['KeyA', 'KeyS', 'KeyD', 'KeyF']),
+  black: keyList(['KeyW', 'KeyE', 'KeyT', 'KeyY', 'KeyU']),
+  down: keyLabel('KeyZ'), up: keyLabel('KeyX'),
+});
+// Text that names keys: tagged so it can be refreshed once the layout is known
+export const keyHint = (tag, attrs, key) => h(tag, { ...attrs, 'data-keyhint': key }, t(key, keyVars()));
+function setLayout(l) {
+  if (!l || l === layout) return;
+  layout = l;
+  document.querySelectorAll('[data-keyhint]').forEach(el => { el.textContent = t(el.dataset.keyhint, keyVars()); });
+}
+function layoutFromKey(code, key) {
+  const k = (key || '').toLowerCase();
+  if (code === 'KeyQ') setLayout(k === 'a' ? 'azerty' : k === 'q' && layout === 'azerty' ? 'qwerty' : null);
+  else if (code === 'KeyY') setLayout(k === 'z' ? 'qwertz' : k === 'y' && layout === 'qwertz' ? 'qwerty' : null);
+}
+try {
+  navigator.keyboard?.getLayoutMap?.().then(m => {
+    const q = m.get('KeyQ'), y = m.get('KeyY');
+    setLayout(q === 'a' ? 'azerty' : y === 'z' ? 'qwertz' : q === 'q' ? 'qwerty' : null);
+  }).catch(() => {});
+} catch {}
+
 // ── computer keyboard, by physical position (AZERTY and QWERTY alike) ──
 // bottom letter row = white keys from the first C on screen, row above = black keys
 const CODES = ['KeyA', 'KeyW', 'KeyS', 'KeyE', 'KeyD', 'KeyF', 'KeyT', 'KeyG', 'KeyY', 'KeyH', 'KeyU', 'KeyJ', 'KeyK', 'KeyO', 'KeyL', 'KeyP', 'Semicolon', 'Quote'];
@@ -211,6 +251,7 @@ export function bindComputerKeys() {
   addEventListener('keydown', e => {
     if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+    layoutFromKey(e.code, e.key);
     if (e.code === 'KeyZ' || e.code === 'KeyX') { compOctave += e.code === 'KeyZ' ? -1 : 1; compOctave = Math.max(-3, Math.min(3, compOctave)); return; }
     const i = CODES.indexOf(e.code);
     if (i < 0) return;

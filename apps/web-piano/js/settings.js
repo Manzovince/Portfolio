@@ -1,11 +1,12 @@
 // Settings sheet and theme.
-import { h, param, seg, toggle, toast } from './ui.js?v=202611103';
-import { S, save, emit, resetAll } from './store.js?v=202611103';
-import * as E from './engine.js?v=202611103';
-import { allOff } from './perform.js?v=202611103';
-import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611103';
-import { t, noteLabel, setLang } from './i18n.js?v=202611103';
-import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES } from './lumi.js?v=202611103';
+import { h, param, seg, toggle, toast } from './ui.js?v=202611104';
+import { S, save, emit, resetAll } from './store.js?v=202611104';
+import * as E from './engine.js?v=202611104';
+import { allOff } from './perform.js?v=202611104';
+import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611104';
+import { t, noteLabel, setLang } from './i18n.js?v=202611104';
+import { keyHint } from './keys.js?v=202611104';
+import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES } from './lumi.js?v=202611104';
 
 // 'auto' follows the device; 'light' / 'dark' force it
 export function applyTheme() {
@@ -54,7 +55,7 @@ export function renderSettings(box, ctx) {
         row(t('keySize'), seg({ options: [['s', 'S'], ['m', 'M'], ['l', 'L']], get: () => S.kb.size, set: v => { S.kb.size = v; kb(); } })),
         row(t('labels'), seg({ options: [['c', t('labelsC')], ['all', t('labelsAll')], ['none', t('none')]], get: () => S.kb.labels, set: v => { S.kb.labels = v; kb(); } })),
         row(t('range'), seg({ options: [['free', t('rangeFree')], ['lumi', 'LUMI']], get: () => S.kb.follow, set: v => { S.kb.follow = v; kb(); } })),
-        h('p', { class: 'hint' }, t('computerKeysHint'))),
+        keyHint('p', { class: 'hint' }, 'computerKeysHint')),
       h('div', { class: 'card' },
         h('h3', {}, t('midiKeyboard')),
         h('p', { class: 'midi-line ' + st.state }, h('i'), ms, st.inputs.length ? ' · ' + st.inputs.map(i => i.name).join(', ') : ''),

@@ -9,7 +9,7 @@ export const STRINGS = {
     seqPlay: 'Lecture du motif',
 
     // Play
-    playHint: 'Joue quelque chose', playHint2: 'Sur le clavier ci-dessous, au clavier de l’ordinateur (A W S E D…) ou sur un clavier MIDI.',
+    playHint: 'Joue quelque chose', playHint2: 'Sur le clavier ci-dessous, au clavier de l’ordinateur ({keys}…) ou sur un clavier MIDI.',
     viewRoll: 'Notes', viewStaff: 'Partition', soundPanel: 'Panneau du son',
     fullScore: 'Partition complète', clear: 'Effacer', scoreCleared: 'Partition effacée', scoreEmpty: 'Rien à afficher pour l’instant : joue quelques notes.',
     staffSongOpen: 'Un morceau est ouvert dans Apprendre : sa partition s’affiche là-bas.',
@@ -76,7 +76,7 @@ export const STRINGS = {
     showScope: 'Oscilloscope derrière les notes', showChords: 'Nom des accords',
     screenKeys: 'Clavier à l’écran', dock: 'Affichage', dockFull: 'Jouable', dockMini: 'Bande fine', keySize: 'Touches',
     labels: 'Étiquettes', labelsC: 'Les Do', labelsAll: 'Toutes', range: 'Plage', rangeFree: 'Libre',
-    computerKeysHint: 'Clavier d’ordinateur : rangée A S D F… = touches blanches, W E T Y U = noires, Z / X = octave.',
+    computerKeysHint: 'Clavier d’ordinateur : rangée {white}… = touches blanches, {black} = noires, {down} / {up} = octave −/+.',
     midiKeyboard: 'Clavier MIDI', midiInput: 'Entrée MIDI', allInputs: 'Toutes les entrées', rescan: 'Rechercher à nouveau',
     velSoft: 'Douce', velNormal: 'Normale', velHard: 'Dure', velFixed: 'Fixe', bendRange: 'Amplitude', polyphony: 'Polyphonie FM', voices: '{n} voix',
     twoSounds: 'Deux sons', splitToggle: 'Split : un son par moitié', splitPoint: 'Point de split', learn: 'Apprendre', playAKey: 'Joue une touche…',
@@ -109,7 +109,7 @@ export const STRINGS = {
     midiIdle: 'MIDI…', midiConnected: 'Connected', midiNone: 'No keyboard', midiUnsupported: 'No MIDI here', midiDenied: 'MIDI refused',
     seqPlay: 'Play the pattern',
 
-    playHint: 'Play something', playHint2: 'On the keys below, on the computer keyboard (A W S E D…) or on a MIDI keyboard.',
+    playHint: 'Play something', playHint2: 'On the keys below, on the computer keyboard ({keys}…) or on a MIDI keyboard.',
     viewRoll: 'Notes', viewStaff: 'Score', soundPanel: 'Sound panel',
     fullScore: 'Full score', clear: 'Clear', scoreCleared: 'Score cleared', scoreEmpty: 'Nothing to show yet: play a few notes.',
     staffSongOpen: 'A song is open in Learn: its score shows there.',
@@ -171,7 +171,7 @@ export const STRINGS = {
     showScope: 'Oscilloscope behind the notes', showChords: 'Chord names',
     screenKeys: 'On-screen keys', dock: 'Display', dockFull: 'Playable', dockMini: 'Thin strip', keySize: 'Keys',
     labels: 'Labels', labelsC: 'The Cs', labelsAll: 'All', range: 'Range', rangeFree: 'Free',
-    computerKeysHint: 'Computer keyboard: row A S D F… = white keys, W E T Y U = black keys, Z / X = octave.',
+    computerKeysHint: 'Computer keyboard: row {white}… = white keys, {black} = black keys, {down} / {up} = octave −/+.',
     midiKeyboard: 'MIDI keyboard', midiInput: 'MIDI input', allInputs: 'All inputs', rescan: 'Look again',
     velSoft: 'Soft', velNormal: 'Normal', velHard: 'Hard', velFixed: 'Fixed', bendRange: 'Range', polyphony: 'FM polyphony', voices: '{n} voices',
     twoSounds: 'Two sounds', splitToggle: 'Split: one sound per half', splitPoint: 'Split point', learn: 'Learn', playAKey: 'Play a key…',

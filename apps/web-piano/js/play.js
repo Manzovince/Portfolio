@@ -1,29 +1,29 @@
 // Play screen: the stage (rising notes over the oscilloscope, or the staff of
 // what is played), the chord readout, and the side panel for the sound.
-import { h, icon, knob, param, seg, toggle, toast } from './ui.js?v=202611103';
-import { S, save, emit } from './store.js?v=202611103';
-import * as E from './engine.js?v=202611103';
-import { subscribe, soundingNotes } from './notes.js?v=202611103';
-import { applyPart, seq, seqPlay, seqHasNotes, arpClear, allOff } from './perform.js?v=202611103';
-import { mountRoll, clearRoll, wake } from './roll.js?v=202611103';
-import { mountStaff, clearScore, hasScore, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi } from './score.js?v=202611103';
-import { detectChord, chordSymbol, scaleContext, intervalBetween, spellPc, pitchClass, SCALES } from './theory.js?v=202611103';
-import { t, chordQuality, inversionName, intervalName, scaleName, spelled, notation, noteLabel } from './i18n.js?v=202611103';
-import { createGraph } from './graph.js?v=202611103';
-import { soundName, soundMeta, stepVoice, loadVoice } from './create.js?v=202611103';
-import { PIANO_SOUNDS } from './engine.js?v=202611103';
-import { setSide } from './keys.js?v=202611103';
-import { currentSong } from './song.js?v=202611103';
-import { isRecording, startRecording, stopRecording, recordingMs, takes, playTake, stopTake, playingTake, takeProgress, deleteTake, renameTake, exportTakeMidi, exportTakeAudio, audioExportSupported } from './recorder.js?v=202611103';
-import { suggestState, playSuggestion } from './suggest.js?v=202611103';
-import { on } from './store.js?v=202611103';
+import { h, icon, knob, param, seg, toggle, toast } from './ui.js?v=202611104';
+import { S, save, emit } from './store.js?v=202611104';
+import * as E from './engine.js?v=202611104';
+import { subscribe, soundingNotes } from './notes.js?v=202611104';
+import { applyPart, seq, seqPlay, seqHasNotes, arpClear, allOff } from './perform.js?v=202611104';
+import { mountRoll, clearRoll, wake } from './roll.js?v=202611104';
+import { mountStaff, clearScore, hasScore, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi } from './score.js?v=202611104';
+import { detectChord, chordSymbol, scaleContext, intervalBetween, spellPc, pitchClass, SCALES } from './theory.js?v=202611104';
+import { t, chordQuality, inversionName, intervalName, scaleName, spelled, notation, noteLabel } from './i18n.js?v=202611104';
+import { createGraph } from './graph.js?v=202611104';
+import { soundName, soundMeta, stepVoice, loadVoice } from './create.js?v=202611104';
+import { PIANO_SOUNDS } from './engine.js?v=202611104';
+import { setSide, keyHint } from './keys.js?v=202611104';
+import { currentSong } from './song.js?v=202611104';
+import { isRecording, startRecording, stopRecording, recordingMs, takes, playTake, stopTake, playingTake, takeProgress, deleteTake, renameTake, exportTakeMidi, exportTakeAudio, audioExportSupported } from './recorder.js?v=202611104';
+import { suggestState, playSuggestion } from './suggest.js?v=202611104';
+import { on } from './store.js?v=202611104';
 
 export function renderPlay(view, ctx) {
   setSide(null);
   const stage = h('section', { class: 'stage' });
   const canvas = h('canvas', { class: 'roll' });
   const readout = h('div', { class: 'readout', 'aria-live': 'polite' });
-  const hint = h('div', { class: 'stage-hint' }, h('b', {}, t('playHint')), h('span', {}, t('playHint2')));
+  const hint = h('div', { class: 'stage-hint' }, h('b', {}, t('playHint')), keyHint('span', {}, 'playHint2'));
   const viewSeg = seg({ cls: 'stage-seg', options: [['roll', [icon('roll'), h('span', {}, t('viewRoll'))]], ['staff', [icon('score'), h('span', {}, t('viewStaff'))]]], get: () => S.playView, set: v => { S.playView = v; save(); ctx.rerender(); } });
   const panelBtn = h('button', { type: 'button', class: 'icon-btn panel-btn' + (S.panel ? ' on' : ''), 'aria-label': t('soundPanel'), 'aria-pressed': S.panel, onclick: () => { S.panel = !S.panel; save(); ctx.rerender(); } }, icon('panel'));
   const recBtn = recButton(ctx);
