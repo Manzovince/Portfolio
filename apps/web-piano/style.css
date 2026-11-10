@@ -529,3 +529,5 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
 .stage:has(.suggest) canvas.roll { height: calc(100% - 100px); }
 @media (max-width: 760px) { .stage:has(.suggest) canvas.roll { height: calc(100% - 90px); } }
 .sheet-box > .hint { flex: none; }
+.icon-btn.danger { color: var(--danger); }
+.icon-btn.danger:hover { background: color-mix(in srgb, var(--danger) 14%, transparent); }
