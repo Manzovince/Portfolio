@@ -167,9 +167,12 @@ input.color { width: 52px; height: 36px; border: 1px solid var(--line); border-r
 .key.on { background: var(--c) !important; }
 .key.b.on { background: color-mix(in srgb, var(--c) 72%, #000) !important; }
 .key small { position: absolute; bottom: 6px; left: 0; right: 0; text-align: center; font-size: 10px; color: #6b6f7c; font-family: var(--mono); pointer-events: none; }
-.key .dot { position: absolute; left: 50%; bottom: 22px; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: var(--accent); opacity: 0; pointer-events: none; }
-.key.b .dot { bottom: 10px; }
-.key.soft .dot { opacity: .45; }
+.key .dot { position: absolute; left: 50%; bottom: 10px; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: var(--accent); opacity: 0; pointer-events: none; }
+.key.b .dot { bottom: 6px; }
+.key.w:has(small) .dot { bottom: 19px; }
+.key.soft .dot { opacity: 1; width: 8px; height: 8px; margin-left: -4px; }
+.key.w.soft .dot { background: #0a7a5c; }
+.key.b.soft .dot { background: #6ff0c8; }
 .key.guide { box-shadow: inset 0 -5px 0 var(--c), inset 0 0 0 2px color-mix(in srgb, var(--c) 70%, transparent); }
 .key.guide .dot { opacity: 1; background: var(--c); width: 11px; height: 11px; margin-left: -5.5px; animation: beat 1s ease-in-out infinite; }
 .key.w.guide:not(.on) { background: color-mix(in srgb, var(--c) 18%, var(--key-w)); }
