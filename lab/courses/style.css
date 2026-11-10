@@ -94,8 +94,11 @@ main { padding: 12px 16px calc(env(safe-area-inset-bottom) + 60px); }
   position: sticky; top: var(--head-h, 0px); z-index: 2; background: var(--bg);
   display: flex; align-items: center; gap: 8px;
   font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
-  color: var(--muted); padding: 12px 4px 6px;
+  color: var(--muted); padding: 12px 4px 6px; width: 100%; text-align: left;
 }
+.label .chev { flex: none; margin-right: 10px; transform: rotate(180deg); transition: transform .15s; }
+.group.shut .label .chev { transform: none; }
+.label .pill { font-size: 12px; letter-spacing: 0; padding: 1px 7px; }
 
 /* Ligne d'article : la partie .slide glisse vers la gauche pour supprimer. */
 .row { position: relative; border-top: 1px solid var(--line); touch-action: pan-y; overflow: hidden; }

@@ -21,6 +21,8 @@ let filter = 'todo';
 // Une seule catégorie dépliée à la fois (accordéon).
 let openCats = new Set(JSON.parse(ls.get('courses.open', '[]')).slice(0, 1));
 let query = '';
+// Vue "À acheter" : tout est déplié par défaut, on replie ce qu'on veut (indépendamment).
+let todoClosed = new Set(JSON.parse(ls.get('courses.todoClosed', '[]')));
 let ctx = null;   // ce que la fiche ouverte est en train de modifier
 // Articles cochés pendant qu'on est sur "À acheter" : ils restent affichés
 // (barrés) jusqu'au changement d'onglet, pour pouvoir annuler une erreur.
@@ -107,7 +109,8 @@ function render() {
     for (const cat of sortedCats()) {
       const items = state.items.filter((i) => i.category_id === cat.id && (!i.have || justDone.has(i.id))).sort(byName);
       if (!items.length) continue;
-      html += `<div class="group"><div class="label">${catTitle(cat)}</div><section class="card">${items.map(rowHtml).join('')}</section></div>`;
+      const shut = todoClosed.has(cat.id);
+      html += `<div class="group${shut ? ' shut' : ''}"><button class="label" data-act="todofold" data-id="${cat.id}" aria-expanded="${!shut}">${catTitle(cat)}${shut ? `<span class="pill">${items.length}</span>` : ''}${CHEV}</button>${shut ? '' : `<section class="card">${items.map(rowHtml).join('')}</section>`}</div>`;
     }
     if (!html) html = '<div class="empty"><strong>Rien à acheter</strong>Décochez un article dans « Toute la liste » quand il n’y en a plus.</div>';
   } else {
@@ -427,6 +430,11 @@ elList.addEventListener('click', (e) => {
     case 'editcat': catSheet(id); break;
     case 'newcat': newCatSheet(); break;
     case 'seed': seed(); break;
+    case 'todofold':
+      if (todoClosed.has(id)) todoClosed.delete(id); else todoClosed.add(id);
+      ls.set('courses.todoClosed', JSON.stringify([...todoClosed]));
+      render();
+      break;
     case 'fold':
       if (query.trim()) break;   // pendant une recherche tout est déplié
       if (openCats.has(id)) { setOpen([]); break; }
