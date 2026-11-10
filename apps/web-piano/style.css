@@ -202,7 +202,7 @@ html.staff-unavailable .staff-live::after { content: '—'; color: var(--faint);
 
 /* ── Play ── */
 .play { flex: 1; min-height: 0; display: flex; }
-.side { flex: none; width: clamp(270px, 28vw, 360px); display: flex; flex-direction: column; gap: 12px; padding: 12px 14px; border-left: 1px solid var(--line); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.side { flex: none; width: clamp(320px, 34vw, 440px); display: flex; flex-direction: column; gap: 12px; padding: 12px 14px; border-left: 1px solid var(--line); overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .side > * { flex: none; }
 .side .knob { width: 100%; max-width: 76px; }
 .side .knob svg { width: 50px; height: 50px; }
