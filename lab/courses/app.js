@@ -18,7 +18,8 @@ let state = { cats: [], items: [] };
 let loaded = false;
 // On ouvre toujours sur ce qu'il faut acheter.
 let filter = 'todo';
-let openCats = new Set(JSON.parse(ls.get('courses.open', '[]')));
+// Une seule catégorie dépliée à la fois (accordéon).
+let openCats = new Set(JSON.parse(ls.get('courses.open', '[]')).slice(0, 1));
 let query = '';
 let ctx = null;   // ce que la fiche ouverte est en train de modifier
 // Articles cochés pendant qu'on est sur "À acheter" : ils restent affichés
@@ -177,7 +178,6 @@ function newCatSheet() {
 function settingsSheet() {
   ctx = { type: 'settings' };
   show(`<div class="sheet-in">${head('Réglages')}
-    <div class="field">Toute la liste<div class="pair"><button type="button" class="soft" data-act="openall">Tout déplier</button><button type="button" class="soft" data-act="closeall">Tout replier</button></div></div>
     <p class="hint">Astuce : glissez un article vers la gauche pour le supprimer.</p>
     ${DEMO ? '' : '<div class="actions"><button type="button" class="dangerbtn" data-act="logout">Se déconnecter</button></div>'}</div>`);
 }
@@ -206,8 +206,6 @@ sheet.addEventListener('click', (e) => {
       moveCat(ctx.id, b.dataset.act === 'up' ? -1 : 1);
       catSheet(ctx.id, sheet.querySelector('input').value);
       break;
-    case 'openall': setOpen(state.cats.map((c) => c.id)); sheet.close(); break;
-    case 'closeall': setOpen([]); sheet.close(); break;
     case 'logout': sheet.close(); ls.set(CACHE, ''); sb.auth.signOut(); break;
   }
 });
@@ -337,7 +335,7 @@ elList.addEventListener('click', (e) => { if (swallowClick) { e.stopPropagation(
 function addCat(name) {
   const cat = { id: uid(), name, position: Math.max(-1, ...state.cats.map((c) => c.position)) + 1 };
   state.cats.push(cat);
-  openCats.add(cat.id);   // dépliée d'office, prête à recevoir des articles
+  openCats = new Set([cat.id]);   // dépliée d'office, prête à recevoir des articles
   ls.set('courses.open', JSON.stringify([...openCats]));
   push(() => sb.from('categories').insert(cat));
   elList.querySelector(`form[data-cat="${cat.id}"] input`)?.scrollIntoView({ block: 'center' });
@@ -400,8 +398,12 @@ elList.addEventListener('click', (e) => {
     case 'seed': seed(); break;
     case 'fold':
       if (query.trim()) break;   // pendant une recherche tout est déplié
-      if (openCats.has(id)) openCats.delete(id); else openCats.add(id);
-      setOpen([...openCats]);
+      if (openCats.has(id)) { setOpen([]); break; }
+      setOpen([id]);
+      // La catégorie qui se replie au-dessus fait remonter celle qu'on ouvre : on la ramène en vue.
+      { const card = elList.querySelector(`[data-act="fold"][data-id="${id}"]`)?.closest('.card');
+        const headH = elTop.offsetHeight;
+        if (card && card.getBoundingClientRect().top < headH) scrollBy(0, card.getBoundingClientRect().top - headH - 8); }
       break;
   }
 });
