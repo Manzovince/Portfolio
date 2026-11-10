@@ -72,7 +72,7 @@ const catTitle = (cat) => { const l = catLook(cat.name); return `<span class="em
 /* ---------- Rendu ---------- */
 
 const CHECK = '<svg viewBox="0 0 14 14" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 7.5l3 3 6-7"/></svg>';
-const CHEV = '<svg class="chev" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>';
+const CHEV = '<svg class="chev" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l5 5 5-5"/></svg>';
 
 function rowHtml(it) {
   return `<div class="row${it.have ? ' have' : ''}" data-id="${it.id}"><div class="slide">
@@ -117,8 +117,9 @@ function render() {
       const need = all.filter((i) => !i.have).length;
       const open = q ? true : openCats.has(cat.id);
       html += `<section class="card${open ? ' open' : ''}"><div class="cathead">
-        <button class="catbtn" data-act="fold" data-id="${cat.id}" aria-expanded="${open}">${CHEV}${catTitle(cat)}${need ? `<span class="pill" title="À acheter">${need}</span>` : ''}</button>
-        <button class="more" data-act="editcat" data-id="${cat.id}" aria-label="Modifier la catégorie ${esc(cat.name)}">⋯</button></div>`;
+        <button class="catbtn" data-act="fold" data-id="${cat.id}" aria-expanded="${open}">${catTitle(cat)}${need ? `<span class="pill" title="À acheter">${need}</span>` : ''}</button>
+        ${open ? `<button class="more" data-act="editcat" data-id="${cat.id}" aria-label="Modifier la catégorie ${esc(cat.name)}">⋯</button>` : ''}
+        <button class="foldbtn" data-act="fold" data-id="${cat.id}" tabindex="-1" aria-hidden="true">${CHEV}</button></div>`;
       if (open) {
         html += items.map(rowHtml).join('');
         if (!q) html += `<form class="add" data-cat="${cat.id}"><input name="name" placeholder="Ajouter un article…" autocomplete="off" enterkeyhint="done" maxlength="80" aria-label="Ajouter dans ${esc(cat.name)}"><button type="submit" aria-label="Ajouter">+</button></form>`;

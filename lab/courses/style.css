@@ -67,12 +67,13 @@ main { padding: 12px 16px calc(env(safe-area-inset-bottom) + 60px); }
 .cathead { display: flex; align-items: stretch; }
 .catbtn {
   flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px;
-  padding: 14px 4px 14px 14px; text-align: left; font-weight: 700;
+  padding: 14px 6px 14px 14px; text-align: left; font-weight: 700;
 }
 .emo { flex: none; font-size: 20px; line-height: 1; width: 24px; text-align: center; }
-.catbtn .chev { flex: none; color: var(--muted); transition: transform .15s; }
-.card.open .emo { flex: none; font-size: 20px; line-height: 1; width: 24px; text-align: center; }
-.catbtn .chev { transform: rotate(90deg); }
+.foldbtn { flex: none; width: 44px; display: grid; place-items: center; color: var(--muted); }
+.foldbtn .chev { transition: transform .15s; }
+.card.open .foldbtn .chev { transform: rotate(180deg); }
+.cathead .more { width: 36px; }
 .catname { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .pill {
   flex: none; min-width: 24px; padding: 2px 8px; border-radius: 5px; text-align: center;
