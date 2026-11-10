@@ -199,3 +199,31 @@ main { padding: 12px 16px calc(env(safe-area-inset-bottom) + 60px); }
 }
 .toast span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .toast button { color: #8fd8b4; font-weight: 700; padding: 6px 8px; }
+
+/* ---------- Recettes ---------- */
+.chips { display: flex; gap: 6px; overflow-x: auto; margin: 0 -16px; padding: 0 16px 4px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; padding: 7px 12px; border-radius: 6px; background: var(--field); color: var(--muted); font-size: 14px; font-weight: 600; }
+.chip.on { background: var(--ink); color: #fff; }
+.rlabel { justify-content: flex-start; }
+.rcount { font-weight: 600; letter-spacing: 0; }
+.recipe { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 14px; text-align: left; border-top: 1px solid var(--line); }
+.card > .recipe:first-child { border-top: 0; }
+.remo { flex: none; font-size: 24px; line-height: 1; width: 30px; text-align: center; }
+.rtext { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.rname { font-weight: 600; }
+.rsub { font-size: 13px; color: var(--muted); }
+.rsub b { color: var(--accent); }
+.rmeta { margin: -8px 0 0; font-size: 14px; color: var(--muted); }
+.ings { display: flex; flex-direction: column; }
+.ing { display: flex; align-items: center; gap: 12px; padding: 7px 0; text-align: left; color: var(--ink); font-size: 16px; font-weight: 600; }
+.ing .iname { flex: 1; min-width: 0; }
+.ing small { font-size: 12px; font-weight: 600; color: var(--muted); }
+.ing.have .box { background: var(--accent); }
+.ing.have .box svg { opacity: 1; }
+.ing.none { opacity: .45; }
+.ing.none .box { border-style: dashed; border-color: var(--muted); }
+.hint.left { text-align: left; font-weight: 400; }
+.steps { margin: 0; padding-left: 22px; color: var(--ink); font-size: 16px; font-weight: 400; line-height: 1.45; }
+.steps li + li { margin-top: 8px; }
+.sheet { overflow-y: auto; }

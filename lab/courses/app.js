@@ -21,6 +21,7 @@ let filter = 'todo';
 // Une seule catégorie dépliée à la fois (accordéon).
 let openCats = new Set(JSON.parse(ls.get('courses.open', '[]')).slice(0, 1));
 let query = '';
+let recipeTag = ls.get('courses.recipeTag', 'all');
 // Vue "À acheter" : tout est déplié par défaut, on replie ce qu'on veut (indépendamment).
 let todoClosed = new Set(JSON.parse(ls.get('courses.todoClosed', '[]')));
 let ctx = null;   // ce que la fiche ouverte est en train de modifier
@@ -89,7 +90,7 @@ function render() {
   const todoCount = state.items.filter((i) => !i.have).length;
   $('#count').textContent = todoCount || '';
   document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('on', b.dataset.filter === filter));
-  elList.className = filter === 'todo' ? 'todo-view' : '';
+  elList.className = filter === 'todo' ? 'todo-view' : filter === 'recipes' ? 'recipes-view' : '';
   $('#searchWrap').hidden = filter !== 'all' || !state.cats.length;
 
   if (!loaded) { elList.innerHTML = '<div class="empty">Chargement…</div>'; return; }
@@ -102,6 +103,8 @@ function render() {
       ${(window.COURSES_SEED || []).length ? 'Chargez la liste de départ, ou créez vos catégories.<br><button class="big" data-act="seed">Charger la liste de départ</button>' : 'Commencez par créer une catégorie.'}</div>${newCat}${demo}`;
     return;
   }
+
+  if (filter === 'recipes') { elList.innerHTML = recipesHtml() + demo; return; }
 
   let html = '';
   if (filter === 'todo') {
@@ -136,6 +139,77 @@ function render() {
     if (!q) html += newCat;
   }
   elList.innerHTML = html + demo;
+}
+
+/* ---------- Recettes ---------- */
+
+const RECIPES = window.COURSES_RECIPES || [];
+const TAGS = { medit: 'Méditerranéen', healthy: 'Healthy', vege: 'Végétarien', varie: 'Varié' };
+// Clé de comparaison souple : sans accents, ponctuation, parenthèses ni pluriels.
+const ingKey = (s) => norm(s).replace(/\(.*?\)/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim()
+  .split(' ').map((w) => w.length > 3 ? w.replace(/[sx]$/, '') : w).join(' ');
+
+// Pour chaque ingrédient : on l'a (have), il est dans la liste mais pas en stock (buy), ou absent de la liste (none).
+function recipeStatus(r) {
+  const byKey = new Map();
+  for (const it of state.items) {
+    const k = ingKey(it.name);
+    if (!byKey.has(k)) byKey.set(k, []);
+    byKey.get(k).push(it);
+  }
+  const ings = r.ing.map((spec) => {
+    const opt = spec.startsWith('?');
+    const alts = (opt ? spec.slice(1) : spec).split('|');
+    const found = alts.flatMap((a) => byKey.get(ingKey(a)) || []);
+    const owned = found.find((i) => i.have);
+    const item = owned || found[0] || null;
+    return { label: owned ? owned.name : alts[0], alts, opt, item, st: owned ? 'have' : item ? 'buy' : 'none' };
+  });
+  const missing = ings.filter((g) => !g.opt && g.st !== 'have');
+  return { ings, missing };
+}
+
+function recipesHtml() {
+  const chip = (v, label) => `<button class="chip${recipeTag === v ? ' on' : ''}" data-act="rtag" data-v="${v}">${label}</button>`;
+  let html = `<div class="chips">${chip('all', 'Toutes')}${Object.entries(TAGS).map(([v, l]) => chip(v, l)).join('')}</div>`;
+  const list = RECIPES.map((r, i) => ({ r, i, ...recipeStatus(r) }))
+    .filter((x) => recipeTag === 'all' || x.r.t.includes(recipeTag))
+    .sort((a, b) => a.missing.length - b.missing.length
+      || b.ings.filter((g) => g.st === 'have').length - a.ings.filter((g) => g.st === 'have').length
+      || a.r.n.localeCompare(b.r.n, 'fr'));
+  const groups = [
+    ['Prêt à cuisiner', list.filter((x) => !x.missing.length)],
+    ['Il manque 1 ou 2 ingrédients', list.filter((x) => x.missing.length && x.missing.length <= 2)],
+    ['Il en manque plus', list.filter((x) => x.missing.length > 2)],
+  ];
+  for (const [title, xs] of groups) {
+    if (!xs.length) continue;
+    html += `<div class="label rlabel">${title}<span class="rcount">${xs.length}</span></div><section class="card">${xs.map((x) => `
+      <button class="recipe" data-act="recipe" data-i="${x.i}"><span class="remo" aria-hidden="true">${x.r.e}</span>
+        <span class="rtext"><span class="rname">${esc(x.r.n)}</span>
+        <span class="rsub">${x.r.min} min · ${x.missing.length ? `Manque : ${x.missing.map((g) => esc(g.label)).join(', ')}` : '<b>Tout est là</b>'}</span></span></button>`).join('')}</section>`;
+  }
+  return html;
+}
+
+function recipeSheet(i) {
+  const r = RECIPES[i];
+  if (!r) return;
+  ctx = { type: 'recipe', i };
+  const { ings } = recipeStatus(r);
+  const row = (g) => {
+    const note = g.opt ? 'facultatif' : g.st === 'buy' ? 'dans les courses' : g.st === 'none' ? 'pas dans la liste' : '';
+    return g.item
+      ? `<button type="button" class="ing${g.st === 'have' ? ' have' : ''}" data-act="ring" data-id="${g.item.id}" role="checkbox" aria-checked="${g.st === 'have'}"><span class="box">${CHECK}</span><span class="iname">${esc(g.label)}</span>${note ? `<small>${note}</small>` : ''}</button>`
+      : `<div class="ing none"><span class="box"></span><span class="iname">${esc(g.label)}</span><small>${note}</small></div>`;
+  };
+  const scrollTop = sheet.scrollTop;
+  show(`<div class="sheet-in">${head(`${r.e} ${esc(r.n)}`)}
+    <p class="rmeta">${r.min} min · ${r.t.map((t) => TAGS[t]).join(' · ')}</p>
+    <div class="field">Ingrédients<div class="ings">${ings.map(row).join('')}</div>
+      <p class="hint left">Coché = on en a. Décochez ce que la recette a épuisé : ça repasse dans les courses.</p></div>
+    <div class="field">Préparation<ol class="steps">${r.steps.map((st) => `<li>${esc(st)}</li>`).join('')}</ol></div></div>`);
+  sheet.scrollTop = scrollTop;
 }
 
 /* ---------- Fiches d'édition ---------- */
@@ -200,6 +274,7 @@ sheet.addEventListener('click', (e) => {
   if (!b) return;
   switch (b.dataset.act) {
     case 'close': sheet.close(); break;
+    case 'ring': toggle(b.dataset.id); recipeSheet(ctx.i); break;
     case 'delete':
       if (ctx.type === 'item') { delItem(ctx.id); sheet.close(); }
       else if (delCat(ctx.id)) sheet.close();
@@ -430,6 +505,8 @@ elList.addEventListener('click', (e) => {
     case 'editcat': catSheet(id); break;
     case 'newcat': newCatSheet(); break;
     case 'seed': seed(); break;
+    case 'rtag': recipeTag = b.dataset.v; ls.set('courses.recipeTag', recipeTag); render(); break;
+    case 'recipe': recipeSheet(+b.dataset.i); break;
     case 'todofold':
       if (todoClosed.has(id)) todoClosed.delete(id); else todoClosed.add(id);
       ls.set('courses.todoClosed', JSON.stringify([...todoClosed]));
@@ -503,6 +580,7 @@ function applyChange(key, p) {
   // Ne pas écraser ce qu'on est en train de taper dans un champ "Ajouter".
   const a = document.activeElement;
   if (!(a && a.value && elList.contains(a)) && !sw?.on) render();
+  if (sheet.open && ctx?.type === 'recipe') recipeSheet(ctx.i);
 }
 
 let channel = null;

@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Courses">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 <header id="top" hidden>
@@ -24,6 +24,7 @@
   <div class="seg" id="tabs" role="tablist">
     <button type="button" data-filter="todo" role="tab">À acheter <b id="count"></b></button>
     <button type="button" data-filter="all" role="tab">Toute la liste</button>
+    <button type="button" data-filter="recipes" role="tab">Recettes</button>
   </div>
   <div class="search" id="searchWrap">
     <input id="search" type="search" placeholder="Rechercher un article…" autocomplete="off" enterkeyhint="search" aria-label="Rechercher un article">
@@ -45,8 +46,9 @@
   <p id="loginError" class="error"></p>
 </form>
 
-<script src="config.js?v=8"></script>
+<script src="config.js?v=9"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="app.js?v=8"></script>
+<script src="recipes.js?v=1"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
