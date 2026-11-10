@@ -227,3 +227,23 @@ main { padding: 12px 16px calc(env(safe-area-inset-bottom) + 60px); }
 .steps { margin: 0; padding-left: 22px; color: var(--ink); font-size: 16px; font-weight: 400; line-height: 1.45; }
 .steps li + li { margin-top: 8px; }
 .sheet { overflow-y: auto; }
+
+/* ---------- Formulaire de recette ---------- */
+.frow { display: flex; gap: 10px; }
+.frow .grow { flex: 1; min-width: 0; }
+.emo-field { width: 76px; flex: none; }
+.emo-field input { text-align: center; font-size: 20px; padding: 9px 6px; }
+.chips.wrap { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
+.field textarea {
+  border: 0; border-radius: 6px; background: var(--field); color: var(--ink);
+  padding: 12px 14px; font-family: inherit; font-size: 16px; font-weight: 400; line-height: 1.4; width: 100%; resize: vertical;
+}
+.fings { display: flex; flex-direction: column; }
+.fing { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 16px; font-weight: 600; }
+.fing .iname { flex: 1; min-width: 0; }
+.optbtn { font-size: 12px; font-weight: 600; color: var(--muted); padding: 4px 8px; border-radius: 5px; border: 1px solid var(--line); }
+.fing.opt .optbtn { background: var(--ink); border-color: var(--ink); color: #fff; }
+.xbtn { width: 32px; height: 32px; color: var(--muted); font-size: 15px; }
+.addrow { display: flex; gap: 8px; margin-top: 6px; }
+.addrow input { flex: 1; min-width: 0; border: 0; border-radius: 6px; background: var(--field); color: var(--ink); padding: 12px 14px; font-size: 16px; font-weight: 400; }
+.addrow .soft { flex: none; padding: 0 14px; color: var(--ink); }

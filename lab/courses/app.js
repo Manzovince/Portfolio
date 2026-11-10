@@ -143,11 +143,22 @@ function render() {
 
 /* ---------- Recettes ---------- */
 
-const RECIPES = window.COURSES_RECIPES || [];
+// Les recettes vivent dans Supabase (table "recipes"), partagées entre les téléphones.
+// recipes.js ne sert plus qu'à charger le carnet de départ.
+const BUILTIN = (window.COURSES_RECIPES || []).map((r) => ({
+  emoji: r.e, name: r.n, tags: r.t, minutes: r.min, ingredients: r.ing, steps: r.steps,
+}));
+// 'ok' : table présente ; 'missing' : pas encore créée (on montre le carnet de départ, en lecture seule).
+let recipesDb = DEMO ? 'ok' : null;
+const recipesList = () => (recipesDb === 'missing' ? BUILTIN.map((r, k) => ({ ...r, id: 'builtin-' + k })) : state.recipes || []);
+const findRecipe = (id) => recipesList().find((r) => r.id === id);
+
 const TAGS = { medit: 'Méditerranéen', healthy: 'Healthy', vege: 'Végétarien', varie: 'Varié' };
 // Clé de comparaison souple : sans accents, ponctuation, parenthèses ni pluriels.
 const ingKey = (s) => norm(s).replace(/\(.*?\)/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim()
   .split(' ').map((w) => w.length > 3 ? w.replace(/[sx]$/, '') : w).join(' ');
+// "?A|B" → facultatif, A ou B
+const parseIng = (spec) => { const opt = spec.startsWith('?'); return { opt, alts: (opt ? spec.slice(1) : spec).split('|').map((a) => a.trim()).filter(Boolean) }; };
 
 // Pour chaque ingrédient : on l'a (have), il est dans la liste mais pas en stock (buy), ou absent de la liste (none).
 function recipeStatus(r) {
@@ -157,9 +168,8 @@ function recipeStatus(r) {
     if (!byKey.has(k)) byKey.set(k, []);
     byKey.get(k).push(it);
   }
-  const ings = r.ing.map((spec) => {
-    const opt = spec.startsWith('?');
-    const alts = (opt ? spec.slice(1) : spec).split('|');
+  const ings = (r.ingredients || []).map((spec) => {
+    const { opt, alts } = parseIng(spec);
     const found = alts.flatMap((a) => byKey.get(ingKey(a)) || []);
     const owned = found.find((i) => i.have);
     const item = owned || found[0] || null;
@@ -170,13 +180,20 @@ function recipeStatus(r) {
 }
 
 function recipesHtml() {
+  const all = recipesList();
+  const newBtn = recipesDb === 'ok' ? '<button class="newcat" data-act="newrecipe">+ Nouvelle recette</button>' : '';
+  const note = recipesDb === 'missing' ? '<p class="note">Pour créer ou supprimer des recettes, la table « recipes » doit être ajoutée dans Supabase.</p>' : '';
+  if (!all.length) {
+    return `<div class="empty"><strong>Aucune recette</strong>Chargez le carnet de départ (${BUILTIN.length} recettes) ou créez les vôtres.
+      <br><button class="big" data-act="rseed">Charger le carnet de départ</button></div>${newBtn}`;
+  }
   const chip = (v, label) => `<button class="chip${recipeTag === v ? ' on' : ''}" data-act="rtag" data-v="${v}">${label}</button>`;
   let html = `<div class="chips">${chip('all', 'Toutes')}${Object.entries(TAGS).map(([v, l]) => chip(v, l)).join('')}</div>`;
-  const list = RECIPES.map((r, i) => ({ r, i, ...recipeStatus(r) }))
-    .filter((x) => recipeTag === 'all' || x.r.t.includes(recipeTag))
+  const list = all.map((r) => ({ r, ...recipeStatus(r) }))
+    .filter((x) => recipeTag === 'all' || (x.r.tags || []).includes(recipeTag))
     .sort((a, b) => a.missing.length - b.missing.length
       || b.ings.filter((g) => g.st === 'have').length - a.ings.filter((g) => g.st === 'have').length
-      || a.r.n.localeCompare(b.r.n, 'fr'));
+      || a.r.name.localeCompare(b.r.name, 'fr'));
   const groups = [
     ['Prêt à cuisiner', list.filter((x) => !x.missing.length)],
     ['Il manque 1 ou 2 ingrédients', list.filter((x) => x.missing.length && x.missing.length <= 2)],
@@ -185,17 +202,18 @@ function recipesHtml() {
   for (const [title, xs] of groups) {
     if (!xs.length) continue;
     html += `<div class="label rlabel">${title}<span class="rcount">${xs.length}</span></div><section class="card">${xs.map((x) => `
-      <button class="recipe" data-act="recipe" data-i="${x.i}"><span class="remo" aria-hidden="true">${x.r.e}</span>
-        <span class="rtext"><span class="rname">${esc(x.r.n)}</span>
-        <span class="rsub">${x.r.min} min · ${x.missing.length ? `Manque : ${x.missing.map((g) => esc(g.label)).join(', ')}` : '<b>Tout est là</b>'}</span></span></button>`).join('')}</section>`;
+      <button class="recipe" data-act="recipe" data-id="${x.r.id}"><span class="remo" aria-hidden="true">${esc(x.r.emoji || '🍽️')}</span>
+        <span class="rtext"><span class="rname">${esc(x.r.name)}</span>
+        <span class="rsub">${x.r.minutes ? `${x.r.minutes} min · ` : ''}${x.missing.length ? `Manque : ${x.missing.map((g) => esc(g.label)).join(', ')}` : '<b>Tout est là</b>'}</span></span></button>`).join('')}</section>`;
   }
-  return html;
+  if (!list.length) html += '<div class="empty"><strong>Aucune recette dans ce style</strong>Créez-en une, ou choisissez un autre filtre.</div>';
+  return html + newBtn + note;
 }
 
-function recipeSheet(i) {
-  const r = RECIPES[i];
-  if (!r) return;
-  ctx = { type: 'recipe', i };
+function recipeSheet(id) {
+  const r = findRecipe(id);
+  if (!r) { if (ctx?.type === 'recipe') sheet.close(); return; }
+  ctx = { type: 'recipe', id };
   const { ings } = recipeStatus(r);
   const row = (g) => {
     const note = g.opt ? 'facultatif' : g.st === 'buy' ? 'dans les courses' : g.st === 'none' ? 'pas dans la liste' : '';
@@ -203,13 +221,100 @@ function recipeSheet(i) {
       ? `<button type="button" class="ing${g.st === 'have' ? ' have' : ''}" data-act="ring" data-id="${g.item.id}" role="checkbox" aria-checked="${g.st === 'have'}"><span class="box">${CHECK}</span><span class="iname">${esc(g.label)}</span>${note ? `<small>${note}</small>` : ''}</button>`
       : `<div class="ing none"><span class="box"></span><span class="iname">${esc(g.label)}</span><small>${note}</small></div>`;
   };
+  const meta = [r.minutes ? `${r.minutes} min` : '', ...(r.tags || []).map((t) => TAGS[t])].filter(Boolean).join(' · ');
   const scrollTop = sheet.scrollTop;
-  show(`<div class="sheet-in">${head(`${r.e} ${esc(r.n)}`)}
-    <p class="rmeta">${r.min} min · ${r.t.map((t) => TAGS[t]).join(' · ')}</p>
-    <div class="field">Ingrédients<div class="ings">${ings.map(row).join('')}</div>
-      <p class="hint left">Coché = on en a. Décochez ce que la recette a épuisé : ça repasse dans les courses.</p></div>
-    <div class="field">Préparation<ol class="steps">${r.steps.map((st) => `<li>${esc(st)}</li>`).join('')}</ol></div></div>`);
+  show(`<div class="sheet-in">${head(`${esc(r.emoji || '🍽️')} ${esc(r.name)}`)}
+    ${meta ? `<p class="rmeta">${meta}</p>` : ''}
+    ${ings.length ? `<div class="field">Ingrédients<div class="ings">${ings.map(row).join('')}</div>
+      <p class="hint left">Coché = on en a. Décochez ce que la recette a épuisé : ça repasse dans les courses.</p></div>` : ''}
+    ${(r.steps || []).length ? `<div class="field">Préparation<ol class="steps">${r.steps.map((st) => `<li>${esc(st)}</li>`).join('')}</ol></div>` : ''}
+    ${recipesDb === 'ok' ? '<div class="actions"><button type="button" class="dangerbtn" data-act="rdel">Supprimer</button><button type="button" class="primary" data-act="redit">Modifier</button></div>' : ''}</div>`);
   sheet.scrollTop = scrollTop;
+}
+
+// Formulaire de création / modification. Styles et ingrédients se gèrent directement dans le DOM.
+function ingRowHtml(spec) {
+  const { opt, alts } = parseIng(spec);
+  return `<div class="fing${opt ? ' opt' : ''}" data-alts="${esc(alts.join('|'))}"><span class="iname">${esc(alts.join(' ou '))}</span>
+    <button type="button" class="optbtn" data-act="fingopt">facultatif</button>
+    <button type="button" class="xbtn" data-act="fingdel" aria-label="Retirer ${esc(alts[0])}">✕</button></div>`;
+}
+
+function recipeForm(id) {
+  const r = id ? findRecipe(id) : { emoji: '', name: '', tags: [], minutes: '', ingredients: [], steps: [] };
+  if (!r) return;
+  ctx = { type: 'recipeform', id: id || null };
+  const names = [...new Set(state.items.map((i) => i.name))].sort((a, b) => a.localeCompare(b, 'fr'));
+  show(`<form class="sheet-in">${head(id ? 'Modifier la recette' : 'Nouvelle recette')}
+    <div class="frow"><label class="field emo-field">Emoji<input name="emoji" value="${esc(r.emoji || '')}" placeholder="🍽️" maxlength="8" autocomplete="off"></label>
+      <label class="field grow">Nom<input name="name" value="${esc(r.name)}" maxlength="80" autocomplete="off" placeholder="Ex. Gratin de courgettes" required></label></div>
+    <label class="field">Temps (minutes)<input name="minutes" type="number" inputmode="numeric" min="1" max="600" value="${r.minutes || ''}"></label>
+    <div class="field">Style<div class="chips wrap">${Object.entries(TAGS).map(([v, l]) => `<button type="button" class="chip${(r.tags || []).includes(v) ? ' on' : ''}" data-act="ftag" data-v="${v}">${l}</button>`).join('')}</div></div>
+    <div class="field">Ingrédients
+      <div class="fings">${(r.ingredients || []).map(ingRowHtml).join('')}</div>
+      <div class="addrow"><input name="ing" list="itemNames" placeholder="Ajouter un ingrédient…" autocomplete="off" enterkeyhint="done" maxlength="80"><button type="button" class="soft" data-act="fingadd">Ajouter</button></div>
+      <datalist id="itemNames">${names.map((n) => `<option value="${esc(n)}">`).join('')}</datalist>
+      <p class="hint left">Utilisez les noms de votre liste pour savoir ce que vous avez déjà.</p></div>
+    <label class="field">Préparation (une étape par ligne)<textarea name="steps" rows="5">${esc((r.steps || []).join('\n'))}</textarea></label>
+    <div class="actions"><button type="submit" class="primary">${id ? 'Enregistrer' : 'Créer'}</button></div></form>`);
+  if (!id) sheet.querySelector('input[name="name"]').focus();
+}
+
+function addFormIng() {
+  const input = sheet.querySelector('input[name="ing"]');
+  const v = input.value.trim();
+  if (!v) return;
+  sheet.querySelector('.fings').insertAdjacentHTML('beforeend', ingRowHtml(v.replace(/^\?/, '')));
+  input.value = '';
+  input.focus();
+}
+
+function saveRecipeForm(f) {
+  const name = f.elements.name.value.trim();
+  if (!name) return false;
+  const pending = f.elements.ing.value.trim();
+  if (pending) addFormIng();   // un ingrédient tapé mais pas encore ajouté
+  const row = {
+    emoji: f.elements.emoji.value.trim() || '🍽️',
+    name,
+    minutes: parseInt(f.elements.minutes.value, 10) || null,
+    tags: [...sheet.querySelectorAll('[data-act="ftag"].on')].map((b) => b.dataset.v),
+    ingredients: [...sheet.querySelectorAll('.fing')].map((d) => (d.classList.contains('opt') ? '?' : '') + d.dataset.alts),
+    steps: f.elements.steps.value.split('\n').map((s) => s.trim()).filter(Boolean),
+  };
+  if (ctx.id) {
+    const r = state.recipes.find((x) => x.id === ctx.id);
+    if (!r) return true;
+    Object.assign(r, row);
+    push(() => sb.from('recipes').update(row).eq('id', r.id));
+    recipeSheet(r.id);
+    return false;   // on revient sur la fiche de la recette
+  }
+  const r = { id: uid(), ...row, created_at: new Date().toISOString() };
+  state.recipes = [...(state.recipes || []), r];
+  push(() => sb.from('recipes').insert(r));
+  recipeSheet(r.id);
+  return false;
+}
+
+function delRecipe(id) {
+  const r = (state.recipes || []).find((x) => x.id === id);
+  if (!r) return;
+  gone.add(id);
+  state.recipes = state.recipes.filter((x) => x.id !== id);
+  push(() => sb.from('recipes').delete().eq('id', id));
+  toast(`« ${r.name} » supprimée`, () => {
+    gone.delete(id);
+    state.recipes = [...state.recipes, r];
+    push(() => sb.from('recipes').insert(r));
+  });
+}
+
+async function seedRecipes() {
+  if ((state.recipes || []).length) return;
+  const rows = BUILTIN.map((r) => ({ id: uid(), ...r, created_at: new Date().toISOString() }));
+  state.recipes = rows;
+  await push(() => sb.from('recipes').insert(rows));
 }
 
 /* ---------- Fiches d'édition ---------- */
@@ -260,6 +365,7 @@ function settingsSheet() {
 
 sheet.addEventListener('submit', (e) => {
   e.preventDefault();
+  if (ctx.type === 'recipeform') { if (saveRecipeForm(e.target)) sheet.close(); return; }
   const name = e.target.elements.name.value.trim();
   if (!name) return;
   if (ctx.type === 'item') updateItem(ctx.id, name, e.target.elements.cat.value);
@@ -268,13 +374,23 @@ sheet.addEventListener('submit', (e) => {
   sheet.close();
 });
 
+// Entrée dans le champ ingrédient : on l'ajoute au lieu d'envoyer le formulaire.
+sheet.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.name === 'ing') { e.preventDefault(); addFormIng(); }
+});
+
 sheet.addEventListener('click', (e) => {
   if (e.target === sheet) { sheet.close(); return; }   // clic sur le fond
   const b = e.target.closest('[data-act]');
   if (!b) return;
   switch (b.dataset.act) {
     case 'close': sheet.close(); break;
-    case 'ring': toggle(b.dataset.id); recipeSheet(ctx.i); break;
+    case 'ring': toggle(b.dataset.id); recipeSheet(ctx.id); break;
+    case 'rdel': delRecipe(ctx.id); sheet.close(); break;
+    case 'redit': recipeForm(ctx.id); break;
+    case 'ftag': case 'fingopt': (b.dataset.act === 'ftag' ? b : b.closest('.fing')).classList.toggle(b.dataset.act === 'ftag' ? 'on' : 'opt'); break;
+    case 'fingdel': b.closest('.fing').remove(); break;
+    case 'fingadd': addFormIng(); break;
     case 'delete':
       if (ctx.type === 'item') { delItem(ctx.id); sheet.close(); }
       else if (delCat(ctx.id)) sheet.close();
@@ -486,7 +602,7 @@ async function seed() {
     cats.push(cat);
     names.forEach((n) => items.push({ id: uid(), category_id: cat.id, name: n, have: true, position: 0, updated_at: new Date().toISOString() }));
   });
-  state = { cats, items };
+  state = { ...state, cats, items };
   await push(async () => {
     const a = await sb.from('categories').insert(cats);
     return a.error ? a : sb.from('items').insert(items);
@@ -506,7 +622,9 @@ elList.addEventListener('click', (e) => {
     case 'newcat': newCatSheet(); break;
     case 'seed': seed(); break;
     case 'rtag': recipeTag = b.dataset.v; ls.set('courses.recipeTag', recipeTag); render(); break;
-    case 'recipe': recipeSheet(+b.dataset.i); break;
+    case 'recipe': recipeSheet(b.dataset.id); break;
+    case 'newrecipe': recipeForm(null); break;
+    case 'rseed': seedRecipes(); break;
     case 'todofold':
       if (todoClosed.has(id)) todoClosed.delete(id); else todoClosed.add(id);
       ls.set('courses.todoClosed', JSON.stringify([...todoClosed]));
@@ -559,7 +677,11 @@ async function load() {
     render();
     return;
   }
-  state = { cats: c.data, items: i.data };
+  // Table des recettes : absente tant que le SQL n'a pas été lancé, sans bloquer le reste.
+  const r = await sb.from('recipes').select('*');
+  recipesDb = r.error ? 'missing' : 'ok';
+  if (r.error) console.warn('recipes:', r.error.message);
+  state = { cats: c.data, items: i.data, recipes: r.error ? (state.recipes || []) : r.data };
   loaded = true;
   setSync('ok', 'Synchronisé');
   save();
@@ -567,7 +689,7 @@ async function load() {
 }
 
 function applyChange(key, p) {
-  const list = state[key];
+  const list = state[key] || (state[key] = []);
   if (p.eventType === 'DELETE') {
     state[key] = list.filter((r) => r.id !== p.old.id);
     if (key === 'cats') state.items = state.items.filter((i) => i.category_id !== p.old.id);
@@ -580,7 +702,7 @@ function applyChange(key, p) {
   // Ne pas écraser ce qu'on est en train de taper dans un champ "Ajouter".
   const a = document.activeElement;
   if (!(a && a.value && elList.contains(a)) && !sw?.on) render();
-  if (sheet.open && ctx?.type === 'recipe') recipeSheet(ctx.i);
+  if (sheet.open && ctx?.type === 'recipe') recipeSheet(ctx.id);
 }
 
 let channel = null;
@@ -588,7 +710,9 @@ function subscribe() {
   if (channel) sb.removeChannel(channel);
   channel = sb.channel('courses')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, (p) => applyChange('items', p))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, (p) => applyChange('cats', p))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, (p) => applyChange('cats', p));
+  if (recipesDb === 'ok') channel = channel.on('postgres_changes', { event: '*', schema: 'public', table: 'recipes' }, (p) => applyChange('recipes', p));
+  channel = channel
     .subscribe((status) => {
       if (status === 'SUBSCRIBED') setSync('ok', 'Synchronisé');
       else if (status !== 'CLOSED') setSync('off', 'Reconnexion…');
@@ -601,8 +725,7 @@ function showApp() {
   elList.hidden = false;
   if (readCache()) loaded = true;
   render();
-  load();
-  subscribe();
+  load().then(subscribe);
 }
 
 function showLogin() {
@@ -637,9 +760,9 @@ async function start() {
   sb.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') showLogin(); });
   // Au retour sur l'app (téléphone déverrouillé), on se remet à jour.
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && !elTop.hidden) { load(); subscribe(); }
+    if (!document.hidden && !elTop.hidden) load().then(subscribe);
   });
-  addEventListener('online', () => { if (!elTop.hidden) { load(); subscribe(); } });
+  addEventListener('online', () => { if (!elTop.hidden) load().then(subscribe); });
 }
 
 start();
