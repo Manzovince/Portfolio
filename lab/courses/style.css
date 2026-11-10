@@ -63,8 +63,15 @@ h1 { font-size: 26px; margin: 0; letter-spacing: -.02em; }
 /* ---------- Liste ---------- */
 main { padding: 12px 16px calc(env(safe-area-inset-bottom) + 60px); }
 
-.card { background: var(--card); border-radius: 8px; border: 1px solid var(--line); overflow: hidden; margin-bottom: 8px; }
-.cathead { display: flex; align-items: stretch; }
+.card { background: var(--card); border-radius: 8px; border: 1px solid var(--line); margin-bottom: 8px; }
+/* Pas d'overflow:hidden sur la carte (il casserait le sticky) : on arrondit ses enfants à la place. */
+.card > :first-child { border-radius: 7px 7px 0 0; }
+.card > :last-child { border-radius: 0 0 7px 7px; }
+.card > :only-child { border-radius: 7px; }
+/* Titre de catégorie dépliée : reste collé sous l'en-tête tant que ses articles sont à l'écran. */
+.cathead { display: flex; align-items: stretch; background: var(--card); }
+.card.open .cathead { position: sticky; top: var(--head-h, 0px); z-index: 2; border-bottom: 1px solid var(--line); }
+.card.open .cathead + .row { border-top: 0; }
 .catbtn {
   flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px;
   padding: 14px 6px 14px 14px; text-align: left; font-weight: 700;
@@ -84,6 +91,7 @@ main { padding: 12px 16px calc(env(safe-area-inset-bottom) + 60px); }
 .more:active { color: var(--ink); }
 
 .label {
+  position: sticky; top: var(--head-h, 0px); z-index: 2; background: var(--bg);
   display: flex; align-items: center; gap: 8px;
   font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
   color: var(--muted); padding: 12px 4px 6px;

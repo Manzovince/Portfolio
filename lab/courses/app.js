@@ -80,6 +80,9 @@ function rowHtml(it) {
     <button class="more" data-act="edit" data-id="${it.id}" aria-label="Modifier ${esc(it.name)}">⋯</button></div></div>`;
 }
 
+// Hauteur de l'en-tête collant, pour coller les titres de catégorie juste dessous.
+new ResizeObserver(() => document.documentElement.style.setProperty('--head-h', elTop.offsetHeight + 'px')).observe(elTop);
+
 function render() {
   const todoCount = state.items.filter((i) => !i.have).length;
   $('#count').textContent = todoCount || '';
@@ -104,7 +107,7 @@ function render() {
     for (const cat of sortedCats()) {
       const items = state.items.filter((i) => i.category_id === cat.id && (!i.have || justDone.has(i.id))).sort(byName);
       if (!items.length) continue;
-      html += `<div class="label">${catTitle(cat)}</div><section class="card">${items.map(rowHtml).join('')}</section>`;
+      html += `<div class="group"><div class="label">${catTitle(cat)}</div><section class="card">${items.map(rowHtml).join('')}</section></div>`;
     }
     if (!html) html = '<div class="empty"><strong>Rien à acheter</strong>Décochez un article dans « Toute la liste » quand il n’y en a plus.</div>';
   } else {
