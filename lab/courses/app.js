@@ -146,14 +146,50 @@ function render() {
 // Les recettes vivent dans Supabase (table "recipes"), partagées entre les téléphones.
 // recipes.js ne sert plus qu'à charger le carnet de départ.
 const BUILTIN = (window.COURSES_RECIPES || []).map((r) => ({
-  emoji: r.e, name: r.n, tags: r.t, minutes: r.min, ingredients: r.ing, steps: r.steps,
+  emoji: r.e, name: r.n, tags: r.t, minutes: r.min, ingredients: r.ing, steps: r.steps, batch: r.b || 1,
 }));
+const CARNET = Math.max(1, ...BUILTIN.map((r) => r.batch));   // dernière fournée du carnet
+const toRow = ({ batch, ...r }) => ({ id: uid(), ...r, created_at: new Date().toISOString() });
 // 'ok' : table présente ; 'missing' : pas encore créée (on montre le carnet de départ, en lecture seule).
 let recipesDb = DEMO ? 'ok' : null;
 const recipesList = () => (recipesDb === 'missing' ? BUILTIN.map((r, k) => ({ ...r, id: 'builtin-' + k })) : state.recipes || []);
 const findRecipe = (id) => recipesList().find((r) => r.id === id);
 
-const TAGS = { medit: 'Méditerranéen', healthy: 'Healthy', vege: 'Végétarien', varie: 'Varié' };
+const TAGS = {
+  vege: 'Végétarien', healthy: 'Healthy', medit: 'Méditerranéen', asie: 'Asiatique', texmex: 'Tex-mex',
+  reconfort: 'Réconfort', soupe: 'Soupes', petitdej: 'Petit-déj', apero: 'Apéro', dessert: 'Desserts',
+};
+const TAG_LABEL = { ...TAGS, varie: 'Varié' };   // ancien style, plus proposé
+const QUICK = 20;   // filtre "Rapide" : prêt en 20 min ou moins
+
+// Nouvelles fournées du carnet, à proposer aux carnets déjà chargés (une fois par téléphone).
+function carnetNews() {
+  if (recipesDb !== 'ok' || !(state.recipes || []).length || +ls.get('courses.carnet', '1') >= CARNET) return [];
+  const have = new Set(state.recipes.map((r) => ingKey(r.name)));
+  return BUILTIN.filter((r) => r.batch > +ls.get('courses.carnet', '1') && !have.has(ingKey(r.name)));
+}
+function importCarnet() {
+  const news = carnetNews();
+  const rows = news.map(toRow);
+  // Les recettes du carnet déjà présentes reçoivent les nouveaux styles (Asiatique, Soupes…).
+  const byName = new Map(BUILTIN.map((r) => [ingKey(r.name), r]));
+  const retag = [];
+  for (const r of state.recipes) {
+    const b = byName.get(ingKey(r.name));
+    if (!b) continue;
+    const tags = [...new Set([...(r.tags || []), ...b.tags])];
+    const clean = tags.some((t) => t !== 'varie' && !['vege', 'healthy'].includes(t)) ? tags.filter((t) => t !== 'varie') : tags;
+    if (clean.join() !== (r.tags || []).join()) { r.tags = clean; retag.push({ id: r.id, tags: clean }); }
+  }
+  state.recipes = [...state.recipes, ...rows];
+  ls.set('courses.carnet', String(CARNET));
+  push(async () => {
+    if (rows.length) { const a = await sb.from('recipes').insert(rows); if (a.error) return a; }
+    for (const t of retag) { const u = await sb.from('recipes').update({ tags: t.tags }).eq('id', t.id); if (u.error) return u; }
+    return {};
+  });
+  toast(`${rows.length} recettes ajoutées`, null);
+}
 // Clé de comparaison souple : sans accents, ponctuation, parenthèses ni pluriels.
 const ingKey = (s) => norm(s).replace(/\(.*?\)/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim()
   .split(' ').map((w) => w.length > 3 ? w.replace(/[sx]$/, '') : w).join(' ');
@@ -188,9 +224,12 @@ function recipesHtml() {
       <br><button class="big" data-act="rseed">Charger le carnet de départ</button></div>${newBtn}`;
   }
   const chip = (v, label) => `<button class="chip${recipeTag === v ? ' on' : ''}" data-act="rtag" data-v="${v}">${label}</button>`;
-  let html = `<div class="chips">${chip('all', 'Toutes')}${Object.entries(TAGS).map(([v, l]) => chip(v, l)).join('')}</div>`;
+  let html = `<div class="chips">${chip('all', 'Toutes')}${chip('quick', 'Rapide')}${Object.entries(TAGS).map(([v, l]) => chip(v, l)).join('')}</div>`;
+  const news = carnetNews();
+  if (news.length) html += `<div class="news"><span><b>${news.length} nouvelles recettes</b> et de nouveaux styles : Asiatique, Soupes, Desserts…</span>
+    <span class="news-btns"><button class="soft" data-act="carnetskip">Ignorer</button><button class="primary" data-act="carnetadd">Ajouter</button></span></div>`;
   const list = all.map((r) => ({ r, ...recipeStatus(r) }))
-    .filter((x) => recipeTag === 'all' || (x.r.tags || []).includes(recipeTag))
+    .filter((x) => recipeTag === 'all' || (recipeTag === 'quick' ? x.r.minutes && x.r.minutes <= QUICK : (x.r.tags || []).includes(recipeTag)))
     .sort((a, b) => a.missing.length - b.missing.length
       || b.ings.filter((g) => g.st === 'have').length - a.ings.filter((g) => g.st === 'have').length
       || a.r.name.localeCompare(b.r.name, 'fr'));
@@ -221,7 +260,7 @@ function recipeSheet(id) {
       ? `<button type="button" class="ing${g.st === 'have' ? ' have' : ''}" data-act="ring" data-id="${g.item.id}" role="checkbox" aria-checked="${g.st === 'have'}"><span class="box">${CHECK}</span><span class="iname">${esc(g.label)}</span>${note ? `<small>${note}</small>` : ''}</button>`
       : `<div class="ing none"><span class="box"></span><span class="iname">${esc(g.label)}</span><small>${note}</small></div>`;
   };
-  const meta = [r.minutes ? `${r.minutes} min` : '', ...(r.tags || []).map((t) => TAGS[t])].filter(Boolean).join(' · ');
+  const meta = [r.minutes ? `${r.minutes} min` : '', ...(r.tags || []).map((t) => TAG_LABEL[t])].filter(Boolean).join(' · ');
   const scrollTop = sheet.scrollTop;
   show(`<div class="sheet-in">${head(`${esc(r.emoji || '🍽️')} ${esc(r.name)}`)}
     ${meta ? `<p class="rmeta">${meta}</p>` : ''}
@@ -312,8 +351,9 @@ function delRecipe(id) {
 
 async function seedRecipes() {
   if ((state.recipes || []).length) return;
-  const rows = BUILTIN.map((r) => ({ id: uid(), ...r, created_at: new Date().toISOString() }));
+  const rows = BUILTIN.map(toRow);
   state.recipes = rows;
+  ls.set('courses.carnet', String(CARNET));
   await push(() => sb.from('recipes').insert(rows));
 }
 
@@ -477,6 +517,7 @@ let toastTimer = 0, toastUndo = null;
 function toast(text, undo) {
   elToast.querySelector('span').textContent = text;
   toastUndo = undo;
+  elToast.querySelector('button').hidden = !undo;
   elToast.hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(hideToast, 5000);
@@ -625,6 +666,8 @@ elList.addEventListener('click', (e) => {
     case 'recipe': recipeSheet(b.dataset.id); break;
     case 'newrecipe': recipeForm(null); break;
     case 'rseed': seedRecipes(); break;
+    case 'carnetadd': importCarnet(); break;
+    case 'carnetskip': ls.set('courses.carnet', String(CARNET)); render(); break;
     case 'todofold':
       if (todoClosed.has(id)) todoClosed.delete(id); else todoClosed.add(id);
       ls.set('courses.todoClosed', JSON.stringify([...todoClosed]));

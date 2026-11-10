@@ -247,3 +247,8 @@ main { padding: 12px 16px calc(env(safe-area-inset-bottom) + 60px); }
 .addrow { display: flex; gap: 8px; margin-top: 6px; }
 .addrow input { flex: 1; min-width: 0; border: 0; border-radius: 6px; background: var(--field); color: var(--ink); padding: 12px 14px; font-size: 16px; font-weight: 400; }
 .addrow .soft { flex: none; padding: 0 14px; color: var(--ink); }
+
+.news { display: flex; flex-direction: column; gap: 10px; margin: 8px 0 4px; padding: 12px 14px; border-radius: 8px; background: var(--accent-soft); color: var(--ink); font-size: 15px; }
+.news b { color: var(--accent); }
+.news-btns { display: flex; gap: 8px; justify-content: flex-end; }
+.news-btns button { padding: 8px 14px; }
