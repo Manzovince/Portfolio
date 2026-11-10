@@ -100,7 +100,7 @@ main { padding: 12px 16px calc(env(safe-area-inset-bottom) + 60px); }
 /* Ligne d'article : la partie .slide glisse vers la gauche pour supprimer. */
 .row { position: relative; border-top: 1px solid var(--line); touch-action: pan-y; overflow: hidden; }
 .slide { position: relative; display: flex; align-items: stretch; background: var(--card); transform: translateX(var(--dx, 0)); }
-.row:not(.swiping) .slide { transition: transform .2s ease; }
+.row:not(.swiping) .slide { transition: transform .2s ease, background-color .3s; }
 .row::before {
   content: "Supprimer"; position: absolute; inset: 0; display: none; align-items: center; justify-content: flex-end;
   padding-right: 18px; background: #d9a59f; color: #fff; font-weight: 700; font-size: 15px;
@@ -112,8 +112,11 @@ main { padding: 12px 16px calc(env(safe-area-inset-bottom) + 60px); }
 .card > .row:first-child { border-top: 0; }
 .tick {
   flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px;
-  min-height: 48px; padding: 8px 4px 8px 14px; text-align: left;
+  min-height: 48px; padding: 8px 14px; text-align: left;
+  -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
 }
+/* Retour visuel pendant l'appui long */
+.row.pressing .slide { background: var(--field); transition-delay: .12s; }
 .box {
   flex: none; width: 24px; height: 24px; border-radius: 4px;
   border: 2px solid var(--accent);

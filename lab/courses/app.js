@@ -77,8 +77,7 @@ const CHEV = '<svg class="chev" viewBox="0 0 16 16" width="14" height="14" fill=
 
 function rowHtml(it) {
   return `<div class="row${it.have ? ' have' : ''}" data-id="${it.id}"><div class="slide">
-    <button class="tick" data-act="toggle" data-id="${it.id}" role="checkbox" aria-checked="${it.have}"><span class="box">${CHECK}</span><span class="name">${esc(it.name)}</span></button>
-    <button class="more" data-act="edit" data-id="${it.id}" aria-label="Modifier ${esc(it.name)}">⋯</button></div></div>`;
+    <button class="tick" data-act="toggle" data-id="${it.id}" role="checkbox" aria-checked="${it.have}"><span class="box">${CHECK}</span><span class="name">${esc(it.name)}</span></button></div></div>`;
 }
 
 // Hauteur de l'en-tête collant, pour coller les titres de catégorie juste dessous.
@@ -178,7 +177,7 @@ function newCatSheet() {
 function settingsSheet() {
   ctx = { type: 'settings' };
   show(`<div class="sheet-in">${head('Réglages')}
-    <p class="hint">Astuce : glissez un article vers la gauche pour le supprimer.</p>
+    <p class="hint">Appui long sur un article pour le modifier, glissez-le vers la gauche pour le supprimer.</p>
     ${DEMO ? '' : '<div class="actions"><button type="button" class="dangerbtn" data-act="logout">Se déconnecter</button></div>'}</div>`);
 }
 
@@ -291,18 +290,49 @@ function toast(text, undo) {
 function hideToast() { elToast.hidden = true; toastUndo = null; }
 elToast.querySelector('button').addEventListener('click', () => { const u = toastUndo; hideToast(); u?.(); });
 
-/* ---------- Glisser pour supprimer ---------- */
+/* ---------- Glisser pour supprimer, appui long pour modifier ---------- */
+
+const LONG_PRESS = 450;
+function cancelPress() {
+  if (!sw?.timer) return;
+  clearTimeout(sw.timer);
+  sw.timer = 0;
+  sw.row.classList.remove('pressing');
+}
 
 let sw = null;            // glissement en cours
 let swallowClick = false; // le "clic" qui suit un glissement ne doit pas cocher l'article
 elList.addEventListener('pointerdown', (e) => {
   const row = e.target.closest('.row');
   if (!row || e.button || sw?.on) return;
-  sw = { row, id: row.dataset.id, pid: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, on: false };
+  sw = { row, id: row.dataset.id, pid: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, on: false, timer: 0 };
+  row.classList.add('pressing');
+  const s = sw;
+  s.timer = setTimeout(() => {
+    s.timer = 0;
+    row.classList.remove('pressing');
+    if (sw !== s || s.on) return;
+    sw = null;
+    swallowClick = true;   // le relâcher ne doit pas cocher l'article
+    setTimeout(() => { swallowClick = false; }, 600);
+    if (navigator.vibrate) navigator.vibrate(10);
+    itemSheet(s.id);
+  }, LONG_PRESS);
+});
+// Clic droit (ordinateur) ou appui long natif : même fiche, sans le menu du navigateur.
+elList.addEventListener('contextmenu', (e) => {
+  const row = e.target.closest('.row');
+  if (!row) return;
+  e.preventDefault();
+  if (sw && !sw.timer) return;   // l'appui long a déjà ouvert la fiche
+  cancelPress();
+  sw = null;
+  itemSheet(row.dataset.id);
 });
 elList.addEventListener('pointermove', (e) => {
   if (!sw || e.pointerId !== sw.pid) return;
   const dx = e.clientX - sw.x, dy = e.clientY - sw.y;
+  if (Math.abs(dx) > 8 || Math.abs(dy) > 8) cancelPress();
   if (!sw.on) {
     if (Math.abs(dy) > 8 && Math.abs(dy) >= Math.abs(dx)) { sw = null; return; }   // on fait défiler
     if (dx > -8 || Math.abs(dx) < Math.abs(dy)) return;
@@ -316,6 +346,7 @@ elList.addEventListener('pointermove', (e) => {
 });
 function endSwipe(e) {
   if (!sw || e.pointerId !== sw.pid) return;
+  cancelPress();
   const { row, id, on } = sw;
   sw = null;
   if (!on) return;
