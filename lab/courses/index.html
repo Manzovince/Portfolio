@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Courses</title>
+<meta name="theme-color" content="#f4f2ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Courses">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+<header id="top" hidden>
+  <div class="bar">
+    <h1>Courses</h1>
+    <span id="sync" class="sync" title=""></span>
+    <button id="settings" class="icon" type="button" aria-label="Réglages">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+  <div class="seg" id="tabs" role="tablist">
+    <button type="button" data-filter="todo" role="tab">À acheter <b id="count"></b></button>
+    <button type="button" data-filter="all" role="tab">Toute la liste</button>
+  </div>
+  <div class="search" id="searchWrap">
+    <input id="search" type="search" placeholder="Rechercher un article…" autocomplete="off" enterkeyhint="search" aria-label="Rechercher un article">
+  </div>
+</header>
+
+<main id="list"></main>
+
+<dialog id="sheet" class="sheet"></dialog>
+
+<div id="toast" class="toast" role="status" hidden><span></span><button type="button">Annuler</button></div>
+
+<form id="login" class="login" hidden>
+  <h1>Courses</h1>
+  <p>Connectez-vous avec le compte partagé.</p>
+  <input name="email" type="email" placeholder="E-mail" autocomplete="username" required>
+  <input name="password" type="password" placeholder="Mot de passe" autocomplete="current-password" required>
+  <button type="submit">Se connecter</button>
+  <p id="loginError" class="error"></p>
+</form>
+
+<script src="config.js?v=3"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="app.js?v=3"></script>
+</body>
+</html>
