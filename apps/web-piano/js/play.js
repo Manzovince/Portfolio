@@ -1,22 +1,22 @@
 // Play screen: the stage (rising notes over the oscilloscope, or the staff of
 // what is played), the chord readout, and the side panel for the sound.
-import { h, icon, knob, param, seg, toggle, toast } from './ui.js?v=202611093';
-import { S, save, emit } from './store.js?v=202611093';
-import * as E from './engine.js?v=202611093';
-import { subscribe, soundingNotes } from './notes.js?v=202611093';
-import { applyPart, seq, seqPlay, seqHasNotes, arpClear, allOff } from './perform.js?v=202611093';
-import { mountRoll, clearRoll, wake } from './roll.js?v=202611093';
-import { mountStaff, clearScore, hasScore, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi } from './score.js?v=202611093';
-import { detectChord, chordSymbol, scaleContext, intervalBetween, spellPc, pitchClass, SCALES } from './theory.js?v=202611093';
-import { t, chordQuality, inversionName, intervalName, scaleName, spelled, notation, noteLabel } from './i18n.js?v=202611093';
-import { createGraph } from './graph.js?v=202611093';
-import { soundName, soundMeta, stepVoice, loadVoice } from './create.js?v=202611093';
-import { PIANO_SOUNDS } from './engine.js?v=202611093';
-import { setSide } from './keys.js?v=202611093';
-import { currentSong } from './song.js?v=202611093';
-import { isRecording, startRecording, stopRecording, recordingMs, takes, playTake, stopTake, playingTake, takeProgress, deleteTake, renameTake, exportTakeMidi, exportTakeAudio, audioExportSupported } from './recorder.js?v=202611093';
-import { suggestState, playSuggestion } from './suggest.js?v=202611093';
-import { on } from './store.js?v=202611093';
+import { h, icon, knob, param, seg, toggle, toast } from './ui.js?v=202611101';
+import { S, save, emit } from './store.js?v=202611101';
+import * as E from './engine.js?v=202611101';
+import { subscribe, soundingNotes } from './notes.js?v=202611101';
+import { applyPart, seq, seqPlay, seqHasNotes, arpClear, allOff } from './perform.js?v=202611101';
+import { mountRoll, clearRoll, wake } from './roll.js?v=202611101';
+import { mountStaff, clearScore, hasScore, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi } from './score.js?v=202611101';
+import { detectChord, chordSymbol, scaleContext, intervalBetween, spellPc, pitchClass, SCALES } from './theory.js?v=202611101';
+import { t, chordQuality, inversionName, intervalName, scaleName, spelled, notation, noteLabel } from './i18n.js?v=202611101';
+import { createGraph } from './graph.js?v=202611101';
+import { soundName, soundMeta, stepVoice, loadVoice } from './create.js?v=202611101';
+import { PIANO_SOUNDS } from './engine.js?v=202611101';
+import { setSide } from './keys.js?v=202611101';
+import { currentSong } from './song.js?v=202611101';
+import { isRecording, startRecording, stopRecording, recordingMs, takes, playTake, stopTake, playingTake, takeProgress, deleteTake, renameTake, exportTakeMidi, exportTakeAudio, audioExportSupported } from './recorder.js?v=202611101';
+import { suggestState, playSuggestion } from './suggest.js?v=202611101';
+import { on } from './store.js?v=202611101';
 
 export function renderPlay(view, ctx) {
   setSide(null);
@@ -198,7 +198,14 @@ export function takesSheet(box, ctx) {
     for (const take of takes) {
       const playing = playingTake() === take.id;
       const bar = h('i', { class: 'take-bar' });
-      const name = h('input', { class: 'name take-name', value: take.name || t('takeN', { n: take.n }), maxlength: 40, 'aria-label': t('name'), onchange: e => renameTake(take.id, e.target.value) });
+      const fallback = t('takeN', { n: take.n });
+      const name = h('input', { class: 'take-name', value: take.name || fallback, maxlength: 40, 'aria-label': t('name'), spellcheck: false, enterkeyhint: 'done',
+        size: Math.max(3, (take.name || fallback).length),
+        oninput: e => { e.target.size = Math.max(3, e.target.value.length); },
+        onfocus: e => e.target.select(),
+        onkeydown: e => { if (e.key === 'Enter') e.target.blur(); if (e.key === 'Escape') { e.target.value = take.name || fallback; e.target.blur(); } e.stopPropagation(); },
+        onchange: e => { const v = e.target.value.trim(); renameTake(take.id, v && v !== fallback ? v : ''); e.target.value = v || fallback; e.target.size = Math.max(3, e.target.value.length); } });
+      const nameField = h('label', { class: 'take-field' }, name, icon('pencil'));
       const date = new Date(take.date).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
       const audioBtn = h('button', { type: 'button', class: 'btn ghost', disabled: !audioExportSupported(), onclick: () => {
         const ok = exportTakeAudio(take.id, st => { if (st === 'recording') toast(t('audioRecording', { d: fmtMs(take.dur + 1800) })); if (st === 'done') toast(t('audioDone')); });
@@ -206,7 +213,7 @@ export function takesSheet(box, ctx) {
       } }, icon('download'), t('audio'));
       list.append(h('div', { class: 'take' + (playing ? ' playing' : '') },
         h('button', { type: 'button', class: 'take-play', 'aria-label': playing ? t('stop') : t('playL'), onclick: () => { playing ? stopTake() : playTake(take.id, fill); } }, icon(playing ? 'stop' : 'start')),
-        h('div', { class: 'take-main' }, name, h('small', {}, `${date} · ${fmtMs(take.dur)} · ${take.events.filter(e => e.on != null).length} ${t('notesWord')}`), bar),
+        h('div', { class: 'take-main' }, nameField, h('small', {}, `${date} · ${fmtMs(take.dur)} · ${take.events.filter(e => e.on != null).length} ${t('notesWord')}`), bar),
         h('div', { class: 'take-actions' },
           h('button', { type: 'button', class: 'btn ghost', onclick: () => exportTakeMidi(take.id) }, icon('download'), 'MIDI'),
           audioBtn,

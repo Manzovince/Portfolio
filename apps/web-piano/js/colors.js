@@ -1,7 +1,7 @@
 // Note colours shared by the keys, the roll, the waterfall and the staff.
 // "parts" follows the two sounds (A / B, or right / left hand in a song).
-import { S, on } from './store.js?v=202611093';
-import { LOWEST, HIGHEST } from './notes.js?v=202611093';
+import { S, on } from './store.js?v=202611101';
+import { LOWEST, HIGHEST } from './notes.js?v=202611101';
 
 export function hsv(h, s = 1, v = 1) {
   const i = Math.floor(h * 6), f = h * 6 - i;

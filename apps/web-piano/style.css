@@ -472,10 +472,16 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
 .take.playing { border-color: var(--accent); }
 .take-play { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); flex: none; }
 .take-main { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 3px; position: relative; padding-bottom: 6px; }
-.take-name { height: 38px; flex: none; background: transparent; border-color: transparent; padding: 0 6px; font-weight: 600; font-size: 15px; }
-.take-name:focus { border-color: var(--line); background: var(--panel2); }
-.take-main small { color: var(--dim); font-size: 12px; padding-left: 6px; }
-.take-bar { position: absolute; left: 6px; bottom: 0; height: 3px; width: 0; border-radius: 2px; background: var(--accent); }
+.take-field { align-self: flex-start; max-width: 100%; display: flex; align-items: center; gap: 6px; margin-left: -8px; padding: 0 10px 0 8px; height: 40px; border-radius: 10px; border: 1px solid transparent; cursor: text; transition: background .15s, border-color .15s; }
+.take-field .ic svg { width: 16px; height: 16px; }
+.take-field .ic { color: var(--dim); opacity: 0; flex: none; transition: opacity .15s; }
+.take-field:hover { background: var(--panel2); border-color: var(--line); }
+.take-field:hover .ic, .take-field:focus-within .ic { opacity: 1; }
+.take-field:focus-within { background: var(--panel2); border-color: var(--accent); }
+.take-name { flex: 0 1 auto; min-width: 3ch; width: auto; field-sizing: content; height: 100%; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; font-weight: 650; font-size: 16px; padding: 0; -webkit-user-select: text; user-select: text; text-overflow: ellipsis; }
+@media (hover: none) { .take-field .ic { opacity: .7; } }
+.take-main small { color: var(--dim); font-size: 12px; }
+.take-bar { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; border-radius: 2px; background: var(--accent); }
 .take-actions { display: flex; gap: 6px; align-items: center; }
 .btn[disabled] { opacity: .4; pointer-events: none; }
 

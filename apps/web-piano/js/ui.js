@@ -172,6 +172,7 @@ export function icon(name) {
     piano: '<rect x="3" y="5" width="18" height="14" rx="2" fill="none"/><path d="M7.5 5v8M12 5v8M16.5 5v8M7.5 13v6M12 13v6M16.5 13v6" fill="none"/>',
     upload: '<path d="M12 16V4M7 9l5-5 5 5M5 20h14" fill="none"/>',
     download: '<path d="M12 4v12M7 11l5 5 5-5M5 20h14" fill="none"/>',
+    pencil: '<path d="M4 20h4L19 9l-4-4L4 16v4zM13 7l4 4" fill="none"/>',
     trash: '<path d="M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13" fill="none"/>',
     close: '<path d="M6 6l12 12M18 6 6 18" fill="none"/>',
     back: '<path d="M14 6l-6 6 6 6" fill="none"/>',
