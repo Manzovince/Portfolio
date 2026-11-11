@@ -76,6 +76,55 @@ const CANON_L = 'rw | rw | ' + JACQUES.replace(/4/g, '3');
 // Unit 10: sight-reading
 const SIGHT = 'E4q F4q G4q E4q | D4h C4h | D4q E4q F4q D4q | E4w | E4q F4q G4q A4q | G4q F4q E4q D4q | C4q E4q D4q B3q | C4w';
 const SIGHT_L = 'C3w | G2h C3h | G2w | C3w | C3w | G2w | C3h G2h | C3w';
+// Unit 11: ear training, rounds drawn at random each time
+const NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+const nm = midi => NAMES[midi % 12] + (Math.floor(midi / 12) - 1);
+const shuffle = list => list.map(x => [Math.random(), x]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+const rand = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+const HIGHER = T('plus aiguë', 'higher'), LOWER = T('plus grave', 'lower');
+function higherLower(n) {
+  return Array.from({ length: n }, (_, k) => {
+    const a = rand(55, 74), gap = k < n / 2 ? rand(3, 9) : rand(1, 3), up = Math.random() < 0.5;
+    const b = up ? a + gap : a - gap;
+    return { q: T('La deuxième note est…', 'The second note is…'), play: `${nm(a)}h ${nm(b)}h`, bpm: 90, options: [HIGHER, LOWER], answer: up ? 0 : 1 };
+  });
+}
+function upDown(n) {
+  return Array.from({ length: n }, () => {
+    const up = Math.random() < 0.5, a = rand(57, 69);
+    const steps = [0, rand(1, 2), rand(3, 4), rand(5, 8)];
+    const notes = steps.map(x => nm(up ? a + x : a + 8 - x));
+    return { q: T('Cette mélodie…', 'This tune…'), play: notes.map(x => x + 'q').join(' '), bpm: 100, options: [T('monte', 'goes up'), T('descend', 'goes down')], answer: up ? 0 : 1 };
+  });
+}
+function majorMinor(n, block = false) {
+  return Array.from({ length: n }, () => {
+    const root = rand(53, 65), minor = Math.random() < 0.5;
+    const ch = [root, root + (minor ? 3 : 4), root + 7].map(nm);
+    const play = block ? ch.join('+') + 'w' : ch.map(x => x + 'q').join(' ') + ' ' + ch.join('+') + 'h';
+    return { q: T('Cet accord est…', 'This chord is…'), play, bpm: 80, options: [T('majeur', 'major'), T('mineur', 'minor')], answer: minor ? 1 : 0 };
+  });
+}
+const IV = [[2, T('une seconde', 'a second')], [4, T('une tierce', 'a third')], [7, T('une quinte', 'a fifth')], [12, T('une octave', 'an octave')]];
+function intervals(n) {
+  return Array.from({ length: n }, () => {
+    const k = rand(0, IV.length - 1), a = rand(55, 65);
+    return { q: T('Cet intervalle est…', 'This interval is…'), play: `${nm(a)}h ${nm(a + IV[k][0])}h | ${nm(a)}+${nm(a + IV[k][0])}w`, bpm: 90, options: IV.map(x => x[1]), answer: k };
+  });
+}
+// a note to find after the reference C4, then short tunes around the C position
+const findNote = n => shuffle([62, 64, 65, 67, 69, 60, 64, 67]).slice(0, n).map(m => `C4h ${nm(m)}h`);
+function tunes(n, len) {
+  return Array.from({ length: n }, () => {
+    const out = [60];
+    while (out.length < len) {
+      const last = out[out.length - 1], step = [-2, -1, 1, 2][rand(0, 3)];
+      const next = [60, 62, 64, 65, 67][Math.max(0, Math.min(4, [60, 62, 64, 65, 67].indexOf(last) + step))];
+      if (next !== last) out.push(next);
+    }
+    return out.map((m, k) => nm(m) + (k === len - 1 ? 'h' : 'q')).join(' ');
+  });
+}
 const POS_LH = { lo: 45, hi: 60 };    // left hand around C3 (A2 to C4)
 const TWO_HANDS = { lo: 45, hi: 72 };
 const POS_G = { lo: 53, hi: 79 };
@@ -907,6 +956,78 @@ export const COURSE = [
             rounds: ['C4q E4q D4q F4q | E4q G4q C5h', 'G4q F4q E4q D4q | E4q C4q D4h', 'E4q E4q F4q D4q | C4q B3q C4h', 'A4q G4q F4q E4q | D4q G4q C4h'] },
           { type: 'piece', title: T('À vue', 'At sight'), bpm: 72, right: SIGHT, left: SIGHT_L, staff: true, range: { lo: 43, hi: 72 }, mode: 'tempo',
             text: T('Un morceau nouveau, directement en rythme. Baisse la vitesse à 75 % s’il le faut, mais ne t’arrête pas.', 'A new piece, straight in time. Drop the speed to 75 % if needed, but don’t stop.') },
+        ],
+      },
+    ],
+  },
+  // ═══ Unit 11 ══════════════════════════════════════════════════
+  {
+    id: 'u11',
+    title: T('L’oreille', 'Ear training'),
+    blurb: T('Aigu ou grave, majeur ou mineur, retrouver ce qu’on entend.', 'High or low, major or minor, finding what you hear.'),
+    lessons: [
+      {
+        id: 'o1',
+        title: T('Aigu, grave', 'High, low'),
+        goal: T('Entendre si une note monte ou descend.', 'Hear whether a note goes up or down.'),
+        steps: [
+          { type: 'info', title: T('Écouter sans regarder', 'Listening without looking'),
+            text: T('Dans cette unité, Octave joue **sans allumer les touches** : tu n’as que tes oreilles.\nOn commence par le plus simple : une note est-elle plus **aiguë** (vers la droite du clavier) ou plus **grave** (vers la gauche) que la précédente ? Les grands écarts d’abord, puis de plus en plus serrés.\nTu peux réécouter autant que tu veux.',
+              'In this unit, Octave plays **without lighting the keys**: you only have your ears.\nWe start with the easiest: is a note **higher** (towards the right of the keyboard) or **lower** (towards the left) than the one before? Wide gaps first, then closer and closer.\nYou can listen again as often as you like.') },
+          { type: 'quiz', rounds: () => higherLower(8) },
+          { type: 'quiz', rounds: () => upDown(5) },
+        ],
+      },
+      {
+        id: 'o2',
+        title: T('Majeur ou mineur', 'Major or minor'),
+        goal: T('Reconnaître la couleur d’un accord.', 'Recognise the colour of a chord.'),
+        steps: [
+          { type: 'info', title: T('Clair ou sombre', 'Bright or dark'),
+            text: T('Tu as appris à les jouer ; maintenant, à les **entendre**. L’accord majeur sonne **clair, stable**. Le mineur sonne **plus sombre**, plus mélancolique.\nÉcoute-les côte à côte plusieurs fois avant de commencer : c’est une seule note qui change, celle du milieu.',
+              'You learnt to play them; now, to **hear** them. A major chord sounds **bright, settled**. A minor one sounds **darker**, more wistful.\nListen to them side by side a few times before you start: only one note changes, the middle one.'),
+            listen: 'C4q E4q G4q C4+E4+G4h | C4q Eb4q G4q C4+Eb4+G4h | A3q C#4q E4q A3+C#4+E4h | A3q C4q E4q A3+C4+E4h', bpm: 80 },
+          { type: 'quiz', rounds: () => majorMinor(8) },
+          { type: 'quiz', rounds: () => majorMinor(6, true) },
+        ],
+      },
+      {
+        id: 'o3',
+        title: T('Retrouver une note', 'Finding a note'),
+        goal: T('Jouer la note entendue, à partir d’un repère.', 'Play the note you heard, from a reference.'),
+        steps: [
+          { type: 'info', title: T('Partir d’un repère', 'Starting from a landmark'),
+            text: T('Octave joue d’abord [C4], ton repère, puis une note mystère entre [C4] et [A4]. Rejoue les deux.\nNe cherche pas au hasard : demande-toi si ça monte peu ou beaucoup. Chante la note à voix basse, puis cherche-la. Après une erreur, la bonne touche s’allume.',
+              'Octave first plays [C4], your landmark, then a mystery note between [C4] and [A4]. Play both back.\nDon’t search at random: ask yourself whether it goes up a little or a lot. Hum the note, then look for it. After a mistake, the right key lights up.') },
+          { type: 'phrase', range: POS_C, listen: true, blind: true, hint: 'miss', bpm: 80,
+            prompt: T('Écoute, puis rejoue le repère et la note mystère.', 'Listen, then play the landmark and the mystery note.'),
+            rounds: () => findNote(6) },
+        ],
+      },
+      {
+        id: 'o4',
+        title: T('Rejouer une mélodie', 'Playing a tune back'),
+        goal: T('Retenir et rejouer quelques notes entendues.', 'Remember and play back a few notes you heard.'),
+        steps: [
+          { type: 'info', title: T('Par petits bouts', 'Bit by bit'),
+            text: T('Octave joue une courte mélodie en position de [C], qui commence toujours sur [C4]. Rejoue-la.\nAstuce : retiens le **chemin** plutôt que les notes. « Ça monte, ça monte, ça redescend » : c’est plus facile à garder en tête.',
+              'Octave plays a short tune in the C position, always starting on [C4]. Play it back.\nTip: remember the **path** rather than the notes. “Up, up, back down” is easier to keep in mind.') },
+          { type: 'phrase', range: POS_C, listen: true, blind: true, hint: 'miss', bpm: 90,
+            prompt: T('Trois notes.', 'Three notes.'), rounds: () => tunes(4, 3) },
+          { type: 'phrase', range: POS_C, listen: true, blind: true, hint: 'miss', bpm: 90,
+            prompt: T('Cinq notes.', 'Five notes.'), rounds: () => tunes(4, 5) },
+        ],
+      },
+      {
+        id: 'o5',
+        title: T('Les intervalles à l’oreille', 'Intervals by ear'),
+        goal: T('Reconnaître seconde, tierce, quinte et octave.', 'Recognise a second, a third, a fifth and an octave.'),
+        steps: [
+          { type: 'info', title: T('Des chansons comme repères', 'Songs as landmarks'),
+            text: T('Pour reconnaître un intervalle, accroche-le à un début de chanson que tu connais :\n**Seconde** : « Frè-re » de *Frère Jacques* ([C] [D]).\n**Tierce** : le bas d’un accord majeur ([C] [E]).\n**Quinte** : « Ah ! vous di- » de *Ah ! vous dirai-je, maman* ([C] [G]).\n**Octave** : la même note, mais bien plus haut.',
+              'To recognise an interval, hook it to the start of a song you know:\n**Second**: “Frè-re” in *Frère Jacques* ([C] [D]).\n**Third**: the bottom of a major chord ([C] [E]).\n**Fifth**: “Twin-kle twin-kle” ([C] [G]).\n**Octave**: the same note, much higher.'),
+            listen: 'C4h D4h | C4h E4h | C4q C4q G4q G4q | C4h C5h', bpm: 90 },
+          { type: 'quiz', rounds: () => intervals(8) },
         ],
       },
     ],

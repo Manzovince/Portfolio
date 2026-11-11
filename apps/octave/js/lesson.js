@@ -1,23 +1,23 @@
 // Learn › Course: the course map, and the lesson player that runs each step
 // (see course.js for the step types). Progress lives in coach.js.
-import { h, icon, seg, toast } from './ui.js?v=202611126';
-import { S, save } from './store.js?v=202611126';
-import { t, spelled, lang, scaleName } from './i18n.js?v=202611126';
-import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611126';
-import { setOverride, setSide } from './keys.js?v=202611126';
-import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611126';
-import { mountFall } from './fall.js?v=202611126';
-import { spelledOctave } from './theory.js?v=202611126';
-import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611126';
+import { h, icon, seg, toast } from './ui.js?v=202611127';
+import { S, save } from './store.js?v=202611127';
+import { t, spelled, lang, scaleName } from './i18n.js?v=202611127';
+import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611127';
+import { setOverride, setSide } from './keys.js?v=202611127';
+import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611127';
+import { mountFall } from './fall.js?v=202611127';
+import { spelledOctave } from './theory.js?v=202611127';
+import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611127';
 import {
   openSongData, closeSong, playSong, pauseSong, isSongPlaying, seekSong, setSongPart, setSongSpeed, setSongFollow,
   onSongChange, onSongEnd, songTally, onSongTally, resetTally, songClock, currentSong, isWaitingForPlayer,
-} from './song.js?v=202611126';
-import * as E from './engine.js?v=202611126';
+} from './song.js?v=202611127';
+import * as E from './engine.js?v=202611127';
 import {
   P, PASS, LESSONS, COURSE, lessonById, starsOf, isOpen, nextLesson, recordLesson, saveCoach, resetCoach,
-  parse, notesOf, lengthOf, pitch, setCoachGuide, demo, clicks, latency, isPlayer, median, audioOf,
-} from './coach.js?v=202611126';
+  parse, notesOf, lengthOf, pitch, setCoachGuide, demo, hear, clicks, latency, isPlayer, median, audioOf,
+} from './coach.js?v=202611127';
 
 // ── text ───────────────────────────────────────────────────────
 const tx = v => (v && typeof v === 'object' ? v[lang()] ?? v.en : v ?? '');
@@ -263,7 +263,9 @@ function runFind(step, api) {
 
 // ── quiz ───────────────────────────────────────────────────────
 function runQuiz(step, api) {
-  const rounds = step.rounds;
+  const rounds = typeof step.rounds === 'function' ? step.rounds() : step.rounds;
+  let d = null;
+  api.onCleanup(() => d?.cancel());
   let i = 0, wrong = 0;
   const card = h('div', { class: 'card step-card center quiz' });
   api.body.append(card);
@@ -277,6 +279,12 @@ function runQuiz(step, api) {
       const line = h('div', { class: 'step-line' + (r.line.rhythm ? ' rhythm' : '') });
       card.append(line);
       requestAnimationFrame(() => drawLessonLine(line, { items: parse(r.line.src), clef: r.line.clef, keySignature: r.line.key, rhythm: r.line.rhythm }));
+    }
+    // a round can be heard (r.play), never seen
+    if (r.play) {
+      const play = () => { d?.cancel(); d = hear(parse(r.play), r.bpm || step.bpm || 80); };
+      card.append(h('button', { type: 'button', class: 'btn ghost listen', onclick: play }, icon('start'), t('cListenAgain')));
+      setTimeout(() => card.isConnected && rounds[i] === r && play(), 300);
     }
     const fb = h('div', { class: 'step-feedback' });
     let answered = false;
@@ -307,7 +315,7 @@ function runQuiz(step, api) {
 
 // ── phrase: listen and play back, or read and play ─────────────
 function runPhrase(step, api) {
-  const rounds = step.rounds.map(src => parse(src));
+  const rounds = (typeof step.rounds === 'function' ? step.rounds() : step.rounds).map(src => parse(src));
   api.keys(step.range);
   const prompt = rich(step.prompt, 'div', 'rich step-prompt');
   const line = h('div', { class: 'step-line' });
@@ -338,7 +346,7 @@ function runPhrase(step, api) {
     card.dataset.feedback = '';
     fb.textContent = t('cListening');
     paint();
-    d = demo(rounds[i], step.bpm || 90);
+    d = step.blind ? hear(rounds[i], step.bpm || 90) : demo(rounds[i], step.bpm || 90);
     const finished = await d;
     if (!card.isConnected || !finished) return;
     busy = false;

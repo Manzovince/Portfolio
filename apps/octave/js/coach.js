@@ -1,11 +1,11 @@
 // Coach: the course's progress, the tiny music notation the lessons are written
 // in, the keys a lesson lights, and the clock helpers (demo playback, clicks,
 // latency calibration) shared by the lesson steps.
-import { press, lift } from './notes.js?v=202611126';
-import * as E from './engine.js?v=202611126';
-import { COURSE } from './course.js?v=202611126';
+import { press, lift } from './notes.js?v=202611127';
+import * as E from './engine.js?v=202611127';
+import { COURSE } from './course.js?v=202611127';
 export { COURSE };
-import { defaultSpelling } from './theory.js?v=202611126';
+import { defaultSpelling } from './theory.js?v=202611127';
 
 // Every piece of the course once: versions of one song (right hand, left hand,
 // both) count as one, played in its fullest version under its first, plain title
@@ -154,6 +154,31 @@ export function demo(items, bpm = 90, { light = true, vel = () => 82, gate = 1 }
     held.forEach(m => lift(m));
     if (light) setCoachGuide(null);
   };
+  return p;
+}
+
+// Play a parsed line for the ear only: straight to the sound, no key lit, no
+// note on the bus (so nothing on screen gives the answer away). Resolves when
+// done; the returned promise has cancel().
+let hearId = 0;
+export function hear(items, bpm = 90) {
+  const ctx = E.audio();
+  const beatMs = 60000 / bpm;
+  const src = 'ear' + (++hearId);
+  const lead = 0.12;
+  if (ctx) {
+    const t0 = ctx.currentTime + lead;
+    for (const it of items) {
+      if (it.bar || it.rest) continue;
+      for (const m of it.midis) {
+        E.noteOn(0, m, 82, src, t0 + it.start * beatMs / 1000);
+        E.noteOff(0, m, src, t0 + (it.start + it.beats) * beatMs / 1000 - 0.04);
+      }
+    }
+  }
+  let timer;
+  const p = new Promise(resolve => { timer = setTimeout(() => resolve(true), lead * 1000 + lengthOf(items) * beatMs + 60); });
+  p.cancel = () => { clearTimeout(timer); E.stopSource(src); };
   return p;
 }
 
