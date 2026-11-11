@@ -1,11 +1,11 @@
 // Coach: the course's progress, the tiny music notation the lessons are written
 // in, the keys a lesson lights, and the clock helpers (demo playback, clicks,
 // latency calibration) shared by the lesson steps.
-import { press, lift } from './notes.js?v=202611124';
-import * as E from './engine.js?v=202611124';
-import { COURSE } from './course.js?v=202611124';
+import { press, lift } from './notes.js?v=202611125';
+import * as E from './engine.js?v=202611125';
+import { COURSE } from './course.js?v=202611125';
 export { COURSE };
-import { defaultSpelling } from './theory.js?v=202611124';
+import { defaultSpelling } from './theory.js?v=202611125';
 
 // Every piece of the course once: versions of one song (right hand, left hand,
 // both) count as one, played in its fullest version under its first, plain title
@@ -126,22 +126,25 @@ export function clicks({ bpm, count, beatsPerBar = 4, startIn = 300, volume = 0.
 
 // Play a parsed line on the keys (source "coach"), lighting each note.
 // Resolves when done; the returned promise has cancel().
-export function demo(items, bpm = 90, { light = true } = {}) {
+// vel(k): velocity of the k-th note; gate: share of its length it is held
+export function demo(items, bpm = 90, { light = true, vel = () => 82, gate = 1 } = {}) {
   const beatMs = 60000 / bpm;
   const timers = [];
   let cancelled = false;
   const held = new Set();
   const p = new Promise(resolve => {
     const t0 = 120;
+    let k = -1;
     for (const it of items) {
       if (it.bar || it.rest) continue;
+      const v = vel(++k);
       timers.push(setTimeout(() => {
-        it.midis.forEach(m => { press(m, 82, 'coach' + m); held.add(m); });
+        it.midis.forEach(m => { press(m, v, 'coach' + m); held.add(m); });
         if (light) setCoachGuide({ midis: new Set(it.midis) });
       }, t0 + it.start * beatMs));
       timers.push(setTimeout(() => {
         it.midis.forEach(m => { lift(m); held.delete(m); });
-      }, t0 + (it.start + it.beats) * beatMs - 40));
+      }, t0 + (it.start + it.beats * gate) * beatMs - 40));
     }
     timers.push(setTimeout(() => { if (light) setCoachGuide(null); resolve(!cancelled); }, t0 + lengthOf(items) * beatMs + 60));
   });

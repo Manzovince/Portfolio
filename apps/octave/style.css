@@ -604,6 +604,12 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
 .step-line { width: 100%; display: flex; justify-content: center; overflow-x: auto; min-height: 90px; }
 .step-line.rhythm { min-height: 70px; }
 .step-line svg { flex: none; }
+.touch-mark { font: italic 700 28px/1 Georgia, 'Times New Roman', serif; color: var(--accent); min-height: 28px; }
+.touch-meter { display: flex; gap: 6px; align-items: flex-end; justify-content: center; height: 46px; }
+.touch-bar { width: 14px; height: 100%; border-radius: 4px; background: var(--line); display: flex; align-items: flex-end; overflow: hidden; }
+.touch-bar i { display: block; width: 100%; background: var(--faint); transition: height .15s; }
+.touch-bar.good i { background: var(--accent); }
+.touch-bar.bad i { background: var(--danger); }
 .btn.listen { align-self: center; }
 .center-row { justify-content: center; }
 .quiz-options { display: flex; flex-direction: column; gap: 8px; width: min(100%, 420px); }

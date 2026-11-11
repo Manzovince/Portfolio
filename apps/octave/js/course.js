@@ -68,6 +68,14 @@ const JACQUES_FULL = JACQUES + ' | G4e A4e G4e F4e E4q C4q | G4e A4e G4e F4e E4q
 const VALSE = 'E4h G4q | F4h D4q | E4q F4q G4q | C4h. | E4h G4q | A4h F4q | G4q F4q D4q | C4h.';
 const VALSE_L = 'C3h. | G3h. | C3h. | C3h. | C3h. | F3h. | G3h. | C3h.';
 const BIRTHDAY = 'rq rq G3e G3e | A3q G3q C4q | B3h G3e G3e | A3q G3q D4q | C4h G3e G3e | G4q E4q C4q | B3q A3q F4e F4e | E4q C4q D4q | C4h.';
+// Unit 8: both hands
+const MARY_L = 'C3w | C3w | G3w | C3w | C3w | C3w | G3w | C3w';
+const LUNE_HALF = 'C3h E3h | C3h G2h | C3h G2h | C3w | C3h E3h | C3h G2h | C3h G2h | C3w';
+const CANON_R = JACQUES + ' | rw | rw';
+const CANON_L = 'rw | rw | ' + JACQUES.replace(/4/g, '3');
+// Unit 10: sight-reading
+const SIGHT = 'E4q F4q G4q E4q | D4h C4h | D4q E4q F4q D4q | E4w | E4q F4q G4q A4q | G4q F4q E4q D4q | C4q E4q D4q B3q | C4w';
+const SIGHT_L = 'C3w | G2h C3h | G2w | C3w | C3w | G2w | C3h G2h | C3w';
 const POS_LH = { lo: 45, hi: 60 };    // left hand around C3 (A2 to C4)
 const TWO_HANDS = { lo: 45, hi: 72 };
 const POS_G = { lo: 53, hi: 79 };
@@ -168,7 +176,7 @@ export const COURSE = [
           { type: 'phrase', range: POS_C, listen: true, hint: 'miss', bpm: 80,
             prompt: T('Même chose, mais à l’oreille : les touches ne s’allument que si tu te trompes.', 'Same again, by ear: keys only light up if you slip.'),
             rounds: ['C4q D4q E4h', 'E4q D4q C4h', 'C4q E4q D4h', 'G4q F4q E4h', 'E4q F4q G4h'] },
-          { type: 'piece', title: T('Marie avait un petit agneau', 'Mary had a little lamb'), bpm: 100, right: MARY, staff: false, range: POS_C,
+          { type: 'piece', song: 'mary', title: T('Marie avait un petit agneau', 'Mary had a little lamb'), bpm: 100, right: MARY, staff: false, range: POS_C,
             text: T('Ton premier morceau. Les notes tombent sur les touches : joue-les quand elles arrivent, le morceau t’attend.', 'Your first piece. Notes fall onto the keys: play each one as it lands, the piece waits for you.') },
         ],
       },
@@ -689,6 +697,216 @@ export const COURSE = [
             rounds: ['rq rq e e | q q q | h e e | q q q | h.'] },
           { type: 'piece', title: T('Joyeux anniversaire', 'Happy Birthday'), bpm: 100, meter: 3, right: BIRTHDAY, staff: true, range: { lo: 53, hi: 72 },
             text: T('Main droite. Le grand saut [G3] → [G4] arrive au milieu : prépare la main pendant la blanche.', 'Right hand. The big leap [G3] → [G4] comes in the middle: get the hand ready during the half note.') },
+        ],
+      },
+    ],
+  },
+  // ═══ Unit 8 ═══════════════════════════════════════════════════
+  {
+    id: 'u8',
+    title: T('Les deux mains ensemble', 'Both hands together'),
+    blurb: T('Tenir d’une main, bouger de l’autre, puis jouer en miroir et en canon.', 'Hold with one hand, move the other, then mirror and canon.'),
+    lessons: [
+      {
+        id: 'm1',
+        title: T('Une main tient, l’autre bouge', 'One hand holds, the other moves'),
+        goal: T('Garder une note de basse pendant que la mélodie avance.', 'Keep a bass note down while the tune moves on.'),
+        steps: [
+          { type: 'info', title: T('Deux cerveaux', 'Two brains'),
+            text: T('Jouer à deux mains, c’est surtout **ne pas faire bouger la main qui attend**. Commence par le plus simple : la main gauche pose une note et la **tient** toute la mesure, la main droite joue sa mélodie au-dessus.\nLes deux mains attaquent **ensemble** au début de la mesure, puis seule la droite continue.',
+              'Playing with both hands is mostly about **keeping the waiting hand still**. Start with the easiest: the left hand puts down a note and **holds** it for the whole bar, the right hand plays its tune above.\nBoth hands strike **together** at the start of the bar, then only the right goes on.'),
+            listen: 'C3+E4q D4q C4q D4q | C3+E4w', bpm: 80, keys: { lo: 45, hi: 67, midis: [48, 64] } },
+          { type: 'phrase', range: { lo: 43, hi: 67 }, listen: true, hint: 'keys', bpm: 76,
+            prompt: T('Les deux notes du début **ensemble**, puis la main droite seule. Garde la gauche enfoncée.', 'The first two notes **together**, then the right hand alone. Keep the left one down.'),
+            rounds: ['C3+E4q D4q C4q D4q | C3+E4w', 'G2+D4q E4q F4q D4q | C3+C4w', 'C3+G4q F4q E4q D4q | C3+C4w'] },
+          { type: 'piece', song: 'mary', title: T('Marie avait un petit agneau, deux mains', 'Mary had a little lamb, both hands'), bpm: 92, right: MARY, left: MARY_L, staff: true, range: { lo: 45, hi: 72 },
+            text: T('La main gauche ne joue qu’une note par mesure : [C3], ou [G3] quand la mélodie est sur [D].', 'The left hand plays one note per bar: [C3], or [G3] when the tune is on [D].') },
+        ],
+      },
+      {
+        id: 'm2',
+        title: T('La basse en blanches', 'Half-note bass'),
+        goal: T('Changer de note à gauche au milieu de la mesure.', 'Change the left-hand note mid-bar.'),
+        steps: [
+          { type: 'info', title: T('Deux basses par mesure', 'Two bass notes per bar'),
+            text: T('Un cran de plus : la main gauche joue maintenant **deux blanches** par mesure. Elle change de note sur le **temps 3**, en même temps qu’une note de la mélodie.\nRegarde où les deux mains tombent ensemble : ce sont tes points d’appui. Entre eux, la droite est seule.',
+              'One step further: the left hand now plays **two half notes** per bar. It changes note on **beat 3**, together with a note of the tune.\nLook where both hands land together: those are your anchor points. Between them, the right hand is alone.'),
+            listen: 'C3+C4q C4q E3+C4q D4q | C3+E4h G2+D4h', bpm: 80 },
+          { type: 'phrase', range: { lo: 43, hi: 67 }, listen: true, hint: 'keys', bpm: 76,
+            prompt: T('Les accords à deux mains, puis la droite seule.', 'The two-hand chords, then the right hand alone.'),
+            rounds: ['C3+C4q C4q E3+C4q D4q', 'C3+E4h G2+D4h', 'C3+C4q E4q G2+D4q D4q | C3+C4w'] },
+          { type: 'piece', song: 'lune', title: T('Au clair de la lune, basse en blanches', 'Au clair de la lune, half-note bass'), bpm: 88, right: LUNE, left: LUNE_HALF, staff: true, range: { lo: 43, hi: 67 },
+            text: T('Travaille d’abord la main gauche seule : [C3] [E3], [C3] [G2]…', 'Practise the left hand alone first: [C3] [E3], [C3] [G2]…') },
+        ],
+      },
+      {
+        id: 'm3',
+        title: T('En miroir, en octaves', 'Mirror and octaves'),
+        goal: T('Faire bouger les deux mains à chaque note.', 'Move both hands on every note.'),
+        steps: [
+          { type: 'info', title: T('Mouvement parallèle, mouvement contraire', 'Parallel and contrary motion'),
+            text: T('Quand les deux mains jouent la même mélodie à une octave d’écart, elles vont **dans le même sens** : c’est le mouvement parallèle. Les doigts, eux, sont inversés : le pouce droit et le 5e gauche jouent ensemble.\nEn **mouvement contraire**, les mains s’écartent en miroir : même doigt des deux côtés. C’est souvent plus facile !',
+              'When both hands play the same tune an octave apart, they move **the same way**: parallel motion. The fingers are mirrored though: the right thumb plays with the left 5th finger.\nIn **contrary motion**, the hands spread out like a mirror: the same finger on both sides. It is often easier!'),
+            listen: 'C3+C4q D3+D4q E3+E4q F3+F4q | G3+G4h | C4+C3q D4+B2q E4+A2q F4+G2q | G4+F2h', bpm: 80 },
+          { type: 'phrase', range: { lo: 40, hi: 69 }, listen: true, hint: 'keys', bpm: 72,
+            prompt: T('Les deux mains à chaque note, bien ensemble.', 'Both hands on every note, right together.'),
+            rounds: ['C4+C3q D4+B2q E4+A2q F4+G2q | G4+F2w', 'C3+C4q D3+D4q E3+E4q F3+F4q | G3+G4w', 'G3+G4q F3+F4q E3+E4q D3+D4q | C3+C4w'] },
+          { type: 'piece', title: T('Au clair de la lune, en octaves', 'Au clair de la lune, in octaves'), bpm: 84, right: LUNE, left: LUNE_LH, staff: true, range: { lo: 45, hi: 67 },
+            text: T('La même mélodie aux deux mains. Pouce droit sur [C4], 5e doigt gauche sur [C3].', 'The same tune in both hands. Right thumb on [C4], left 5th finger on [C3].') },
+        ],
+      },
+      {
+        id: 'm4',
+        title: T('Bilan : Frère Jacques en canon', 'Check-point: Frère Jacques as a round'),
+        goal: T('Deux mains indépendantes : la même chanson, décalée.', 'Two independent hands: the same song, offset.'),
+        steps: [
+          { type: 'info', title: T('Le canon', 'The round'),
+            text: T('Dans un **canon**, une deuxième voix chante la même mélodie, mais commence plus tard. Ici, la main droite démarre seule, et la main gauche entre **deux mesures après**, une octave plus bas.\nC’est le vrai test de l’indépendance : les deux mains font la même chose, mais jamais au même moment.',
+              'In a **round**, a second voice sings the same tune but starts later. Here the right hand starts alone, and the left hand comes in **two bars later**, an octave lower.\nIt is the real test of independence: both hands do the same thing, never at the same time.'),
+            listen: 'C4q D4q E4q C4q | C4q D4q E4q C4q | C3+E4q D3+F4q E3+G4h | C3+E4q D3+F4q E3+G4h', bpm: 90 },
+          { type: 'piece', title: T('Frère Jacques en canon', 'Frère Jacques as a round'), bpm: 80, right: CANON_R, left: CANON_L, staff: true, range: { lo: 45, hi: 72 },
+            text: T('Commence pas à pas, main par main, puis les deux.', 'Start step by step, one hand at a time, then both.') },
+        ],
+      },
+    ],
+  },
+
+  // ═══ Unit 9 ═══════════════════════════════════════════════════
+  {
+    id: 'u9',
+    title: T('Expression', 'Expression'),
+    blurb: T('Jouer doux ou fort, lié ou piqué, et la pédale.', 'Soft or loud, joined or detached, and the pedal.'),
+    lessons: [
+      {
+        id: 'e1',
+        title: T('Piano, forte', 'Piano, forte'),
+        goal: T('Choisir la force de chaque note.', 'Choose how loud each note is.'),
+        steps: [
+          { type: 'info', title: T('Les nuances', 'Dynamics'),
+            text: T('Le piano s’appelle d’abord « piano-forte » : il sait jouer **doux** et **fort**. Ce n’est pas la profondeur de la touche qui compte, mais la **vitesse** à laquelle tu l’enfonces.\nSur la partition : ***p*** (piano) = doux, ***mf*** (mezzo forte) = moyen, ***f*** (forte) = fort.\nOctave mesure la force de chaque note de 0 à 127. Sur le clavier à l’écran, appuie **plus bas sur la touche** pour jouer plus fort.',
+              'The piano was first called the “piano-forte”: it can play **soft** and **loud**. What counts is not how deep the key goes but how **fast** you press it.\nOn the score: ***p*** (piano) = soft, ***mf*** (mezzo forte) = medium, ***f*** (forte) = loud.\nOctave measures each note’s force from 0 to 127. On the on-screen keyboard, press **lower on the key** to play louder.'),
+            listen: 'C4q D4q E4q F4q G4h | C4q D4q E4q F4q G4h', bpm: 84 },
+          { type: 'touch', range: POS_C, bpm: 84,
+            prompt: T('Joue la phrase avec la nuance indiquée. Les barres montrent ta force.', 'Play the phrase at the marked dynamic. The bars show your force.'),
+            rounds: [{ src: 'C4q D4q E4q F4q G4h', dyn: 'p' }, { src: 'C4q D4q E4q F4q G4h', dyn: 'f' }, { src: 'G4q F4q E4q D4q C4h', dyn: 'p' }] },
+          { type: 'touch', range: POS_C, bpm: 84,
+            prompt: T('L’écho : la phrase fort, puis la même tout doux.', 'The echo: the phrase loud, then the same very soft.'),
+            rounds: [{ src: 'C4q E4q G4h | C4q E4q G4h', dyn: ['f', 'f', 'f', 'p', 'p', 'p'] }, { src: 'G4q F4q E4q D4q | G4q F4q E4q D4q', dyn: ['f', 'f', 'f', 'f', 'p', 'p', 'p', 'p'] }] },
+        ],
+      },
+      {
+        id: 'e2',
+        title: T('Crescendo, decrescendo', 'Crescendo, decrescendo'),
+        goal: T('Faire grandir et diminuer le son, peu à peu.', 'Make the sound grow and fade, little by little.'),
+        steps: [
+          { type: 'info', title: T('Peu à peu', 'Little by little'),
+            text: T('Le **crescendo** (« cresc. » ou le signe <) : chaque note un peu plus forte que la précédente. Le **decrescendo** (« dim. » ou >) : l’inverse.\nLe secret, c’est la régularité : pas de marche brusque, une pente douce. Garde de la marge : commence vraiment doux pour avoir où monter.',
+              'A **crescendo** (“cresc.” or the < sign): each note a little louder than the one before. A **decrescendo** (“dim.” or >): the other way.\nThe secret is evenness: no sudden step, a gentle slope. Leave yourself room: start really soft so you have somewhere to go.'),
+            listen: 'C4q D4q E4q F4q G4q A4q B4q C5q', bpm: 84 },
+          { type: 'touch', range: { lo: 57, hi: 74 }, bpm: 84,
+            prompt: T('Monte la gamme en crescendo, puis redescends en decrescendo.', 'Go up the scale getting louder, then down getting softer.'),
+            rounds: [{ src: 'C4q D4q E4q F4q G4q A4q B4q C5q', dyn: 'cresc' }, { src: 'C5q B4q A4q G4q F4q E4q D4q C4q', dyn: 'dim' }, { src: 'C4q E4q G4q C5q E5q', dyn: 'cresc' }] },
+        ],
+      },
+      {
+        id: 'e3',
+        title: T('Legato, staccato', 'Legato, staccato'),
+        goal: T('Lier les notes, ou les détacher.', 'Join the notes, or detach them.'),
+        steps: [
+          { type: 'info', title: T('Lié ou piqué', 'Joined or detached'),
+            text: T('**Legato** (une courbe sur les notes) : les notes se suivent sans trou. Lève un doigt **au moment exact** où le suivant s’enfonce, comme si tu marchais.\n**Staccato** (un point sur la note) : la note est courte et rebondit. La main reste légère, le doigt quitte la touche aussitôt.\nPour cet exercice, **pas de pédale** : elle lierait tout.',
+              '**Legato** (a curve over the notes): the notes follow without a gap. Lift one finger **exactly as** the next goes down, as if you were walking.\n**Staccato** (a dot on the note): the note is short and bounces. The hand stays light, the finger leaves the key at once.\nFor this exercise, **no pedal**: it would join everything up.'),
+            listen: 'C4q D4q E4q F4q G4h' },
+          { type: 'touch', range: POS_C, bpm: 84,
+            prompt: T('Joue avec l’articulation indiquée.', 'Play with the marked articulation.'),
+            rounds: [{ src: 'C4q D4q E4q F4q G4h', art: 'legato' }, { src: 'G4q F4q E4q D4q C4q', art: 'staccato' }, { src: 'C4q E4q G4q E4q C4q', art: 'staccato' }, { src: 'E4q D4q C4q D4q E4h', art: 'legato' }] },
+        ],
+      },
+      {
+        id: 'e4',
+        title: T('La pédale', 'The pedal'),
+        goal: T('Lier des accords avec la pédale, sans les mélanger.', 'Join chords with the pedal without blurring them.'),
+        steps: [
+          { type: 'info', title: T('Le pied droit', 'The right foot'),
+            text: T('La **pédale de droite** (la sourdine) laisse sonner les notes même quand tu lèves les doigts. Le talon reste au sol, seul l’avant du pied bouge.\nSi tu la gardes enfoncée, les accords se mélangent. L’astuce, c’est la **pédale de retard** : joue l’accord, **puis** lève la pédale et renfonce-la juste après. Les doigts d’abord, le pied ensuite.\nPas de pédale branchée ? Ici, la **barre d’espace** fait office de pédale.',
+              'The **right pedal** (the sustain) lets notes ring even after you lift your fingers. The heel stays down, only the front of the foot moves.\nIf you keep it down, the chords blur together. The trick is the **legato pedal**: play the chord, **then** lift the pedal and press it again just after. Fingers first, foot second.\nNo pedal plugged in? Here, the **space bar** works as a pedal.'),
+            line: { src: 'C4+E4+G4h F4+A4+C5h | G4+B4+D5h C4+E4+G4h' }, listen: 'C4+E4+G4h F4+A4+C5h | G4+B4+D5h C4+E4+G4h', bpm: 60 },
+          { type: 'touch', range: { lo: 57, hi: 76 }, bpm: 60,
+            prompt: T('Accord, puis pédale. À chaque nouvel accord : lève et renfonce la pédale juste après.', 'Chord, then pedal. On each new chord: lift and press the pedal again just after.'),
+            rounds: [{ src: 'C4+E4+G4h F4+A4+C5h | G4+B4+D5h C4+E4+G4h', pedal: true }, { src: 'C4+E4+G4h A3+C4+E4h | F3+A3+C4h G3+B3+D4h', pedal: true }] },
+        ],
+      },
+    ],
+  },
+
+  // ═══ Unit 10 ══════════════════════════════════════════════════
+  {
+    id: 'u10',
+    title: T('Lire plus vite', 'Reading faster'),
+    blurb: T('Les grands intervalles, les lignes supplémentaires, le grand système, lire à vue.', 'Wide intervals, ledger lines, the grand staff, sight-reading.'),
+    lessons: [
+      {
+        id: 'l1',
+        title: T('Quarte, quinte, octave', 'Fourths, fifths, octaves'),
+        goal: T('Lire les grands écarts d’un coup d’œil.', 'Read wide gaps at a glance.'),
+        steps: [
+          { type: 'info', title: T('Compter les marches', 'Counting the steps'),
+            text: T('On compte un intervalle en comptant les notes, **la première comprise** : de [C] à [F], C-D-E-F, ça fait 4 : une **quarte**.\nSur la portée : la **quinte** va d’une ligne à la ligne d’après la suivante (ou interligne à interligne) ; la **quarte** d’une ligne à un interligne. L’**octave** saute de 7 notes : une ligne et un interligne, bien éloignés.\nSous les doigts, en position fixe : quinte = pouce et 5e doigt.',
+              'You count an interval by counting the notes, **including the first**: from [C] to [F], C-D-E-F, that is 4: a **fourth**.\nOn the staff: a **fifth** goes from a line to the line after next (or space to space); a **fourth** from a line to a space. An **octave** jumps 7 notes: a line and a space, far apart.\nUnder the fingers, in a fixed position: fifth = thumb and 5th finger.'),
+            line: { src: 'C4h F4h | C4h G4h | C4h A4h | C4h C5h' }, listen: 'C4h F4h | C4h G4h | C4h A4h | C4h C5h', bpm: 84 },
+          { type: 'quiz', rounds: [
+            { q: T('Cet intervalle est…', 'This interval is…'), line: { src: 'E4h A4h' }, options: [T('une tierce', 'a third'), T('une quarte', 'a fourth'), T('une quinte', 'a fifth')], answer: 1 },
+            { q: T('Et celui-ci ?', 'And this one?'), line: { src: 'D4h A4h' }, options: [T('une quarte', 'a fourth'), T('une quinte', 'a fifth'), T('une sixte', 'a sixth')], answer: 1 },
+            { q: T('Et celui-ci ?', 'And this one?'), line: { src: 'F4h F5h' }, options: [T('une sixte', 'a sixth'), T('une septième', 'a seventh'), T('une octave', 'an octave')], answer: 2 },
+            { q: T('Et celui-ci ?', 'And this one?'), line: { src: 'G4h E5h' }, options: [T('une quinte', 'a fifth'), T('une sixte', 'a sixth'), T('une octave', 'an octave')], answer: 1 },
+          ] },
+          { type: 'phrase', range: { lo: 57, hi: 79 }, listen: false, staff: true, hint: 'miss', bpm: 84,
+            prompt: T('Lis l’écart, pas le nom : « une quinte plus haut », « une quarte plus bas »…', 'Read the gap, not the name: “a fifth up”, “a fourth down”…'),
+            rounds: ['C4q G4q E4q C5q', 'G4q D4q G4q C5q', 'F4q C5q A4q F4q', 'E4q A4q D5q G4q', 'C5q G4q E4q C4h'] },
+        ],
+      },
+      {
+        id: 'l2',
+        title: T('Les lignes supplémentaires', 'Ledger lines'),
+        goal: T('Lire au-dessus et en dessous des portées.', 'Read above and below the staves.'),
+        steps: [
+          { type: 'info', title: T('Au-delà des cinq lignes', 'Beyond the five lines'),
+            text: T('Quand une note sort de la portée, on lui ajoute de petites **lignes supplémentaires**. Ne les compte pas une à une : retiens deux repères.\nEn clé de sol, **deux lignes au-dessus** : [C6]. En clé de fa, **deux lignes en dessous** : [C2]. Et la ligne du milieu, entre les deux clés, c’est toujours [C4].',
+              'When a note leaves the staff, it gets short extra **ledger lines**. Don’t count them one by one: remember two landmarks.\nIn the treble clef, **two lines above**: [C6]. In the bass clef, **two lines below**: [C2]. And the line in the middle, between the two clefs, is always [C4].'),
+            line: { src: 'G5q A5q B5q C6q' }, listen: 'G5q A5q B5q C6q', bpm: 84 },
+          { type: 'drill', count: 10, prompt: T('Les notes aiguës, au-dessus de la clé de sol.', 'The high notes, above the treble clef.'),
+            config: { kind: 'reading', reading: { lo: 76, hi: 86, clefs: ['treble'] }, hints: false } },
+          { type: 'drill', count: 10, prompt: T('Les notes graves, sous la clé de fa.', 'The low notes, below the bass clef.'),
+            config: { kind: 'reading', reading: { lo: 36, hi: 47, clefs: ['bass'] }, hints: false } },
+        ],
+      },
+      {
+        id: 'l3',
+        title: T('Le grand système', 'The grand staff'),
+        goal: T('Lire les deux portées en même temps.', 'Read both staves at once.'),
+        steps: [
+          { type: 'info', title: T('Deux portées, un piano', 'Two staves, one piano'),
+            text: T('Le piano se lit sur **deux portées** reliées par une accolade : la clé de sol en haut (souvent la main droite), la clé de fa en bas (souvent la gauche).\nEntre les deux, [C4] sert de pont : une ligne sous la clé de sol, une ligne au-dessus de la clé de fa. C’est la même touche.\nLis de bas en haut, comme un accord : la basse d’abord, puis ce qui est au-dessus.',
+              'Piano music is read on **two staves** joined by a brace: the treble clef on top (usually the right hand), the bass clef below (usually the left).\nBetween them, [C4] is the bridge: one line below the treble clef, one line above the bass clef. It is the same key.\nRead bottom to top, like a chord: the bass first, then what is above.') },
+          { type: 'drill', count: 12, prompt: T('Les deux clés mélangées, sur tout le clavier du milieu.', 'Both clefs mixed, across the middle of the keyboard.'),
+            config: { kind: 'reading', reading: { lo: 41, hi: 81, clefs: ['treble', 'bass'] }, hints: false } },
+          { type: 'drill', count: 6, prompt: T('Des accords, en clé de sol ou en clé de fa.', 'Chords, in the treble or bass clef.'),
+            config: { kind: 'reading', readMode: 'chord', reading: { lo: 41, hi: 79, clefs: ['treble', 'bass'] }, hints: false } },
+        ],
+      },
+      {
+        id: 'l4',
+        title: T('Lire à vue', 'Sight-reading'),
+        goal: T('Jouer du premier coup un passage jamais vu.', 'Play a passage you have never seen, first time.'),
+        steps: [
+          { type: 'info', title: T('Avant de jouer, regarde', 'Look before you play'),
+            text: T('Le déchiffrage, ça se prépare en 20 secondes :\n1. L’**armure** et la **mesure**.\n2. La **première note** de chaque main : place les mains.\n3. Le **rythme** : y a-t-il des croches, des notes pointées ?\n4. Le **chemin** : ça monte, ça descend, des sauts ?\nPuis joue **lentement et sans t’arrêter**. Une fausse note n’est pas grave ; s’arrêter, si.',
+              'Sight-reading takes 20 seconds of preparation:\n1. The **key signature** and the **time signature**.\n2. The **first note** of each hand: place your hands.\n3. The **rhythm**: any eighths, any dotted notes?\n4. The **path**: going up, down, any leaps?\nThen play **slowly and without stopping**. A wrong note doesn’t matter; stopping does.') },
+          { type: 'phrase', range: { lo: 57, hi: 76 }, listen: false, staff: true, hint: 'none', bpm: 84,
+            prompt: T('Sans aide cette fois. Regarde d’abord, joue ensuite.', 'No help this time. Look first, then play.'),
+            rounds: ['C4q E4q D4q F4q | E4q G4q C5h', 'G4q F4q E4q D4q | E4q C4q D4h', 'E4q E4q F4q D4q | C4q B3q C4h', 'A4q G4q F4q E4q | D4q G4q C4h'] },
+          { type: 'piece', title: T('À vue', 'At sight'), bpm: 72, right: SIGHT, left: SIGHT_L, staff: true, range: { lo: 43, hi: 72 }, mode: 'tempo',
+            text: T('Un morceau nouveau, directement en rythme. Baisse la vitesse à 75 % s’il le faut, mais ne t’arrête pas.', 'A new piece, straight in time. Drop the speed to 75 % if needed, but don’t stop.') },
         ],
       },
     ],

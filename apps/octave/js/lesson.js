@@ -1,23 +1,23 @@
 // Learn › Course: the course map, and the lesson player that runs each step
 // (see course.js for the step types). Progress lives in coach.js.
-import { h, icon, seg, toast } from './ui.js?v=202611124';
-import { S, save } from './store.js?v=202611124';
-import { t, spelled, lang, scaleName } from './i18n.js?v=202611124';
-import { subscribe, soundingNotes } from './notes.js?v=202611124';
-import { setOverride, setSide } from './keys.js?v=202611124';
-import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611124';
-import { mountFall } from './fall.js?v=202611124';
-import { spelledOctave } from './theory.js?v=202611124';
-import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611124';
+import { h, icon, seg, toast } from './ui.js?v=202611125';
+import { S, save } from './store.js?v=202611125';
+import { t, spelled, lang, scaleName } from './i18n.js?v=202611125';
+import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611125';
+import { setOverride, setSide } from './keys.js?v=202611125';
+import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611125';
+import { mountFall } from './fall.js?v=202611125';
+import { spelledOctave } from './theory.js?v=202611125';
+import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611125';
 import {
   openSongData, closeSong, playSong, pauseSong, isSongPlaying, seekSong, setSongPart, setSongSpeed, setSongFollow,
   onSongChange, onSongEnd, songTally, onSongTally, resetTally, songClock, currentSong, isWaitingForPlayer,
-} from './song.js?v=202611124';
-import * as E from './engine.js?v=202611124';
+} from './song.js?v=202611125';
+import * as E from './engine.js?v=202611125';
 import {
   P, PASS, LESSONS, COURSE, lessonById, starsOf, isOpen, nextLesson, recordLesson, saveCoach, resetCoach,
   parse, notesOf, lengthOf, pitch, setCoachGuide, demo, clicks, latency, isPlayer, median, audioOf,
-} from './coach.js?v=202611124';
+} from './coach.js?v=202611125';
 
 // ── text ───────────────────────────────────────────────────────
 const tx = v => (v && typeof v === 'object' ? v[lang()] ?? v.en : v ?? '');
@@ -477,6 +477,149 @@ function runRhythm(step, api) {
   show();
 }
 
+// ── touch: nuances, legato / staccato, the pedal ───────────────
+// A round is { src, dyn } (dyn: 'p', 'f', 'cresc', 'dim', or one per note),
+// { src, art } ('legato' | 'staccato') or { src, pedal: true } (change the
+// pedal after each chord). The notes must be right; the touch is scored.
+const DYN = { p: v => v <= 64, f: v => v >= 84, mf: v => v > 50 && v < 96 };
+function runTouch(step, api) {
+  const rounds = step.rounds.map(r => ({ ...r, items: parse(r.src) }));
+  api.keys(step.range);
+  const prompt = rich(step.prompt, 'div', 'rich step-prompt');
+  const mark = h('div', { class: 'touch-mark' });
+  const line = h('div', { class: 'step-line' });
+  const meter = h('div', { class: 'touch-meter' });
+  const fb = h('div', { class: 'step-feedback', 'aria-live': 'polite' });
+  const prog = h('div', { class: 'step-progress' });
+  const listenBtn = h('button', { type: 'button', class: 'btn ghost listen', onclick: () => listen() }, icon('start'), t('cListen'));
+  const againBtn = h('button', { type: 'button', class: 'btn ghost', hidden: true, onclick: () => startRound() }, icon('restart'), t('cAgain'));
+  const nextBtn = h('button', { type: 'button', class: 'btn', hidden: true, onclick: () => { i++; startRound(); } }, t('cNextRound'), icon('next'));
+  const pedalHint = h('small', { class: 'muted', hidden: true }, t('cPedalSpace'));
+  const card = h('div', { class: 'card step-card center' }, prog, prompt, mark, line, meter, fb, h('div', { class: 'row center-row' }, listenBtn, againBtn, nextBtn), pedalHint);
+  api.body.append(card);
+  const best = rounds.map(() => 0);
+  let i = 0, pos = 0, played = [], pedals = [], got = new Set(), busy = false, d = null, finished = false;
+  const R = () => rounds[i];
+  const notes = () => notesOf(R().items);
+  const dynOf = k => (Array.isArray(R().dyn) ? R().dyn[k] : R().dyn);
+  const label = r => r.pedal ? t('cTouchPedal') : r.art ? t(r.art === 'legato' ? 'cTouchLegato' : 'cTouchStaccato')
+    : Array.isArray(r.dyn) ? [...new Set(r.dyn)].join(' → ') : r.dyn === 'cresc' ? 'cresc. <' : r.dyn === 'dim' ? 'dim. >' : r.dyn;
+  const paint = (states = []) => {
+    prog.textContent = t('cRound', { n: i + 1, total: rounds.length });
+    mark.textContent = label(R());
+    drawLessonLine(line, { items: R().items, clef: step.clef, states: states.length ? states : notes().map((_, k) => (k < pos ? 'good' : k === pos ? 'now' : '')) });
+    meter.replaceChildren(...notes().map((n, k) => {
+      const p = played[k];
+      return h('span', { class: 'touch-bar' + (p?.ok === false ? ' bad' : p?.ok ? ' good' : '') }, h('i', { style: `height:${p ? Math.round(p.vel / 127 * 100) : 0}%` }));
+    }));
+    const target = notes()[pos];
+    setCoachGuide(!busy && target && step.hint !== false ? { midis: new Set(target.midis) } : null);
+  };
+  const velFor = k => {
+    const r = R(), n = notes().length, x = n > 1 ? k / (n - 1) : 0;
+    const dyn = dynOf(k);
+    return dyn === 'p' ? 45 : dyn === 'f' ? 108 : dyn === 'cresc' ? Math.round(40 + 75 * x) : dyn === 'dim' ? Math.round(115 - 75 * x) : 80;
+  };
+  const listen = async () => {
+    d?.cancel();
+    busy = true; paint();
+    d = demo(R().items, step.bpm || 84, { vel: velFor, gate: R().art === 'staccato' ? 0.35 : 1 });
+    await d;
+    busy = false;
+    if (card.isConnected) paint();
+  };
+  const startRound = () => {
+    pos = 0; played = []; pedals = []; got.clear();
+    card.dataset.feedback = ''; fb.textContent = '';
+    againBtn.hidden = true; nextBtn.hidden = true;
+    pedalHint.hidden = !R().pedal;
+    paint();
+  };
+  // a fallback pedal: the space bar, during pedal rounds
+  const keyDown = e => { if (e.code === 'Space' && R()?.pedal && !e.repeat) { e.preventDefault(); setPedal(true); } };
+  const keyUp = e => { if (e.code === 'Space' && R()?.pedal) { e.preventDefault(); setPedal(false); } };
+  addEventListener('keydown', keyDown);
+  addEventListener('keyup', keyUp);
+
+  const evaluate = () => {
+    const r = R(), n = notes().length;
+    const ok = [];
+    let msg = '';
+    if (r.dyn === 'cresc' || r.dyn === 'dim') {
+      const up = r.dyn === 'cresc' ? 1 : -1;
+      const span = (played[n - 1].vel - played[0].vel) * up;
+      for (let k = 0; k < n; k++) ok.push(k === 0 || (played[k].vel - played[k - 1].vel) * up >= -6);
+      if (span < 25) ok.fill(false, 0, Math.ceil(n / 2));
+      msg = t('cTouchSpan', { a: played[0].vel, b: played[n - 1].vel });
+    } else if (r.dyn) {
+      for (let k = 0; k < n; k++) ok.push(DYN[dynOf(k)](played[k].vel));
+      const avg = Math.round(played.reduce((s, p) => s + p.vel, 0) / n);
+      msg = Array.isArray(r.dyn) ? '' : t('cTouchAvg', { v: avg });
+    } else if (r.art === 'legato') {
+      for (let k = 0; k < n; k++) ok.push(k === n - 1 || (played[k].off ?? Infinity) >= played[k + 1].on - 60);
+      const gaps = played.slice(0, -1).map((p, k) => played[k + 1].on - (p.off ?? played[k + 1].on));
+      const worst = Math.max(0, ...gaps);
+      msg = worst > 60 ? t('cTouchGap', { ms: Math.round(worst) }) : t('cTouchLinked');
+    } else if (r.art === 'staccato') {
+      for (let k = 0; k < n; k++) ok.push(played[k].off != null && played[k].off - played[k].on <= 220);
+      const avg = played.filter(p => p.off != null).map(p => p.off - p.on);
+      msg = avg.length ? t('cTouchHeld', { ms: Math.round(median(avg)) }) : '';
+    } else if (r.pedal) {
+      for (let k = 0; k < n; k++) {
+        const on = played[k].on, nextOn = played[k + 1]?.on ?? on + 2500;
+        const down = pedals.find(p => p.down && p.t > on - 30 && p.t < Math.min(nextOn, on + 900));
+        const up = k === 0 ? true : pedals.some(p => !p.down && p.t > on - 400 && down && p.t <= down.t);
+        ok.push(!!down && up);
+      }
+      msg = pedals.length ? '' : t('cTouchNoPedal');
+    }
+    played.forEach((p, k) => (p.ok = ok[k]));
+    const score = ok.filter(Boolean).length / n;
+    best[i] = Math.max(best[i], score);
+    paint(ok.map(x => (x ? 'good' : 'bad')));
+    card.dataset.feedback = score >= 0.7 ? 'success' : 'miss';
+    fb.textContent = [t('cTouchScore', { pct: Math.round(score * 100) }), msg].filter(Boolean).join(' · ');
+    againBtn.hidden = false;
+    const last = i === rounds.length - 1;
+    if (best[i] >= 0.5) {
+      if (!last) nextBtn.hidden = false;
+      else if (!finished && best.every(b => b >= 0.5)) {
+        finished = true;
+        const mean = best.reduce((a, b) => a + b, 0) / best.length;
+        api.complete(mean >= 0.9 ? 3 : mean >= 0.7 ? 2 : 1);
+      }
+    }
+  };
+  let evalTimer = 0;
+  const un = subscribe(e => {
+    if (e.type === 'pedal') { pedals.push({ down: e.down, t: performance.now() }); return; }
+    if (!isPlayer(e) || busy) return;
+    if (e.type === 'off') {
+      const p = played.find(x => x.midis.includes(e.midi) && x.off == null);
+      if (p) p.off = e.time;
+      return;
+    }
+    if (e.type !== 'on' || pos >= notes().length) return;
+    const target = notes()[pos];
+    if (!target.midis.includes(e.midi)) { card.dataset.feedback = 'miss'; fb.textContent = t('drillNotThisNote', { note: pcName(e.midi % 12) }); return; }
+    got.add(e.midi);
+    if (!played[pos]) played[pos] = { on: e.time, vel: e.velocity, midis: target.midis, n: 1 };
+    else { played[pos].vel = Math.round((played[pos].vel * played[pos].n + e.velocity) / (played[pos].n + 1)); played[pos].n++; }
+    if (!target.midis.every(m => got.has(m))) return;
+    got.clear();
+    pos++;
+    card.dataset.feedback = ''; fb.textContent = '';
+    paint();
+    if (pos >= notes().length) {
+      // wait for the last note to be released (or a moment, with the pedal)
+      clearTimeout(evalTimer);
+      evalTimer = setTimeout(() => card.isConnected && evaluate(), R().pedal ? 1600 : 900);
+    }
+  });
+  api.onCleanup(() => { un(); d?.cancel(); clearTimeout(evalTimer); removeEventListener('keydown', keyDown); removeEventListener('keyup', keyUp); setPedal(false); });
+  startRound();
+}
+
 // ── drill (the Exercises engine) ───────────────────────────────
 function runDrill(step, api) {
   setPracticeConfig({ roots: 'naturals', hints: false, ...step.config });
@@ -712,4 +855,4 @@ function runCalibrate(step, api) {
 }
 function T(fr, en) { return { fr, en }; }
 
-const RUNNERS = { info: runInfo, find: runFind, quiz: runQuiz, phrase: runPhrase, rhythm: runRhythm, drill: runDrill, piece: runPiece, calibrate: runCalibrate };
+const RUNNERS = { touch: runTouch, info: runInfo, find: runFind, quiz: runQuiz, phrase: runPhrase, rhythm: runRhythm, drill: runDrill, piece: runPiece, calibrate: runCalibrate };
