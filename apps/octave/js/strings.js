@@ -71,7 +71,7 @@ export const STRINGS = {
     cFollowDone: 'Fini : {pct} % de notes justes.', cFollowNext: 'Passe « En rythme » pour la 3e étoile.', cFollowMore: 'Vise 90 % pour la 2e étoile.',
     cTempoDone: 'Fini : {pct} % des notes à temps', cTempoFaster: 'Maintenant à 100 % pour la 3e étoile.', cTempoMore: 'Ralentis le tempo ou repasse en pas à pas.',
     cCalibTitle: 'Réglage du rythme', cCalibFew: 'Pas assez de notes sur les clics : recommence.', cCalibDone: 'Retard mesuré : {ms} ms. Octave en tiendra compte.',
-    examples: 'Pour commencer', yourSongs: 'Tes morceaux', noSongs: 'Importe un fichier MIDI : il restera ici, sur cet appareil.',
+    examples: 'Pour commencer', fromCourse: 'Morceaux du cours', courseUnit: 'Cours · unité {n}', yourSongs: 'Tes morceaux', noSongs: 'Importe un fichier MIDI : il restera ici, sur cet appareil.',
     importMidi: 'Importer un fichier MIDI', importMidiHint: 'Touche ici ou glisse un .mid. Rien ne quitte l’appareil.', traditional: 'Traditionnel',
     songRemoved: 'Morceau retiré', songError: 'Ce fichier ne se lit pas comme un MIDI',
     library: 'Bibliothèque', restart: 'Recommencer', position: 'Position',
@@ -89,7 +89,7 @@ export const STRINGS = {
 
     // Settings
     general: 'Général', language: 'Langue', theme: 'Thème', auto: 'Auto', light: 'Clair', dark: 'Sombre', noteNames: 'Notes',
-    colors: 'Couleurs', colParts: 'Par son / main', colRainbow: 'Arc-en-ciel', colOctave: 'Par note',
+    colors: 'Couleurs', colParts: 'Son / main', colRainbow: 'Arc-en-ciel', colOctave: 'Note',
     showScope: 'Oscilloscope derrière les notes', showChords: 'Nom des accords',
     screenKeys: 'Clavier à l’écran', dock: 'Affichage', dockFull: 'Jouable', dockMini: 'Bande fine', keySize: 'Touches',
     labels: 'Étiquettes', labelsC: 'Les Do', labelsAll: 'Toutes', range: 'Plage', rangeFree: 'Libre',
@@ -184,7 +184,7 @@ export const STRINGS = {
     cFollowDone: 'Done: {pct} % right notes.', cFollowNext: 'Switch to “In time” for the 3rd star.', cFollowMore: 'Aim for 90 % for the 2nd star.',
     cTempoDone: 'Done: {pct} % of notes on time', cTempoFaster: 'Now at 100 % for the 3rd star.', cTempoMore: 'Slow the tempo down or go back to step by step.',
     cCalibTitle: 'Timing set-up', cCalibFew: 'Not enough notes on the clicks: try again.', cCalibDone: 'Measured delay: {ms} ms. Octave will allow for it.',
-    examples: 'To start with', yourSongs: 'Your songs', noSongs: 'Import a MIDI file: it stays here, on this device.',
+    examples: 'To start with', fromCourse: 'Pieces from the course', courseUnit: 'Course · unit {n}', yourSongs: 'Your songs', noSongs: 'Import a MIDI file: it stays here, on this device.',
     importMidi: 'Import a MIDI file', importMidiHint: 'Tap here or drop a .mid. Nothing leaves the device.', traditional: 'Traditional',
     songRemoved: 'Song removed', songError: 'This file does not read as MIDI',
     library: 'Library', restart: 'Start over', position: 'Position',
@@ -201,7 +201,7 @@ export const STRINGS = {
     drillStats: 'Done: {done} · Streak: {streak}', drillStart: 'Here we go.',
 
     general: 'General', language: 'Language', theme: 'Theme', auto: 'Auto', light: 'Light', dark: 'Dark', noteNames: 'Notes',
-    colors: 'Colours', colParts: 'By sound / hand', colRainbow: 'Rainbow', colOctave: 'By note',
+    colors: 'Colours', colParts: 'Sound / hand', colRainbow: 'Rainbow', colOctave: 'Note',
     showScope: 'Oscilloscope behind the notes', showChords: 'Chord names',
     screenKeys: 'On-screen keys', dock: 'Display', dockFull: 'Playable', dockMini: 'Thin strip', keySize: 'Keys',
     labels: 'Labels', labelsC: 'The Cs', labelsAll: 'All', range: 'Range', rangeFree: 'Free',

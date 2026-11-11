@@ -8,7 +8,7 @@
 // other. The song then waits on each chord of their part until its notes are
 // played, and marks them on the keys (and the LED strip) in the meantime.
 
-import { subscribe, press, liftSource, setPedal } from "./notes.js?v=202611115";
+import { subscribe, press, liftSource, setPedal } from "./notes.js?v=202611116";
 
 const SOURCE = "song";
 const TICK_MS = 10;          // playback clock
@@ -261,7 +261,7 @@ export async function openSongFile(file, meta = {}) {
 }
 
 // A song written in the lessons: notes as { midi, start, end (beats), hand }
-export function openSongData({ title, bpm = 90, timeSignature = [4, 4], notes: list }) {
+export function openSongData({ title, bpm = 90, timeSignature = [4, 4], notes: list, lesson = true }) {
     const ppq = 480;
     const tracks = { right: 0, left: 1 };
     const file = {
@@ -279,7 +279,7 @@ export function openSongData({ title, bpm = 90, timeSignature = [4, 4], notes: l
     };
     next.lo = Math.min(...next.notes.map(n => n.midi));
     next.hi = Math.max(...next.notes.map(n => n.midi));
-    next.lesson = true;
+    next.lesson = lesson;
     closeSong();
     song = next;
     positionMs = 0; noteIndex = 0; pedalIndex = 0;

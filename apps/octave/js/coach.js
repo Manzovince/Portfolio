@@ -1,11 +1,29 @@
 // Coach: the course's progress, the tiny music notation the lessons are written
 // in, the keys a lesson lights, and the clock helpers (demo playback, clicks,
 // latency calibration) shared by the lesson steps.
-import { press, lift } from './notes.js?v=202611115';
-import * as E from './engine.js?v=202611115';
-import { COURSE } from './course.js?v=202611115';
+import { press, lift } from './notes.js?v=202611116';
+import * as E from './engine.js?v=202611116';
+import { COURSE } from './course.js?v=202611116';
 export { COURSE };
-import { defaultSpelling } from './theory.js?v=202611115';
+import { defaultSpelling } from './theory.js?v=202611116';
+
+// Every piece of the course (once each), for the Songs library
+export const COURSE_PIECES = (() => {
+  const seen = new Set();
+  const out = [];
+  COURSE.forEach((u, ui) => u.lessons.forEach(l => l.steps.forEach(s => {
+    if (s.type !== 'piece') return;
+    const key = (s.right || '') + '|' + (s.left || '');
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ id: 'course-' + l.id, title: s.title, unit: ui + 1, bpm: s.bpm, right: s.right, left: s.left });
+  })));
+  return out;
+})();
+export function pieceNotes(p) {
+  const voice = (src, hand) => (src ? notesOf(parse(src)).flatMap(it => it.midis.map(midi => ({ midi, start: it.start, end: it.start + it.beats - 0.06, hand }))) : []);
+  return [...voice(p.right, 'right'), ...voice(p.left, 'left')];
+}
 
 // ── progress (localStorage, every access wrapped) ──────────────
 const KEY = 'octave.coach.v1';
