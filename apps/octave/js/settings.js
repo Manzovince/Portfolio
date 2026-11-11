@@ -1,12 +1,12 @@
 // Settings sheet and theme.
-import { h, param, seg, toggle, toast, icon } from './ui.js?v=202611129';
-import { S, save, emit, resetAll } from './store.js?v=202611129';
-import * as E from './engine.js?v=202611129';
-import { allOff } from './perform.js?v=202611129';
-import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611129';
-import { t, noteLabel, setLang } from './i18n.js?v=202611129';
-import { keyHint } from './keys.js?v=202611129';
-import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES, lumiBattery, onLumiBattery, lumiSysexLog, requestLumiBattery, lumiBatteryAsked } from './lumi.js?v=202611129';
+import { h, param, seg, toggle, toast, icon } from './ui.js?v=202611130';
+import { S, save, emit, resetAll } from './store.js?v=202611130';
+import * as E from './engine.js?v=202611130';
+import { allOff } from './perform.js?v=202611130';
+import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611130';
+import { t, noteLabel, setLang } from './i18n.js?v=202611130';
+import { keyHint } from './keys.js?v=202611130';
+import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES, lumiBattery, onLumiBattery, lumiSysexLog, requestLumiBattery, lumiBatteryAsked } from './lumi.js?v=202611130';
 
 // 'auto' follows the device; 'light' / 'dark' force it
 export function applyTheme() {

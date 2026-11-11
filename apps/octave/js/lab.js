@@ -1,13 +1,13 @@
 // The sound-design workshop: while a "Créer des sons" lesson is open, part A
 // plays a workshop patch instead of the player's own sound. Nothing of it is
 // saved over the player's settings; "keep" stores it in Mes sons.
-import { h, param } from './ui.js?v=202611129';
-import { S, banks, saveBanks, save, setSaveView } from './store.js?v=202611129';
-import { clonePatch } from './dx7.js?v=202611129';
-import { applyPart, setLabSound } from './perform.js?v=202611129';
-import { subscribe } from './notes.js?v=202611129';
-import * as E from './engine.js?v=202611129';
-import { t } from './i18n.js?v=202611129';
+import { h, param, seg } from './ui.js?v=202611130';
+import { S, banks, saveBanks, save, setSaveView } from './store.js?v=202611130';
+import { clonePatch } from './dx7.js?v=202611130';
+import { applyPart, setLabSound } from './perform.js?v=202611130';
+import { subscribe } from './notes.js?v=202611130';
+import * as E from './engine.js?v=202611130';
+import { t } from './i18n.js?v=202611130';
 
 let active = null; // { orig, split, arp, patch }
 const macros = () => ({ bright: 0, attack: 0, release: 0, vibrato: 0 });
@@ -15,16 +15,35 @@ const macros = () => ({ bright: 0, attack: 0, release: 0, vibrato: 0 });
 export const labOn = () => !!active;
 export const labPatch = () => active?.patch;
 
-export function startLab(patch) {
+// The workshop's effects start neutral: a little reverb, nothing else
+const neutralFx = master => ({
+  filter: { pos: 0, res: 0.2 },
+  chorus: { on: false, rate: 0.6, depth: 0.4, mix: 0.35 },
+  delay: { on: false, beats: 0.75, fb: 0.35, mix: 0.25, tone: 0.6 },
+  reverb: { on: true, size: 0.4, tone: 0.6, mix: 0.12 },
+  master,
+});
+const clone = o => JSON.parse(JSON.stringify(o));
+
+export function startLab(patch, fx = null) {
   if (!active) {
-    active = { orig: S.parts[0], split: S.split.on, arp: S.arp.on };
+    active = { orig: S.parts[0], split: S.split.on, arp: S.arp.on, fx: clone(S.fx) };
     // what is saved meanwhile is the player's own setup, not the workshop
-    setSaveView(s => ({ ...s, parts: [active.orig, s.parts[1]], split: { ...s.split, on: active.split }, arp: { ...s.arp, on: active.arp } }));
+    setSaveView(s => ({ ...s, parts: [active.orig, s.parts[1]], split: { ...s.split, on: active.split }, arp: { ...s.arp, on: active.arp }, fx: active.fx }));
     S.split.on = false;
     S.arp.on = false;
+    S.fx = fx ? clone(fx) : neutralFx(active.fx.master);
+    E.setFx(S.fx, S.tempo);
     setLabSound(true);
   }
   setLabPatch(patch);
+}
+export const labFx = () => (active ? clone(S.fx) : null);
+// Merge some effect settings into the workshop's ({ reverb: { on: true } })
+export function setLabFx(part) {
+  if (!active) return;
+  for (const [k, v] of Object.entries(part)) S.fx[k] = typeof v === 'object' ? { ...S.fx[k], ...v } : v;
+  E.setFx(S.fx, S.tempo);
 }
 
 export function setLabPatch(patch) {
@@ -38,7 +57,7 @@ let pending = false;
 export function labChanged() {
   if (!active || pending) return;
   pending = true;
-  requestAnimationFrame(() => { pending = false; if (active) E.setPatch(0, active.patch); });
+  requestAnimationFrame(() => { pending = false; if (active) { E.setPatch(0, active.patch); E.setFx(S.fx, S.tempo); } });
 }
 
 export function endLab() {
@@ -46,6 +65,8 @@ export function endLab() {
   S.parts[0] = active.orig;
   S.split.on = active.split;
   S.arp.on = active.arp;
+  S.fx = active.fx;
+  E.setFx(S.fx, S.tempo);
   setSaveView(null);
   setLabSound(false);
   active = null;
@@ -74,15 +95,18 @@ export async function playWith(patch, run) {
 }
 
 // ── controls ───────────────────────────────────────────────────
-// A control is { key, label, min?, max?, invert?, fmt? }. key is a path in the
-// patch: "fb", "alg", "op2.ol", "op1.r.0", or several joined by "&" that move
-// together ("op1.r.1&op1.r.2").
-const LIMITS = { ol: 99, coarse: 31, fine: 99, det: 14, vel: 7, rs: 7, ams: 3, fb: 7, alg: 32, r: 99, l: 99, pmd: 99, amd: 99, speed: 99 };
+// A control is { key, label, min?, max?, invert?, scale?, offset?, options? }.
+// key is a path: "fb", "alg", "op2.ol", "op1.r.0", "lfo.pmd", "pitchEnv.l.3",
+// "fx.reverb.mix" (the workshop's effects), or several joined by "&" that
+// move together ("op1.r.1&op1.r.2"). Shown values: inverted ones read as a
+// duration, `scale` and `offset` map the stored value to the shown one.
+const LIMITS = { ol: 99, coarse: 31, fine: 99, det: 14, vel: 7, rs: 7, ams: 3, fb: 7, alg: 32, r: 99, l: 99, pmd: 99, amd: 99, speed: 99, delay: 99, pms: 7, rd: 99, ld: 99, bp: 99 };
 function access(p, path) {
   const parts = path.split('.');
   let obj = p, i = 0;
   if (/^op\d$/.test(parts[0])) { obj = p.ops[+parts[0][2] - 1]; i = 1; }
-  else if (parts[0] === 'lfo') { obj = p.lfo; i = 1; }
+  else if (parts[0] === 'lfo' || parts[0] === 'pitchEnv') { obj = p[parts[0]]; i = 1; }
+  else if (parts[0] === 'fx') { obj = S.fx; i = 1; }
   const keys = parts.slice(i);
   const last = keys.pop();
   for (const k of keys) obj = obj[k];
@@ -90,21 +114,26 @@ function access(p, path) {
 }
 export function readKey(p, key) { return access(p, key.split('&')[0]).get(); }
 export function writeKey(p, key, v) { for (const k of key.split('&')) access(p, k).set(v); }
-export const keyMax = key => LIMITS[access({ ops: [{}, {}, {}, {}, {}, {}], lfo: {} }, key.split('&')[0]).name] ?? 99;
+const nameOf = key => { const parts = key.split('&')[0].split('.'); return /^\d$/.test(parts[parts.length - 1]) ? parts[parts.length - 2] : parts[parts.length - 1]; };
+export const keyMax = key => LIMITS[nameOf(key)] ?? 99;
+const offsetOf = c => c.offset ?? (c.key.endsWith('.det') ? 7 : 0);
 
-// The display value of a control (inverted ones read as a duration)
-export const shown = (c, raw) => (c.invert ? keyMax(c.key) - raw : c.key.endsWith('.det') ? raw - 7 : raw);
-const rawOf = (c, v) => (c.invert ? keyMax(c.key) - v : c.key.endsWith('.det') ? v + 7 : v);
+export const shown = (c, raw) => (c.invert ? keyMax(c.key) - raw : Math.round((raw - offsetOf(c)) * (c.scale ?? 1)));
+const rawOf = (c, v) => (c.invert ? keyMax(c.key) - v : v / (c.scale ?? 1) + offsetOf(c));
 
 export function controlEl(c, getPatch, onChange) {
-  const max = keyMax(c.key);
-  const lo = c.min ?? (c.key.endsWith('.det') ? -7 : 0);
-  const hi = c.max ?? (c.key.endsWith('.det') ? 7 : max);
+  if (c.options) {
+    return h('div', { class: 'lab-choice' }, h('span', { class: 'lab' }, c.label),
+      seg({ options: c.options.map(([v, l]) => [v, l]), get: () => readKey(getPatch(), c.key), set: v => { writeKey(getPatch(), c.key, v); onChange(); } }));
+  }
+  const bi = c.key.endsWith('.det') || c.bipolar;
+  const lo = c.min ?? (bi ? -7 : 0);
+  const hi = c.max ?? (bi ? 7 : keyMax(c.key));
   return param({
-    label: c.label, min: lo, max: hi, bipolar: c.key.endsWith('.det'),
+    label: c.label, min: lo, max: hi, bipolar: bi,
     get: () => shown(c, readKey(getPatch(), c.key)),
     set: v => { writeKey(getPatch(), c.key, rawOf(c, v)); onChange(); },
-    fmt: c.fmt || (c.key.endsWith('.coarse') ? v => '×' + (v === 0 ? '0.5' : v) : c.key.endsWith('.det') ? v => (v > 0 ? '+' : '') + v : v => v),
+    fmt: c.fmt || (c.key.endsWith('.coarse') ? v => '×' + (v === 0 ? '0.5' : v) : bi ? v => (v > 0 ? '+' : '') + v : v => v),
   });
 }
 

@@ -9,7 +9,9 @@
 //          changes the sound when the step opens, `patch` replaces it.
 //   match  copy a target sound: the same controls, a target to listen to
 //   quiz   with `sounds: [a, b]`, the question is heard (A then B)
-import { initPatch, initOp } from './dx7.js?v=202611129';
+import { initPatch, initOp } from './dx7.js?v=202611130';
+import { S } from './store.js?v=202611130';
+const S_FX = () => S.fx; // the workshop's effects, during a lesson
 
 const T = (fr, en) => ({ fr, en });
 
@@ -44,6 +46,16 @@ const MDEC = C('op2.r.1&op2.r.2', T('Déclin de la modulation', 'Modulation deca
 const MSUS = C('op2.l.1&op2.l.2', T('Maintien de la modulation', 'Modulation sustain'));
 // read a control the way it is shown (durations for inverted ones)
 const att = p => 99 - p.ops[0].r[0], dec = p => 99 - p.ops[0].r[1], sus = p => p.ops[0].l[2], rel = p => 99 - p.ops[0].r[3];
+
+// units 4–6
+const PLUCKY = () => { const p = FM(80); p.ops[0].r = [99, 55, 55, 66]; p.ops[0].l = [99, 0, 0, 0]; p.ops[1].r = [99, 60, 60, 70]; p.ops[1].l = [99, 40, 40, 0]; return p; };
+const STACK = alg => sound('Algorithme', alg, [{ ol: 99 }, { ol: 82, coarse: 2 }, { ol: 78, coarse: 3 }]);
+const ORGAN = () => sound('Mon orgue', 32, [{ ol: 0, coarse: 0 }, { ol: 99, coarse: 1 }, { ol: 0, coarse: 2 }, { ol: 0, coarse: 3 }, { ol: 0, coarse: 4 }, { ol: 0, coarse: 8 }]);
+const UNISON = () => sound('Unisson', 32, [{ ol: 96 }, { ol: 0 }, { ol: 0 }], 0);
+const VIBRATO = () => { const p = FM(60); Object.assign(p.lfo, { wave: 4, speed: 35, delay: 0, pmd: 0, amd: 0, pms: 3, sync: 0 }); return p; };
+const BRIGHT = () => FM(94, 1, 3);
+const PAD = () => { const p = sound('Ma nappe', 32, [{ ol: 95, r: [60, 99, 99, 50], l: [99, 99, 99, 0] }, { ol: 92, r: [60, 99, 99, 50], l: [99, 99, 99, 0] }]); Object.assign(p.lfo, { wave: 4, speed: 30, delay: 30, pmd: 0, amd: 0, pms: 3, sync: 0 }); return p; };
+const vMax = (touch) => touch.max - touch.min;
 
 export const SOUND_COURSE = [
   // ═══ Unit 1 ═══════════════════════════════════════════════════
@@ -278,6 +290,225 @@ export const SOUND_COURSE = [
           { type: 'match', views: ['spectrum', 'scope'], controls: [RATIO, MOD], tol: 12, play: 'C4w',
             text: T('Retrouve le rapport et la modulation de la cible.', 'Find the target’s ratio and modulation.'),
             target: p => { p.ops[1].coarse = 2; p.ops[1].ol = 84; } },
+        ],
+      },
+    ],
+  },
+
+  // ═══ Unit 4 ═══════════════════════════════════════════════════
+  {
+    id: 'su4',
+    title: T('Le son qui évolue', 'A sound that changes'),
+    blurb: T('Le toucher, les graves et les aigus, la hauteur qui glisse.', 'Touch, low and high notes, sliding pitch.'),
+    lessons: [
+      {
+        id: 'q1',
+        title: T('La vélocité', 'Velocity'),
+        goal: T('Faire réagir le son à la force du jeu.', 'Make the sound respond to how hard you play.'),
+        lab: () => FM(85), keep: 'Toucher',
+        steps: [
+          { type: 'info', title: T('Jouer fort, c’est plus brillant', 'Playing hard is brighter'),
+            text: T('Sur un vrai piano, une note jouée fort n’est pas seulement plus forte : elle est aussi **plus brillante**.\nChaque opérateur a une **sensibilité au toucher**, de 0 à 7. Sur la porteuse, elle règle le volume selon ta force. Sur le modulateur, elle règle la **brillance**.\nSur le clavier à l’écran, appuie plus bas sur la touche pour jouer fort.',
+              'On a real piano, a note played hard isn’t only louder: it is also **brighter**.\nEach operator has a **velocity sensitivity**, from 0 to 7. On the carrier it sets the volume from your force. On the modulator it sets the **brightness**.\nOn the on-screen keyboard, press lower on the key to play hard.') },
+          { type: 'synth', views: ['spectrum'], controls: [C('op2.vel', T('Toucher de la brillance', 'Brightness touch')), C('op1.vel', T('Toucher du volume', 'Volume touch'))], play: 'C4q E4q G4h',
+            goals: [
+              { text: T('Monte le toucher de la brillance à 5 ou plus, puis joue très doucement et très fort : le spectre s’allume quand tu tapes.', 'Raise brightness touch to 5 or more, then play very softly and very hard: the spectrum lights up when you hit hard.'), check: (p, played, seen, touch) => p.ops[1].vel >= 5 && vMax(touch) >= 40 },
+              { text: T('Ajoute le toucher du volume à 3 ou plus : les nuances reviennent.', 'Add volume touch at 3 or more: dynamics come back.'), check: p => p.ops[0].vel >= 3 },
+            ] },
+        ],
+      },
+      {
+        id: 'q2',
+        title: T('Graves et aigus', 'Low and high notes'),
+        goal: T('Adapter le son à la hauteur jouée.', 'Fit the sound to the pitch played.'),
+        lab: PLUCKY, keep: 'Clavier',
+        steps: [
+          { type: 'info', title: T('Comme un vrai instrument', 'Like a real instrument'),
+            text: T('Sur un piano, les notes aiguës sont **plus courtes** et **moins brillantes** que les graves. Sans ça, un son de synthé devient vite criard en haut du clavier.\nDeux réglages s’en chargent : l’**échelle de vitesse** raccourcit l’enveloppe dans les aigus, et l’**échelle de niveau** baisse un opérateur d’un côté du clavier.',
+              'On a piano, high notes are **shorter** and **less bright** than low ones. Without that, a synth sound soon gets shrill at the top of the keyboard.\nTwo controls handle it: **rate scaling** shortens the envelope in the high notes, and **level scaling** lowers an operator on one side of the keyboard.') },
+          { type: 'synth', views: ['spectrum'], range: { lo: 36, hi: 96 }, controls: [C('op2.rd', T('Moins de brillance dans les aigus', 'Less brightness up high')), C('op1.rs', T('Aigus plus courts', 'Shorter high notes'))], play: 'C2q C3q C4q C5q C6h',
+            goals: [
+              { text: T('Joue une note tout en bas puis une tout en haut : écoute comme l’aigu crie.', 'Play a note at the very bottom then one at the very top: hear how shrill the top is.'), check: (p, played) => played.size > 1 && Math.min(...played) <= 48 && Math.max(...played) >= 84 },
+              { text: T('Monte « moins de brillance dans les aigus » à 50 ou plus et rejoue en haut.', 'Raise “less brightness up high” to 50 or more and play up high again.'), check: p => p.ops[1].rd >= 50 },
+              { text: T('Monte « aigus plus courts » à 4 ou plus : les notes hautes s’éteignent plus vite.', 'Raise “shorter high notes” to 4 or more: high notes die away faster.'), check: p => p.ops[0].rs >= 4 },
+            ] },
+        ],
+      },
+      {
+        id: 'q3',
+        title: T('La hauteur qui glisse', 'Sliding pitch'),
+        goal: T('Faire partir la note d’ailleurs : percussions et effets.', 'Start the note from elsewhere: drums and effects.'),
+        lab: () => { const p = PLUCKY(); p.ops[1].ol = 60; return p; }, keep: 'Glissé',
+        steps: [
+          { type: 'synth', views: ['scope'], controls: [C('pitchEnv.l.3', T('Hauteur au départ', 'Starting pitch'), { offset: 50, bipolar: true, min: -40, max: 40 }), C('pitchEnv.r.0', T('Durée du glissé', 'Slide length'), { invert: true })], play: 'C3q C3q G2h',
+            text: T('L’**enveloppe de hauteur** fait partir la note plus haut ou plus bas, puis la ramène à sa vraie hauteur. Rapide, ça donne le « tchac » d’un tom ; lente, une sirène.', 'The **pitch envelope** starts the note higher or lower, then brings it back to its real pitch. Fast, it gives a tom’s “thump”; slow, a siren.'),
+            goals: [
+              { text: T('Fais partir la note bien plus haut, avec un glissé court : un tom électronique.', 'Start the note well above, with a short slide: an electronic tom.'), check: p => p.pitchEnv.l[3] - 50 >= 15 && 99 - p.pitchEnv.r[0] <= 30 },
+              { text: T('Allonge le glissé : la note descend lentement, comme un laser.', 'Lengthen the slide: the note sweeps down slowly, like a laser.'), check: p => p.pitchEnv.l[3] - 50 >= 15 && 99 - p.pitchEnv.r[0] >= 50 },
+            ] },
+        ],
+      },
+      {
+        id: 'q4',
+        title: T('Défi : un cuivre expressif', 'Challenge: expressive brass'),
+        goal: T('Une brillance qui s’ouvre, et qui suit ta force.', 'Brightness that opens up, and follows your force.'),
+        lab: () => FM(80), keep: 'Mon cuivre',
+        steps: [
+          { type: 'synth', views: ['spectrum'], env: 1, controls: [MOD, MATT, MSUS, C('op2.vel', T('Toucher de la brillance', 'Brightness touch'))], play: 'C4h G4h',
+            text: T('Un cuivre s’ouvre au début de la note, et sonne plus fort et plus brillant quand on souffle fort.', 'Brass opens up at the start of the note, and sounds louder and brighter when you blow hard.'),
+            goals: [{ text: T('Modulation forte, attaque de la modulation un peu lente, maintien haut, toucher à 4 ou plus.', 'Strong modulation, slightly slow modulation attack, high sustain, touch at 4 or more.'), check: p => p.ops[1].ol >= 75 && 99 - p.ops[1].r[0] >= 30 && p.ops[1].l[2] >= 75 && p.ops[1].vel >= 4 }] },
+        ],
+      },
+    ],
+  },
+
+  // ═══ Unit 5 ═══════════════════════════════════════════════════
+  {
+    id: 'su5',
+    title: T('Les algorithmes', 'Algorithms'),
+    blurb: T('Comment brancher les six opérateurs : empiler, additionner, désaccorder.', 'How the six operators are wired: stacking, adding, detuning.'),
+    lessons: [
+      {
+        id: 'n1',
+        title: T('Empiler ou côte à côte', 'Stacked or side by side'),
+        goal: T('Entendre ce que change le branchement.', 'Hear what the wiring changes.'),
+        lab: () => STACK(32), keep: 'Algorithme',
+        steps: [
+          { type: 'info', title: T('Le schéma', 'The diagram'),
+            text: T('Un **algorithme**, c’est la façon dont les six opérateurs sont branchés. Le synthé en connaît 32 : c’est le schéma en haut de l’écran Éditer.\n**Côte à côte**, les opérateurs sont tous des porteuses : leurs sinusoïdes s’additionnent, comme les tirettes d’un orgue.\n**Empilés**, chacun module le suivant : le son devient très riche, très vite.',
+              'An **algorithm** is the way the six operators are wired. The synth knows 32 of them: the diagram at the top of the Edit screen.\n**Side by side**, every operator is a carrier: their sine waves add up, like an organ’s drawbars.\n**Stacked**, each one modulates the next: the sound gets very rich, very fast.') },
+          { type: 'synth', graph: true, views: ['spectrum'], controls: [C('alg', T('Branchement', 'Wiring'), { options: [[32, T('Côte à côte', 'Side by side')], [5, T('Une paire', 'One pair')], [3, T('Empilés', 'Stacked')]] })], play: 'C4w',
+            text: T('Les trois mêmes opérateurs (rapports 1, 2 et 3), trois branchements.', 'The same three operators (ratios 1, 2 and 3), three wirings.'),
+            goals: [
+              { text: T('« Empilés » : 3 module 2, qui module 1. Écoute la richesse.', '“Stacked”: 3 modulates 2, which modulates 1. Hear the richness.'), check: p => p.alg === 3 },
+              { text: T('« Une paire » : 2 module 1, et 3 s’ajoute à côté.', '“One pair”: 2 modulates 1, and 3 is added alongside.'), check: p => p.alg === 5 },
+              { text: T('Retour à « Côte à côte » : trois sinusoïdes, un son d’orgue.', 'Back to “Side by side”: three sine waves, an organ sound.'), check: p => p.alg === 32 },
+            ] },
+        ],
+      },
+      {
+        id: 'n2',
+        title: T('L’orgue à tirettes', 'The drawbar organ'),
+        goal: T('Six porteuses côte à côte, réglées comme un orgue.', 'Six carriers side by side, set like an organ.'),
+        lab: ORGAN, keep: 'Mon orgue',
+        steps: [
+          { type: 'synth', graph: true, views: ['spectrum'], controls: [C('op1.ol', T('16′ (octave en dessous)', '16′ (octave below)')), C('op2.ol', T('8′ (la note)', '8′ (the note)')), C('op3.ol', T('4′ (octave)', '4′ (octave)')), C('op4.ol', T('2⅔′ (quinte)', '2⅔′ (fifth)')), C('op5.ol', T('2′ (2 octaves)', '2′ (2 octaves)')), C('op6.ol', T('1′ (3 octaves)', '1′ (3 octaves)'))], play: 'C4+E4+G4w',
+            text: T('Un orgue à tirettes mélange des tuyaux accordés sur la note, ses octaves et sa quinte. Les noms (16′, 8′…) sont la longueur des tuyaux, en pieds.', 'A drawbar organ mixes pipes tuned to the note, its octaves and its fifth. The names (16′, 8′…) are the pipe lengths, in feet.'),
+            goals: [
+              { text: T('Le son « jazz » : 16′, 8′ et 2⅔′ à fond, le reste à zéro.', 'The “jazz” sound: 16′, 8′ and 2⅔′ full, the rest at zero.'), check: p => [0, 1, 3].every(i => p.ops[i].ol >= 90) && [2, 4, 5].every(i => p.ops[i].ol <= 10) },
+              { text: T('Le « plein jeu » : toutes les tirettes à 85 ou plus.', 'The “full organ”: every drawbar at 85 or more.'), check: p => p.ops.every(o => o.ol >= 85) },
+            ] },
+        ],
+      },
+      {
+        id: 'n3',
+        title: T('Désaccorder pour épaissir', 'Detuning to thicken'),
+        goal: T('Deux ou trois voix presque pareilles : un son large.', 'Two or three almost identical voices: a wide sound.'),
+        lab: UNISON, keep: 'Unisson',
+        steps: [
+          { type: 'synth', views: ['scope'], controls: [C('op2.ol', T('Deuxième voix', 'Second voice')), C('op2.det', T('Désaccord 2', 'Detune 2')), C('op3.ol', T('Troisième voix', 'Third voice')), C('op3.det', T('Désaccord 3', 'Detune 3'))], play: 'C3+G3+C4w',
+            text: T('Deux porteuses à la même hauteur s’additionnent. Désaccorde-en une d’un rien : elles se mettent à **battre**, et le son s’élargit, comme un chœur.', 'Two carriers at the same pitch add up. Detune one a hair: they start to **beat**, and the sound widens, like a choir.'),
+            goals: [
+              { text: T('Ajoute la deuxième voix et désaccorde-la : écoute le battement.', 'Add the second voice and detune it: hear the beating.'), check: p => p.ops[1].ol >= 85 && p.ops[1].det !== 7 },
+              { text: T('Ajoute la troisième, désaccordée **de l’autre côté**.', 'Add the third, detuned **the other way**.'), check: p => p.ops[2].ol >= 85 && (p.ops[2].det - 7) * (p.ops[1].det - 7) < 0 },
+            ] },
+        ],
+      },
+      {
+        id: 'n4',
+        title: T('Bilan algorithmes', 'Algorithms check-point'),
+        goal: T('Reconnaître un branchement à l’oreille.', 'Recognise a wiring by ear.'),
+        lab: () => STACK(32), keep: 'Algorithme',
+        steps: [
+          { type: 'quiz', rounds: [
+            { q: T('Lequel est empilé ?', 'Which is stacked?'), sounds: [STACK(32), STACK(3)], options: ['A', 'B'], answer: 1 },
+            { q: T('Lequel est désaccordé ?', 'Which is detuned?'), sounds: [(() => { const p = UNISON(); p.ops[1].ol = 92; p.ops[1].det = 10; return p; })(), (() => { const p = UNISON(); p.ops[1].ol = 92; return p; })()], plays: ['C3+G3w', 'C3+G3w'], options: ['A', 'B'], answer: 0 },
+          ] },
+          { type: 'match', graph: true, views: ['spectrum'], controls: [C('alg', T('Branchement', 'Wiring'), { options: [[32, T('Côte à côte', 'Side by side')], [5, T('Une paire', 'One pair')], [3, T('Empilés', 'Stacked')]] }), C('op3.ol', T('Niveau de l’opérateur 3', 'Operator 3 level'))], tol: 12, play: 'C4w',
+            text: T('Retrouve le branchement de la cible, et le niveau de l’opérateur 3.', 'Find the target’s wiring, and operator 3’s level.'),
+            target: p => { p.alg = 5; p.ops[2].ol = 60; } },
+        ],
+      },
+    ],
+  },
+
+  // ═══ Unit 6 ═══════════════════════════════════════════════════
+  {
+    id: 'su6',
+    title: T('Mouvement et espace', 'Movement and space'),
+    blurb: T('Vibrato, trémolo, filtre, réverbération et écho.', 'Vibrato, tremolo, filter, reverb and echo.'),
+    lessons: [
+      {
+        id: 'x1',
+        title: T('Le vibrato', 'Vibrato'),
+        goal: T('Faire onduler la hauteur avec le LFO.', 'Make the pitch waver with the LFO.'),
+        lab: VIBRATO, keep: 'Vibrato',
+        steps: [
+          { type: 'info', title: T('Un oscillateur trop lent pour être entendu', 'An oscillator too slow to hear'),
+            text: T('Le **LFO** est un oscillateur très lent, quelques battements par seconde. On ne l’entend pas : il **fait bouger** un réglage.\nBranché sur la hauteur, il fait le **vibrato**, comme la main d’un violoniste ou la voix d’un chanteur.',
+              'The **LFO** is a very slow oscillator, a few beats per second. You don’t hear it: it **moves** a setting.\nRouted to pitch, it makes **vibrato**, like a violinist’s hand or a singer’s voice.') },
+          { type: 'synth', views: ['scope'], controls: [C('lfo.pmd', T('Profondeur', 'Depth')), C('lfo.speed', T('Vitesse', 'Speed')), C('lfo.delay', T('Retard', 'Delay'))], play: 'C4w',
+            goals: [
+              { text: T('Monte la profondeur : la note ondule.', 'Raise the depth: the note wavers.'), check: p => p.lfo.pmd >= 25 },
+              { text: T('Un vibrato naturel : vitesse entre 30 et 50, profondeur entre 5 et 20.', 'A natural vibrato: speed between 30 and 50, depth between 5 and 20.'), check: p => p.lfo.speed >= 30 && p.lfo.speed <= 50 && p.lfo.pmd >= 5 && p.lfo.pmd <= 20 },
+              { text: T('Ajoute du retard : le vibrato n’arrive qu’après un moment, comme un chanteur.', 'Add delay: the vibrato only comes in after a moment, like a singer.'), check: p => p.lfo.delay >= 40 && p.lfo.pmd >= 5 },
+            ] },
+        ],
+      },
+      {
+        id: 'x2',
+        title: T('Le trémolo', 'Tremolo'),
+        goal: T('Faire pulser le volume, et changer la forme du LFO.', 'Make the volume pulse, and change the LFO’s shape.'),
+        lab: () => { const p = VIBRATO(); p.ops[0].ams = 3; return p; }, keep: 'Trémolo',
+        steps: [
+          { type: 'synth', views: ['scope'], controls: [C('lfo.amd', T('Profondeur du trémolo', 'Tremolo depth')), C('lfo.speed', T('Vitesse', 'Speed')), C('lfo.wave', T('Forme', 'Shape'), { options: [[4, '∿'], [0, '△'], [3, '⊓'], [5, 'S/H']] })], play: 'C4w',
+            text: T('Branché sur le volume, le LFO fait le **trémolo** : le son pulse. Sa **forme** change le mouvement : douce (sinus, triangle), hachée (carré), au hasard (S/H, « sample and hold »).', 'Routed to volume, the LFO makes **tremolo**: the sound pulses. Its **shape** changes the motion: smooth (sine, triangle), chopped (square), random (S/H, “sample and hold”).'),
+            goals: [
+              { text: T('Monte la profondeur du trémolo : le volume pulse.', 'Raise the tremolo depth: the volume pulses.'), check: p => p.lfo.amd >= 45 },
+              { text: T('Forme carrée : le son est haché.', 'Square shape: the sound is chopped.'), check: p => p.lfo.wave === 3 && p.lfo.amd >= 45 },
+              { text: T('Forme S/H : des pas au hasard, un son de robot.', 'S/H shape: random steps, a robot sound.'), check: p => p.lfo.wave === 5 && p.lfo.amd >= 45 },
+            ] },
+        ],
+      },
+      {
+        id: 'x3',
+        title: T('Le filtre', 'The filter'),
+        goal: T('Couper les aigus ou les graves d’un son.', 'Cut the highs or the lows of a sound.'),
+        lab: BRIGHT, keep: 'Filtré',
+        steps: [
+          { type: 'synth', views: ['spectrum'], controls: [C('fx.filter.pos', T('Filtre (passe-bas ← → passe-haut)', 'Filter (low-pass ← → high-pass)'), { scale: 100, bipolar: true, min: -100, max: 100 }), C('fx.filter.res', T('Résonance', 'Resonance'), { scale: 100, max: 100 })], play: 'C3w',
+            text: T('Le **filtre** enlève une partie du spectre. Le **passe-bas** laisse passer les graves et coupe les aigus : le son s’assombrit. Le **passe-haut** fait l’inverse. La **résonance** ajoute une bosse au point de coupure. Dans Créer, il est dans Effets.', 'The **filter** removes part of the spectrum. **Low-pass** lets the lows through and cuts the highs: the sound darkens. **High-pass** does the opposite. **Resonance** adds a bump at the cutoff. In Create, it is under Effects.'),
+            goals: [
+              { text: T('Passe-bas à −40 ou moins : regarde les harmoniques hautes disparaître.', 'Low-pass at −40 or lower: watch the high harmonics vanish.'), check: () => S_FX().filter.pos <= -0.4 },
+              { text: T('Ajoute de la résonance (60 ou plus) : un son « wah ».', 'Add resonance (60 or more): a “wah” sound.'), check: () => S_FX().filter.pos <= -0.3 && S_FX().filter.res >= 0.6 },
+              { text: T('Passe-haut à +30 ou plus : il ne reste que les aigus, un son de téléphone.', 'High-pass at +30 or more: only the highs remain, a telephone sound.'), check: () => S_FX().filter.pos >= 0.3 },
+            ] },
+        ],
+      },
+      {
+        id: 'x4',
+        title: T('Réverbération et écho', 'Reverb and echo'),
+        goal: T('Placer le son dans une salle.', 'Put the sound in a room.'),
+        lab: PLUCKY, keep: 'Espace',
+        steps: [
+          { type: 'synth', fx: { delay: { on: true, mix: 0 }, reverb: { on: true } }, controls: [C('fx.reverb.mix', T('Réverbération', 'Reverb'), { scale: 100, max: 100 }), C('fx.reverb.size', T('Taille de la salle', 'Room size'), { scale: 100, max: 100 }), C('fx.delay.mix', T('Écho', 'Echo'), { scale: 100, max: 100 }), C('fx.delay.fb', T('Répétitions', 'Repeats'), { scale: 100, max: 90 })], play: 'C4q E4q G4q rq',
+            text: T('La **réverbération** imite les murs d’une salle qui renvoient le son. L’**écho** (délai) le répète, en rythme avec le tempo.', '**Reverb** imitates a room’s walls bouncing the sound back. **Echo** (delay) repeats it, in time with the tempo.'),
+            goals: [
+              { text: T('Une cathédrale : beaucoup de réverbération, une grande salle.', 'A cathedral: lots of reverb, a big room.'), check: () => S_FX().reverb.mix >= 0.45 && S_FX().reverb.size >= 0.65 },
+              { text: T('Ajoute un écho qui se répète.', 'Add an echo that repeats.'), check: () => S_FX().delay.mix >= 0.3 && S_FX().delay.fb >= 0.4 },
+              { text: T('Reviens à une petite salle, sans écho.', 'Back to a small room, no echo.'), check: () => S_FX().reverb.mix <= 0.2 && S_FX().delay.mix <= 0.05 },
+            ] },
+        ],
+      },
+      {
+        id: 'x5',
+        title: T('Défi : une nappe vivante', 'Challenge: a living pad'),
+        goal: T('Tout ensemble : enveloppe, désaccord, vibrato, espace.', 'All together: envelope, detune, vibrato, space.'),
+        lab: PAD, keep: 'Ma nappe',
+        steps: [
+          { type: 'synth', views: ['scope'], controls: [C('op1.r.0&op2.r.0', T('Attaque', 'Attack'), { invert: true }), C('op1.r.3&op2.r.3', T('Relâchement', 'Release'), { invert: true }), C('op2.det', T('Désaccord', 'Detune')), C('lfo.pmd', T('Vibrato', 'Vibrato')), C('fx.reverb.mix', T('Réverbération', 'Reverb'), { scale: 100, max: 100 })], play: 'C3+G3+E4w',
+            text: T('Une nappe qui vit : elle entre doucement, s’élargit, ondule un peu, et flotte dans une grande salle.', 'A living pad: it fades in, widens, wavers a little, and floats in a big room.'),
+            goals: [{ text: T('Attaque et relâchement lents, un désaccord, un léger vibrato, de la réverbération.', 'Slow attack and release, some detune, a light vibrato, reverb.'), check: p => 99 - p.ops[0].r[0] >= 45 && 99 - p.ops[0].r[3] >= 45 && p.ops[1].det !== 7 && p.lfo.pmd >= 3 && p.lfo.pmd <= 25 && S_FX().reverb.mix >= 0.3 }] },
         ],
       },
     ],

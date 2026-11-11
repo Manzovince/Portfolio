@@ -1,7 +1,7 @@
 // Song analysis for Learn › Songs › Understand: key and scale, note values and
 // rhythm patterns, melody shape, hand positions, sections (with repeats) and
 // the harmony of each bar. Pure computation on the song from song.js.
-import { pitchClass, scaleNotes, buildChord } from './theory.js?v=202611129';
+import { pitchClass, scaleNotes, buildChord } from './theory.js?v=202611130';
 
 // ── key ────────────────────────────────────────────────────────
 // Krumhansl-Kessler key profiles

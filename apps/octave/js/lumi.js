@@ -9,11 +9,11 @@
 //   brightness, a note-off gives the key back to the LUMI. Used only to show
 //   the notes to play during an exercise or while learning a song.
 
-import { S, on } from "./store.js?v=202611129";
-import { midiAccess, onMidiAccess, connectMidi, onSysex } from "./midi.js?v=202611129";
-import { onGuideChange, guideActive, learnGuide as currentGuide } from "./guide.js?v=202611129";
-import { pitchClass } from "./theory.js?v=202611129";
-import { setLumiRange } from "./keys.js?v=202611129";
+import { S, on } from "./store.js?v=202611130";
+import { midiAccess, onMidiAccess, connectMidi, onSysex } from "./midi.js?v=202611130";
+import { onGuideChange, guideActive, learnGuide as currentGuide } from "./guide.js?v=202611130";
+import { pitchClass } from "./theory.js?v=202611130";
+import { setLumiRange } from "./keys.js?v=202611130";
 
 // The LUMI is left alone: its own mode stays on, except while a guide is shown
 // (an exercise or a song being learnt), when the notes to play are lit. Then
