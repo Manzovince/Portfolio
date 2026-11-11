@@ -641,3 +641,6 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
   .step-big { font-size: 40px; }
   .lesson-body { padding: 8px; }
 }
+
+.mute-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; color: var(--dim); flex: none; }
+.mute-btn.on { color: var(--danger); background: var(--panel2); }

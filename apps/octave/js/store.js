@@ -1,7 +1,7 @@
 // App state, persisted in localStorage (every access wrapped: private mode can throw).
 // One object, S, read and written everywhere; `emit` tells the views what moved.
-import { FACTORY } from './presets.js?v=202611112';
-import { clonePatch } from './dx7.js?v=202611112';
+import { FACTORY } from './presets.js?v=202611113';
+import { clonePatch } from './dx7.js?v=202611113';
 
 const KEY = 'octave.state.v1';
 const BANKS = 'octave.banks.v1';
@@ -42,6 +42,7 @@ function defaults() {
     practice: { kind: 'chords', chords: 'triads', scales: 'majorScales', reading: 'trebleEasy', roots: 'naturals', hints: true },
     song: { part: 'right', speed: 1, staff: true, lookahead: 3 },
     lumi: { enabled: false, blocks: 'auto', octave: 0, guide: true, color: '#2ec4b6', restore: 'rainbow', restoreColor: '#44aca3', restoreRoot: '#f2b84b', brightness: 0.6 },
+    muteMidi: false,           // the MIDI keyboard makes its own sound: don't double it
     theme: 'auto',
     notation: 'auto',          // auto (solfège in French) | english | solfege
     lang: null,

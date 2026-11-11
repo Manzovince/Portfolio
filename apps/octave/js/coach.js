@@ -1,11 +1,11 @@
 // Coach: the course's progress, the tiny music notation the lessons are written
 // in, the keys a lesson lights, and the clock helpers (demo playback, clicks,
 // latency calibration) shared by the lesson steps.
-import { press, lift } from './notes.js?v=202611112';
-import * as E from './engine.js?v=202611112';
-import { COURSE } from './course.js?v=202611112';
+import { press, lift } from './notes.js?v=202611113';
+import * as E from './engine.js?v=202611113';
+import { COURSE } from './course.js?v=202611113';
 export { COURSE };
-import { defaultSpelling } from './theory.js?v=202611112';
+import { defaultSpelling } from './theory.js?v=202611113';
 
 // ── progress (localStorage, every access wrapped) ──────────────
 const KEY = 'octave.coach.v1';

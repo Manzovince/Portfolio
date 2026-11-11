@@ -190,6 +190,8 @@ export function icon(name) {
     takes: '<rect x="4" y="5" width="16" height="14" rx="2" fill="none"/><circle cx="9" cy="12" r="2.4"/><path d="M13.5 10h3.5M13.5 14h3.5" fill="none"/>',
     metro: '<path d="M9 3h6l3.5 17h-13z" fill="none"/><path d="M12 15l5-9" fill="none"/><circle cx="12" cy="15" r="1.4"/>',
     bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" fill="none"/>',
+    speaker: '<path d="M4 9.5h3.5L12 5.5v13L7.5 14.5H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none"/>',
+    mute: '<path d="M4 9.5h3.5L12 5.5v13L7.5 14.5H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5" fill="none"/>',
     keys: '<rect x="3" y="6" width="18" height="12" rx="1.5" fill="none"/><path d="M8 6v12M13 6v12M18 6v12" fill="none"/>',
   }[name];
   const s = document.createElement('span');

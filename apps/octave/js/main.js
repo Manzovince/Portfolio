@@ -1,19 +1,19 @@
 // Octave — boot, shell (top bar, mode switch, keyboard dock), screen switching.
-import { h, icon, seg, toast, toggle, param } from './ui.js?v=202611112';
-import { setMetro, metroBeat } from './metronome.js?v=202611112';
-import { S, save, on, emit } from './store.js?v=202611112';
-import * as E from './engine.js?v=202611112';
-import { applyAll, seq, seqPlay, seqHasNotes, learnSplit } from './perform.js?v=202611112';
-import { connectMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611112';
-import { createDock, bindComputerKeys, setGuide, applyDock } from './keys.js?v=202611112';
-import { currentGuide, onGuideChange, refreshGuide } from './guide.js?v=202611112';
-import { initLumi } from './lumi.js?v=202611112';
-import { t, noteLabel } from './i18n.js?v=202611112';
-import { renderPlay } from './play.js?v=202611112';
-import { renderLearn } from './learn.js?v=202611112';
-import { renderCreate, soundName } from './create.js?v=202611112';
-import { renderSettings, applyTheme } from './settings.js?v=202611112';
-import { allNotesOff } from './notes.js?v=202611112';
+import { h, icon, seg, toast, toggle, param } from './ui.js?v=202611113';
+import { setMetro, metroBeat } from './metronome.js?v=202611113';
+import { S, save, on, emit } from './store.js?v=202611113';
+import * as E from './engine.js?v=202611113';
+import { applyAll, seq, seqPlay, seqHasNotes, learnSplit } from './perform.js?v=202611113';
+import { connectMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611113';
+import { createDock, bindComputerKeys, setGuide, applyDock } from './keys.js?v=202611113';
+import { currentGuide, onGuideChange, refreshGuide } from './guide.js?v=202611113';
+import { initLumi } from './lumi.js?v=202611113';
+import { t, noteLabel } from './i18n.js?v=202611113';
+import { renderPlay } from './play.js?v=202611113';
+import { renderLearn } from './learn.js?v=202611113';
+import { renderCreate, soundName } from './create.js?v=202611113';
+import { renderSettings, applyTheme } from './settings.js?v=202611113';
+import { allNotesOff } from './notes.js?v=202611113';
 
 const MODES = [['play', 'play', 'modePlay'], ['learn', 'learn', 'modeLearn'], ['create', 'create', 'modeCreate']];
 
@@ -65,8 +65,19 @@ const midiPill = h('button', { type: 'button', class: 'midi', onclick: () => ctx
 const gear = h('button', { type: 'button', class: 'gear', onclick: () => ctx.openSheet() }, icon('gear'));
 const metroDots = h('span', { class: 'metro-dots' });
 const metroBtn = h('button', { type: 'button', class: 'metro-btn', onclick: e => { e.stopPropagation(); toggleMetroPop(); } }, icon('metro'), metroDots);
+const muteBtn = h('button', { type: 'button', class: 'mute-btn', onclick: () => {
+  S.muteMidi = !S.muteMidi; save(); paintMute();
+  toast(t(S.muteMidi ? 'muteMidiOn' : 'muteMidiOff'));
+} });
+function paintMute() {
+  muteBtn.classList.toggle('on', S.muteMidi);
+  muteBtn.setAttribute('aria-pressed', S.muteMidi);
+  muteBtn.setAttribute('aria-label', t('muteMidi'));
+  muteBtn.title = t('muteMidi');
+  muteBtn.replaceChildren(icon(S.muteMidi ? 'mute' : 'speaker'));
+}
 const metroPop = h('div', { class: 'metro-pop', hidden: true, onclick: e => e.stopPropagation() });
-top.append(logo, modes, h('div', { class: 'spacer' }), chips, transport, metroBtn, midiPill, gear);
+top.append(logo, modes, h('div', { class: 'spacer' }), chips, transport, metroBtn, muteBtn, midiPill, gear);
 document.body.append(metroPop);
 
 function paintMetroBtn() {
@@ -113,6 +124,7 @@ on('metro', paintMetroBtn);
   metroBtn.classList.toggle('down', b === 0);
 })();
 paintMetroBtn();
+paintMute();
 
 function paintModes() {
   modes.textContent = '';
@@ -170,7 +182,7 @@ on('part', render);
 on('split', render);
 on('patch', paintTop);
 on('seq', paintTop);
-on('lang', () => { render(); paintMidi(); paintMetroBtn(); if (!sheet.hidden) ctx.openSheet(); });
+on('lang', () => { render(); paintMidi(); paintMetroBtn(); paintMute(); if (!sheet.hidden) ctx.openSheet(); });
 on('theme', () => { if (S.mode !== 'learn') render(); });
 
 // Guide (exercise / song) on the keys
@@ -223,4 +235,4 @@ on('tempo', () => E.setFx(S.fx, S.tempo));
 document.addEventListener('visibilitychange', () => { if (document.hidden) allNotesOff(); });
 
 // console handle for testing without a keyboard
-import('./notes.js?v=202611112').then(N => { window.octave = { S, press: N.press, lift: N.lift, emit, applyDock }; });
+import('./notes.js?v=202611113').then(N => { window.octave = { S, press: N.press, lift: N.lift, emit, applyDock }; });

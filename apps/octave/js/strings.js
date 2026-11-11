@@ -53,6 +53,7 @@ export const STRINGS = {
     filter: 'Filtre', filterLH: 'Bas ◂ ▸ Haut', resonance: 'Résonance', depth: 'Profondeur', feedbackDl: 'Retours', tone: 'Couleur', size: 'Taille', output: 'Sortie',
 
     // Learn
+    muteMidi: 'Couper le son du clavier MIDI (ton piano sonne déjà)', muteMidiOn: 'Son du clavier MIDI coupé : Octave suit tes notes sans les jouer', muteMidiOff: 'Son du clavier MIDI rétabli',
     tabSongs: 'Morceaux', tabDrills: 'Exercices', tabCoach: 'Cours',
     cStart: 'Pour commencer', cContinue: 'On continue', cGo: 'Commencer', cRedo: 'Refaire', cProgress: '{done} / {total} leçons · {stars} / {max} étoiles',
     cLocked: 'Verrouillée', cStars: '{n} étoiles sur 3', cOptions: 'Réglages du cours', cLatency: 'Retard du clavier',
@@ -165,6 +166,7 @@ export const STRINGS = {
     recStepHint: 'Step REC: play a note or a chord, it moves to the next step.', transposeHint: 'Play + transpose: the key you hold (C4 = original) transposes the pattern.',
     filter: 'Filter', filterLH: 'Low ◂ ▸ High', resonance: 'Resonance', depth: 'Depth', feedbackDl: 'Feedback', tone: 'Tone', size: 'Size', output: 'Output',
 
+    muteMidi: 'Mute the MIDI keyboard (your piano already sounds)', muteMidiOn: 'MIDI keyboard muted: Octave follows your notes without playing them', muteMidiOff: 'MIDI keyboard sound back on',
     tabSongs: 'Songs', tabDrills: 'Exercises', tabCoach: 'Course',
     cStart: 'Start here', cContinue: 'Keep going', cGo: 'Start', cRedo: 'Again', cProgress: '{done} / {total} lessons · {stars} / {max} stars',
     cLocked: 'Locked', cStars: '{n} stars out of 3', cOptions: 'Course settings', cLatency: 'Keyboard delay',
