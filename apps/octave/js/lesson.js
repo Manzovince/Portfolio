@@ -1,23 +1,23 @@
 // Learn › Course: the course map, and the lesson player that runs each step
 // (see course.js for the step types). Progress lives in coach.js.
-import { h, icon, seg, toast } from './ui.js?v=202611118';
-import { S, save } from './store.js?v=202611118';
-import { t, spelled, lang, scaleName } from './i18n.js?v=202611118';
-import { subscribe } from './notes.js?v=202611118';
-import { setOverride, setSide } from './keys.js?v=202611118';
-import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611118';
-import { mountFall } from './fall.js?v=202611118';
-import { spelledOctave } from './theory.js?v=202611118';
-import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611118';
+import { h, icon, seg, toast } from './ui.js?v=202611119';
+import { S, save } from './store.js?v=202611119';
+import { t, spelled, lang, scaleName } from './i18n.js?v=202611119';
+import { subscribe } from './notes.js?v=202611119';
+import { setOverride, setSide } from './keys.js?v=202611119';
+import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611119';
+import { mountFall } from './fall.js?v=202611119';
+import { spelledOctave } from './theory.js?v=202611119';
+import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611119';
 import {
   openSongData, closeSong, playSong, pauseSong, isSongPlaying, seekSong, setSongPart, setSongSpeed, setSongFollow,
   onSongChange, onSongEnd, songTally, onSongTally, resetTally, songClock, currentSong, isWaitingForPlayer,
-} from './song.js?v=202611118';
-import * as E from './engine.js?v=202611118';
+} from './song.js?v=202611119';
+import * as E from './engine.js?v=202611119';
 import {
   P, PASS, LESSONS, COURSE, lessonById, starsOf, isOpen, nextLesson, recordLesson, saveCoach, resetCoach,
   parse, notesOf, lengthOf, pitch, setCoachGuide, demo, clicks, latency, isPlayer, median, audioOf,
-} from './coach.js?v=202611118';
+} from './coach.js?v=202611119';
 
 // ── text ───────────────────────────────────────────────────────
 const tx = v => (v && typeof v === 'object' ? v[lang()] ?? v.en : v ?? '');
@@ -47,6 +47,14 @@ let open = null; // { lesson, step, results: [stars|null], done: bool }
 export function renderCoach(view, ctx) {
   if (open) renderLesson(view, ctx);
   else renderMap(view, ctx);
+}
+
+// From elsewhere (a song's analysis): open a lesson on the Course tab
+export function openLesson(id, ctx) {
+  const lesson = lessonById(id);
+  if (!lesson) return;
+  open = { lesson, step: 0, results: lesson.steps.map(() => undefined), finished: false };
+  ctx.go('learn', 'coach');
 }
 
 function startLesson(lesson, ctx) {

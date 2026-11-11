@@ -8,7 +8,7 @@
 // other. The song then waits on each chord of their part until its notes are
 // played, and marks them on the keys (and the LED strip) in the meantime.
 
-import { subscribe, press, liftSource, setPedal } from "./notes.js?v=202611118";
+import { subscribe, press, liftSource, setPedal } from "./notes.js?v=202611119";
 
 const SOURCE = "song";
 const TICK_MS = 10;          // playback clock
@@ -33,7 +33,9 @@ let part = "listen";
 let expected = 0;            // index of the chord awaited in the visitor's part
 let waiting = false;         // the clock is stopped on that chord
 const struck = new Set();    // notes played towards it
-let follow = true;           // wait for the player (false: the clock runs, for timing practice)
+let follow = true;
+let loop = null;             // { startMs, endMs, label }: a section played again and again
+const loopListeners = new Set();           // wait for the player (false: the clock runs, for timing practice)
 // Play-along tally, for the lessons: right notes, wrong notes, time spent waiting
 const tally = { hits: 0, wrong: 0, stallMs: 0, chords: 0, waitStart: 0 };
 const tallyListeners = new Set();
@@ -53,6 +55,13 @@ export const songTally = () => ({ ...tally });
 export const onSongTally = fn => { tallyListeners.add(fn); return () => tallyListeners.delete(fn); };
 export const setSongFollow = v => { follow = v; resetExpected(); notifyChange(); };
 export const songFollows = () => follow;
+export const songLoop = () => loop;
+export const onSongLoop = fn => { loopListeners.add(fn); return () => loopListeners.delete(fn); };
+export function setSongLoop(next) {
+    loop = next;
+    if (song && loop) seekSong(loop.startMs);
+    loopListeners.forEach(fn => fn(loop));
+}
 // Where song time 0 sits on the performance.now() clock right now (no waiting)
 export const songClock = () => ({ anchorPosition, anchorTime, speed });
 export function resetTally() { Object.assign(tally, { hits: 0, wrong: 0, stallMs: 0, chords: 0, waitStart: 0 }); }
@@ -222,6 +231,8 @@ function buildSong(file, fileName) {
         durationMs: Math.max(...notes.map(n => n.endMs)),
         timeSignature: file.timeSignature ?? [4, 4],
         bpm: Math.round(60000000 / (firstTempo?.usPerBeat ?? 500000)),
+        // song milliseconds of a beat (quarter note), following tempo changes
+        beatToMs: beat => toMs(beat * ppq),
         groups: staffGroups(notes),
         // Chords of each part, for playing along
         parts: {
@@ -292,6 +303,7 @@ export function openSongData({ title, bpm = 90, timeSignature = [4, 4], notes: l
 
 export function closeSong() {
     if (!song) return;
+    if (loop) { loop = null; loopListeners.forEach(fn => fn(null)); }
     pauseSong();
     song = null;
     positionMs = 0;
@@ -309,6 +321,11 @@ function step() {
     const now = performance.now();
     positionMs = Math.min(song.durationMs, anchorPosition + (now - anchorTime) * speed);
     const { notes, pedals } = song;
+    // A section on repeat: back to its start
+    if (loop && positionMs >= loop.endMs) {
+        seekSong(loop.startMs);
+        return;
+    }
 
     // Not waiting: chords left behind are gone, the guide moves on to the next
     if (!follow && part !== "listen") {

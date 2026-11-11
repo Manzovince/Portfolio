@@ -1,23 +1,25 @@
 // Learn screen: Songs (library, then the song falling onto the keys with its
 // staff above, waiting for the player's hand) and Exercises (chords, scales).
-import { h, icon, seg, toggle, toast } from './ui.js?v=202611118';
-import { S, save } from './store.js?v=202611118';
-import { t, chordQuality, scaleName, spelled, notation } from './i18n.js?v=202611118';
-import { chordSymbol } from './theory.js?v=202611118';
-import { EXAMPLES, importedSongs, addSong, songFile, removeSong, onLibraryChange } from './library.js?v=202611118';
-import { currentSong, openSongFile, closeSong, playSong, pauseSong, isSongPlaying, seekSong, songPosition, setSongPart, setSongSpeed, songPart, onSongChange, onSongPosition, isWaitingForPlayer } from './song.js?v=202611118';
-import { mountFall } from './fall.js?v=202611118';
-import { mountStaff, drawSingleNote } from './score.js?v=202611118';
-import { setOverride, setSide } from './keys.js?v=202611118';
-import { LEVELS, setPracticing, practiceState, onPracticeChange, skip, nextTarget, refreshPractice, readingRange } from './practice.js?v=202611118';
-import { soundingNotes } from './notes.js?v=202611118';
-import { pitchClass, defaultSpelling, spelledOctave } from './theory.js?v=202611118';
-import { fullScoreSheet } from './play.js?v=202611118';
-import { renderCoach } from './lesson.js?v=202611118';
-import { COURSE_PIECES, pieceNotes, pitch } from './coach.js?v=202611118';
+import { h, icon, seg, toggle, toast } from './ui.js?v=202611119';
+import { S, save } from './store.js?v=202611119';
+import { t, chordQuality, scaleName, spelled, notation } from './i18n.js?v=202611119';
+import { chordSymbol } from './theory.js?v=202611119';
+import { EXAMPLES, importedSongs, addSong, songFile, removeSong, onLibraryChange } from './library.js?v=202611119';
+import { currentSong, openSongFile, closeSong, playSong, pauseSong, isSongPlaying, seekSong, songPosition, setSongPart, setSongSpeed, songPart, onSongChange, onSongPosition, isWaitingForPlayer } from './song.js?v=202611119';
+import { mountFall } from './fall.js?v=202611119';
+import { mountStaff, drawSingleNote } from './score.js?v=202611119';
+import { setOverride, setSide } from './keys.js?v=202611119';
+import { LEVELS, setPracticing, practiceState, onPracticeChange, skip, nextTarget, refreshPractice, readingRange } from './practice.js?v=202611119';
+import { soundingNotes } from './notes.js?v=202611119';
+import { pitchClass, defaultSpelling, spelledOctave } from './theory.js?v=202611119';
+import { fullScoreSheet } from './play.js?v=202611119';
+import { renderCoach } from './lesson.js?v=202611119';
+import { understandSheet } from './understand.js?v=202611119';
+import { songLoop, setSongLoop, onSongLoop } from './song.js?v=202611119';
+import { COURSE_PIECES, pieceNotes, pitch } from './coach.js?v=202611119';
 // course titles carry note names as [G]: written in the player's notation
 const pieceTitle = p => (p.title[S.lang] ?? p.title.en).replace(/\[([A-G][#b]?)\]/g, (_, n) => spelled(pitch(n + '4').spelling));
-import { openSongData } from './song.js?v=202611118';
+import { openSongData } from './song.js?v=202611119';
 
 export function renderLearn(view, ctx) {
   const nav = seg({ cls: 'subnav', options: [['coach', t('tabCoach')], ['songs', t('tabSongs')], ['drills', t('tabDrills')]], get: () => S.learnTab, set: v => { S.learnTab = v; save(); ctx.rerender(); } });
@@ -107,15 +109,24 @@ function renderPlayer(view, ctx, bar) {
   const speed = seg({ options: [[0.5, '50 %'], [0.75, '75 %'], [1, '100 %']], get: () => S.song.speed, set: v => { S.song.speed = v; save(); setSongSpeed(v); } });
   const staffTog = h('button', { type: 'button', class: 'icon-btn' + (S.song.staff ? ' on' : ''), 'aria-label': t('viewStaff'), 'aria-pressed': S.song.staff, onclick: () => { S.song.staff = !S.song.staff; save(); ctx.rerender(); } }, icon('score'));
   const full = h('button', { type: 'button', class: 'icon-btn', 'aria-label': t('fullScore'), onclick: () => ctx.openSheet(fullScoreSheet) }, icon('expand'));
+  const understand = h('button', { type: 'button', class: 'btn ghost understand-btn', onclick: () => { pauseSong(); ctx.openSheet(understandSheet); } }, icon('bulb'), h('span', {}, t('uOpen')));
+  const loopChip = h('button', { type: 'button', class: 'loop-chip', onclick: () => { setSongLoop(null); } });
+  const paintLoop = () => {
+    const l = songLoop();
+    loopChip.hidden = !l;
+    if (l) loopChip.replaceChildren(icon('restart'), h('span', {}, t('uLoopChip', { label: l.label, from: l.from, to: l.to })), icon('close'));
+  };
+  const unLoop = onSongLoop(paintLoop);
+  ctx.onLeave(unLoop);
   bar.append(h('div', { class: 'spacer' }), close);
 
   const seek = h('input', { type: 'range', class: 'seek', min: 0, max: Math.round(song.durationMs), step: 10, value: 0, 'aria-label': t('position'), oninput: e => seekSong(+e.target.value) });
   const time = h('span', { class: 'time' });
   const wait = h('span', { class: 'wait-badge' }, t('waiting'));
   const controls = h('div', { class: 'song-bar' },
-    h('div', { class: 'song-main' }, playBtn, restart, title, staffTog, full),
+    h('div', { class: 'song-main' }, playBtn, restart, title, understand, staffTog, full),
     h('div', { class: 'song-opts' }, h('span', { class: 'lab' }, t('youPlay')), parts, h('span', { class: 'lab' }, t('speedL')), speed),
-    h('div', { class: 'song-seek' }, seek, time, wait));
+    h('div', { class: 'song-seek' }, loopChip, seek, time, wait));
 
   const stage = h('section', { class: 'stage learn-stage' });
   const canvas = h('canvas', { class: 'roll' });
@@ -142,7 +153,7 @@ function renderPlayer(view, ctx, bar) {
   };
   onSongChange(() => { if (playBtn.isConnected) sync(); });
   onSongPosition(() => { if (seek.isConnected) pos(); });
-  sync(); pos();
+  sync(); pos(); paintLoop();
 }
 
 // ── exercises ──────────────────────────────────────────────────

@@ -652,3 +652,39 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
 .battery-gauge i { position: absolute; left: 2px; top: 2px; bottom: 2px; border-radius: 1px; background: var(--good); }
 .battery-gauge.low i { background: var(--danger); }
 .lumi-log { margin: 0; max-height: 160px; overflow: auto; font: 10px/1.4 var(--mono); color: var(--dim); background: var(--panel2); border-radius: 8px; padding: 8px; white-space: pre-wrap; word-break: break-all; -webkit-user-select: text; user-select: text; }
+
+/* ── Learn › Songs › Understand ── */
+.understand-btn { flex: none; }
+.loop-chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 16px; background: color-mix(in srgb, var(--accent) 18%, var(--panel2)); color: var(--accent); font-size: 12px; font-weight: 600; flex: none; }
+.loop-chip .ic svg { width: 14px; height: 14px; }
+.sheet-cols .u-wide { grid-column: 1 / -1; }
+.u-big { font-size: 26px; font-weight: 750; }
+.u-row { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.u-row .lab { min-width: 92px; }
+.drill-chips.left { justify-content: flex-start; margin: 0; }
+.u-hand { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.u-hand:last-child { border-bottom: 0; }
+.u-bar { display: grid; grid-template-columns: 110px 1fr 44px; align-items: center; gap: 8px; font-size: 13px; }
+.u-bar i { height: 8px; border-radius: 4px; background: var(--panel2); overflow: hidden; display: block; }
+.u-bar i b { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+.u-bar i b.warn { background: var(--b); }
+.u-bar small { color: var(--dim); text-align: right; font-family: var(--mono); }
+.u-pattern { border-top: 1px solid var(--line); padding-top: 6px; }
+.u-rhythm { justify-content: flex-start; min-height: 60px; }
+.u-form { display: flex; gap: 6px; flex-wrap: wrap; }
+.u-letter { min-width: 34px; height: 34px; padding: 0 8px; border-radius: 10px; display: inline-grid; place-items: center; font-weight: 750; background: var(--panel2); border: 1px solid var(--line2); }
+.u-letter.l1 { color: var(--a); border-color: var(--a); } .u-letter.l2 { color: var(--b); border-color: var(--b); }
+.u-letter.l3 { color: #8fa8ff; border-color: #8fa8ff; } .u-letter.l4 { color: #e58fd8; border-color: #e58fd8; }
+.u-letter.l5 { color: #f2c14b; border-color: #f2c14b; } .u-letter.l0 { color: #ff8a7a; border-color: #ff8a7a; }
+.u-section { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); }
+.u-section.same { opacity: .75; }
+.u-sec-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.u-chords { display: flex; gap: 6px; flex-wrap: wrap; }
+.u-chord { display: flex; flex-direction: column; align-items: center; min-width: 58px; padding: 6px 8px; border-radius: 10px; background: var(--panel2); border: 1px solid var(--line); }
+.u-chord small { color: var(--faint); font-size: 10px; font-family: var(--mono); }
+.u-chord b { font-size: 15px; }
+.u-chord em { font-style: normal; color: var(--accent); font-size: 12px; font-family: var(--mono); }
+.u-plan { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+.u-plan li { line-height: 1.45; }
+.u-plan li .btn { margin-left: 8px; vertical-align: middle; }
+@media (max-width: 760px) { .understand-btn > span:not(.ic) { display: none; } .understand-btn { width: var(--hit); padding: 0; } }
