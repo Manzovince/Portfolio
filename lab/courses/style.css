@@ -247,6 +247,18 @@ main { padding: 12px 16px calc(env(safe-area-inset-bottom) + 60px); }
 .addrow { display: flex; gap: 8px; margin-top: 6px; }
 .addrow input { flex: 1; min-width: 0; border: 0; border-radius: 6px; background: var(--field); color: var(--ink); padding: 12px 14px; font-size: 16px; font-weight: 400; }
 .addrow .soft { flex: none; padding: 0 14px; color: var(--ink); }
+.isugg { display: flex; flex-direction: column; margin-top: 4px; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.sug { display: flex; align-items: center; gap: 8px; width: 100%; padding: 11px 14px; text-align: left; font-size: 16px; font-weight: 600; color: var(--ink); border-top: 1px solid var(--line); }
+.isugg > :first-child { border-top: 0; }
+.sug span { flex: 1; min-width: 0; }
+.sug small { font-size: 12px; font-weight: 600; color: var(--muted); }
+.sug.used { opacity: .45; }
+.sug.none { font-weight: 400; font-size: 14px; color: var(--muted); }
+.sug.add { color: var(--accent); font-weight: 700; }
+.sugnew { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--line); background: var(--accent-soft); font-size: 15px; font-weight: 400; color: var(--ink); }
+.sugnew select { border: 0; border-radius: 6px; background: var(--card); padding: 10px 12px; font-size: 16px; }
+.sugnew .pair button { flex: 1; padding: 10px 8px; }
+.newcat.top { margin: 0 0 10px; }
 
 .news { display: flex; flex-direction: column; gap: 10px; margin: 8px 0 4px; padding: 12px 14px; border-radius: 8px; background: var(--accent-soft); color: var(--ink); font-size: 15px; }
 .news b { color: var(--accent); }

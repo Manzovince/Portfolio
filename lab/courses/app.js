@@ -224,7 +224,7 @@ function recipesHtml() {
       <br><button class="big" data-act="rseed">Charger le carnet de départ</button></div>${newBtn}`;
   }
   const chip = (v, label) => `<button class="chip${recipeTag === v ? ' on' : ''}" data-act="rtag" data-v="${v}">${label}</button>`;
-  let html = `<div class="chips">${chip('all', 'Toutes')}${chip('quick', 'Rapide')}${Object.entries(TAGS).map(([v, l]) => chip(v, l)).join('')}</div>`;
+  let html = newBtn.replace('class="newcat"', 'class="newcat top"') + `<div class="chips">${chip('all', 'Toutes')}${chip('quick', 'Rapide')}${Object.entries(TAGS).map(([v, l]) => chip(v, l)).join('')}</div>`;
   const news = carnetNews();
   if (news.length) html += `<div class="news"><span><b>${news.length} nouvelles recettes</b> et de nouveaux styles : Asiatique, Soupes, Desserts…</span>
     <span class="news-btns"><button class="soft" data-act="carnetskip">Ignorer</button><button class="primary" data-act="carnetadd">Ajouter</button></span></div>`;
@@ -246,7 +246,7 @@ function recipesHtml() {
         <span class="rsub">${x.r.minutes ? `${x.r.minutes} min · ` : ''}${x.missing.length ? `Manque : ${x.missing.map((g) => esc(g.label)).join(', ')}` : '<b>Tout est là</b>'}</span></span></button>`).join('')}</section>`;
   }
   if (!list.length) html += '<div class="empty"><strong>Aucune recette dans ce style</strong>Créez-en une, ou choisissez un autre filtre.</div>';
-  return html + newBtn + note;
+  return html + note;
 }
 
 function recipeSheet(id) {
@@ -283,7 +283,6 @@ function recipeForm(id) {
   const r = id ? findRecipe(id) : { emoji: '', name: '', tags: [], minutes: '', ingredients: [], steps: [] };
   if (!r) return;
   ctx = { type: 'recipeform', id: id || null };
-  const names = [...new Set(state.items.map((i) => i.name))].sort((a, b) => a.localeCompare(b, 'fr'));
   show(`<form class="sheet-in">${head(id ? 'Modifier la recette' : 'Nouvelle recette')}
     <div class="frow"><label class="field emo-field">Emoji<input name="emoji" value="${esc(r.emoji || '')}" placeholder="🍽️" maxlength="8" autocomplete="off"></label>
       <label class="field grow">Nom<input name="name" value="${esc(r.name)}" maxlength="80" autocomplete="off" placeholder="Ex. Gratin de courgettes" required></label></div>
@@ -291,28 +290,84 @@ function recipeForm(id) {
     <div class="field">Style<div class="chips wrap">${Object.entries(TAGS).map(([v, l]) => `<button type="button" class="chip${(r.tags || []).includes(v) ? ' on' : ''}" data-act="ftag" data-v="${v}">${l}</button>`).join('')}</div></div>
     <div class="field">Ingrédients
       <div class="fings">${(r.ingredients || []).map(ingRowHtml).join('')}</div>
-      <div class="addrow"><input name="ing" list="itemNames" placeholder="Ajouter un ingrédient…" autocomplete="off" enterkeyhint="done" maxlength="80"><button type="button" class="soft" data-act="fingadd">Ajouter</button></div>
-      <datalist id="itemNames">${names.map((n) => `<option value="${esc(n)}">`).join('')}</datalist>
-      <p class="hint left">Utilisez les noms de votre liste pour savoir ce que vous avez déjà.</p></div>
+      <div class="addrow"><input name="ing" placeholder="Chercher un ingrédient…" autocomplete="off" autocorrect="off" enterkeyhint="done" maxlength="80"></div>
+      <div class="isugg" hidden></div>
+      <p class="hint left">Choisissez parmi les articles de votre liste, ou créez-en un nouveau.</p></div>
     <label class="field">Préparation (une étape par ligne)<textarea name="steps" rows="5">${esc((r.steps || []).join('\n'))}</textarea></label>
     <div class="actions"><button type="submit" class="primary">${id ? 'Enregistrer' : 'Créer'}</button></div></form>`);
   if (!id) sheet.querySelector('input[name="name"]').focus();
 }
 
-function addFormIng() {
+// Ingrédients déjà dans le formulaire (clés souples), pour ne pas les proposer deux fois.
+const formIngKeys = () => new Set([...sheet.querySelectorAll('.fing')].flatMap((d) => d.dataset.alts.split('|').map(ingKey)));
+
+function addFormIng(name) {
   const input = sheet.querySelector('input[name="ing"]');
-  const v = input.value.trim();
+  const v = (name ?? input.value).trim().replace(/^\?/, '');
   if (!v) return;
-  sheet.querySelector('.fings').insertAdjacentHTML('beforeend', ingRowHtml(v.replace(/^\?/, '')));
+  if (!formIngKeys().has(ingKey(v))) sheet.querySelector('.fings').insertAdjacentHTML('beforeend', ingRowHtml(v));
   input.value = '';
+  renderIngSugg();
   input.focus();
+}
+
+// Articles de la liste qui correspondent à la saisie (début du nom d'abord).
+function ingMatches(q) {
+  const k = norm(q.trim());
+  if (!k) return [];
+  const seen = new Set(), out = [];
+  for (const it of [...state.items].sort(byName)) {
+    const n = norm(it.name), key = ingKey(it.name);
+    if (seen.has(key) || !n.includes(k)) continue;
+    seen.add(key);
+    out.push({ name: it.name, starts: n.startsWith(k) || n.includes(' ' + k) });
+  }
+  return out.sort((a, b) => b.starts - a.starts).slice(0, 8);
+}
+
+let ingCreate = false;   // le panneau "Créer l'article" est ouvert
+function renderIngSugg() {
+  const box = sheet.querySelector('.isugg');
+  if (!box) return;
+  const q = sheet.querySelector('input[name="ing"]').value.trim();
+  if (!q) { box.hidden = true; box.innerHTML = ''; ingCreate = false; return; }
+  const used = formIngKeys();
+  const ms = ingMatches(q);
+  const exact = ms.some((m) => ingKey(m.name) === ingKey(q));
+  let html = ms.map((m) => used.has(ingKey(m.name))
+    ? `<div class="sug used"><span>${esc(m.name)}</span><small>déjà ajouté</small></div>`
+    : `<button type="button" class="sug" data-act="fingpick" data-name="${esc(m.name)}"><span>${esc(m.name)}</span><small>dans la liste</small></button>`).join('');
+  if (!ms.length) html += '<div class="sug none">Aucun article de ce nom dans la liste</div>';
+  if (!exact) {
+    const cats = sortedCats();
+    const last = ls.get('courses.ingCat', '');
+    html += ingCreate && cats.length
+      ? `<div class="sugnew"><span>Créer « <b>${esc(q)}</b> » dans</span>
+          <select name="ingcat">${cats.map((c) => `<option value="${c.id}"${c.id === last ? ' selected' : ''}>${catLook(c.name).emo} ${esc(catLook(c.name).label)}</option>`).join('')}</select>
+          <div class="pair"><button type="button" class="soft" data-act="fingonly">Juste dans la recette</button><button type="button" class="primary" data-act="fingcreate">Créer l’article</button></div></div>`
+      : `<button type="button" class="sug add" data-act="${cats.length ? 'fingnew' : 'fingonly'}"><span>+ Créer « ${esc(q)} »</span></button>`;
+  }
+  box.innerHTML = html;
+  box.hidden = false;
+}
+
+// Crée l'article dans la liste (à acheter), puis l'ajoute à la recette.
+function createFormIng() {
+  const q = sheet.querySelector('input[name="ing"]').value.trim();
+  const cat = sheet.querySelector('select[name="ingcat"]')?.value;
+  if (!q || !cat) return;
+  ls.set('courses.ingCat', cat);
+  addItem(cat, q);
+  ingCreate = false;
+  addFormIng(q);
+  toast(`« ${q} » ajouté à la liste`, null);
 }
 
 function saveRecipeForm(f) {
   const name = f.elements.name.value.trim();
   if (!name) return false;
   const pending = f.elements.ing.value.trim();
-  if (pending) addFormIng();   // un ingrédient tapé mais pas encore ajouté
+  if (pending) addFormIng(ingMatches(pending).find((m) => ingKey(m.name) === ingKey(pending))?.name ?? pending);   // tapé mais pas encore ajouté
   const row = {
     emoji: f.elements.emoji.value.trim() || '🍽️',
     name,
@@ -416,8 +471,18 @@ sheet.addEventListener('submit', (e) => {
 
 // Entrée dans le champ ingrédient : on l'ajoute au lieu d'envoyer le formulaire.
 sheet.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && e.target.name === 'ing') { e.preventDefault(); addFormIng(); }
+  if (e.key !== 'Enter' || e.target.name !== 'ing') return;
+  e.preventDefault();
+  // Entrée : l'article correspondant (exact, sinon le premier proposé), sinon on propose de le créer.
+  const q = e.target.value.trim();
+  if (!q) return;
+  const used = formIngKeys();
+  const ms = ingMatches(q).filter((m) => !used.has(ingKey(m.name)));
+  const pick = ms.find((m) => ingKey(m.name) === ingKey(q)) || ms[0];
+  if (pick) addFormIng(pick.name);
+  else if (!used.has(ingKey(q))) { ingCreate = true; renderIngSugg(); }
 });
+sheet.addEventListener('input', (e) => { if (e.target.name === 'ing') { ingCreate = false; renderIngSugg(); } });
 
 sheet.addEventListener('click', (e) => {
   if (e.target === sheet) { sheet.close(); return; }   // clic sur le fond
@@ -430,7 +495,10 @@ sheet.addEventListener('click', (e) => {
     case 'redit': recipeForm(ctx.id); break;
     case 'ftag': case 'fingopt': (b.dataset.act === 'ftag' ? b : b.closest('.fing')).classList.toggle(b.dataset.act === 'ftag' ? 'on' : 'opt'); break;
     case 'fingdel': b.closest('.fing').remove(); break;
-    case 'fingadd': addFormIng(); break;
+    case 'fingpick': addFormIng(b.dataset.name); break;
+    case 'fingnew': ingCreate = true; renderIngSugg(); break;
+    case 'fingonly': addFormIng(); break;
+    case 'fingcreate': createFormIng(); break;
     case 'delete':
       if (ctx.type === 'item') { delItem(ctx.id); sheet.close(); }
       else if (delCat(ctx.id)) sheet.close();
