@@ -3,9 +3,9 @@
 //   piano sampler, one tone stage per part  ──┴→ input → DJ filter → chorus
 //   → delay + reverb sends → compressor → master
 // Each of the two parts (A, B) is either the sampled piano or an FM patch.
-import { ALGORITHMS } from './algorithms.js?v=202611114';
+import { ALGORITHMS } from './algorithms.js?v=202611115';
 
-const V = '?v=202611114';
+const V = '?v=202611115';
 const SAMPLE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 // The sampled piano in a few colours: shelf (dB above 2.5 kHz), lowpass (Hz), damper (s)
@@ -124,7 +124,9 @@ function buildFx() {
 
   n.comp = new DynamicsCompressorNode(c, { threshold: -12, knee: 8, ratio: 5, attack: 0.004, release: 0.2 });
   n.master = new GainNode(c, { gain: 0.85 });
-  n.bus.connect(n.comp).connect(n.master).connect(c.destination);
+  // mute sits after the master, so a recording still hears everything
+  n.mute = new GainNode(c, { gain: muted ? 0 : 1 });
+  n.bus.connect(n.comp).connect(n.master).connect(n.mute).connect(c.destination);
   if (pendingFx) setFx(...pendingFx);
 }
 
@@ -187,6 +189,13 @@ export function setFx(fx, tempo) {
 }
 
 export const analyser = () => nodes.analyser || null;
+
+// Octave's own sound off (a piano that sounds by itself, played over MIDI)
+let muted = false;
+export function setMuted(on) {
+  muted = on;
+  if (ctx && nodes.mute) nodes.mute.gain.setTargetAtTime(on ? 0 : 1, ctx.currentTime, 0.015);
+}
 
 // Metronome tick, straight to the output (no effects): a short pitched blip
 export function click(t, accent, volume = 0.6) {

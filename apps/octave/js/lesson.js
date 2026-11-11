@@ -1,23 +1,23 @@
 // Learn › Course: the course map, and the lesson player that runs each step
 // (see course.js for the step types). Progress lives in coach.js.
-import { h, icon, seg, toast } from './ui.js?v=202611114';
-import { S, save } from './store.js?v=202611114';
-import { t, spelled, lang, scaleName } from './i18n.js?v=202611114';
-import { subscribe } from './notes.js?v=202611114';
-import { setOverride, setSide } from './keys.js?v=202611114';
-import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611114';
-import { mountFall } from './fall.js?v=202611114';
-import { spelledOctave } from './theory.js?v=202611114';
-import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611114';
+import { h, icon, seg, toast } from './ui.js?v=202611115';
+import { S, save } from './store.js?v=202611115';
+import { t, spelled, lang, scaleName } from './i18n.js?v=202611115';
+import { subscribe } from './notes.js?v=202611115';
+import { setOverride, setSide } from './keys.js?v=202611115';
+import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611115';
+import { mountFall } from './fall.js?v=202611115';
+import { spelledOctave } from './theory.js?v=202611115';
+import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611115';
 import {
   openSongData, closeSong, playSong, pauseSong, isSongPlaying, seekSong, setSongPart, setSongSpeed, setSongFollow,
   onSongChange, onSongEnd, songTally, onSongTally, resetTally, songClock, currentSong, isWaitingForPlayer,
-} from './song.js?v=202611114';
-import * as E from './engine.js?v=202611114';
+} from './song.js?v=202611115';
+import * as E from './engine.js?v=202611115';
 import {
   P, PASS, LESSONS, COURSE, lessonById, starsOf, isOpen, nextLesson, recordLesson, saveCoach, resetCoach,
   parse, notesOf, lengthOf, pitch, setCoachGuide, demo, clicks, latency, isPlayer, median, audioOf,
-} from './coach.js?v=202611114';
+} from './coach.js?v=202611115';
 
 // ── text ───────────────────────────────────────────────────────
 const tx = v => (v && typeof v === 'object' ? v[lang()] ?? v.en : v ?? '');

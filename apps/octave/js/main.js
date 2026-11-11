@@ -1,19 +1,19 @@
 // Octave — boot, shell (top bar, mode switch, keyboard dock), screen switching.
-import { h, icon, seg, toast, toggle, param } from './ui.js?v=202611114';
-import { setMetro, metroBeat } from './metronome.js?v=202611114';
-import { S, save, on, emit } from './store.js?v=202611114';
-import * as E from './engine.js?v=202611114';
-import { applyAll, seq, seqPlay, seqHasNotes, learnSplit } from './perform.js?v=202611114';
-import { connectMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611114';
-import { createDock, bindComputerKeys, setGuide, applyDock } from './keys.js?v=202611114';
-import { currentGuide, onGuideChange, refreshGuide } from './guide.js?v=202611114';
-import { initLumi } from './lumi.js?v=202611114';
-import { t, noteLabel } from './i18n.js?v=202611114';
-import { renderPlay } from './play.js?v=202611114';
-import { renderLearn } from './learn.js?v=202611114';
-import { renderCreate, soundName } from './create.js?v=202611114';
-import { renderSettings, applyTheme } from './settings.js?v=202611114';
-import { allNotesOff } from './notes.js?v=202611114';
+import { h, icon, seg, toast, toggle, param } from './ui.js?v=202611115';
+import { setMetro, metroBeat } from './metronome.js?v=202611115';
+import { S, save, on, emit } from './store.js?v=202611115';
+import * as E from './engine.js?v=202611115';
+import { applyAll, seq, seqPlay, seqHasNotes, learnSplit } from './perform.js?v=202611115';
+import { connectMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611115';
+import { createDock, bindComputerKeys, setGuide, applyDock } from './keys.js?v=202611115';
+import { currentGuide, onGuideChange, refreshGuide } from './guide.js?v=202611115';
+import { initLumi } from './lumi.js?v=202611115';
+import { t, noteLabel } from './i18n.js?v=202611115';
+import { renderPlay } from './play.js?v=202611115';
+import { renderLearn } from './learn.js?v=202611115';
+import { renderCreate, soundName } from './create.js?v=202611115';
+import { renderSettings, applyTheme } from './settings.js?v=202611115';
+import { allNotesOff } from './notes.js?v=202611115';
 
 const MODES = [['play', 'play', 'modePlay'], ['learn', 'learn', 'modeLearn'], ['create', 'create', 'modeCreate']];
 
@@ -66,15 +66,15 @@ const gear = h('button', { type: 'button', class: 'gear', onclick: () => ctx.ope
 const metroDots = h('span', { class: 'metro-dots' });
 const metroBtn = h('button', { type: 'button', class: 'metro-btn', onclick: e => { e.stopPropagation(); toggleMetroPop(); } }, icon('metro'), metroDots);
 const muteBtn = h('button', { type: 'button', class: 'mute-btn', onclick: () => {
-  S.muteMidi = !S.muteMidi; save(); paintMute();
-  toast(t(S.muteMidi ? 'muteMidiOn' : 'muteMidiOff'));
+  S.mute = !S.mute; save(); E.setMuted(S.mute); paintMute();
+  toast(t(S.mute ? 'muteOn' : 'muteOff'));
 } });
 function paintMute() {
-  muteBtn.classList.toggle('on', S.muteMidi);
-  muteBtn.setAttribute('aria-pressed', S.muteMidi);
-  muteBtn.setAttribute('aria-label', t('muteMidi'));
-  muteBtn.title = t('muteMidi');
-  muteBtn.replaceChildren(icon(S.muteMidi ? 'mute' : 'speaker'));
+  muteBtn.classList.toggle('on', S.mute);
+  muteBtn.setAttribute('aria-pressed', S.mute);
+  muteBtn.setAttribute('aria-label', t('mute'));
+  muteBtn.title = t('mute');
+  muteBtn.replaceChildren(icon(S.mute ? 'mute' : 'speaker'));
 }
 const metroPop = h('div', { class: 'metro-pop', hidden: true, onclick: e => e.stopPropagation() });
 top.append(logo, modes, h('div', { class: 'spacer' }), chips, transport, metroBtn, muteBtn, midiPill, gear);
@@ -235,4 +235,4 @@ on('tempo', () => E.setFx(S.fx, S.tempo));
 document.addEventListener('visibilitychange', () => { if (document.hidden) allNotesOff(); });
 
 // console handle for testing without a keyboard
-import('./notes.js?v=202611114').then(N => { window.octave = { S, press: N.press, lift: N.lift, emit, applyDock }; });
+import('./notes.js?v=202611115').then(N => { window.octave = { S, press: N.press, lift: N.lift, emit, applyDock }; });

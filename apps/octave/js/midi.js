@@ -1,9 +1,9 @@
 // Web MIDI input. iOS Safari has no Web MIDI: on iPhone / iPad open the app in
 // a browser that adds it (Web MIDI Browser). Outputs are only used by lumi.js,
 // and only when the LUMI guide lights are switched on.
-import { press, lift, setPedal, allNotesOff } from './notes.js?v=202611114';
-import * as E from './engine.js?v=202611114';
-import { S } from './store.js?v=202611114';
+import { press, lift, setPedal, allNotesOff } from './notes.js?v=202611115';
+import * as E from './engine.js?v=202611115';
+import { S } from './store.js?v=202611115';
 
 let access = null;
 let stateCb = () => {};
