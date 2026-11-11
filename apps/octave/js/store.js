@@ -1,7 +1,7 @@
 // App state, persisted in localStorage (every access wrapped: private mode can throw).
 // One object, S, read and written everywhere; `emit` tells the views what moved.
-import { FACTORY } from './presets.js?v=202611128';
-import { clonePatch } from './dx7.js?v=202611128';
+import { FACTORY } from './presets.js?v=202611129';
+import { clonePatch } from './dx7.js?v=202611129';
 
 const KEY = 'octave.state.v1';
 const BANKS = 'octave.banks.v1';
@@ -79,10 +79,13 @@ export const banks = load(BANKS) || [];
 if (!banks.find(b => b.id === 'mine')) banks.unshift({ id: 'mine', name: null, voices: [] });
 
 let timer = 0;
+// A temporary view of the state to save instead of S (the sound workshop)
+let saveView = null;
+export const setSaveView = fn => { saveView = fn; };
 export function save() {
   clearTimeout(timer);
   timer = setTimeout(() => {
-    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
+    try { localStorage.setItem(KEY, JSON.stringify(saveView ? saveView(S) : S)); } catch {}
   }, 300);
 }
 export function saveLang() {

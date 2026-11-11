@@ -1,11 +1,14 @@
 // Coach: the course's progress, the tiny music notation the lessons are written
 // in, the keys a lesson lights, and the clock helpers (demo playback, clicks,
 // latency calibration) shared by the lesson steps.
-import { press, lift } from './notes.js?v=202611128';
-import * as E from './engine.js?v=202611128';
-import { COURSE } from './course.js?v=202611128';
+import { press, lift } from './notes.js?v=202611129';
+import * as E from './engine.js?v=202611129';
+import { COURSE } from './course.js?v=202611129';
+import { SOUND_COURSE } from './sound-course.js?v=202611129';
 export { COURSE };
-import { defaultSpelling } from './theory.js?v=202611128';
+// Two tracks: playing the piano, and making sounds with the synth
+export const TRACKS = { piano: COURSE, sound: SOUND_COURSE };
+import { defaultSpelling } from './theory.js?v=202611129';
 
 // Every piece of the course once: versions of one song (right hand, left hand,
 // both) count as one, played in its fullest version under its first, plain title
@@ -28,7 +31,7 @@ export function pieceNotes(p) {
 
 // ── progress (localStorage, every access wrapped) ──────────────
 const KEY = 'octave.coach.v1';
-const blank = () => ({ stars: {}, calib: null, unlockAll: false, last: null });
+const blank = () => ({ stars: {}, calib: null, unlockAll: false, last: null, track: 'piano' });
 function load() {
   try { return { ...blank(), ...JSON.parse(localStorage.getItem(KEY)) }; } catch { return blank(); }
 }
@@ -37,16 +40,20 @@ export function saveCoach() { try { localStorage.setItem(KEY, JSON.stringify(P))
 export function resetCoach() { Object.assign(P, blank()); saveCoach(); }
 
 export const PASS = 2; // stars needed to open the next lesson
-export const LESSONS = COURSE.flatMap((u, ui) => u.lessons.map((l, li) => ({ ...l, unit: u, ui, li })));
+export const LESSONS = Object.entries(TRACKS).flatMap(([track, units]) => units.flatMap((u, ui) => u.lessons.map((l, li) => ({ ...l, unit: u, ui, li, track }))));
+export const lessonsOf = track => LESSONS.filter(l => l.track === track);
 export const lessonById = id => LESSONS.find(l => l.id === id);
 export const starsOf = id => P.stars[id] ?? 0;
+// A lesson opens once the one before it, in the same track, is passed
 export function isOpen(id) {
   if (P.unlockAll) return true;
-  const i = LESSONS.findIndex(l => l.id === id);
-  return i <= 0 || starsOf(LESSONS[i - 1].id) >= PASS;
+  const lesson = lessonById(id);
+  const list = lessonsOf(lesson.track);
+  const i = list.indexOf(lesson);
+  return i <= 0 || starsOf(list[i - 1].id) >= PASS;
 }
 // The lesson to suggest: the first one not passed yet
-export const nextLesson = () => LESSONS.find(l => starsOf(l.id) < PASS && isOpen(l.id)) ?? LESSONS[LESSONS.length - 1];
+export const nextLesson = (track = P.track || 'piano') => { const list = lessonsOf(track); return list.find(l => starsOf(l.id) < PASS && isOpen(l.id)) ?? list[list.length - 1]; };
 export function recordLesson(id, stars) {
   P.stars[id] = Math.max(starsOf(id), stars);
   P.last = id;

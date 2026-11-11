@@ -1,24 +1,28 @@
 // Learn › Course: the course map, and the lesson player that runs each step
 // (see course.js for the step types). Progress lives in coach.js.
-import { h, icon, seg, toast } from './ui.js?v=202611128';
-import { S, save } from './store.js?v=202611128';
-import { t, spelled, lang, scaleName } from './i18n.js?v=202611128';
-import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611128';
-import { setOverride, setSide } from './keys.js?v=202611128';
-import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611128';
-import { mountFall } from './fall.js?v=202611128';
-import { spelledOctave } from './theory.js?v=202611128';
-import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611128';
+import { h, icon, seg, toast } from './ui.js?v=202611129';
+import { S, save } from './store.js?v=202611129';
+import { t, spelled, lang, scaleName } from './i18n.js?v=202611129';
+import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611129';
+import { setOverride, setSide } from './keys.js?v=202611129';
+import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611129';
+import { mountFall } from './fall.js?v=202611129';
+import { spelledOctave } from './theory.js?v=202611129';
+import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611129';
 import {
   openSongData, closeSong, playSong, pauseSong, isSongPlaying, seekSong, setSongPart, setSongSpeed, setSongFollow,
   onSongChange, onSongEnd, songTally, onSongTally, resetTally, songClock, currentSong, isWaitingForPlayer,
-} from './song.js?v=202611128';
-import * as E from './engine.js?v=202611128';
+} from './song.js?v=202611129';
+import * as E from './engine.js?v=202611129';
 import {
-  P, PASS, LESSONS, COURSE, lessonById, starsOf, isOpen, nextLesson, recordLesson, saveCoach, resetCoach,
+  P, PASS, LESSONS, COURSE, TRACKS, lessonsOf, lessonById, starsOf, isOpen, nextLesson, recordLesson, saveCoach, resetCoach,
   parse, notesOf, lengthOf, pitch, setCoachGuide, demo, hear, clicks, latency, isPlayer, median, audioOf,
-} from './coach.js?v=202611128';
+} from './coach.js?v=202611129';
 
+import { startLab, endLab, labOn, labPatch, setLabPatch, labChanged, keepLab, playWith, labViews, controlEl, readKey, shown } from './lab.js?v=202611129';
+import { envCanvas } from './create.js?v=202611129';
+import { clonePatch } from './dx7.js?v=202611129';
+import { applyPart } from './perform.js?v=202611129';
 // ── text ───────────────────────────────────────────────────────
 const tx = v => (v && typeof v === 'object' ? v[lang()] ?? v.en : v ?? '');
 function noteText(tok) {
@@ -58,17 +62,28 @@ export function openLesson(id, ctx) {
 }
 
 function startLesson(lesson, ctx) {
-  open = { lesson, step: 0, results: lesson.steps.map(() => undefined), finished: false };
+  open = { lesson, step: 0, results: lesson.steps.map(() => undefined), finished: false, labPatch: lesson.lab ? lesson.lab() : null };
   ctx.rerender();
 }
 function leaveLesson(ctx) { open = null; ctx.rerender(); }
 
+// A sound lesson plays the workshop sound while it is on screen; leaving the
+// screen (or the lesson) gives the player their own sound back.
+function useLab(ctx) {
+  if (!open?.lesson.lab) return;
+  startLab(open.labPatch);
+  ctx.onLeave(() => { if (labOn()) { open && (open.labPatch = clonePatch(labPatch())); endLab(); } });
+}
+
 // ── map ────────────────────────────────────────────────────────
 function renderMap(view, ctx) {
-  const total = LESSONS.length;
-  const passed = LESSONS.filter(l => starsOf(l.id) >= PASS).length;
-  const stars = LESSONS.reduce((s, l) => s + starsOf(l.id), 0);
-  const next = nextLesson();
+  const track = TRACKS[P.track] ? P.track : 'piano';
+  const list = lessonsOf(track);
+  const total = list.length;
+  const passed = list.filter(l => starsOf(l.id) >= PASS).length;
+  const stars = list.reduce((s, l) => s + starsOf(l.id), 0);
+  const next = nextLesson(track);
+  const trackSeg = seg({ cls: 'big-seg track-seg', options: [['piano', t('trackPiano')], ['sound', t('trackSound')]], get: () => track, set: v => { P.track = v; saveCoach(); ctx.rerender(); } });
   const hero = h('div', { class: 'card coach-hero' },
     h('div', { class: 'coach-hero-text' },
       h('h3', {}, passed ? t('cContinue') : t('cStart')),
@@ -79,7 +94,7 @@ function renderMap(view, ctx) {
       h('div', { class: 'bar' }, h('i', { style: `width:${(passed / total) * 100}%` })),
       h('small', {}, t('cProgress', { done: passed, total, stars, max: total * 3 }))));
 
-  const units = COURSE.map((u, ui) => h('section', { class: 'coach-unit' },
+  const units = TRACKS[track].map((u, ui) => h('section', { class: 'coach-unit' },
     h('div', { class: 'coach-unit-head' }, h('span', { class: 'unit-num' }, ui + 1), h('div', {}, h('b', {}, resolve(u.title)), h('small', {}, resolve(u.blurb)))),
     h('ol', { class: 'coach-lessons' }, ...u.lessons.map((l, li) => {
       const lesson = lessonById(l.id);
@@ -104,12 +119,13 @@ function renderMap(view, ctx) {
       else { e.currentTarget.dataset.armed = '1'; e.currentTarget.textContent = t('confirm'); }
     } }, t('cReset')));
 
-  view.append(h('div', { class: 'coach-map' }, h('div', { class: 'coach-side' }, hero, foot), h('div', { class: 'coach-units' }, ...units)));
+  view.append(h('div', { class: 'coach-map' }, h('div', { class: 'coach-side' }, trackSeg, hero, foot), h('div', { class: 'coach-units' }, ...units)));
 }
 
 // ── lesson player ──────────────────────────────────────────────
 function renderLesson(view, ctx) {
   const { lesson } = open;
+  useLab(ctx);
   if (open.finished) return renderEnd(view, ctx);
   const step = lesson.steps[open.step];
   const dots = h('div', { class: 'step-dots' }, ...lesson.steps.map((s, i) => h('i', { class: (i < open.step ? 'done' : i === open.step ? 'now' : '') + (open.results[i] === 0 ? ' skipped' : '') })));
@@ -162,9 +178,17 @@ function renderEnd(view, ctx) {
   const scored = results.filter(r => r != null);
   const stars = scored.length ? Math.max(scored.some(r => r === 0) ? 0 : 1, Math.round(scored.reduce((a, b) => a + b, 0) / scored.length)) : 3;
   if (!open.recorded) { recordLesson(lesson.id, stars); open.recorded = true; }
-  const i = LESSONS.indexOf(lesson);
-  const next = LESSONS[i + 1];
+  const list = lessonsOf(lesson.track);
+  const next = list[list.indexOf(lesson) + 1];
   const passed = stars >= PASS;
+  // a sound lesson ends with its sound, to keep or to open in Create
+  const keepRow = lesson.lab ? h('div', { class: 'row end-actions' },
+    h('button', { type: 'button', class: 'btn ghost', onclick: e => {
+      const k = keepLab(open.keptName || lesson.keep || 'Atelier');
+      if (!k) return toast(t('storageFull'));
+      open.kept = k; e.currentTarget.disabled = true; toast(t('labKept', { name: k.patch.name }));
+    } }, icon('download'), t('labKeep')),
+    h('button', { type: 'button', class: 'btn ghost', onclick: () => openInCreate(ctx) }, icon('create'), t('labOpen'))) : null;
   view.append(h('div', { class: 'lesson lesson-end' },
     h('div', { class: 'card end-card' },
       starRow(stars, 3, 'stars big'),
@@ -173,7 +197,21 @@ function renderEnd(view, ctx) {
       h('div', { class: 'row end-actions' },
         h('button', { type: 'button', class: 'btn ghost', onclick: () => leaveLesson(ctx) }, t('cBackMap')),
         h('button', { type: 'button', class: 'btn ghost', onclick: () => startLesson(lesson, ctx) }, icon('restart'), t('cRedo')),
-        passed && next ? h('button', { type: 'button', class: 'btn', onclick: () => startLesson(next, ctx) }, t('cNextLesson'), icon('next')) : null))));
+        passed && next ? h('button', { type: 'button', class: 'btn', onclick: () => startLesson(next, ctx) }, t('cNextLesson'), icon('next')) : null),
+      keepRow)));
+}
+
+// Keep the workshop sound (once) and edit it on the Create screen, on part A
+function openInCreate(ctx) {
+  const k = open.kept || keepLab(open.lesson.keep || 'Atelier');
+  if (!k) return toast(t('storageFull'));
+  endLab();
+  S.parts[0] = { kind: 'fm', ref: { bank: 'mine', i: k.i }, patch: clonePatch(k.patch), dirty: false, macros: { bright: 0, attack: 0, release: 0, vibrato: 0 }, volume: 0.8, octave: 0 };
+  applyPart(0);
+  S.edit = 0;
+  open = null;
+  save();
+  ctx.go('create', 'edit');
 }
 
 // Stars from an error ratio (errors / attempts)
@@ -280,8 +318,21 @@ function runQuiz(step, api) {
       card.append(line);
       requestAnimationFrame(() => drawLessonLine(line, { items: parse(r.line.src), clef: r.line.clef, keySignature: r.line.key, rhythm: r.line.rhythm }));
     }
+    // a sound lesson's round: sound A, then sound B, played on the workshop part
+    if (r.sounds) {
+      let token = 0;
+      const one = async (k, me) => {
+        if (me !== token) return;
+        abBtns.forEach((b, j) => b.classList.toggle('on', j === k));
+        await playWith(r.sounds[k], () => demo(parse(r.plays?.[k] || r.play || 'C4h'), r.bpm || 90, { light: false }));
+      };
+      const both = async () => { const me = ++token; await one(0, me); await new Promise(res => setTimeout(res, 250)); await one(1, me); if (me === token) abBtns.forEach(b => b.classList.remove('on')); };
+      const abBtns = ['A', 'B'].map((x, k) => h('button', { type: 'button', class: 'btn ghost ab', onclick: async () => { const me = ++token; await one(k, me); abBtns[k].classList.remove('on'); } }, icon('start'), x));
+      card.append(h('div', { class: 'row center-row' }, h('button', { type: 'button', class: 'btn ghost listen', onclick: both }, icon('start'), t('labBoth')), ...abBtns));
+      setTimeout(() => card.isConnected && rounds[i] === r && both(), 300);
+    }
     // a round can be heard (r.play), never seen
-    if (r.play) {
+    if (r.play && !r.sounds) {
       const play = () => { d?.cancel(); d = hear(parse(r.play), r.bpm || step.bpm || 80); };
       card.append(h('button', { type: 'button', class: 'btn ghost listen', onclick: play }, icon('start'), t('cListenAgain')));
       setTimeout(() => card.isConnected && rounds[i] === r && play(), 300);
@@ -628,6 +679,87 @@ function runTouch(step, api) {
   startRound();
 }
 
+// ── synth: a few controls of the workshop sound, and goals ─────
+function labStep(step, api) {
+  if (step.patch) setLabPatch(step.patch());
+  if (step.prepare) { const p = clonePatch(labPatch()); step.prepare(p); setLabPatch(p); }
+  api.keys(step.range || { lo: 48, hi: 84 });
+  const views = step.views ? labViews(step.views) : null;
+  const env = step.env != null ? envCanvas(() => labPatch().ops[step.env]) : null;
+  if (env) env.classList.add('lab-env');
+  let d = null;
+  const playBtn = h('button', { type: 'button', class: 'btn ghost listen', onclick: () => { d?.cancel(); d = demo(parse(step.play || 'C4w'), step.bpm || 90); } }, icon('start'), t('labPlay'));
+  api.onCleanup(() => { d?.cancel(); views?.stop(); });
+  return { views, env, playBtn };
+}
+
+function runSynth(step, api) {
+  const { views, env, playBtn } = labStep(step, api);
+  const goals = step.goals || [];
+  const played = new Set(), seen = new Set();
+  let gi = 0, done = false;
+  const list = h('ol', { class: 'lab-goals' });
+  const fb = h('div', { class: 'step-feedback', 'aria-live': 'polite' });
+  const paint = () => list.replaceChildren(...goals.map((g, k) => h('li', { class: k < gi ? 'done' : k === gi ? 'now' : '' }, rich(g.text, 'span', 'rich'))));
+  const check = () => {
+    if (done) return;
+    const before = gi;
+    while (goals[gi] && goals[gi].check(labPatch(), played, seen)) gi++;
+    if (gi !== before) {
+      paint();
+      card.dataset.feedback = 'success';
+      fb.textContent = gi >= goals.length ? pick(t('drillWell').split('|')) : t('labGoalDone');
+      setTimeout(() => { if (card.isConnected && !done) card.dataset.feedback = ''; }, 900);
+    }
+    if (gi >= goals.length) { done = true; api.complete(goals.length ? 3 : null); }
+  };
+  const controls = h('div', { class: 'lab-controls' }, ...step.controls.map(c => controlEl({ ...c, label: tx(c.label) }, labPatch, () => {
+    seen.add(c.key + '=' + readKey(labPatch(), c.key));
+    labChanged(); env?.draw(); check();
+  })));
+  const card = h('div', { class: 'card step-card lab-card' }, step.title ? h('h2', {}, resolve(step.title)) : null, step.text ? rich(step.text) : null,
+    views, env, controls, goals.length ? list : null, fb, h('div', { class: 'row center-row' }, playBtn));
+  api.body.append(card);
+  const un = subscribe(e => { if (e.type === 'on' && isPlayer(e)) { played.add(e.midi); check(); } });
+  api.onCleanup(un);
+  paint();
+  if (!goals.length) api.complete(null);
+}
+
+// ── match: copy a target sound by ear ──────────────────────────
+function runMatch(step, api) {
+  const { views, env, playBtn } = labStep(step, api);
+  const target = clonePatch(labPatch());
+  step.target(target);
+  let d = null, checks = 0, done = false;
+  const fb = h('div', { class: 'step-feedback', 'aria-live': 'polite' });
+  const items = () => parse(step.play || 'C4w');
+  const targetBtn = h('button', { type: 'button', class: 'btn ghost listen', onclick: () => { d?.cancel(); playWith(target, () => (d = demo(items(), step.bpm || 90, { light: false }))); } }, icon('target'), t('labTarget'));
+  playBtn.replaceChildren(icon('start'), t('labMine'));
+  const tolOf = c => (c.key.endsWith('.coarse') || c.key === 'fb' || c.key === 'alg' ? 0 : c.tol ?? step.tol ?? 10);
+  const compare = () => {
+    if (done) return;
+    checks++;
+    const off = step.controls.filter(c => Math.abs(shown(c, readKey(labPatch(), c.key)) - shown(c, readKey(target, c.key))) > tolOf(c));
+    if (!off.length) {
+      done = true;
+      card.dataset.feedback = 'success';
+      fb.textContent = t('labMatch');
+      return api.complete(checks <= 1 ? 3 : checks <= 3 ? 2 : 1);
+    }
+    card.dataset.feedback = 'miss';
+    // after a few tries, say which way the first wrong control should go
+    const c = off[0];
+    const up = shown(c, readKey(target, c.key)) > shown(c, readKey(labPatch(), c.key));
+    fb.textContent = checks >= 3 ? t('labOffHint', { label: tx(c.label), dir: t(up ? 'labMore' : 'labLess') }) : t('labOff', { n: off.length });
+  };
+  const controls = h('div', { class: 'lab-controls' }, ...step.controls.map(c => controlEl({ ...c, label: tx(c.label) }, labPatch, () => { labChanged(); env?.draw(); card.dataset.feedback = ''; })));
+  const card = h('div', { class: 'card step-card lab-card' }, step.text ? rich(step.text) : null, views, env, controls, fb,
+    h('div', { class: 'row center-row' }, targetBtn, playBtn, h('button', { type: 'button', class: 'btn', onclick: compare }, t('labCompare'))));
+  api.body.append(card);
+  api.onCleanup(() => d?.cancel());
+}
+
 // ── drill (the Exercises engine) ───────────────────────────────
 function runDrill(step, api) {
   setPracticeConfig({ roots: 'naturals', hints: false, ...step.config });
@@ -863,4 +995,4 @@ function runCalibrate(step, api) {
 }
 function T(fr, en) { return { fr, en }; }
 
-const RUNNERS = { touch: runTouch, info: runInfo, find: runFind, quiz: runQuiz, phrase: runPhrase, rhythm: runRhythm, drill: runDrill, piece: runPiece, calibrate: runCalibrate };
+const RUNNERS = { synth: runSynth, match: runMatch, touch: runTouch, info: runInfo, find: runFind, quiz: runQuiz, phrase: runPhrase, rhythm: runRhythm, drill: runDrill, piece: runPiece, calibrate: runCalibrate };

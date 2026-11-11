@@ -1,10 +1,10 @@
 // Between the note bus and the engine: split, per-part octave, velocity curve,
 // arpeggiator, step sequencer (playback, step and live recording, transpose)
 // and the shared tempo clock. Song playback skips the arp and the sequencer.
-import * as E from './engine.js?v=202611128';
-import { PIANO_SOUNDS } from './engine.js?v=202611128';
-import { S, save, emit } from './store.js?v=202611128';
-import { subscribe } from './notes.js?v=202611128';
+import * as E from './engine.js?v=202611129';
+import { PIANO_SOUNDS } from './engine.js?v=202611129';
+import { S, save, emit } from './store.js?v=202611129';
+import { subscribe } from './notes.js?v=202611129';
 
 const held = new Map(); // midi -> { part, note, arp } | { transpose: true }
 
@@ -106,6 +106,9 @@ function seqRecordUp() {
 // ── keys (from the note bus) ───────────────────────────────────
 // Split learning: the next key played sets the split point
 let learnCb = null;
+// In a sound-design lesson the player must hear Octave, even when muted
+let labSound = false;
+export const setLabSound = on => { labSound = on; };
 export const learnSplit = fn => { learnCb = fn; };
 
 function keyOn(key, vel, source) {
@@ -124,7 +127,7 @@ function keyOn(key, vel, source) {
   if (!fromSong && seq.rec && part === S.seq.part) seqRecord(note, vel);
   // muted: the player's own notes stay silent (their piano sounds already);
   // songs, lessons and the metronome still play
-  if (S.mute && !/^(song|take|suggest|coach)/.test(String(source))) {
+  if (S.mute && !labSound && !/^(song|take|suggest|coach)/.test(String(source))) {
     held.set(key, { silent: true, rec: !fromSong && seq.rec });
     return;
   }
