@@ -1,12 +1,12 @@
 // Settings sheet and theme.
-import { h, param, seg, toggle, toast } from './ui.js?v=202611111';
-import { S, save, emit, resetAll } from './store.js?v=202611111';
-import * as E from './engine.js?v=202611111';
-import { allOff } from './perform.js?v=202611111';
-import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611111';
-import { t, noteLabel, setLang } from './i18n.js?v=202611111';
-import { keyHint } from './keys.js?v=202611111';
-import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES } from './lumi.js?v=202611111';
+import { h, param, seg, toggle, toast } from './ui.js?v=202611112';
+import { S, save, emit, resetAll } from './store.js?v=202611112';
+import * as E from './engine.js?v=202611112';
+import { allOff } from './perform.js?v=202611112';
+import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611112';
+import { t, noteLabel, setLang } from './i18n.js?v=202611112';
+import { keyHint } from './keys.js?v=202611112';
+import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES } from './lumi.js?v=202611112';
 
 // 'auto' follows the device; 'light' / 'dark' force it
 export function applyTheme() {

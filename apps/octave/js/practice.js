@@ -1,10 +1,10 @@
 // Exercises: chords (play the chord shown, any octave or inversion) and scales
 // (one octave up then back down, starting anywhere). Logic only: the Learn
 // screen draws the state and listens to onPracticeChange.
-import { subscribe, soundingNotes } from './notes.js?v=202611111';
-import { S } from './store.js?v=202611111';
-import { buildChord, scaleNotes, pitchClass, defaultSpelling, SCALES } from './theory.js?v=202611111';
-import { t, spelled } from './i18n.js?v=202611111';
+import { subscribe, soundingNotes } from './notes.js?v=202611112';
+import { S } from './store.js?v=202611112';
+import { buildChord, scaleNotes, pitchClass, defaultSpelling, SCALES } from './theory.js?v=202611112';
+import { t, spelled } from './i18n.js?v=202611112';
 
 export const LEVELS = {
   chords: {
@@ -38,6 +38,12 @@ let missedStep = -1;
 const stats = { done: 0, streak: 0, best: 0 };
 const listeners = new Set();
 
+// A lesson can run the exercises with its own settings (else the Exercises tab's)
+let cfg = null;
+const conf = () => cfg || S.practice;
+export function setPracticeConfig(c) { cfg = c; stats.done = 0; stats.streak = 0; stats.best = 0; }
+const readingLevel = () => { const r = conf().reading; return typeof r === 'object' ? r : LEVELS.reading[r] || LEVELS.reading.trebleEasy; };
+
 export const isPracticing = () => active;
 export const onPracticeChange = fn => { listeners.add(fn); return () => listeners.delete(fn); };
 export const practiceState = () => ({ target, feedback, stats, missedStep, locked });
@@ -46,7 +52,7 @@ export const refreshPractice = () => changed();
 
 // Notes to mark: strong = play these now, soft = the rest of the scale
 export function practiceGuide() {
-  if (!active || !target || !S.practice.hints) return null;
+  if (!active || !target || !conf().hints) return null;
   if (target.kind === 'reading') return { midis: new Set([target.midi]) };
   if (target.kind === 'chords') return { strong: target.pcs, soft: new Set() };
   const next = target.steps[target.position];
@@ -57,7 +63,7 @@ const pick = list => list[Math.floor(Math.random() * list.length)];
 
 // Range of the current note-reading level, so the keyboard can show all of it
 export function readingRange() {
-  const L = LEVELS.reading[S.practice.reading] || LEVELS.reading.trebleEasy;
+  const L = readingLevel();
   return { lo: L.lo, hi: L.hi };
 }
 
@@ -65,10 +71,11 @@ const SHARP = [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [3, 0], [3, 1], [4, 0], [
 const FLAT = [[0, 0], [1, -1], [1, 0], [2, -1], [2, 0], [3, 0], [4, -1], [4, 0], [5, -1], [5, 0], [6, -1], [6, 0]];
 
 function readingTarget() {
-  const L = LEVELS.reading[S.practice.reading] || LEVELS.reading.trebleEasy;
+  const L = readingLevel();
   const black = m => [1, 3, 6, 8, 10].includes(m % 12);
   const pool = [];
   for (let m = L.lo; m <= L.hi; m++) if (L.accidentals || !black(m)) pool.push(m);
+  if (L.pool) pool.splice(0, pool.length, ...L.pool);
   let midi;
   do { midi = pick(pool); } while (target && target.kind === 'reading' && target.midi === midi && pool.length > 1);
   const useFlat = black(midi) && Math.random() < 0.5;
@@ -79,7 +86,7 @@ function readingTarget() {
 }
 
 export function nextTarget() {
-  const P = S.practice;
+  const P = conf();
   const kind = P.kind;
   if (kind === 'reading') {
     target = readingTarget();
@@ -87,8 +94,8 @@ export function nextTarget() {
     return changed();
   }
   const level = kind === 'chords' ? P.chords : P.scales;
-  const types = LEVELS[kind][level] ?? Object.values(LEVELS[kind])[0];
-  const roots = ROOTS[P.roots] ?? ROOTS.all;
+  const types = Array.isArray(level) ? level : LEVELS[kind][level] ?? Object.values(LEVELS[kind])[0];
+  const roots = Array.isArray(P.roots) ? P.roots : ROOTS[P.roots] ?? ROOTS.all;
   let root, type;
   do {
     root = pick(roots);
@@ -178,7 +185,7 @@ function checkReading(e) {
 
 subscribe(e => {
   if (!active || !target || locked || (e.type !== 'on' && e.type !== 'off')) return;
-  if (String(e.source).startsWith('song') || String(e.source).startsWith('take') || String(e.source).startsWith('suggest')) return;
+  if (/^(song|take|suggest|coach)/.test(String(e.source))) return;
   if (target.kind === 'reading') checkReading(e);
   else if (target.kind === 'chords') checkChord(e);
   else checkScale(e);

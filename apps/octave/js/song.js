@@ -8,7 +8,7 @@
 // other. The song then waits on each chord of their part until its notes are
 // played, and marks them on the keys (and the LED strip) in the meantime.
 
-import { subscribe, press, liftSource, setPedal } from "./notes.js?v=202611111";
+import { subscribe, press, liftSource, setPedal } from "./notes.js?v=202611112";
 
 const SOURCE = "song";
 const TICK_MS = 10;          // playback clock
@@ -33,6 +33,12 @@ let part = "listen";
 let expected = 0;            // index of the chord awaited in the visitor's part
 let waiting = false;         // the clock is stopped on that chord
 const struck = new Set();    // notes played towards it
+let follow = true;           // wait for the player (false: the clock runs, for timing practice)
+// Play-along tally, for the lessons: right notes, wrong notes, time spent waiting
+const tally = { hits: 0, wrong: 0, stallMs: 0, chords: 0, waitStart: 0 };
+const tallyListeners = new Set();
+const endListeners = new Set();
+export const onSongEnd = fn => { endListeners.add(fn); return () => endListeners.delete(fn); };
 
 export const currentSong = () => song;
 export const isSongPlaying = () => playing;
@@ -43,6 +49,13 @@ export const onSongPosition = fn => positionListeners.add(fn);
 export const songPart = () => part;
 export const isWaitingForPlayer = () => waiting;
 export const onSongGuide = fn => guideListeners.add(fn);
+export const songTally = () => ({ ...tally });
+export const onSongTally = fn => { tallyListeners.add(fn); return () => tallyListeners.delete(fn); };
+export const setSongFollow = v => { follow = v; resetExpected(); notifyChange(); };
+export const songFollows = () => follow;
+// Where song time 0 sits on the performance.now() clock right now (no waiting)
+export const songClock = () => ({ anchorPosition, anchorTime, speed });
+export function resetTally() { Object.assign(tally, { hits: 0, wrong: 0, stallMs: 0, chords: 0, waitStart: 0 }); }
 export const awaitedChord = () => (song && part !== "listen" ? song.parts[part][expected] ?? null : null);
 
 const notifyGuide = () => guideListeners.forEach(fn => fn());
@@ -247,6 +260,36 @@ export async function openSongFile(file, meta = {}) {
     return song;
 }
 
+// A song written in the lessons: notes as { midi, start, end (beats), hand }
+export function openSongData({ title, bpm = 90, timeSignature = [4, 4], notes: list }) {
+    const ppq = 480;
+    const tracks = { right: 0, left: 1 };
+    const file = {
+        ppq, pedals: [], timeSignature, title,
+        tempos: [{ tick: 0, usPerBeat: Math.round(60000000 / bpm) }],
+        notes: list.map(n => ({ midi: n.midi, velocity: 80, startTick: Math.round(n.start * ppq), endTick: Math.round(n.end * ppq), track: tracks[n.hand] ?? 0 })),
+    };
+    const next = buildSong(file, title);
+    const hand = new Map(list.map(n => [Math.round(n.start * ppq) + ':' + n.midi, n.hand || 'right']));
+    next.notes.forEach(n => (n.hand = hand.get(Math.round(n.startBeat * ppq) + ':' + n.midi) ?? 'right'));
+    next.parts = {
+        both: staffGroups(next.notes),
+        right: staffGroups(next.notes.filter(n => n.hand === "right")),
+        left: staffGroups(next.notes.filter(n => n.hand === "left")),
+    };
+    next.lo = Math.min(...next.notes.map(n => n.midi));
+    next.hi = Math.max(...next.notes.map(n => n.midi));
+    next.lesson = true;
+    closeSong();
+    song = next;
+    positionMs = 0; noteIndex = 0; pedalIndex = 0;
+    resetExpected();
+    resetTally();
+    notifyChange();
+    notifyPosition();
+    return song;
+}
+
 export function closeSong() {
     if (!song) return;
     pauseSong();
@@ -267,14 +310,22 @@ function step() {
     positionMs = Math.min(song.durationMs, anchorPosition + (now - anchorTime) * speed);
     const { notes, pedals } = song;
 
+    // Not waiting: chords left behind are gone, the guide moves on to the next
+    if (!follow && part !== "listen") {
+        const chords = song.parts[part];
+        let moved = false;
+        while (expected < chords.length && chords[expected].time < positionMs - 250) { expected++; struck.clear(); moved = true; }
+        if (moved) notifyGuide();
+    }
     // Stop the clock on the chord the visitor has to play
-    const awaited = part === "listen" ? null : song.parts[part][expected];
+    const awaited = part === "listen" || !follow ? null : song.parts[part][expected];
     if (awaited && positionMs >= awaited.time) {
         positionMs = awaited.time;
         anchorPosition = positionMs;
         anchorTime = now;
         if (!waiting) {
             waiting = true;
+            tally.waitStart = now;
             notifyChange();
         }
     }
@@ -301,6 +352,7 @@ function step() {
 
     notifyPosition();
     if (positionMs >= song.durationMs) {
+        endListeners.forEach(fn => fn());
         pauseSong();
         positionMs = 0;
         noteIndex = 0;
@@ -330,16 +382,23 @@ export function setSongPart(value) {
 // The visitor's notes: once the awaited chord is complete, the song moves on.
 // Notes played a little early count, so a chord can be played on the beat.
 subscribe(event => {
-    if (event.type !== "on" || event.source?.startsWith(SOURCE)) return;
-    if (!song || !playing || part === "listen") return;
+    if (event.type !== "on" || event.source?.startsWith(SOURCE) || event.source?.startsWith("coach")) return;
+    if (!song || !playing || part === "listen" || !follow) return;
     const awaited = song.parts[part][expected];
-    if (!awaited || !awaited.midis.has(event.midi)) return;
+    if (!awaited || !awaited.midis.has(event.midi)) {
+        tally.wrong++;
+        return tallyListeners.forEach(fn => fn());
+    }
     struck.add(event.midi);
-    if (![...awaited.midis].every(midi => struck.has(midi))) return notifyGuide();
+    tally.hits++;
+    if (![...awaited.midis].every(midi => struck.has(midi))) { tallyListeners.forEach(fn => fn()); return notifyGuide(); }
     struck.clear();
     expected++;
+    tally.chords++;
+    tallyListeners.forEach(fn => fn());
     if (waiting) {
         waiting = false;
+        tally.stallMs += performance.now() - tally.waitStart;
         anchorPosition = positionMs;
         anchorTime = performance.now();
         notifyChange();

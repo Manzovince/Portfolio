@@ -1,7 +1,7 @@
 // App state, persisted in localStorage (every access wrapped: private mode can throw).
 // One object, S, read and written everywhere; `emit` tells the views what moved.
-import { FACTORY } from './presets.js?v=202611111';
-import { clonePatch } from './dx7.js?v=202611111';
+import { FACTORY } from './presets.js?v=202611112';
+import { clonePatch } from './dx7.js?v=202611112';
 
 const KEY = 'octave.state.v1';
 const BANKS = 'octave.banks.v1';
@@ -17,7 +17,7 @@ function defaults() {
   return {
     mode: 'play',              // play | learn | create
     createTab: 'sounds',       // sounds | edit | arp | seq | fx
-    learnTab: 'songs',         // songs | drills
+    learnTab: 'coach',         // coach | songs | drills
     playView: 'roll',          // roll | staff
     panel: true,               // side panel of the Play screen open
     parts: [pianoPart(0), fmPart(0)],

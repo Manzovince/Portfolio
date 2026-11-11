@@ -10,15 +10,15 @@
 // When a MIDI file is open, the staff shows that song instead, with its own
 // rhythm and time signature, and turns its lines as the song plays.
 
-import { subscribe } from "./notes.js?v=202611111";
-import { S, on } from "./store.js?v=202611111";
-import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=202611111";
-import { currentSong, onSongChange, onSongPosition } from "./song.js?v=202611111";
+import { subscribe } from "./notes.js?v=202611112";
+import { S, on } from "./store.js?v=202611112";
+import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=202611112";
+import { currentSong, onSongChange, onSongPosition } from "./song.js?v=202611112";
 
 // The staff shows the open song on the Learn screen, what is played elsewhere
 let songMode = false;
 const activeSong = () => (songMode ? currentSong() : null);
-import { palette } from "./colors.js?v=202611111";
+import { palette } from "./colors.js?v=202611112";
 
 const settings = {
     get scaleRoot() { return S.scale.root; },
@@ -712,4 +712,56 @@ export async function drawSingleNote(element, { clef, midi, spelling }) {
     const voice = new VF.Voice({ numBeats: 4, beatValue: 4 }).setMode(VF.Voice.Mode.SOFT).addTickables([note]);
     new VF.Formatter().joinVoices([voice]).format([voice], width - 110);
     voice.draw(ctx, stave);
+}
+
+// A short line of music for the lessons: a melody on one staff, or a rhythm on a
+// single line (items without pitches). `items` come from coach.js's parse();
+// `states[i]` colours a note: "now", "good", "bad" or nothing.
+export async function drawLessonLine(element, { clef = "treble", items, states = [], rhythm = false, timeSignature = null }) {
+    await loadVexflow();
+    if (!VF || !element.isConnected) return;
+    const P = palette();
+    const colour = { now: P.accent, good: P.a, bad: P.danger };
+    const notesCount = items.filter(i => !i.bar).length;
+    const width = Math.max(240, 70 + notesCount * 40 + items.filter(i => i.bar).length * 16);
+    const height = rhythm ? 90 : 130;
+    const scale = Math.min(1.8, Math.max(0.8, (element.clientWidth || width) / width));
+    element.replaceChildren();
+    const renderer = new VF.Renderer(element, VF.Renderer.Backends.SVG);
+    renderer.resize(Math.round(width * scale), Math.round(height * scale));
+    const ctx = renderer.getContext();
+    ctx.scale(scale, scale);
+    ctx.setFillStyle(P.text);
+    ctx.setStrokeStyle(P.text);
+    const stave = rhythm ? new VF.Stave(6, 0, width - 12, { numLines: 1, spaceAboveStaffLn: 4 }) : new VF.Stave(6, 6, width - 12);
+    if (!rhythm) stave.addClef(clef);
+    if (timeSignature && !rhythm) stave.addTimeSignature(timeSignature.join("/"));
+    stave.setContext(ctx).draw();
+    const tickables = [];
+    const notes = [];
+    let n = 0;
+    for (const item of items) {
+        if (item.bar) { tickables.push(new VF.BarNote()); continue; }
+        const keys = rhythm || item.rest ? [rhythm ? "f/5" : "b/4"] : item.midis.map((m, j) => vexKey(m, item.spellings[j]).key);
+        const note = new VF.StaveNote({ keys, duration: item.vf + (item.rest ? "r" : ""), clef: rhythm ? "treble" : clef, autoStem: !rhythm });
+        if (!rhythm && !item.rest) item.midis.forEach((m, j) => { const { accidental } = vexKey(m, item.spellings[j]); if (accidental) note.addModifier(new VF.Accidental(accidental), j); });
+        if (item.dots) VF.Dot.buildAndAttach([note], { all: true });
+        const c = colour[states[n]];
+        if (c) note.setStyle({ fillStyle: c, strokeStyle: c });
+        if (!rhythm) note.setLedgerLineStyle({ fillStyle: P.text, strokeStyle: P.text });
+        tickables.push(note);
+        notes.push(note);
+        n++;
+    }
+    if (!tickables.length) return;
+    const voice = new VF.Voice({ numBeats: 4, beatValue: 4 }).setMode(VF.Voice.Mode.SOFT).addTickables(tickables);
+    const beams = VF.Beam.generateBeams(notes.filter(x => !x.isRest()), rhythm ? { stemDirection: 1 } : {});
+    new VF.Formatter().joinVoices([voice]).format([voice], width - (rhythm ? 40 : 80) - (timeSignature ? 20 : 0));
+    voice.draw(ctx, stave);
+    beams.forEach(b => b.setContext(ctx).draw());
+    // a single line has no height for bar lines: draw them by hand
+    if (rhythm) {
+        const y = stave.getYForLine(0);
+        tickables.filter(x => x instanceof VF.BarNote).forEach(bar => ctx.fillRect(bar.getAbsoluteX(), y - 14, 1.4, 28));
+    }
 }
