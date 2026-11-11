@@ -482,9 +482,24 @@ function newCatSheet() {
   sheet.querySelector('input').focus();
 }
 
+/* ---------- Thème (Auto = suit le système) ---------- */
+const darkMQ = matchMedia('(prefers-color-scheme: dark)');
+function applyTheme() {
+  const t = ls.get('courses.theme', 'auto');
+  const root = document.documentElement;
+  if (t === 'light' || t === 'dark') root.dataset.theme = t; else delete root.dataset.theme;
+  const dark = t === 'dark' || (t !== 'light' && darkMQ.matches);
+  $('meta[name="theme-color"]').content = dark ? '#141816' : '#f4f2ec';
+}
+darkMQ.addEventListener('change', applyTheme);
+applyTheme();
+
 function settingsSheet() {
   ctx = { type: 'settings' };
+  const t = ls.get('courses.theme', 'auto');
+  const opt = (v, l) => `<button type="button" data-act="theme" data-theme="${v}" class="${t === v ? 'on' : ''}" aria-pressed="${t === v}">${l}</button>`;
   show(`<div class="sheet-in">${head('Réglages')}
+    <div class="theme">Apparence<div class="seg">${opt('auto', 'Auto')}${opt('light', 'Clair')}${opt('dark', 'Sombre')}</div></div>
     <p class="hint">Appui long sur un article pour le modifier, glissez-le vers la gauche pour le supprimer.</p>
     ${DEMO ? '' : '<div class="actions"><button type="button" class="dangerbtn" data-act="logout">Se déconnecter</button></div>'}</div>`);
 }
@@ -541,6 +556,7 @@ sheet.addEventListener('click', (e) => {
       moveCat(ctx.id, b.dataset.act === 'up' ? -1 : 1);
       catSheet(ctx.id, sheet.querySelector('input').value);
       break;
+    case 'theme': ls.set('courses.theme', b.dataset.theme); applyTheme(); settingsSheet(); break;
     case 'logout': sheet.close(); ls.set(CACHE, ''); sb.auth.signOut(); break;
   }
 });
