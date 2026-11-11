@@ -1,25 +1,25 @@
 // Learn screen: Songs (library, then the song falling onto the keys with its
 // staff above, waiting for the player's hand) and Exercises (chords, scales).
-import { h, icon, seg, toggle, toast } from './ui.js?v=202611121';
-import { S, save } from './store.js?v=202611121';
-import { t, chordQuality, scaleName, spelled, notation } from './i18n.js?v=202611121';
-import { chordSymbol } from './theory.js?v=202611121';
-import { importedSongs, addSong, songFile, removeSong, onLibraryChange } from './library.js?v=202611121';
-import { currentSong, openSongFile, closeSong, playSong, pauseSong, isSongPlaying, seekSong, songPosition, setSongPart, setSongSpeed, songPart, onSongChange, onSongPosition, isWaitingForPlayer } from './song.js?v=202611121';
-import { mountFall } from './fall.js?v=202611121';
-import { mountStaff, drawSingleNote } from './score.js?v=202611121';
-import { setOverride, setSide } from './keys.js?v=202611121';
-import { LEVELS, setPracticing, practiceState, onPracticeChange, skip, nextTarget, refreshPractice, readingRange } from './practice.js?v=202611121';
-import { soundingNotes } from './notes.js?v=202611121';
-import { pitchClass, defaultSpelling, spelledOctave } from './theory.js?v=202611121';
-import { fullScoreSheet } from './play.js?v=202611121';
-import { renderCoach } from './lesson.js?v=202611121';
-import { understandSheet } from './understand.js?v=202611121';
-import { songLoop, setSongLoop, onSongLoop } from './song.js?v=202611121';
-import { COURSE_PIECES, pieceNotes, pitch } from './coach.js?v=202611121';
+import { h, icon, seg, toggle, toast } from './ui.js?v=202611122';
+import { S, save } from './store.js?v=202611122';
+import { t, chordQuality, scaleName, spelled, notation } from './i18n.js?v=202611122';
+import { chordSymbol } from './theory.js?v=202611122';
+import { importedSongs, addSong, songFile, removeSong, onLibraryChange } from './library.js?v=202611122';
+import { currentSong, openSongFile, closeSong, playSong, pauseSong, isSongPlaying, seekSong, songPosition, setSongPart, setSongSpeed, songPart, onSongChange, onSongPosition, isWaitingForPlayer } from './song.js?v=202611122';
+import { mountFall } from './fall.js?v=202611122';
+import { mountStaff, drawSingleNote } from './score.js?v=202611122';
+import { setOverride, setSide } from './keys.js?v=202611122';
+import { LEVELS, setPracticing, practiceState, onPracticeChange, skip, nextTarget, refreshPractice, readingRange } from './practice.js?v=202611122';
+import { soundingNotes } from './notes.js?v=202611122';
+import { pitchClass, defaultSpelling, spelledOctave } from './theory.js?v=202611122';
+import { fullScoreSheet } from './play.js?v=202611122';
+import { renderCoach } from './lesson.js?v=202611122';
+import { understandSheet } from './understand.js?v=202611122';
+import { songLoop, setSongLoop, onSongLoop } from './song.js?v=202611122';
+import { COURSE_PIECES, pieceNotes, pitch } from './coach.js?v=202611122';
 // course titles carry note names as [G]: written in the player's notation
 const pieceTitle = p => (p.title[S.lang] ?? p.title.en).replace(/\[([A-G][#b]?)\]/g, (_, n) => spelled(pitch(n + '4').spelling));
-import { openSongData } from './song.js?v=202611121';
+import { openSongData } from './song.js?v=202611122';
 
 export function renderLearn(view, ctx) {
   const nav = seg({ cls: 'subnav', options: [['coach', t('tabCoach')], ['songs', t('tabSongs')], ['drills', t('tabDrills')]], get: () => S.learnTab, set: v => { S.learnTab = v; save(); ctx.rerender(); } });
@@ -196,8 +196,11 @@ function renderDrills(view, ctx) {
     if (target.kind === 'reading') {
       prompt.textContent = t(target.chord ? 'drillReadChord' : 'drillReadNote');
       symbol.classList.add('staff-note');
-      const sig = target.midis.join(',') + ':' + target.spellings.map(s => s.acc).join(',') + ':' + target.clef;
-      if (symbol.dataset.sig !== sig) { symbol.dataset.sig = sig; drawSingleNote(symbol, target); }
+      // in ink until played: each right key turns to the accent colour
+      const down = new Set(soundingNotes());
+      const good = target.midis.map((m, i) => (fb.kind === 'success' || down.has(m) ? i : -1)).filter(i => i >= 0);
+      const sig = target.midis.join(',') + ':' + target.spellings.map(s => s.acc).join(',') + ':' + target.clef + ':' + good.join(',');
+      if (symbol.dataset.sig !== sig) { symbol.dataset.sig = sig; drawSingleNote(symbol, target, good); }
       const show = fb.kind === 'success' || P.hints;
       const label = (m, i) => spelled(target.spellings[i]) + spelledOctave(m, target.spellings[i]);
       if (!target.chord) { name.textContent = show ? label(target.midi, 0) : ''; chips.replaceChildren(); }

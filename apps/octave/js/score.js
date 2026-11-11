@@ -10,15 +10,15 @@
 // When a MIDI file is open, the staff shows that song instead, with its own
 // rhythm and time signature, and turns its lines as the song plays.
 
-import { subscribe } from "./notes.js?v=202611121";
-import { S, on } from "./store.js?v=202611121";
-import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=202611121";
-import { currentSong, onSongChange, onSongPosition } from "./song.js?v=202611121";
+import { subscribe } from "./notes.js?v=202611122";
+import { S, on } from "./store.js?v=202611122";
+import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=202611122";
+import { currentSong, onSongChange, onSongPosition } from "./song.js?v=202611122";
 
 // The staff shows the open song on the Learn screen, what is played elsewhere
 let songMode = false;
 const activeSong = () => (songMode ? currentSong() : null);
-import { palette } from "./colors.js?v=202611121";
+import { palette } from "./colors.js?v=202611122";
 
 const settings = {
     get scaleRoot() { return S.scale.root; },
@@ -688,7 +688,8 @@ on("theme", () => queueDraw());
 on("lang", () => queueDraw());
 
 // One note (or one chord) on a short staff, for the note-reading exercise
-export async function drawSingleNote(element, { clef, midi, spelling, midis = [midi], spellings = [spelling] }) {
+// Notes are drawn in ink; `good` holds the indexes already played right (accent)
+export async function drawSingleNote(element, { clef, midi, spelling, midis = [midi], spellings = [spelling] }, good = []) {
     await loadVexflow();
     if (!VF || !element.isConnected) return;
     const keys = midis.map((m, i) => vexKey(m, spellings[i]));
@@ -706,7 +707,8 @@ export async function drawSingleNote(element, { clef, midi, spelling, midis = [m
     stave.setContext(ctx).draw();
     const note = new VF.StaveNote({ keys: keys.map(k => k.key), duration: "w", clef });
     keys.forEach((k, i) => { if (k.accidental) note.addModifier(new VF.Accidental(k.accidental), i); });
-    note.setStyle({ fillStyle: P.accent, strokeStyle: P.accent });
+    note.setStyle({ fillStyle: P.text, strokeStyle: P.text });
+    good.forEach(i => note.setKeyStyle(i, { fillStyle: P.accent, strokeStyle: P.accent }));
     note.setLedgerLineStyle({ fillStyle: P.text, strokeStyle: P.text });
     note.setXShift(36);
     const voice = new VF.Voice({ numBeats: 4, beatValue: 4 }).setMode(VF.Voice.Mode.SOFT).addTickables([note]);
