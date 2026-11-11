@@ -1,23 +1,23 @@
 // Learn › Course: the course map, and the lesson player that runs each step
 // (see course.js for the step types). Progress lives in coach.js.
-import { h, icon, seg, toast } from './ui.js?v=202611122';
-import { S, save } from './store.js?v=202611122';
-import { t, spelled, lang, scaleName } from './i18n.js?v=202611122';
-import { subscribe } from './notes.js?v=202611122';
-import { setOverride, setSide } from './keys.js?v=202611122';
-import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611122';
-import { mountFall } from './fall.js?v=202611122';
-import { spelledOctave } from './theory.js?v=202611122';
-import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611122';
+import { h, icon, seg, toast } from './ui.js?v=202611123';
+import { S, save } from './store.js?v=202611123';
+import { t, spelled, lang, scaleName } from './i18n.js?v=202611123';
+import { subscribe } from './notes.js?v=202611123';
+import { setOverride, setSide } from './keys.js?v=202611123';
+import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611123';
+import { mountFall } from './fall.js?v=202611123';
+import { spelledOctave } from './theory.js?v=202611123';
+import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611123';
 import {
   openSongData, closeSong, playSong, pauseSong, isSongPlaying, seekSong, setSongPart, setSongSpeed, setSongFollow,
   onSongChange, onSongEnd, songTally, onSongTally, resetTally, songClock, currentSong, isWaitingForPlayer,
-} from './song.js?v=202611122';
-import * as E from './engine.js?v=202611122';
+} from './song.js?v=202611123';
+import * as E from './engine.js?v=202611123';
 import {
   P, PASS, LESSONS, COURSE, lessonById, starsOf, isOpen, nextLesson, recordLesson, saveCoach, resetCoach,
   parse, notesOf, lengthOf, pitch, setCoachGuide, demo, clicks, latency, isPlayer, median, audioOf,
-} from './coach.js?v=202611122';
+} from './coach.js?v=202611123';
 
 // ── text ───────────────────────────────────────────────────────
 const tx = v => (v && typeof v === 'object' ? v[lang()] ?? v.en : v ?? '');
@@ -122,7 +122,9 @@ function renderLesson(view, ctx) {
   const skipBtn = h('button', { type: 'button', class: 'btn ghost', onclick: () => { if (open.results[open.step] == null && !['info', 'calibrate'].includes(step.type)) open.results[open.step] = 0; advance(ctx); } }, t('cSkip'));
   const redo = h('button', { type: 'button', class: 'btn ghost', onclick: () => ctx.rerender() }, icon('restart'), h('span', {}, t('cRedoStep')));
   const earned = h('span', { class: 'step-earned' });
-  const footer = h('div', { class: 'lesson-foot' }, earned, h('div', { class: 'spacer' }), redo, skipBtn, cont);
+  // back to the previous step (its result is kept)
+  const back = open.step > 0 ? h('button', { type: 'button', class: 'btn ghost', onclick: () => { open.step--; ctx.rerender(); } }, icon('prev'), h('span', {}, t('cPrevStep'))) : null;
+  const footer = h('div', { class: 'lesson-foot' }, back, earned, h('div', { class: 'spacer' }), redo, skipBtn, cont);
   view.append(h('div', { class: 'lesson' }, head, body, footer));
 
   const cleanups = [];

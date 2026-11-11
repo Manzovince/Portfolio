@@ -1,10 +1,10 @@
 // Exercises: chords (play the chord shown, any octave or inversion) and scales
 // (one octave up then back down, starting anywhere). Logic only: the Learn
 // screen draws the state and listens to onPracticeChange.
-import { subscribe, soundingNotes } from './notes.js?v=202611122';
-import { S } from './store.js?v=202611122';
-import { buildChord, scaleNotes, pitchClass, defaultSpelling, SCALES } from './theory.js?v=202611122';
-import { t, spelled } from './i18n.js?v=202611122';
+import { subscribe, soundingNotes } from './notes.js?v=202611123';
+import { S } from './store.js?v=202611123';
+import { buildChord, scaleNotes, pitchClass, defaultSpelling, SCALES } from './theory.js?v=202611123';
+import { t, spelled } from './i18n.js?v=202611123';
 
 export const LEVELS = {
   chords: {
