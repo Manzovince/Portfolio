@@ -1,8 +1,8 @@
 // Language (FR / EN, shared with manzovince.com) and music names.
 // Note names follow the language (solfège in French) unless a notation is chosen.
-import { S, saveLang, save, emit } from './store.js?v=202611133';
-import { STRINGS } from './strings.js?v=202611133';
-import { noteName, defaultSpelling, pitchClass, spelledOctave } from './theory.js?v=202611133';
+import { S, saveLang, save, emit } from './store.js?v=202611134';
+import { STRINGS } from './strings.js?v=202611134';
+import { noteName, defaultSpelling, pitchClass, spelledOctave } from './theory.js?v=202611134';
 
 const CHORDS = {
   en: {

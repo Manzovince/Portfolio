@@ -1,8 +1,8 @@
 // Chord suggestions: the chords of the key (from the chosen scale, or guessed
 // from what is played), the one being played, and the usual next moves.
-import { subscribe, soundingNotes, press, liftSource } from './notes.js?v=202611133';
-import { S, emit } from './store.js?v=202611133';
-import { detectChord, buildChord, scaleNotes } from './theory.js?v=202611133';
+import { subscribe, soundingNotes, press, liftSource } from './notes.js?v=202611134';
+import { S, emit } from './store.js?v=202611134';
+import { detectChord, buildChord, scaleNotes } from './theory.js?v=202611134';
 
 const QUALITY = {
   maj: 'maj', dom7: 'maj', maj7: 'maj', six: 'maj', add9: 'maj', dom9: 'maj', maj9: 'maj', sixnine: 'maj', sus4: 'maj', sus2: 'maj', sus4_7: 'maj', dom13: 'maj', dom11: 'maj', power: 'maj',

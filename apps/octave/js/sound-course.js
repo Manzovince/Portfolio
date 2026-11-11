@@ -9,9 +9,9 @@
 //          changes the sound when the step opens, `patch` replaces it.
 //   match  copy a target sound: the same controls, a target to listen to
 //   quiz   with `sounds: [a, b]`, the question is heard (A then B)
-import { initPatch, initOp } from './dx7.js?v=202611133';
-import { S } from './store.js?v=202611133';
-import { seq } from './perform.js?v=202611133';
+import { initPatch, initOp } from './dx7.js?v=202611134';
+import { S } from './store.js?v=202611134';
+import { seq } from './perform.js?v=202611134';
 const S_FX = () => S.fx; // the workshop's effects, during a lesson
 
 const T = (fr, en) => ({ fr, en });
@@ -52,7 +52,12 @@ const att = p => 99 - p.ops[0].r[0], dec = p => 99 - p.ops[0].r[1], sus = p => p
 const PLUCKY = () => { const p = FM(80); p.ops[0].r = [99, 55, 55, 66]; p.ops[0].l = [99, 0, 0, 0]; p.ops[1].r = [99, 60, 60, 70]; p.ops[1].l = [99, 40, 40, 0]; return p; };
 const STACK = alg => sound('Algorithme', alg, [{ ol: 99 }, { ol: 82, coarse: 2 }, { ol: 78, coarse: 3 }]);
 const ORGAN = () => sound('Mon orgue', 32, [{ ol: 0, coarse: 0 }, { ol: 99, coarse: 1 }, { ol: 0, coarse: 2 }, { ol: 0, coarse: 3 }, { ol: 0, coarse: 4 }, { ol: 0, coarse: 8 }]);
-const UNISON = () => sound('Unisson', 32, [{ ol: 96 }, { ol: 0 }, { ol: 0 }], 0);
+// three voices, each a carrier with its own modulator (alg 5: three pairs), so
+// every voice has harmonics: detuned, they shimmer like a choir instead of
+// two plain sines cancelling out in a slow wobble. Free phases (no key sync)
+// keep the voices from starting together in one loud, clipped attack
+const VOICE = { ol: 72, coarse: 1 };
+const UNISON = () => { const p = sound('Unisson', 5, [{ ol: 92 }, VOICE, { ol: 0 }, VOICE, { ol: 0 }, VOICE], 0); p.oks = 0; return p; };
 const VIBRATO = () => { const p = FM(60); Object.assign(p.lfo, { wave: 4, speed: 35, delay: 0, pmd: 0, amd: 0, pms: 3, sync: 0 }); return p; };
 const BRIGHT = () => FM(94, 1, 3);
 const PAD = () => { const p = sound('Ma nappe', 32, [{ ol: 95, r: [60, 99, 99, 50], l: [99, 99, 99, 0] }, { ol: 92, r: [60, 99, 99, 50], l: [99, 99, 99, 0] }]); Object.assign(p.lfo, { wave: 4, speed: 30, delay: 30, pmd: 0, amd: 0, pms: 3, sync: 0 }); return p; };
@@ -420,11 +425,11 @@ export const SOUND_COURSE = [
         goal: T('Deux ou trois voix presque pareilles : un son large.', 'Two or three almost identical voices: a wide sound.'),
         lab: UNISON, keep: 'Unisson',
         steps: [
-          { type: 'synth', views: ['scope'], controls: [C('op2.ol', T('Deuxième voix', 'Second voice')), C('op2.det', T('Désaccord 2', 'Detune 2')), C('op3.ol', T('Troisième voix', 'Third voice')), C('op3.det', T('Désaccord 3', 'Detune 3'))], play: 'C3+G3+C4w',
-            text: T('Deux porteuses à la même hauteur s’additionnent. Désaccorde-en une d’un rien : elles se mettent à **battre**, et le son s’élargit, comme un chœur.', 'Two carriers at the same pitch add up. Detune one a hair: they start to **beat**, and the sound widens, like a choir.'),
+          { type: 'synth', views: ['scope'], controls: [C('op3.ol', T('Deuxième voix', 'Second voice')), C('op3.det&op4.det', T('Désaccord 2', 'Detune 2')), C('op5.ol', T('Troisième voix', 'Third voice')), C('op5.det&op6.det', T('Désaccord 3', 'Detune 3'))], play: 'C3+G3+C4w',
+            text: T('Deux voix à la même hauteur s’additionnent. Désaccorde-en une d’un rien : chaque harmonique se met à **battre** à sa propre vitesse, et le son s’élargit, comme un chœur.', 'Two voices at the same pitch add up. Detune one a hair: each harmonic starts to **beat** at its own speed, and the sound widens, like a choir.'),
             goals: [
-              { text: T('Ajoute la deuxième voix et désaccorde-la : écoute le battement.', 'Add the second voice and detune it: hear the beating.'), check: p => p.ops[1].ol >= 85 && p.ops[1].det !== 7 },
-              { text: T('Ajoute la troisième, désaccordée **de l’autre côté**.', 'Add the third, detuned **the other way**.'), check: p => p.ops[2].ol >= 85 && (p.ops[2].det - 7) * (p.ops[1].det - 7) < 0 },
+              { text: T('Ajoute la deuxième voix et désaccorde-la : écoute le battement.', 'Add the second voice and detune it: hear the beating.'), check: p => p.ops[2].ol >= 80 && p.ops[2].det !== 7 },
+              { text: T('Ajoute la troisième, désaccordée **de l’autre côté**.', 'Add the third, detuned **the other way**.'), check: p => p.ops[4].ol >= 80 && (p.ops[4].det - 7) * (p.ops[2].det - 7) < 0 },
             ] },
         ],
       },
@@ -436,7 +441,7 @@ export const SOUND_COURSE = [
         steps: [
           { type: 'quiz', rounds: [
             { q: T('Lequel est empilé ?', 'Which is stacked?'), sounds: [STACK(32), STACK(3)], options: ['A', 'B'], answer: 1 },
-            { q: T('Lequel est désaccordé ?', 'Which is detuned?'), sounds: [(() => { const p = UNISON(); p.ops[1].ol = 92; p.ops[1].det = 10; return p; })(), (() => { const p = UNISON(); p.ops[1].ol = 92; return p; })()], plays: ['C3+G3w', 'C3+G3w'], options: ['A', 'B'], answer: 0 },
+            { q: T('Lequel est désaccordé ?', 'Which is detuned?'), sounds: [(() => { const p = UNISON(); p.ops[2].ol = 92; p.ops[2].det = p.ops[3].det = 10; return p; })(), (() => { const p = UNISON(); p.ops[2].ol = 92; return p; })()], plays: ['C3+G3w', 'C3+G3w'], options: ['A', 'B'], answer: 0 },
           ] },
           { type: 'match', graph: true, views: ['spectrum'], controls: [C('alg', T('Branchement', 'Wiring'), { options: [[32, T('Côte à côte', 'Side by side')], [5, T('Une paire', 'One pair')], [3, T('Empilés', 'Stacked')]] }), C('op3.ol', T('Niveau de l’opérateur 3', 'Operator 3 level'))], tol: 12, play: 'C4w',
             text: T('Retrouve le branchement de la cible, et le niveau de l’opérateur 3.', 'Find the target’s wiring, and operator 3’s level.'),
