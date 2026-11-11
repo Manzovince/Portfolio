@@ -10,15 +10,15 @@
 // When a MIDI file is open, the staff shows that song instead, with its own
 // rhythm and time signature, and turns its lines as the song plays.
 
-import { subscribe } from "./notes.js?v=202611113";
-import { S, on } from "./store.js?v=202611113";
-import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=202611113";
-import { currentSong, onSongChange, onSongPosition } from "./song.js?v=202611113";
+import { subscribe } from "./notes.js?v=202611114";
+import { S, on } from "./store.js?v=202611114";
+import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=202611114";
+import { currentSong, onSongChange, onSongPosition } from "./song.js?v=202611114";
 
 // The staff shows the open song on the Learn screen, what is played elsewhere
 let songMode = false;
 const activeSong = () => (songMode ? currentSong() : null);
-import { palette } from "./colors.js?v=202611113";
+import { palette } from "./colors.js?v=202611114";
 
 const settings = {
     get scaleRoot() { return S.scale.root; },
@@ -717,13 +717,15 @@ export async function drawSingleNote(element, { clef, midi, spelling }) {
 // A short line of music for the lessons: a melody on one staff, or a rhythm on a
 // single line (items without pitches). `items` come from coach.js's parse();
 // `states[i]` colours a note: "now", "good", "bad" or nothing.
-export async function drawLessonLine(element, { clef = "treble", items, states = [], rhythm = false, timeSignature = null }) {
+export async function drawLessonLine(element, { clef = "treble", items, states = [], rhythm = false, timeSignature = null, keySignature = null }) {
+    // notes already altered by the key signature lose their accidental (letter -> acc)
+    const inKey = { G: { 3: 1 }, D: { 3: 1, 0: 1 }, F: { 6: -1 } }[keySignature] || {};
     await loadVexflow();
     if (!VF || !element.isConnected) return;
     const P = palette();
     const colour = { now: P.accent, good: P.a, bad: P.danger };
     const notesCount = items.filter(i => !i.bar).length;
-    const width = Math.max(240, 70 + notesCount * 40 + items.filter(i => i.bar).length * 16);
+    const width = Math.max(240, 70 + (keySignature ? 24 : 0) + notesCount * 40 + items.filter(i => i.bar).length * 16);
     const height = rhythm ? 90 : 130;
     const scale = Math.min(1.8, Math.max(0.8, (element.clientWidth || width) / width));
     element.replaceChildren();
@@ -735,6 +737,7 @@ export async function drawLessonLine(element, { clef = "treble", items, states =
     ctx.setStrokeStyle(P.text);
     const stave = rhythm ? new VF.Stave(6, 0, width - 12, { numLines: 1, spaceAboveStaffLn: 4 }) : new VF.Stave(6, 6, width - 12);
     if (!rhythm) stave.addClef(clef);
+    if (keySignature && !rhythm) stave.addKeySignature(keySignature);
     if (timeSignature && !rhythm) stave.addTimeSignature(timeSignature.join("/"));
     stave.setContext(ctx).draw();
     const tickables = [];
@@ -744,7 +747,7 @@ export async function drawLessonLine(element, { clef = "treble", items, states =
         if (item.bar) { tickables.push(new VF.BarNote()); continue; }
         const keys = rhythm || item.rest ? [rhythm ? "f/5" : "b/4"] : item.midis.map((m, j) => vexKey(m, item.spellings[j]).key);
         const note = new VF.StaveNote({ keys, duration: item.vf + (item.rest ? "r" : ""), clef: rhythm ? "treble" : clef, autoStem: !rhythm });
-        if (!rhythm && !item.rest) item.midis.forEach((m, j) => { const { accidental } = vexKey(m, item.spellings[j]); if (accidental) note.addModifier(new VF.Accidental(accidental), j); });
+        if (!rhythm && !item.rest) item.midis.forEach((m, j) => { const sp = item.spellings[j]; const { accidental } = vexKey(m, sp); if (accidental && inKey[sp.letter] !== sp.acc) note.addModifier(new VF.Accidental(accidental), j); });
         if (item.dots) VF.Dot.buildAndAttach([note], { all: true });
         const c = colour[states[n]];
         if (c) note.setStyle({ fillStyle: c, strokeStyle: c });

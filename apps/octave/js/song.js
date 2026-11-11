@@ -8,7 +8,7 @@
 // other. The song then waits on each chord of their part until its notes are
 // played, and marks them on the keys (and the LED strip) in the meantime.
 
-import { subscribe, press, liftSource, setPedal } from "./notes.js?v=202611113";
+import { subscribe, press, liftSource, setPedal } from "./notes.js?v=202611114";
 
 const SOURCE = "song";
 const TICK_MS = 10;          // playback clock

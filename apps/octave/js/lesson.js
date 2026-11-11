@@ -1,23 +1,23 @@
 // Learn › Course: the course map, and the lesson player that runs each step
 // (see course.js for the step types). Progress lives in coach.js.
-import { h, icon, seg, toast } from './ui.js?v=202611113';
-import { S, save } from './store.js?v=202611113';
-import { t, spelled, lang } from './i18n.js?v=202611113';
-import { subscribe } from './notes.js?v=202611113';
-import { setOverride, setSide } from './keys.js?v=202611113';
-import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611113';
-import { mountFall } from './fall.js?v=202611113';
-import { spelledOctave } from './theory.js?v=202611113';
-import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611113';
+import { h, icon, seg, toast } from './ui.js?v=202611114';
+import { S, save } from './store.js?v=202611114';
+import { t, spelled, lang, scaleName } from './i18n.js?v=202611114';
+import { subscribe } from './notes.js?v=202611114';
+import { setOverride, setSide } from './keys.js?v=202611114';
+import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611114';
+import { mountFall } from './fall.js?v=202611114';
+import { spelledOctave } from './theory.js?v=202611114';
+import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611114';
 import {
   openSongData, closeSong, playSong, pauseSong, isSongPlaying, seekSong, setSongPart, setSongSpeed, setSongFollow,
   onSongChange, onSongEnd, songTally, onSongTally, resetTally, songClock, currentSong, isWaitingForPlayer,
-} from './song.js?v=202611113';
-import * as E from './engine.js?v=202611113';
+} from './song.js?v=202611114';
+import * as E from './engine.js?v=202611114';
 import {
   P, PASS, LESSONS, COURSE, lessonById, starsOf, isOpen, nextLesson, recordLesson, saveCoach, resetCoach,
   parse, notesOf, lengthOf, pitch, setCoachGuide, demo, clicks, latency, isPlayer, median, audioOf,
-} from './coach.js?v=202611113';
+} from './coach.js?v=202611114';
 
 // ── text ───────────────────────────────────────────────────────
 const tx = v => (v && typeof v === 'object' ? v[lang()] ?? v.en : v ?? '');
@@ -175,7 +175,7 @@ function runInfo(step, api) {
   if (step.line) {
     const line = h('div', { class: 'step-line' + (step.line.rhythm ? ' rhythm' : '') });
     card.append(line);
-    requestAnimationFrame(() => drawLessonLine(line, { items: parse(step.line.src), rhythm: step.line.rhythm, timeSignature: step.line.timeSignature }));
+    requestAnimationFrame(() => drawLessonLine(line, { items: parse(step.line.src), clef: step.line.clef, keySignature: step.line.key, rhythm: step.line.rhythm, timeSignature: step.line.timeSignature }));
   }
   if (step.listen) {
     let d = null;
@@ -205,7 +205,7 @@ function runFind(step, api) {
   const show = () => {
     const r = rounds[i];
     if (!r) return;
-    big.textContent = r.all ? `${found.size} / ${r.all.length}` : r.pc != null ? pcName(r.pc) : midiName(r.midi);
+    big.textContent = r.all ? `${found.size} / ${r.all.length}` : r.label ? noteText(r.label) : r.pc != null ? pcName(r.pc) : midiName(r.midi);
     prog.textContent = rounds.length > 1 ? t('cRound', { n: i + 1, total: rounds.length }) : '';
     const help = step.hint || missesHere >= 2;
     if (!help) setCoachGuide(r.all ? { midis: found } : null);
@@ -266,7 +266,7 @@ function runQuiz(step, api) {
     if (r.line) {
       const line = h('div', { class: 'step-line' + (r.line.rhythm ? ' rhythm' : '') });
       card.append(line);
-      requestAnimationFrame(() => drawLessonLine(line, { items: parse(r.line.src), rhythm: r.line.rhythm }));
+      requestAnimationFrame(() => drawLessonLine(line, { items: parse(r.line.src), clef: r.line.clef, keySignature: r.line.key, rhythm: r.line.rhythm }));
     }
     const fb = h('div', { class: 'step-feedback' });
     let answered = false;
@@ -313,7 +313,7 @@ function runPhrase(step, api) {
   const states = () => notes().map((_, k) => (k < pos ? 'good' : k === pos ? (missedHere ? 'bad' : 'now') : ''));
   const paint = () => {
     prog.textContent = t('cRound', { n: i + 1, total: rounds.length });
-    if (step.staff) drawLessonLine(line, { items: rounds[i], states: states() });
+    if (step.staff) drawLessonLine(line, { items: rounds[i], clef: step.clef, keySignature: step.key, states: states() });
     else chips.replaceChildren(...notes().map((n, k) => h('span', { class: 'note-chip ' + (k < pos ? 'good' : k === pos ? 'next' + (missedHere ? ' shake' : '') : '') },
       step.hint === 'keys' || k < pos ? midiName(n.midis[0]).replace(/-?\d+$/, '') : '•')));
     const target = notes()[pos];
@@ -469,9 +469,11 @@ function runDrill(step, api) {
   const name = h('div', { class: 'drill-name' });
   const fb = h('div', { class: 'step-feedback', 'aria-live': 'polite' });
   const prog = h('div', { class: 'step-progress' });
-  const card = h('div', { class: 'card step-card center' }, prompt, symbol, name, fb, prog);
+  const chips = h('div', { class: 'drill-chips' });
+  const card = h('div', { class: 'card step-card center' }, prompt, symbol, name, chips, fb, prog);
   api.body.append(card);
   let misses = 0, lastFb = null, done = false;
+  const perTarget = step.config.kind === 'scales' ? 15 : 1; // a scale is 15 notes
   const paint = () => {
     const { target, feedback, stats } = practiceState();
     if (!target || !card.isConnected || done) return;
@@ -480,6 +482,14 @@ function runDrill(step, api) {
     card.dataset.feedback = feedback.kind;
     fb.textContent = feedback.text;
     prog.textContent = `${Math.min(stats.done, step.count)} / ${step.count}`;
+    if (target.kind === 'scales') {
+      symbol.classList.remove('staff-note');
+      symbol.textContent = spelled(target.notes[0].spelling);
+      name.textContent = t('drillScaleOf', { name: scaleName(target.type).toLowerCase() });
+      const { missedStep } = practiceState();
+      chips.replaceChildren(...target.steps.map((st, k) => h('span', { class: 'note-chip ' + (k < target.position ? 'good' : k === target.position ? 'next' + (k === missedStep ? ' shake' : '') : '') },
+        k < target.position || step.config.hints ? spelled(st.spelling) : '?')));
+    }
     if (target.kind === 'reading') {
       const sig = target.midi + ':' + target.spelling.acc + ':' + target.clef + ':' + stats.done;
       if (symbol.dataset.sig !== sig) { symbol.dataset.sig = sig; drawSingleNote(symbol, target); }
@@ -490,28 +500,34 @@ function runDrill(step, api) {
       setPracticing(false);
       fb.textContent = pick(t('drillWell').split('|'));
       card.dataset.feedback = 'success';
-      api.complete(starsFromErrors(misses / step.count));
+      api.complete(starsFromErrors(misses / (step.count * perTarget)));
     }
   };
   const un = onPracticeChange(paint);
   api.onCleanup(() => { un(); setPracticing(false); setPracticeConfig(null); });
   setPracticing(true);
   api.keys(step.config.kind === 'reading' ? readingRange() : step.range || null);
+  if (step.config.kind === 'reading' && step.config.reading.clefs?.[0] === 'bass') setSide(() => 1);
   paint();
 }
 
 // ── piece ──────────────────────────────────────────────────────
 function runPiece(step, api, ctx) {
-  const items = parse(step.right);
-  const notes = notesOf(items).flatMap(it => it.midis.map(midi => ({ midi, start: it.start, end: it.start + it.beats - 0.06, hand: 'right' })));
+  const voice = (src, hand) => (src ? notesOf(parse(src)).flatMap(it => it.midis.map(midi => ({ midi, start: it.start, end: it.start + it.beats - 0.06, hand }))) : []);
+  const notes = [...voice(step.right, 'right'), ...voice(step.left, 'left')];
   const song = openSongData({ title: tx(step.title), bpm: step.bpm, notes });
-  setSongPart('right');
+  // the hands the step asks for; with two, each hand can be practised alone (no stars)
+  const goal = step.part || (step.right && step.left ? 'both' : step.left ? 'left' : 'right');
+  let part = goal;
+  setSongPart(part);
+  const handSeg = goal === 'both' ? seg({ options: [['right', t('partRight')], ['left', t('partLeft')], ['both', t('partBoth')]], get: () => part, set: v => { stopRun(); part = v; setSongPart(v); seekSong(0); hint(); } }) : null;
   let mode = step.mode === 'tempo' ? 'tempo' : 'follow';
   let speed = 1;
   setSongFollow(mode === 'follow');
   setSongSpeed(speed);
   api.keys({ lo: Math.min(song.lo - 2, step.range?.lo ?? 127), hi: Math.max(song.hi + 2, step.range?.hi ?? 0) });
-  setSide(() => 0);
+  const hands = new Map(song.notes.map(n => [n.midi, n.hand === 'left' ? 1 : 0]));
+  setSide(m => hands.get(m) ?? (m < 60 ? 1 : 0));
 
   const playBtn = h('button', { type: 'button', class: 'btn transport', onclick: () => (isSongPlaying() || counting ? stopRun() : startRun()) });
   const restart = h('button', { type: 'button', class: 'icon-btn', 'aria-label': t('restart'), onclick: () => { stopRun(); seekSong(0); } }, icon('restart'));
@@ -522,7 +538,7 @@ function runPiece(step, api, ctx) {
   const info = h('div', { class: 'piece-info' }, h('b', {}, tx(step.title)), step.text ? rich(step.text, 'div', 'rich muted') : null);
   const controls = h('div', { class: 'song-bar piece-bar' },
     h('div', { class: 'song-main' }, playBtn, restart, info),
-    h('div', { class: 'song-opts' }, modeSeg, speedSeg, live),
+    h('div', { class: 'song-opts' }, handSeg, modeSeg, speedSeg, live),
     result);
   const stage = h('section', { class: 'stage learn-stage' });
   const canvas = h('canvas', { class: 'roll' });
@@ -538,7 +554,7 @@ function runPiece(step, api, ctx) {
   requestAnimationFrame(() => mountFall(canvas));
 
   let counting = false, timers = [], clickTimer = 0, run = null;
-  const hint = () => { result.textContent = mode === 'follow' ? t('cFollowHint') : t('cTempoHint'); result.dataset.kind = ''; };
+  const hint = () => { result.textContent = (part !== goal ? t('cHandAlone') + ' ' : '') + (mode === 'follow' ? t('cFollowHint') : t('cTempoHint')); result.dataset.kind = ''; };
   const stopClicks = () => { clearInterval(clickTimer); clickTimer = 0; };
   function stopRun() {
     timers.forEach(clearTimeout); timers = [];
@@ -564,7 +580,7 @@ function runPiece(step, api, ctx) {
       run = { mode, speed, taps: [] };
       playSong();
       const { anchorTime, anchorPosition } = songClock();
-      run.expected = song.notes.map(n => ({ midi: n.midi, at: anchorTime + (n.startMs - anchorPosition) / speed }));
+      run.expected = song.notes.filter(n => part === 'both' || n.hand === part).map(n => ({ midi: n.midi, at: anchorTime + (n.startMs - anchorPosition) / speed }));
       let k = 0;
       const total = Math.ceil(song.durationMs / (60000 / song.bpm));
       clickTimer = setInterval(() => {
@@ -594,6 +610,12 @@ function runPiece(step, api, ctx) {
     run = null;
     stopClicks();
     let stars, text;
+    if (part !== goal) {
+      // one hand alone: practice, no stars
+      result.textContent = t('cHandDone');
+      result.dataset.kind = '';
+      return paintLive();
+    }
     if (r.mode === 'follow') {
       const tl = songTally();
       const acc = tl.hits / Math.max(1, tl.hits + tl.wrong);

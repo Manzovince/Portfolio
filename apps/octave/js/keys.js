@@ -3,13 +3,13 @@
 // key is struck), sized from the screen and the key-size setting. "mini": a
 // thin strip of all 88 keys that only shows what sounds, for MIDI players.
 // It also gives the roll and the waterfall their columns (geometry()).
-import { h, icon } from './ui.js?v=202611113';
-import { S, save, on, emit } from './store.js?v=202611113';
-import { press, lift, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from './notes.js?v=202611113';
-import { partOf } from './perform.js?v=202611113';
-import { noteColor } from './colors.js?v=202611113';
-import { noteLabel, t } from './i18n.js?v=202611113';
-import { pitchClass, scaleNotes } from './theory.js?v=202611113';
+import { h, icon } from './ui.js?v=202611114';
+import { S, save, on, emit } from './store.js?v=202611114';
+import { press, lift, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from './notes.js?v=202611114';
+import { partOf } from './perform.js?v=202611114';
+import { noteColor } from './colors.js?v=202611114';
+import { noteLabel, t } from './i18n.js?v=202611114';
+import { pitchClass, scaleNotes } from './theory.js?v=202611114';
 
 const BLACK = new Set([1, 3, 6, 8, 10]);
 const isBlack = m => BLACK.has(((m % 12) + 12) % 12);

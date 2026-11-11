@@ -45,6 +45,23 @@ const LUNE = 'C4q C4q C4q D4q | E4h D4h | C4q E4q D4q D4q | C4w | C4q C4q C4q D4
 const ODE = 'E4q E4q F4q G4q | G4q F4q E4q D4q | C4q C4q D4q E4q | E4q. D4e D4h | E4q E4q F4q G4q | G4q F4q E4q D4q | C4q C4q D4q E4q | D4q. C4e C4h';
 const JACQUES = 'C4q D4q E4q C4q | C4q D4q E4q C4q | E4q F4q G4h | E4q F4q G4h | C4q D4q E4q C4q | C4q D4q E4q C4q | E4q F4q G4h | E4q F4q G4h';
 
+// Unit 4: left hand
+const LUNE_LH = LUNE.replace(/4/g, '3');
+const ECHO_R = 'C4q D4q E4q F4q | G4w | rw | rw | E4q F4q G4q E4q | C4w | rw | rw';
+const ECHO_L = 'rw | rw | G3q F3q E3q D3q | C3w | rw | rw | G3q E3q F3q D3q | C3w';
+const LUNE_BASS = 'C3w | G3w | C3h G3h | C3w | C3w | G3w | C3h G3h | C3w';
+const ODE_BASS = 'C3w | G3w | C3w | C3h G3h | C3w | G3w | C3w | G3h C3h';
+// Unit 5: scales
+const SOL_AIR = 'G4q A4q B4q C5q | D5h B4h | C5q A4q F#4q A4q | G4w | B4q C5q D5q B4q | C5q A4q F#4h | G4q A4q B4q F#4q | G4w';
+const SOL_AIR_L = 'G3w | G3w | D3w | G3w | G3w | D3w | G3h D3h | G3w';
+const FA_AIR = 'F4q G4q A4q Bb4q | C5h A4h | Bb4q G4q E4q G4q | F4w | A4q Bb4q C5q A4q | Bb4q G4q E4h | F4q G4q A4q E4q | F4w';
+const FA_AIR_L = 'F3w | F3w | C3w | F3w | F3w | C3w | F3h C3h | F3w';
+const TWINKLE = 'G4q G4q D5q D5q | E5q E5q D5h | C5q C5q B4q B4q | A4q A4q G4h | D5q D5q C5q C5q | B4q B4q A4h | D5q D5q C5q C5q | B4q B4q A4h | G4q G4q D5q D5q | E5q E5q D5h | C5q C5q B4q B4q | A4q A4q G4h';
+const TWINKLE_L = 'G3w | C3h G3h | C3h D3h | D3h G3h | G3h C3h | G3h D3h | G3h C3h | G3h D3h | G3w | C3h G3h | C3h D3h | D3h G3h';
+const POS_LH = { lo: 45, hi: 60 };    // left hand around C3 (A2 to C4)
+const TWO_HANDS = { lo: 45, hi: 72 };
+const POS_G = { lo: 53, hi: 79 };
+
 export const COURSE = [
   // ═══ Unit 1 ═══════════════════════════════════════════════════
   {
@@ -296,6 +313,190 @@ export const COURSE = [
           { type: 'rhythm', bpm: 96, prompt: T('Le rythme de la troisième phrase.', 'The rhythm of the third phrase.'), rounds: ['q q h | q q h'] },
           { type: 'piece', title: T('Frère Jacques', 'Frère Jacques'), bpm: 100, right: JACQUES, staff: true, range: POS_C, mode: 'tempo',
             text: T('Directement en rythme. Bravo pour le chemin parcouru !', 'Straight in time. Well done for coming this far!') },
+        ],
+      },
+    ],
+  },
+
+  // ═══ Unit 4 ═══════════════════════════════════════════════════
+  {
+    id: 'u4',
+    title: T('Main gauche et clé de fa', 'Left hand and bass clef'),
+    blurb: T('Lire en bas du clavier, puis jouer à deux mains.', 'Read the low notes, then play with both hands.'),
+    lessons: [
+      {
+        id: 'b1',
+        title: T('La clé de fa', 'The bass clef'),
+        goal: T('Lire [C3] à [G3] sur la portée du bas.', 'Read [C3] to [G3] on the lower staff.'),
+        steps: [
+          { type: 'info', title: T('La portée de la main gauche', 'The left hand’s staff'),
+            text: T('Les notes graves s’écrivent sur une deuxième portée, en **clé de fa**. Ses deux points encadrent la 4e ligne en partant du bas : c’est là qu’habite [F3].\n[C3] est dans le 2e interligne. Et [C4], le Do central, est sur une petite ligne **au-dessus** de cette portée : c’est le même que sous la clé de sol, il fait le lien entre les deux.',
+              'Low notes are written on a second staff, in **bass clef**. Its two dots frame the 4th line from the bottom: that is where [F3] lives.\n[C3] is in the 2nd space. And [C4], middle C, sits on a short line **above** this staff: the same note as below the treble staff, joining the two.'),
+            line: { src: 'C3q D3q E3q F3q | G3h C4h', clef: 'bass' }, listen: 'C3q D3q E3q F3q | G3h C4h', bpm: 90, keys: { lo: 45, hi: 62, midis: [48, 53, 60] } },
+          { type: 'quiz', rounds: [
+            { q: T('En clé de fa, la ligne entre les deux points est…', 'In bass clef, the line between the two dots is…'), options: ['[C3]', '[F3]', '[G3]'], answer: 1 },
+            { q: T('Quelle note est-ce ?', 'Which note is this?'), line: { src: 'C3w', clef: 'bass' }, options: ['[A2]', '[C3]', '[E3]'], answer: 1 },
+          ] },
+          { type: 'drill', count: 6, prompt: T('Trois repères : [C3], [F3] et [G3].', 'Three landmarks: [C3], [F3] and [G3].'),
+            config: { kind: 'reading', reading: { lo: 48, hi: 55, clefs: ['bass'], pool: [48, 53, 55] }, hints: false } },
+          { type: 'drill', count: 10, prompt: T('Toutes les notes de [C3] à [G3].', 'Every note from [C3] to [G3].'),
+            config: { kind: 'reading', reading: { lo: 48, hi: 55, clefs: ['bass'] }, hints: false } },
+        ],
+      },
+      {
+        id: 'b2',
+        title: T('Position de [C], main gauche', 'C position, left hand'),
+        goal: T('Jouer cinq notes de la main gauche, puis un air.', 'Play five notes with the left hand, then a tune.'),
+        steps: [
+          { type: 'info', title: T('Les doigts à l’envers', 'Fingers the other way round'),
+            text: T('La main gauche se numérote aussi de 1 (pouce) à 5 (petit doigt). Mais en position de [C], c’est le **5 qui est sur [C3]** et le **pouce sur [G3]** : en montant, on va du petit doigt vers le pouce.\nGarde la même main ronde et souple qu’à droite.',
+              'The left hand is also numbered 1 (thumb) to 5 (little finger). But in C position, **5 is on [C3]** and the **thumb on [G3]**: going up, you move from little finger to thumb.\nKeep the same round, relaxed hand as on the right.'),
+            keys: { ...POS_LH, midis: [48, 50, 52, 53, 55] } },
+          { type: 'phrase', range: POS_LH, listen: true, hint: 'keys', bpm: 90,
+            prompt: T('Écoute puis rejoue, main gauche.', 'Listen, then play it back with the left hand.'),
+            rounds: ['C3q D3q E3q F3q G3q', 'G3q F3q E3q D3q C3q', 'C3q E3q G3q E3q C3q'] },
+          { type: 'phrase', range: POS_LH, listen: false, staff: true, clef: 'bass', hint: 'miss', bpm: 90,
+            prompt: T('Lis en clé de fa et joue.', 'Read in bass clef and play.'),
+            rounds: ['G3q F3q E3q D3q', 'C3q E3q D3q F3q', 'E3q G3q F3q D3q C3h'] },
+          { type: 'piece', title: T('Au clair de la lune, main gauche', 'Au clair de la lune, left hand'), bpm: 90, left: LUNE_LH, staff: true, range: POS_LH,
+            text: T('L’air que tu connais, une octave plus bas.', 'The tune you know, an octave lower.') },
+        ],
+      },
+      {
+        id: 'b3',
+        title: T('Chacune son tour', 'Taking turns'),
+        goal: T('Faire passer la mélodie d’une main à l’autre.', 'Pass the melody from one hand to the other.'),
+        steps: [
+          { type: 'info', title: T('Question, réponse', 'Question, answer'),
+            text: T('Pose les deux mains en position de [C] : la droite à partir de [C4], la gauche à partir de [C3]. Les mains ne bougent plus.\nDans ce morceau, la main droite pose une question, la gauche répond. Pendant que l’une joue, l’autre attend, prête.',
+              'Put both hands in C position: right from [C4], left from [C3]. The hands stay put.\nIn this piece, the right hand asks a question and the left one answers. While one plays, the other waits, ready.'),
+            keys: { ...TWO_HANDS, midis: [48, 50, 52, 53, 55, 60, 62, 64, 65, 67] } },
+          { type: 'piece', title: T('Question-réponse', 'Question and answer'), bpm: 92, right: ECHO_R, left: ECHO_L, staff: true, range: TWO_HANDS,
+            text: T('Pour t’entraîner, choisis une main seule. Les étoiles se gagnent à deux mains.', 'To practise, pick one hand. Stars are earned with both hands.') },
+        ],
+      },
+      {
+        id: 'b4',
+        title: T('Mélodie et basse', 'Melody and bass'),
+        goal: T('Tenir une note à gauche pendant que la droite chante.', 'Hold a note on the left while the right hand sings.'),
+        steps: [
+          { type: 'info', title: T('Jouer ensemble', 'Playing together'),
+            text: T('La main gauche joue maintenant **en même temps** : une note longue au début de chaque mesure, qu’elle tient pendant que la droite continue.\nLe piège : la droite veut s’arrêter quand la gauche joue. Commence très lentement, à 50 %, en pas à pas.',
+              'Now the left hand plays **at the same time**: one long note at the start of each bar, held while the right hand carries on.\nThe trap: the right hand wants to stop when the left one plays. Start very slowly, at 50 %, step by step.') },
+          { type: 'rhythm', bpm: 80, prompt: T('Échauffement : une blanche à gauche, deux noires à droite… ici sur une seule touche, juste pour sentir le rythme.', 'Warm-up: a half note on the left, two quarters on the right… on one key here, just to feel the rhythm.'),
+            rounds: ['q q q q | h h | q q q q | w'] },
+          { type: 'piece', title: T('Au clair de la lune, deux mains', 'Au clair de la lune, both hands'), bpm: 88, right: LUNE, left: LUNE_BASS, staff: true, range: TWO_HANDS },
+        ],
+      },
+      {
+        id: 'b5',
+        title: T('Bilan : l’Ode à deux mains', 'Check-point: the Ode with both hands'),
+        goal: T('Un morceau entier, lu, à deux mains.', 'A whole piece, read, with both hands.'),
+        steps: [
+          { type: 'drill', count: 10, prompt: T('Échauffement : les deux clés mélangées.', 'Warm-up: both clefs mixed.'),
+            config: { kind: 'reading', reading: { lo: 48, hi: 67, clefs: ['treble', 'bass'] }, hints: false } },
+          { type: 'piece', title: T('Ode à la joie, deux mains', 'Ode to Joy, both hands'), bpm: 96, right: ODE, left: ODE_BASS, staff: true, range: TWO_HANDS,
+            text: T('La basse change avec l’harmonie : [C] quand la mélodie se pose, [G] quand elle attend la suite.', 'The bass follows the harmony: [C] when the tune rests, [G] when it waits for more.') },
+        ],
+      },
+    ],
+  },
+
+  // ═══ Unit 5 ═══════════════════════════════════════════════════
+  {
+    id: 'u5',
+    title: T('Gammes et tonalités', 'Scales and keys'),
+    blurb: T('Dièses, bémols, passage du pouce, trois gammes.', 'Sharps, flats, the thumb-under, three scales.'),
+    lessons: [
+      {
+        id: 'g1',
+        title: T('Tons, demi-tons, dièses et bémols', 'Tones, semitones, sharps and flats'),
+        goal: T('Comprendre les touches noires et leurs noms.', 'Understand the black keys and their names.'),
+        steps: [
+          { type: 'info', title: T('Le plus petit pas', 'The smallest step'),
+            text: T('Le **demi-ton** est l’écart entre deux touches voisines, noire ou blanche. Le **ton** vaut deux demi-tons.\nEntre [E] et [F], et entre [B] et [C], pas de touche noire : ce sont des demi-tons.\nLe **dièse ♯** monte une note d’un demi-ton, le **bémol ♭** la descend. La touche noire entre [C] et [D] s’appelle donc [C#]… ou [Db].',
+              'A **semitone** is the gap between two neighbouring keys, black or white. A **tone** is two semitones.\nBetween [E] and [F], and between [B] and [C], there is no black key: those are semitones.\nA **sharp ♯** raises a note by a semitone, a **flat ♭** lowers it. So the black key between [C] and [D] is [C#]… or [Db].'),
+            keys: { lo: 57, hi: 72, midis: [61, 64, 65, 71, 72] } },
+          { type: 'quiz', rounds: [
+            { q: T('De [E] à [F], il y a…', 'From [E] to [F] there is…'), options: [T('un demi-ton', 'a semitone'), T('un ton', 'a tone')], answer: 0 },
+            { q: T('De [C] à [D], il y a…', 'From [C] to [D] there is…'), options: [T('un demi-ton', 'a semitone'), T('un ton', 'a tone')], answer: 1 },
+            { q: T('[F#] est…', '[F#] is…'), options: [T('la touche noire juste à droite de [F]', 'the black key just right of [F]'), T('la touche noire juste à gauche de [F]', 'the black key just left of [F]'), T('[G]', '[G]')], answer: 0 },
+            { q: T('[Bb] et [A#] sont…', '[Bb] and [A#] are…'), options: [T('la même touche', 'the same key'), T('deux touches différentes', 'two different keys')], answer: 0 },
+          ] },
+          { type: 'find', range: WIDE, hint: false, prompt: T('Trouve la touche noire demandée, à n’importe quelle hauteur.', 'Find the black key asked for, at any height.'),
+            rounds: () => [{ pc: 6, label: 'F#' }, { pc: 10, label: 'Bb' }, { pc: 1, label: 'C#' }, { pc: 3, label: 'Eb' }, { pc: 8, label: 'G#' }, { pc: 10, label: 'A#' }, { pc: 1, label: 'Db' }, { pc: 6, label: 'Gb' }].sort(() => Math.random() - 0.5) },
+        ],
+      },
+      {
+        id: 'g2',
+        title: T('La gamme de [C] et le passage du pouce', 'C major and the thumb-under'),
+        goal: T('Jouer une octave d’une seule main, sans s’arrêter.', 'Play an octave with one hand, without stopping.'),
+        steps: [
+          { type: 'info', title: T('Huit notes, cinq doigts', 'Eight notes, five fingers'),
+            text: T('Une **gamme majeure** suit toujours le même chemin : ton, ton, **demi-ton**, ton, ton, ton, **demi-ton**. Sur [C], ça tombe pile sur les touches blanches.\nCinq doigts ne suffisent pas pour huit notes : en montant, joue [C] [D] [E] avec 1 2 3, puis **passe le pouce sous la main** pour jouer [F], et finis avec 1 2 3 4 5.\nEn descendant, c’est l’inverse : après le pouce sur [F], le **3 passe par-dessus** pour jouer [E].',
+              'A **major scale** always follows the same path: tone, tone, **semitone**, tone, tone, tone, **semitone**. On [C], it lands exactly on the white keys.\nFive fingers are not enough for eight notes: going up, play [C] [D] [E] with 1 2 3, then **pass the thumb under the hand** to play [F], and finish with 1 2 3 4 5.\nComing down, the other way: after the thumb on [F], finger **3 crosses over** to play [E].'),
+            line: { src: 'C4q D4q E4q F4q G4q A4q B4q C5q' }, listen: 'C4q D4q E4q F4q G4q A4q B4q C5q C5q B4q A4q G4q F4q E4q D4q C4h', bpm: 90 },
+          { type: 'phrase', range: { lo: 57, hi: 74 }, listen: true, hint: 'keys', bpm: 72,
+            prompt: T('Juste le passage : 1 2 3, pouce dessous, et retour.', 'Just the crossing: 1 2 3, thumb under, and back.'),
+            rounds: ['C4q D4q E4q F4q', 'F4q E4q D4q C4q', 'C4q D4q E4q F4q G4q F4q E4q D4q C4q'] },
+          { type: 'drill', count: 2, range: { lo: 57, hi: 74 }, prompt: T('La gamme de [C] en montant puis en descendant, avec les notes affichées.', 'The C scale up then down, with the notes shown.'),
+            config: { kind: 'scales', scales: ['major'], roots: [0], hints: true } },
+          { type: 'drill', count: 2, range: { lo: 57, hi: 74 }, prompt: T('La même, de mémoire.', 'The same, from memory.'),
+            config: { kind: 'scales', scales: ['major'], roots: [0], hints: false } },
+        ],
+      },
+      {
+        id: 'g3',
+        title: T('La gamme de [G] : un dièse', 'G major: one sharp'),
+        goal: T('Jouer et lire en [G] majeur.', 'Play and read in G major.'),
+        steps: [
+          { type: 'info', title: T('Le même chemin, depuis [G]', 'The same path, from [G]'),
+            text: T('Pour garder « ton, ton, demi-ton, ton, ton, ton, demi-ton » en partant de [G], il faut une touche noire : [F#] au lieu de [F].\nPlutôt que d’écrire ♯ devant chaque [F], on le met une fois au début de la portée : c’est l’**armure**. Tous les [F] du morceau deviennent [F#].\nDoigté : 1 2 3, pouce dessous sur [C], puis 1 2 3 4 5.',
+              'To keep “tone, tone, semitone, tone, tone, tone, semitone” starting from [G], you need a black key: [F#] instead of [F].\nRather than writing ♯ before every [F], it goes once at the start of the staff: the **key signature**. Every [F] in the piece becomes [F#].\nFingering: 1 2 3, thumb under on [C], then 1 2 3 4 5.'),
+            line: { src: 'G4q A4q B4q C5q D5q E5q F#5q G5q', key: 'G' }, listen: 'G4q A4q B4q C5q D5q E5q F#5q G5q', bpm: 90, keys: { ...POS_G, pcs: [7, 9, 11, 0, 2, 4, 6] } },
+          { type: 'quiz', rounds: [
+            { q: T('Avec cette armure, comment se joue cette note ?', 'With this key signature, how is this note played?'), line: { src: 'F#5w', key: 'G' }, options: ['[F5]', '[F#5]', '[G5]'], answer: 1 },
+            { q: T('Dans la gamme de [G] majeur, la note altérée est…', 'In G major, the altered note is…'), options: ['[C#]', '[F#]', '[Bb]'], answer: 1 },
+          ] },
+          { type: 'drill', count: 2, range: POS_G, prompt: T('La gamme de [G], avec les notes affichées.', 'The G scale, with the notes shown.'),
+            config: { kind: 'scales', scales: ['major'], roots: [7], hints: true } },
+          { type: 'phrase', range: POS_G, listen: false, staff: true, key: 'G', hint: 'miss', bpm: 90,
+            prompt: T('Lis avec l’armure : chaque [F] est un [F#].', 'Read with the key signature: every [F] is an [F#].'),
+            rounds: ['G4q A4q B4q A4q', 'D5q C5q B4q A4q G4h', 'E5q F#5q G5q D5q', 'A4q F#4q G4h'] },
+          { type: 'piece', title: T('Petit air en [G]', 'Little tune in G'), bpm: 92, right: SOL_AIR, left: SOL_AIR_L, staff: true, range: { lo: 50, hi: 76 },
+            text: T('Main droite en position de [G] (pouce sur [G4]), main gauche sur [G3] et [D3]. Attention aux [F#] !', 'Right hand in G position (thumb on [G4]), left hand on [G3] and [D3]. Watch the [F#]s!') },
+        ],
+      },
+      {
+        id: 'g4',
+        title: T('La gamme de [F] : un bémol', 'F major: one flat'),
+        goal: T('Jouer et lire en [F] majeur.', 'Play and read in F major.'),
+        steps: [
+          { type: 'info', title: T('Un bémol cette fois', 'A flat this time'),
+            text: T('Depuis [F], le demi-ton tombe entre [A] et la note suivante : il faut [Bb] au lieu de [B]. L’armure de [F] majeur a donc un **bémol**, sur la ligne de [B].\nDoigté différent : 1 2 3 4 jusqu’à [Bb], **pouce dessous** sur [C], puis 1 2 3 4. Le pouce ne joue jamais une touche noire.',
+              'From [F], the semitone falls between [A] and the next note: you need [Bb] instead of [B]. So the F major key signature has one **flat**, on the [B] line.\nDifferent fingering: 1 2 3 4 up to [Bb], **thumb under** on [C], then 1 2 3 4. The thumb never plays a black key.'),
+            line: { src: 'F4q G4q A4q Bb4q C5q D5q E5q F5q', key: 'F' }, listen: 'F4q G4q A4q Bb4q C5q D5q E5q F5q', bpm: 90, keys: { lo: 53, hi: 77, pcs: [5, 7, 9, 10, 0, 2, 4] } },
+          { type: 'quiz', rounds: [
+            { q: T('Dans la gamme de [F] majeur, la note altérée est…', 'In F major, the altered note is…'), options: ['[F#]', '[Eb]', '[Bb]'], answer: 2 },
+            { q: T('Pourquoi ne pas jouer [Bb] avec le pouce ?', 'Why not play [Bb] with the thumb?'), options: [T('Le pouce est court : sur une touche noire, la main se tord', 'The thumb is short: on a black key the hand twists'), T('C’est interdit par le solfège', 'Music theory forbids it')], answer: 0 },
+          ] },
+          { type: 'drill', count: 2, range: { lo: 53, hi: 77 }, prompt: T('La gamme de [F], notes affichées.', 'The F scale, notes shown.'),
+            config: { kind: 'scales', scales: ['major'], roots: [5], hints: true } },
+          { type: 'phrase', range: { lo: 53, hi: 77 }, listen: false, staff: true, key: 'F', hint: 'miss', bpm: 90,
+            prompt: T('Lis avec l’armure : chaque [B] est un [Bb].', 'Read with the key signature: every [B] is a [Bb].'),
+            rounds: ['F4q G4q A4q Bb4q', 'C5q Bb4q A4q G4q F4h', 'A4q Bb4q C5q A4q', 'G4q Bb4q A4q F4q'] },
+          { type: 'piece', title: T('Petit air en [F]', 'Little tune in F'), bpm: 92, right: FA_AIR, left: FA_AIR_L, staff: true, range: { lo: 45, hi: 74 } },
+        ],
+      },
+      {
+        id: 'g5',
+        title: T('Bilan : Ah ! vous dirai-je, maman', 'Check-point: Twinkle, Twinkle'),
+        goal: T('Trois gammes, puis un morceau à deux mains en [G].', 'Three scales, then a two-handed piece in G.'),
+        steps: [
+          { type: 'drill', count: 3, range: { lo: 53, hi: 79 }, prompt: T('[C], [G] ou [F] majeur, au hasard, de mémoire.', 'C, G or F major, at random, from memory.'),
+            config: { kind: 'scales', scales: ['major'], roots: [0, 7, 5], hints: false } },
+          { type: 'piece', title: T('Ah ! vous dirai-je, maman', 'Twinkle, Twinkle, Little Star'), bpm: 96, right: TWINKLE, left: TWINKLE_L, staff: true, range: { lo: 45, hi: 77 },
+            text: T('Main droite sur [G4]. Elle monte jusqu’à [E5] : allonge un peu le 5e doigt.', 'Right hand on [G4]. It reaches up to [E5]: stretch the 5th finger a little.') },
         ],
       },
     ],
