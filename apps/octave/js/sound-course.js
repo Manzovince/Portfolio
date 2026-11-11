@@ -9,8 +9,9 @@
 //          changes the sound when the step opens, `patch` replaces it.
 //   match  copy a target sound: the same controls, a target to listen to
 //   quiz   with `sounds: [a, b]`, the question is heard (A then B)
-import { initPatch, initOp } from './dx7.js?v=202611131';
-import { S } from './store.js?v=202611131';
+import { initPatch, initOp } from './dx7.js?v=202611132';
+import { S } from './store.js?v=202611132';
+import { seq } from './perform.js?v=202611132';
 const S_FX = () => S.fx; // the workshop's effects, during a lesson
 
 const T = (fr, en) => ({ fr, en });
@@ -64,6 +65,11 @@ const BRASS = () => { const p = sound('Mes cuivres', 2, [{ ol: 99, r: [80, 60, 6
 const ROCK = () => { const p = sound('Mon orgue rock', 32, [{ ol: 0, coarse: 0 }, { ol: 99, coarse: 1 }, { ol: 0, coarse: 2 }, { ol: 0, coarse: 3 }, { ol: 0, coarse: 4 }, { ol: 0, coarse: 3, r: [99, 99, 99, 72], l: [99, 99, 99, 0] }]); Object.assign(p.lfo, { wave: 4, speed: 30, delay: 0, pmd: 0, amd: 0, pms: 1, sync: 0 }); return p; };
 const LEAD = () => { const p = sound('Mon lead', 2, [{ ol: 99 }, { ol: 40 }]); Object.assign(p.lfo, { wave: 4, speed: 38, delay: 0, pmd: 0, amd: 0, pms: 3, sync: 0 }); return p; };
 const copyOp = (p, from, to) => Object.assign(p.ops[to], JSON.parse(JSON.stringify(p.ops[from])));
+
+// arpeggios and sequences
+const filled = () => S.seq.steps.slice(0, S.seq.length).filter(st => st.on && st.notes.length).length;
+const restsBetween = () => { const list = S.seq.steps.slice(0, S.seq.length); const last = list.map(st => st.notes.length > 0).lastIndexOf(true); return list.slice(0, last).filter(st => !st.notes.length).length; };
+const BASS_LOOP = [36, 0, 48, 0, 43, 0, 36, 0, 36, 0, 48, 0, 45, 0, 43, 0].map(n => ({ notes: n ? [n] : [], vel: 100, on: true }));
 
 export const SOUND_COURSE = [
   // ═══ Unit 1 ═══════════════════════════════════════════════════
@@ -517,6 +523,114 @@ export const SOUND_COURSE = [
           { type: 'synth', views: ['scope'], controls: [C('op1.r.0&op2.r.0', T('Attaque', 'Attack'), { invert: true }), C('op1.r.3&op2.r.3', T('Relâchement', 'Release'), { invert: true }), C('op2.det', T('Désaccord', 'Detune')), C('lfo.pmd', T('Vibrato', 'Vibrato')), C('fx.reverb.mix', T('Réverbération', 'Reverb'), { scale: 100, max: 100 })], play: 'C3+G3+E4w',
             text: T('Une nappe qui vit : elle entre doucement, s’élargit, ondule un peu, et flotte dans une grande salle.', 'A living pad: it fades in, widens, wavers a little, and floats in a big room.'),
             goals: [{ text: T('Attaque et relâchement lents, un désaccord, un léger vibrato, de la réverbération.', 'Slow attack and release, some detune, a light vibrato, reverb.'), check: p => 99 - p.ops[0].r[0] >= 45 && 99 - p.ops[0].r[3] >= 45 && p.ops[1].det !== 7 && p.lfo.pmd >= 3 && p.lfo.pmd <= 25 && S_FX().reverb.mix >= 0.3 }] },
+        ],
+      },
+    ],
+  },
+
+  // ═══ Unit 7 ═══════════════════════════════════════════════════
+  {
+    id: 'su7',
+    title: T('Arpèges et séquences', 'Arpeggios and sequences'),
+    blurb: T('L’arpégiateur et le séquenceur de Créer, pas à pas.', 'Create’s arpeggiator and sequencer, step by step.'),
+    lessons: [
+      {
+        id: 'p1',
+        title: T('L’arpégiateur', 'The arpeggiator'),
+        goal: T('Tenir un accord et le laisser s’égrener.', 'Hold a chord and let it ripple.'),
+        lab: PLUCKY, keep: 'Arpège',
+        steps: [
+          { type: 'info', title: T('Un accord, une note à la fois', 'One chord, one note at a time'),
+            text: T('L’**arpégiateur** prend les notes que tu tiens et les rejoue **une par une**, en boucle, au tempo. Tu poses un accord, il en fait un motif.\nTu le trouves dans Créer › Arp. Les réglages sont les mêmes ici : ce que tu apprends marchera là-bas.',
+              'The **arpeggiator** takes the notes you hold and replays them **one by one**, in a loop, at the tempo. You put down a chord, it turns it into a pattern.\nYou’ll find it in Create › Arp. The controls here are the same: what you learn works there.') },
+          { type: 'synth', panel: 'arp', arp: { on: true, mode: 'up', rate: 0.25, octaves: 1, gate: 0.6, latch: false }, tempo: 110, play: 'C4+E4+G4w',
+            goals: [
+              { text: T('Tiens un accord de trois notes : écoute-le s’égrener.', 'Hold a three-note chord: hear it ripple.'), check: (p, played) => played.size >= 3 },
+              { text: T('Change le sens : essaie « descendant », puis « aller-retour ».', 'Change the direction: try “down”, then “up-down”.'), check: (p, played, seen) => seen.has('arp.mode=down') && S.arp.mode === 'updown' },
+              { text: T('Étends le motif sur 2 octaves ou plus.', 'Spread the pattern over 2 octaves or more.'), check: () => S.arp.octaves >= 2 },
+            ] },
+        ],
+      },
+      {
+        id: 'p2',
+        title: T('Latch, vitesse et longueur', 'Latch, speed and length'),
+        goal: T('Faire tourner l’arpège seul et régler son allure.', 'Keep the arpeggio going by itself and set its pace.'),
+        lab: PLUCKY, keep: 'Arpège',
+        steps: [
+          { type: 'synth', panel: 'arp', arp: { on: true, mode: 'up', rate: 0.25, octaves: 2, gate: 0.6, latch: false }, tempo: 110, play: 'C4+E4+G4w',
+            text: T('Le **latch** garde l’arpège après que tu as lâché les touches : tes mains sont libres. La **division** règle combien de notes par temps, le **gate** leur longueur.', '**Latch** keeps the arpeggio going after you let go of the keys: your hands are free. The **rate** sets how many notes per beat, the **gate** how long they last.'),
+            goals: [
+              { text: T('Active le latch, joue un accord et lâche : l’arpège continue.', 'Turn latch on, play a chord and let go: the arpeggio goes on.'), check: (p, played) => S.arp.latch && played.size >= 2 },
+              { text: T('Passe en croches (1/8) : deux fois moins vite.', 'Switch to eighths (1/8): half as fast.'), check: () => S.arp.rate === 0.5 },
+              { text: T('Notes piquées : gate à 30 % ou moins.', 'Short notes: gate at 30 % or less.'), check: () => S.arp.gate <= 0.3 },
+              { text: T('Accélère le tempo à 140 ou plus.', 'Speed the tempo up to 140 or more.'), check: () => S.tempo >= 140 },
+            ] },
+        ],
+      },
+      {
+        id: 'p3',
+        title: T('Arpège et son', 'Arpeggio and sound'),
+        goal: T('Le même motif, deux mondes : l’écho, puis la nappe.', 'The same pattern, two worlds: echo, then pad.'),
+        lab: PLUCKY, keep: 'Arpège',
+        steps: [
+          { type: 'synth', panel: 'arp', arp: { on: true, mode: 'up', rate: 0.5, octaves: 2, gate: 0.4, latch: true }, tempo: 100, fx: { delay: { on: true, beats: 0.75, mix: 0, fb: 0.35 } },
+            controls: [C('fx.delay.mix', T('Écho', 'Echo'), { scale: 100, max: 100 }), C('fx.delay.fb', T('Répétitions', 'Repeats'), { scale: 100, max: 90 })], play: 'C4+E4+G4+B4w',
+            text: T('Un classique : un arpège pincé et un écho calé sur le tempo (ici en croche pointée). Les répétitions tombent entre les notes et remplissent le motif.', 'A classic: a plucked arpeggio and an echo locked to the tempo (a dotted eighth here). The repeats fall between the notes and fill out the pattern.'),
+            goals: [{ text: T('Écho à 30 ou plus, répétitions à 40 ou plus.', 'Echo at 30 or more, repeats at 40 or more.'), check: () => S.fx.delay.mix >= 0.3 && S.fx.delay.fb >= 0.4 }] },
+          { type: 'synth', panel: 'arp', patch: PAD, arp: { on: true, mode: 'updown', rate: 0.25, octaves: 2, gate: 0.6, latch: true }, play: 'C3+G3+E4w',
+            text: T('Le même principe avec une nappe : les notes se chevauchent et deviennent un tapis qui bouge.', 'The same idea with a pad: the notes overlap and turn into a moving carpet.'),
+            goals: [{ text: T('Gate à 80 % ou plus : les notes se fondent les unes dans les autres.', 'Gate at 80 % or more: the notes melt into each other.'), check: () => S.arp.gate >= 0.8 }] },
+        ],
+      },
+      {
+        id: 'p4',
+        title: T('Le séquenceur pas à pas', 'The step sequencer'),
+        goal: T('Écrire une boucle, note par note.', 'Write a loop, note by note.'),
+        lab: () => { const p = PLUCKY(); p.ops[1].ol = 70; return p; }, keep: 'Séquence',
+        steps: [
+          { type: 'info', title: T('Seize cases', 'Sixteen boxes'),
+            text: T('Le **séquenceur** est une boucle de 16 cases : une case = une double croche, 4 cases = un temps. Chaque case contient une note, un accord, ou rien.\nAvec **REC** activé et la lecture arrêtée, chaque note jouée remplit la case suivante. Le bouton **Silence** saute une case.\nTu le trouves dans Créer › Séq.',
+              'The **sequencer** is a loop of 16 boxes: one box = a sixteenth note, 4 boxes = a beat. Each box holds a note, a chord, or nothing.\nWith **REC** on and playback stopped, each note you play fills the next box. The **Rest** button skips a box.\nYou’ll find it in Create › Seq.') },
+          { type: 'synth', panel: 'seq', seq: {}, tempo: 110, range: { lo: 36, hi: 72 },
+            goals: [
+              { text: T('Active REC et joue 4 notes : chacune remplit une case.', 'Turn REC on and play 4 notes: each fills a box.'), check: () => filled() >= 4 },
+              { text: T('Ajoute au moins 2 silences entre tes notes avec le bouton Silence.', 'Add at least 2 rests between your notes with the Rest button.'), check: () => filled() >= 4 && restsBetween() >= 2 },
+              { text: T('Lance la lecture : ta boucle tourne.', 'Press play: your loop goes round.'), check: () => seq.playing && filled() >= 4 },
+              { text: T('Raccourcis la boucle à 8 cases.', 'Shorten the loop to 8 boxes.'), check: () => S.seq.length === 8 },
+            ] },
+        ],
+      },
+      {
+        id: 'p5',
+        title: T('Faire vivre une séquence', 'Bringing a sequence to life'),
+        goal: T('Swing, longueur des notes, transposition au clavier.', 'Swing, note length, transposing from the keyboard.'),
+        lab: () => { const p = BASS(); p.ops[0].coarse = 1; return p; }, keep: 'Séquence',
+        steps: [
+          { type: 'synth', panel: 'seq', seq: { steps: BASS_LOOP, length: 16, gate: 0.6 }, tempo: 104, range: { lo: 36, hi: 72 },
+            text: T('Une ligne de basse est déjà écrite. Lance-la, puis transforme-la sans toucher aux notes.', 'A bass line is already written. Start it, then transform it without touching the notes.'),
+            goals: [
+              { text: T('Lance la lecture.', 'Press play.'), check: () => seq.playing },
+              { text: T('Ajoute du swing (30 % ou plus) : la boucle se met à balancer.', 'Add swing (30 % or more): the loop starts to groove.'), check: () => S.seq.swing >= 0.3 },
+              { text: T('Notes courtes : gate à 30 % ou moins.', 'Short notes: gate at 30 % or less.'), check: () => S.seq.gate <= 0.3 },
+              { text: T('Active « Transposer au clavier » et joue une autre note que [C4] : toute la boucle suit.', 'Turn on “Transpose from keys” and play a note other than [C4]: the whole loop follows.'), check: () => S.seq.transpose && seq.transpose !== 0 },
+            ] },
+        ],
+      },
+      {
+        id: 'p6',
+        title: T('Défi : boucle et arpège', 'Challenge: loop and arpeggio'),
+        goal: T('Une basse au séquenceur, un arpège par-dessus.', 'A bass on the sequencer, an arpeggio on top.'),
+        lab: PLUCKY, keep: 'Ma boucle',
+        steps: [
+          { type: 'synth', panel: 'seq', seq: { steps: BASS_LOOP, length: 16, gate: 0.4, swing: 0.2 }, tempo: 104, range: { lo: 36, hi: 84 },
+            text: T('Lance la basse, puis passe à l’arpège ci-dessous.', 'Start the bass, then go to the arpeggio below.'),
+            goals: [{ text: T('Lance la boucle de basse.', 'Start the bass loop.'), check: () => seq.playing }] },
+          { type: 'synth', panel: 'arp', arp: { on: true, mode: 'up', rate: 0.25, octaves: 1, gate: 0.4, latch: true }, range: { lo: 48, hi: 84 }, play: 'C4+E4+G4w',
+            text: T('La basse continue (elle ne s’arrête qu’en quittant la leçon). Joue un accord par-dessus : l’arpège se cale sur le même tempo.', 'The bass keeps going (it only stops when you leave the lesson). Play a chord over it: the arpeggio locks to the same tempo.'),
+            goals: [
+              { text: T('Un accord arpégé sur la basse.', 'An arpeggiated chord over the bass.'), check: (p, played) => played.size >= 3 },
+              { text: T('Change d’accord : essaie [A3] [C4] [E4], puis [F3] [A3] [C4].', 'Change chord: try [A3] [C4] [E4], then [F3] [A3] [C4].'), check: (p, played) => played.has(57) && played.has(53) },
+            ] },
         ],
       },
     ],

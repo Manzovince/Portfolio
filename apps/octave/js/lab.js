@@ -1,13 +1,13 @@
 // The sound-design workshop: while a "Créer des sons" lesson is open, part A
 // plays a workshop patch instead of the player's own sound. Nothing of it is
 // saved over the player's settings; "keep" stores it in Mes sons.
-import { h, param, seg } from './ui.js?v=202611131';
-import { S, banks, saveBanks, save, setSaveView } from './store.js?v=202611131';
-import { clonePatch } from './dx7.js?v=202611131';
-import { applyPart, setLabSound } from './perform.js?v=202611131';
-import { subscribe } from './notes.js?v=202611131';
-import * as E from './engine.js?v=202611131';
-import { t } from './i18n.js?v=202611131';
+import { h, param, seg } from './ui.js?v=202611132';
+import { S, banks, saveBanks, save, setSaveView } from './store.js?v=202611132';
+import { clonePatch } from './dx7.js?v=202611132';
+import { applyPart, setLabSound, arpClear, seq, seqPlay } from './perform.js?v=202611132';
+import { subscribe } from './notes.js?v=202611132';
+import * as E from './engine.js?v=202611132';
+import { t } from './i18n.js?v=202611132';
 
 let active = null; // { orig, split, arp, patch }
 const macros = () => ({ bright: 0, attack: 0, release: 0, vibrato: 0 });
@@ -25,20 +25,35 @@ const neutralFx = master => ({
 });
 const clone = o => JSON.parse(JSON.stringify(o));
 
-export function startLab(patch, fx = null) {
+const emptySeq = () => ({ steps: Array.from({ length: 16 }, () => ({ notes: [], vel: 100, on: true })), length: 16, part: 0, gate: 0.5, swing: 0, transpose: false });
+
+// `state` is what the workshop had when it was last put aside (labState())
+export function startLab(patch, state = null) {
   if (!active) {
-    active = { orig: S.parts[0], split: S.split.on, arp: S.arp.on, fx: clone(S.fx) };
+    active = { orig: S.parts[0], split: S.split.on, fx: clone(S.fx), arp: clone(S.arp), seq: clone(S.seq), tempo: S.tempo };
     // what is saved meanwhile is the player's own setup, not the workshop
-    setSaveView(s => ({ ...s, parts: [active.orig, s.parts[1]], split: { ...s.split, on: active.split }, arp: { ...s.arp, on: active.arp }, fx: active.fx }));
+    setSaveView(s => ({ ...s, parts: [active.orig, s.parts[1]], split: { ...s.split, on: active.split }, fx: active.fx, arp: active.arp, seq: active.seq, tempo: active.tempo }));
+    if (seq.playing) seqPlay(false);
+    arpClear();
     S.split.on = false;
-    S.arp.on = false;
-    S.fx = fx ? clone(fx) : neutralFx(active.fx.master);
+    S.fx = state?.fx ? clone(state.fx) : neutralFx(active.fx.master);
+    S.arp = state?.arp ? clone(state.arp) : { ...clone(active.arp), on: false, latch: false, target: 0 };
+    S.seq = state?.seq ? clone(state.seq) : emptySeq();
+    S.tempo = state?.tempo ?? active.tempo;
     E.setFx(S.fx, S.tempo);
     setLabSound(true);
   }
   setLabPatch(patch);
 }
-export const labFx = () => (active ? clone(S.fx) : null);
+export const labState = () => (active ? { fx: clone(S.fx), arp: clone(S.arp), seq: clone(S.seq), tempo: S.tempo } : null);
+// Set the workshop's arpeggiator or sequence for a step
+export function setLabArp(part) { if (!active) return; arpClear(); Object.assign(S.arp, part); }
+export function setLabSeq(part) {
+  if (!active) return;
+  if (seq.playing) seqPlay(false);
+  S.seq = { ...emptySeq(), ...clone(part) };
+  seq.cursor = 0; seq.transpose = 0;
+}
 // Merge some effect settings into the workshop's ({ reverb: { on: true } })
 export function setLabFx(part) {
   if (!active) return;
@@ -62,10 +77,15 @@ export function labChanged() {
 
 export function endLab() {
   if (!active) return;
+  if (seq.playing) seqPlay(false);
+  seq.rec = false; seq.transpose = 0;
+  arpClear();
   S.parts[0] = active.orig;
   S.split.on = active.split;
-  S.arp.on = active.arp;
   S.fx = active.fx;
+  S.arp = active.arp;
+  S.seq = active.seq;
+  S.tempo = active.tempo;
   E.setFx(S.fx, S.tempo);
   setSaveView(null);
   setLabSound(false);

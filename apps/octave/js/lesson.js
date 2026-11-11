@@ -1,29 +1,29 @@
 // Learn › Course: the course map, and the lesson player that runs each step
 // (see course.js for the step types). Progress lives in coach.js.
-import { h, icon, seg, toast } from './ui.js?v=202611131';
-import { S, save } from './store.js?v=202611131';
-import { t, spelled, lang, scaleName } from './i18n.js?v=202611131';
-import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611131';
-import { setOverride, setSide } from './keys.js?v=202611131';
-import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611131';
-import { mountFall } from './fall.js?v=202611131';
-import { spelledOctave } from './theory.js?v=202611131';
-import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611131';
+import { h, icon, seg, toast } from './ui.js?v=202611132';
+import { S, save } from './store.js?v=202611132';
+import { t, spelled, lang, scaleName } from './i18n.js?v=202611132';
+import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611132';
+import { setOverride, setSide } from './keys.js?v=202611132';
+import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611132';
+import { mountFall } from './fall.js?v=202611132';
+import { spelledOctave } from './theory.js?v=202611132';
+import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611132';
 import {
   openSongData, closeSong, playSong, pauseSong, isSongPlaying, seekSong, setSongPart, setSongSpeed, setSongFollow,
   onSongChange, onSongEnd, songTally, onSongTally, resetTally, songClock, currentSong, isWaitingForPlayer,
-} from './song.js?v=202611131';
-import * as E from './engine.js?v=202611131';
+} from './song.js?v=202611132';
+import * as E from './engine.js?v=202611132';
 import {
   P, PASS, LESSONS, COURSE, TRACKS, lessonsOf, lessonById, starsOf, isOpen, nextLesson, recordLesson, saveCoach, resetCoach,
   parse, notesOf, lengthOf, pitch, setCoachGuide, demo, hear, clicks, latency, isPlayer, median, audioOf,
-} from './coach.js?v=202611131';
+} from './coach.js?v=202611132';
 
-import { startLab, endLab, labOn, labPatch, labFx, setLabFx, setLabPatch, labChanged, keepLab, playWith, labViews, controlEl, readKey, shown } from './lab.js?v=202611131';
-import { envCanvas } from './create.js?v=202611131';
-import { createGraph } from './graph.js?v=202611131';
-import { clonePatch } from './dx7.js?v=202611131';
-import { applyPart } from './perform.js?v=202611131';
+import { startLab, endLab, labOn, labPatch, labState, setLabFx, setLabArp, setLabSeq, setLabPatch, labChanged, keepLab, playWith, labViews, controlEl, readKey, shown } from './lab.js?v=202611132';
+import { envCanvas, mountArp, mountSeq } from './create.js?v=202611132';
+import { createGraph } from './graph.js?v=202611132';
+import { clonePatch } from './dx7.js?v=202611132';
+import { applyPart } from './perform.js?v=202611132';
 // ── text ───────────────────────────────────────────────────────
 const tx = v => (v && typeof v === 'object' ? v[lang()] ?? v.en : v ?? '');
 function noteText(tok) {
@@ -72,8 +72,8 @@ function leaveLesson(ctx) { open = null; ctx.rerender(); }
 // screen (or the lesson) gives the player their own sound back.
 function useLab(ctx) {
   if (!open?.lesson.lab) return;
-  startLab(open.labPatch, open.labFx);
-  ctx.onLeave(() => { if (labOn()) { if (open) { open.labPatch = clonePatch(labPatch()); open.labFx = labFx(); } endLab(); } });
+  startLab(open.labPatch, open.labState);
+  ctx.onLeave(() => { if (labOn()) { if (open) { open.labPatch = clonePatch(labPatch()); open.labState = labState(); } endLab(); } });
 }
 
 // ── map ────────────────────────────────────────────────────────
@@ -686,6 +686,9 @@ function labStep(step, api, ctx) {
   if (step.patch) setLabPatch(step.patch());
   if (step.prepare) { const p = clonePatch(labPatch()); step.prepare(p); setLabPatch(p); }
   if (step.fx) setLabFx(step.fx);
+  if (step.arp) setLabArp(step.arp);
+  if (step.seq) setLabSeq(step.seq);
+  if (step.tempo) S.tempo = step.tempo;
   api.keys(step.range || { lo: 48, hi: 84 });
   const views = step.views ? labViews(step.views) : null;
   // the operators' wiring, as on the Create screen
@@ -696,11 +699,14 @@ function labStep(step, api, ctx) {
   let d = null;
   const playBtn = h('button', { type: 'button', class: 'btn ghost listen', onclick: () => { d?.cancel(); d = demo(parse(step.play || 'C4w'), step.bpm || 90); } }, icon('start'), t('labPlay'));
   api.onCleanup(() => { d?.cancel(); views?.stop(); });
-  return { views: graph ? h('div', { class: 'lab-views' }, h('div', { class: 'graph-box lab-graph' }, graph.el), ...(views ? [views] : [])) : views, env, playBtn, graph };
+  // the Arp or Seq panel of the Create screen, as is
+  const panel = step.panel ? h('div', { class: 'lab-panel create-body c-' + step.panel }) : null;
+  if (panel) (step.panel === 'arp' ? mountArp : mountSeq)(panel, ctx);
+  return { views: graph ? h('div', { class: 'lab-views' }, h('div', { class: 'graph-box lab-graph' }, graph.el), ...(views ? [views] : [])) : views, env, playBtn, graph, panel };
 }
 
 function runSynth(step, api, ctx) {
-  const { views, env, playBtn, graph } = labStep(step, api, ctx);
+  const { views, env, playBtn, graph, panel } = labStep(step, api, ctx);
   const goals = step.goals || [];
   const played = new Set(), seen = new Set(), touch = { min: 127, max: 0 };
   let gi = 0, done = false;
@@ -719,15 +725,20 @@ function runSynth(step, api, ctx) {
     }
     if (gi >= goals.length) { done = true; api.complete(goals.length ? 3 : null); }
   };
-  const controls = h('div', { class: 'lab-controls' }, ...step.controls.map(c => controlEl(labCtl(c), labPatch, () => {
+  const controls = h('div', { class: 'lab-controls' }, ...(step.controls || []).map(c => controlEl(labCtl(c), labPatch, () => {
     seen.add(c.key + '=' + readKey(labPatch(), c.key));
     labChanged(); env?.draw(); if (c.key === 'alg') graph?.set(labPatch()); check();
   })));
   const card = h('div', { class: 'card step-card lab-card' }, step.title ? h('h2', {}, resolve(step.title)) : null, step.text ? rich(step.text) : null,
-    views, env, controls, goals.length ? list : null, fb, h('div', { class: 'row center-row' }, playBtn));
+    views, env, controls, panel, goals.length ? list : null, fb, h('div', { class: 'row center-row' }, playBtn));
   api.body.append(card);
   const un = subscribe(e => { if (e.type === 'on' && isPlayer(e)) { played.add(e.midi); touch.min = Math.min(touch.min, e.velocity); touch.max = Math.max(touch.max, e.velocity); check(); } });
   api.onCleanup(un);
+  // the panels change state outside our controls: look now and then
+  if (panel) {
+    const poll = setInterval(() => { seen.add('arp.mode=' + S.arp.mode); check(); }, 300);
+    api.onCleanup(() => clearInterval(poll));
+  }
   paint();
   if (!goals.length) api.complete(null);
 }
