@@ -2,9 +2,9 @@
 // kept in this browser. A take plays back through the note bus, so it sounds
 // with the current sounds and shows on the keys; it exports as MIDI, or as an
 // audio file recorded in real time from the output.
-import { subscribe, press, liftSource, setPedal } from './notes.js?v=202611116';
-import * as E from './engine.js?v=202611116';
-import { S, emit } from './store.js?v=202611116';
+import { subscribe, press, liftSource, setPedal } from './notes.js?v=202611117';
+import * as E from './engine.js?v=202611117';
+import { S, emit } from './store.js?v=202611117';
 
 const KEY = 'octave.takes.v1';
 const MAX_TAKES = 30;

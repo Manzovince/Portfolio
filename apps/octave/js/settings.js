@@ -1,12 +1,12 @@
 // Settings sheet and theme.
-import { h, param, seg, toggle, toast } from './ui.js?v=202611116';
-import { S, save, emit, resetAll } from './store.js?v=202611116';
-import * as E from './engine.js?v=202611116';
-import { allOff } from './perform.js?v=202611116';
-import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611116';
-import { t, noteLabel, setLang } from './i18n.js?v=202611116';
-import { keyHint } from './keys.js?v=202611116';
-import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES } from './lumi.js?v=202611116';
+import { h, param, seg, toggle, toast } from './ui.js?v=202611117';
+import { S, save, emit, resetAll } from './store.js?v=202611117';
+import * as E from './engine.js?v=202611117';
+import { allOff } from './perform.js?v=202611117';
+import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611117';
+import { t, noteLabel, setLang } from './i18n.js?v=202611117';
+import { keyHint } from './keys.js?v=202611117';
+import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES } from './lumi.js?v=202611117';
 
 // 'auto' follows the device; 'light' / 'dark' force it
 export function applyTheme() {
@@ -78,6 +78,7 @@ export function renderSettings(box, ctx) {
         S.lumi.enabled ? h('p', { class: 'midi-line ' + lumiState() }, h('i'), lumiLine) : null,
         S.lumi.enabled ? row(t('lumiBlocks'), seg({ options: [['auto', t('auto')], ['1', '1 · 24'], ['2', '2 · 48']], get: () => S.lumi.blocks, set: v => { S.lumi.blocks = v; lumi('blocks'); } })) : null,
         S.lumi.enabled ? param({ label: t('lumiOctave'), min: -3, max: 3, bipolar: true, def: 0, get: () => S.lumi.octave, set: v => { S.lumi.octave = v; lumi('octave'); }, fmt: sign }) : null,
+        S.lumi.enabled ? param({ label: t('lumiBrightness'), min: 0.05, max: 1, step: 0.05, def: 0.6, get: () => S.lumi.brightness, set: v => { S.lumi.brightness = v; lumi('brightness'); }, fmt: v => Math.round(v * 100) + ' %' }) : null,
         S.lumi.enabled ? toggle({ label: t('lumiGuide'), get: () => S.lumi.guide, set: v => { S.lumi.guide = v; lumi('guide'); } }) : null,
         S.lumi.enabled ? h('div', { class: 'row' }, h('span', { class: 'lab' }, t('lumiGuideColor')), h('input', { type: 'color', class: 'color', value: S.lumi.color, oninput: e => { S.lumi.color = e.target.value; lumi('color'); } })) : null,
         S.lumi.enabled ? row(t('lumiRestore'), seg({ cls: 'wrap', options: LUMI_MODES.map(m => [m, t('lumiMode_' + m)]), get: () => S.lumi.restore, set: v => { S.lumi.restore = v; lumi('restore'); } })) : null,
