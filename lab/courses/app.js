@@ -24,6 +24,8 @@ let query = '';
 let recipeTag = ls.get('courses.recipeTag', 'all');
 // Vue "À acheter" : tout est déplié par défaut, on replie ce qu'on veut (indépendamment).
 let todoClosed = new Set(JSON.parse(ls.get('courses.todoClosed', '[]')));
+// Onglet Recettes : groupes repliés (prêt / manque 1-2 / manque plus), tout déplié par défaut.
+let recipeClosed = new Set(JSON.parse(ls.get('courses.recipeClosed', '[]')));
 let ctx = null;   // ce que la fiche ouverte est en train de modifier
 // Articles cochés pendant qu'on est sur "À acheter" : ils restent affichés
 // (barrés) jusqu'au changement d'onglet, pour pouvoir annuler une erreur.
@@ -160,6 +162,13 @@ const TAGS = {
   reconfort: 'Réconfort', soupe: 'Soupes', petitdej: 'Petit-déj', apero: 'Apéro', dessert: 'Desserts',
 };
 const TAG_LABEL = { ...TAGS, varie: 'Varié' };   // ancien style, plus proposé
+// Styles créés par l'utilisateur : le tag est le nom lui-même. Un style existe tant qu'une recette l'utilise.
+const tagLabel = (t) => TAG_LABEL[t] || t;
+function allStyles() {
+  const custom = new Set();
+  for (const r of recipesList()) for (const t of r.tags || []) if (!TAG_LABEL[t]) custom.add(t);
+  return [...Object.entries(TAGS), ...[...custom].sort((a, b) => a.localeCompare(b, 'fr')).map((t) => [t, t])];
+}
 const QUICK = 20;   // filtre "Rapide" : prêt en 20 min ou moins
 
 // Nouvelles fournées du carnet, à proposer aux carnets déjà chargés (une fois par téléphone).
@@ -223,8 +232,10 @@ function recipesHtml() {
     return `<div class="empty"><strong>Aucune recette</strong>Chargez le carnet de départ (${BUILTIN.length} recettes) ou créez les vôtres.
       <br><button class="big" data-act="rseed">Charger le carnet de départ</button></div>${newBtn}`;
   }
-  const chip = (v, label) => `<button class="chip${recipeTag === v ? ' on' : ''}" data-act="rtag" data-v="${v}">${label}</button>`;
-  let html = newBtn.replace('class="newcat"', 'class="newcat top"') + `<div class="chips">${chip('all', 'Toutes')}${chip('quick', 'Rapide')}${Object.entries(TAGS).map(([v, l]) => chip(v, l)).join('')}</div>`;
+  const styles = allStyles();
+  if (recipeTag !== 'all' && recipeTag !== 'quick' && !styles.some(([v]) => v === recipeTag)) recipeTag = 'all';   // style disparu
+  const chip = (v, label) => `<button class="chip${recipeTag === v ? ' on' : ''}" data-act="rtag" data-v="${esc(v)}">${esc(label)}</button>`;
+  let html = newBtn.replace('class="newcat"', 'class="newcat top"') + `<div class="chips">${chip('all', 'Toutes')}${chip('quick', 'Rapide')}${styles.map(([v, l]) => chip(v, l)).join('')}</div>`;
   const news = carnetNews();
   if (news.length) html += `<div class="news"><span><b>${news.length} nouvelles recettes</b> et de nouveaux styles : Asiatique, Soupes, Desserts…</span>
     <span class="news-btns"><button class="soft" data-act="carnetskip">Ignorer</button><button class="primary" data-act="carnetadd">Ajouter</button></span></div>`;
@@ -234,16 +245,19 @@ function recipesHtml() {
       || b.ings.filter((g) => g.st === 'have').length - a.ings.filter((g) => g.st === 'have').length
       || a.r.name.localeCompare(b.r.name, 'fr'));
   const groups = [
-    ['Prêt à cuisiner', list.filter((x) => !x.missing.length)],
-    ['Il manque 1 ou 2 ingrédients', list.filter((x) => x.missing.length && x.missing.length <= 2)],
-    ['Il en manque plus', list.filter((x) => x.missing.length > 2)],
+    ['ready', 'Prêt à cuisiner', list.filter((x) => !x.missing.length)],
+    ['few', 'Il manque 1 ou 2 ingrédients', list.filter((x) => x.missing.length && x.missing.length <= 2)],
+    ['more', 'Il manque plus de 2 ingrédients', list.filter((x) => x.missing.length > 2)],
   ];
-  for (const [title, xs] of groups) {
+  for (const [g, title, xs] of groups) {
     if (!xs.length) continue;
-    html += `<div class="label rlabel">${title}<span class="rcount">${xs.length}</span></div><section class="card">${xs.map((x) => `
+    const shut = recipeClosed.has(g);
+    html += `<div class="group${shut ? ' shut' : ''}"><button class="label rlabel" data-act="rfold" data-g="${g}" aria-expanded="${!shut}">${title}<span class="rcount">${xs.length}</span>${CHEV}</button>`;
+    if (shut) { html += '</div>'; continue; }
+    html += `<section class="card">${xs.map((x) => `
       <button class="recipe" data-act="recipe" data-id="${x.r.id}"><span class="remo" aria-hidden="true">${esc(x.r.emoji || '🍽️')}</span>
         <span class="rtext"><span class="rname">${esc(x.r.name)}</span>
-        <span class="rsub">${x.r.minutes ? `${x.r.minutes} min · ` : ''}${x.missing.length ? `Manque : ${x.missing.map((g) => esc(g.label)).join(', ')}` : '<b>Tout est là</b>'}</span></span></button>`).join('')}</section>`;
+        <span class="rsub">${x.r.minutes ? `${x.r.minutes} min · ` : ''}${x.missing.length ? `Manque : ${x.missing.map((g) => esc(g.label)).join(', ')}` : '<b>Tout est là</b>'}</span></span></button>`).join('')}</section></div>`;
   }
   if (!list.length) html += '<div class="empty"><strong>Aucune recette dans ce style</strong>Créez-en une, ou choisissez un autre filtre.</div>';
   return html + note;
@@ -260,7 +274,7 @@ function recipeSheet(id) {
       ? `<button type="button" class="ing${g.st === 'have' ? ' have' : ''}" data-act="ring" data-id="${g.item.id}" role="checkbox" aria-checked="${g.st === 'have'}"><span class="box">${CHECK}</span><span class="iname">${esc(g.label)}</span>${note ? `<small>${note}</small>` : ''}</button>`
       : `<div class="ing none"><span class="box"></span><span class="iname">${esc(g.label)}</span><small>${note}</small></div>`;
   };
-  const meta = [r.minutes ? `${r.minutes} min` : '', ...(r.tags || []).map((t) => TAG_LABEL[t])].filter(Boolean).join(' · ');
+  const meta = [r.minutes ? `${r.minutes} min` : '', ...(r.tags || []).map((t) => esc(tagLabel(t)))].filter(Boolean).join(' · ');
   const scrollTop = sheet.scrollTop;
   show(`<div class="sheet-in">${head(`${esc(r.emoji || '🍽️')} ${esc(r.name)}`)}
     ${meta ? `<p class="rmeta">${meta}</p>` : ''}
@@ -279,6 +293,21 @@ function ingRowHtml(spec) {
     <button type="button" class="xbtn" data-act="fingdel" aria-label="Retirer ${esc(alts[0])}">✕</button></div>`;
 }
 
+const styleChip = (v, l, on) => `<button type="button" class="chip${on ? ' on' : ''}" data-act="ftag" data-v="${esc(v)}">${esc(l)}</button>`;
+
+// "+ Nouveau style" : on l'ajoute (coché) aux styles du formulaire ; il sera partagé une fois la recette enregistrée.
+function addFormStyle() {
+  const input = sheet.querySelector('input[name="newstyle"]');
+  const name = input.value.trim().replace(/\s+/g, ' ');
+  if (!name) return;
+  const chips = [...sheet.querySelectorAll('[data-act="ftag"]')];
+  const same = chips.find((c) => norm(tagLabel(c.dataset.v)) === norm(name));
+  if (same) same.classList.add('on');
+  else sheet.querySelector('.newstyle').insertAdjacentHTML('beforebegin', styleChip(name, name, true));
+  input.value = '';
+  input.closest('.addrow').hidden = true;
+}
+
 function recipeForm(id) {
   const r = id ? findRecipe(id) : { emoji: '', name: '', tags: [], minutes: '', ingredients: [], steps: [] };
   if (!r) return;
@@ -287,7 +316,8 @@ function recipeForm(id) {
     <div class="frow"><label class="field emo-field">Emoji<input name="emoji" value="${esc(r.emoji || '')}" placeholder="🍽️" maxlength="8" autocomplete="off"></label>
       <label class="field grow">Nom<input name="name" value="${esc(r.name)}" maxlength="80" autocomplete="off" placeholder="Ex. Gratin de courgettes" required></label></div>
     <label class="field">Temps (minutes)<input name="minutes" type="number" inputmode="numeric" min="1" max="600" value="${r.minutes || ''}"></label>
-    <div class="field">Style<div class="chips wrap">${Object.entries(TAGS).map(([v, l]) => `<button type="button" class="chip${(r.tags || []).includes(v) ? ' on' : ''}" data-act="ftag" data-v="${v}">${l}</button>`).join('')}</div></div>
+    <div class="field">Style<div class="chips wrap">${allStyles().map(([v, l]) => styleChip(v, l, (r.tags || []).includes(v))).join('')}<button type="button" class="chip newstyle" data-act="fstylenew">+ Nouveau style</button></div>
+      <div class="addrow" hidden><input name="newstyle" placeholder="Ex. Barbecue" autocomplete="off" enterkeyhint="done" maxlength="30"><button type="button" class="soft" data-act="fstyleadd">Ajouter</button></div></div>
     <div class="field">Ingrédients
       <div class="fings">${(r.ingredients || []).map(ingRowHtml).join('')}</div>
       <div class="addrow"><input name="ing" placeholder="Chercher un ingrédient…" autocomplete="off" autocorrect="off" enterkeyhint="done" maxlength="80"></div>
@@ -366,6 +396,7 @@ function createFormIng() {
 function saveRecipeForm(f) {
   const name = f.elements.name.value.trim();
   if (!name) return false;
+  if (f.elements.newstyle.value.trim()) addFormStyle();
   const pending = f.elements.ing.value.trim();
   if (pending) addFormIng(ingMatches(pending).find((m) => ingKey(m.name) === ingKey(pending))?.name ?? pending);   // tapé mais pas encore ajouté
   const row = {
@@ -471,6 +502,7 @@ sheet.addEventListener('submit', (e) => {
 
 // Entrée dans le champ ingrédient : on l'ajoute au lieu d'envoyer le formulaire.
 sheet.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.name === 'newstyle') { e.preventDefault(); addFormStyle(); return; }
   if (e.key !== 'Enter' || e.target.name !== 'ing') return;
   e.preventDefault();
   // Entrée : l'article correspondant (exact, sinon le premier proposé), sinon on propose de le créer.
@@ -495,6 +527,8 @@ sheet.addEventListener('click', (e) => {
     case 'redit': recipeForm(ctx.id); break;
     case 'ftag': case 'fingopt': (b.dataset.act === 'ftag' ? b : b.closest('.fing')).classList.toggle(b.dataset.act === 'ftag' ? 'on' : 'opt'); break;
     case 'fingdel': b.closest('.fing').remove(); break;
+    case 'fstylenew': { const row = sheet.querySelector('input[name="newstyle"]').closest('.addrow'); row.hidden = false; row.querySelector('input').focus(); break; }
+    case 'fstyleadd': addFormStyle(); break;
     case 'fingpick': addFormIng(b.dataset.name); break;
     case 'fingnew': ingCreate = true; renderIngSugg(); break;
     case 'fingonly': addFormIng(); break;
@@ -736,6 +770,13 @@ elList.addEventListener('click', (e) => {
     case 'rseed': seedRecipes(); break;
     case 'carnetadd': importCarnet(); break;
     case 'carnetskip': ls.set('courses.carnet', String(CARNET)); render(); break;
+    case 'rfold': {
+      const g = b.dataset.g;
+      if (recipeClosed.has(g)) recipeClosed.delete(g); else recipeClosed.add(g);
+      ls.set('courses.recipeClosed', JSON.stringify([...recipeClosed]));
+      render();
+      break;
+    }
     case 'todofold':
       if (todoClosed.has(id)) todoClosed.delete(id); else todoClosed.add(id);
       ls.set('courses.todoClosed', JSON.stringify([...todoClosed]));
