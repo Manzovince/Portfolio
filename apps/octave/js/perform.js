@@ -1,10 +1,10 @@
 // Between the note bus and the engine: split, per-part octave, velocity curve,
 // arpeggiator, step sequencer (playback, step and live recording, transpose)
 // and the shared tempo clock. Song playback skips the arp and the sequencer.
-import * as E from './engine.js?v=202611132';
-import { PIANO_SOUNDS } from './engine.js?v=202611132';
-import { S, save, emit } from './store.js?v=202611132';
-import { subscribe } from './notes.js?v=202611132';
+import * as E from './engine.js?v=202611133';
+import { PIANO_SOUNDS } from './engine.js?v=202611133';
+import { S, save, emit } from './store.js?v=202611133';
+import { subscribe } from './notes.js?v=202611133';
 
 const held = new Map(); // midi -> { part, note, arp } | { transpose: true }
 

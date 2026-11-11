@@ -1,29 +1,29 @@
 // Learn › Course: the course map, and the lesson player that runs each step
 // (see course.js for the step types). Progress lives in coach.js.
-import { h, icon, seg, toast } from './ui.js?v=202611132';
-import { S, save } from './store.js?v=202611132';
-import { t, spelled, lang, scaleName } from './i18n.js?v=202611132';
-import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611132';
-import { setOverride, setSide } from './keys.js?v=202611132';
-import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611132';
-import { mountFall } from './fall.js?v=202611132';
-import { spelledOctave } from './theory.js?v=202611132';
-import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611132';
+import { h, icon, seg, toast } from './ui.js?v=202611133';
+import { S, save } from './store.js?v=202611133';
+import { t, spelled, lang, scaleName } from './i18n.js?v=202611133';
+import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611133';
+import { setOverride, setSide } from './keys.js?v=202611133';
+import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611133';
+import { mountFall } from './fall.js?v=202611133';
+import { spelledOctave } from './theory.js?v=202611133';
+import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611133';
 import {
   openSongData, closeSong, playSong, pauseSong, isSongPlaying, seekSong, setSongPart, setSongSpeed, setSongFollow,
   onSongChange, onSongEnd, songTally, onSongTally, resetTally, songClock, currentSong, isWaitingForPlayer,
-} from './song.js?v=202611132';
-import * as E from './engine.js?v=202611132';
+} from './song.js?v=202611133';
+import * as E from './engine.js?v=202611133';
 import {
   P, PASS, LESSONS, COURSE, TRACKS, lessonsOf, lessonById, starsOf, isOpen, nextLesson, recordLesson, saveCoach, resetCoach,
   parse, notesOf, lengthOf, pitch, setCoachGuide, demo, hear, clicks, latency, isPlayer, median, audioOf,
-} from './coach.js?v=202611132';
+} from './coach.js?v=202611133';
 
-import { startLab, endLab, labOn, labPatch, labState, setLabFx, setLabArp, setLabSeq, setLabPatch, labChanged, keepLab, playWith, labViews, controlEl, readKey, shown } from './lab.js?v=202611132';
-import { envCanvas, mountArp, mountSeq } from './create.js?v=202611132';
-import { createGraph } from './graph.js?v=202611132';
-import { clonePatch } from './dx7.js?v=202611132';
-import { applyPart } from './perform.js?v=202611132';
+import { startLab, endLab, labOn, labPatch, labState, setLabFx, setLabArp, setLabSeq, setLabPatch, labChanged, keepLab, playWith, labViews, controlEl, readKey, shown } from './lab.js?v=202611133';
+import { envCanvas, mountArp, mountSeq } from './create.js?v=202611133';
+import { createGraph } from './graph.js?v=202611133';
+import { clonePatch } from './dx7.js?v=202611133';
+import { applyPart } from './perform.js?v=202611133';
 // ── text ───────────────────────────────────────────────────────
 const tx = v => (v && typeof v === 'object' ? v[lang()] ?? v.en : v ?? '');
 function noteText(tok) {
@@ -49,8 +49,8 @@ const pick = list => list[Math.floor(Math.random() * list.length)];
 // ── state ──────────────────────────────────────────────────────
 let open = null; // { lesson, step, results: [stars|null], done: bool }
 
-export function renderCoach(view, ctx) {
-  if (open) renderLesson(view, ctx);
+export function renderCoach(view, ctx, bar = null) {
+  if (open) renderLesson(view, ctx, bar);
   else renderMap(view, ctx);
 }
 
@@ -124,7 +124,7 @@ function renderMap(view, ctx) {
 }
 
 // ── lesson player ──────────────────────────────────────────────
-function renderLesson(view, ctx) {
+function renderLesson(view, ctx, bar = null) {
   const { lesson } = open;
   useLab(ctx);
   if (open.finished) return renderEnd(view, ctx);
@@ -142,7 +142,9 @@ function renderLesson(view, ctx) {
   // back to the previous step (its result is kept)
   const back = open.step > 0 ? h('button', { type: 'button', class: 'btn ghost', onclick: () => { open.step--; ctx.rerender(); } }, icon('prev'), h('span', {}, t('cPrevStep'))) : null;
   const footer = h('div', { class: 'lesson-foot' }, back, earned, h('div', { class: 'spacer' }), redo, skipBtn, cont);
-  view.append(h('div', { class: 'lesson' }, head, body, footer));
+  // the lesson's title sits in the Learn tab bar, next to the tabs
+  if (bar) bar.append(head);
+  view.append(h('div', { class: 'lesson' + (bar ? ' head-in-bar' : '') }, bar ? null : head, body, footer));
 
   const cleanups = [];
   const api = {
