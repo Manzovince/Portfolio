@@ -1,25 +1,25 @@
 // Learn screen: Songs (library, then the song falling onto the keys with its
 // staff above, waiting for the player's hand) and Exercises (chords, scales).
-import { h, icon, seg, toggle, toast } from './ui.js?v=202611120';
-import { S, save } from './store.js?v=202611120';
-import { t, chordQuality, scaleName, spelled, notation } from './i18n.js?v=202611120';
-import { chordSymbol } from './theory.js?v=202611120';
-import { importedSongs, addSong, songFile, removeSong, onLibraryChange } from './library.js?v=202611120';
-import { currentSong, openSongFile, closeSong, playSong, pauseSong, isSongPlaying, seekSong, songPosition, setSongPart, setSongSpeed, songPart, onSongChange, onSongPosition, isWaitingForPlayer } from './song.js?v=202611120';
-import { mountFall } from './fall.js?v=202611120';
-import { mountStaff, drawSingleNote } from './score.js?v=202611120';
-import { setOverride, setSide } from './keys.js?v=202611120';
-import { LEVELS, setPracticing, practiceState, onPracticeChange, skip, nextTarget, refreshPractice, readingRange } from './practice.js?v=202611120';
-import { soundingNotes } from './notes.js?v=202611120';
-import { pitchClass, defaultSpelling, spelledOctave } from './theory.js?v=202611120';
-import { fullScoreSheet } from './play.js?v=202611120';
-import { renderCoach } from './lesson.js?v=202611120';
-import { understandSheet } from './understand.js?v=202611120';
-import { songLoop, setSongLoop, onSongLoop } from './song.js?v=202611120';
-import { COURSE_PIECES, pieceNotes, pitch } from './coach.js?v=202611120';
+import { h, icon, seg, toggle, toast } from './ui.js?v=202611121';
+import { S, save } from './store.js?v=202611121';
+import { t, chordQuality, scaleName, spelled, notation } from './i18n.js?v=202611121';
+import { chordSymbol } from './theory.js?v=202611121';
+import { importedSongs, addSong, songFile, removeSong, onLibraryChange } from './library.js?v=202611121';
+import { currentSong, openSongFile, closeSong, playSong, pauseSong, isSongPlaying, seekSong, songPosition, setSongPart, setSongSpeed, songPart, onSongChange, onSongPosition, isWaitingForPlayer } from './song.js?v=202611121';
+import { mountFall } from './fall.js?v=202611121';
+import { mountStaff, drawSingleNote } from './score.js?v=202611121';
+import { setOverride, setSide } from './keys.js?v=202611121';
+import { LEVELS, setPracticing, practiceState, onPracticeChange, skip, nextTarget, refreshPractice, readingRange } from './practice.js?v=202611121';
+import { soundingNotes } from './notes.js?v=202611121';
+import { pitchClass, defaultSpelling, spelledOctave } from './theory.js?v=202611121';
+import { fullScoreSheet } from './play.js?v=202611121';
+import { renderCoach } from './lesson.js?v=202611121';
+import { understandSheet } from './understand.js?v=202611121';
+import { songLoop, setSongLoop, onSongLoop } from './song.js?v=202611121';
+import { COURSE_PIECES, pieceNotes, pitch } from './coach.js?v=202611121';
 // course titles carry note names as [G]: written in the player's notation
 const pieceTitle = p => (p.title[S.lang] ?? p.title.en).replace(/\[([A-G][#b]?)\]/g, (_, n) => spelled(pitch(n + '4').spelling));
-import { openSongData } from './song.js?v=202611120';
+import { openSongData } from './song.js?v=202611121';
 
 export function renderLearn(view, ctx) {
   const nav = seg({ cls: 'subnav', options: [['coach', t('tabCoach')], ['songs', t('tabSongs')], ['drills', t('tabDrills')]], get: () => S.learnTab, set: v => { S.learnTab = v; save(); ctx.rerender(); } });
@@ -170,6 +170,8 @@ function renderDrills(view, ctx) {
   const config = h('div', { class: 'card drill-config' },
     seg({ cls: 'big-seg', options: [['chords', t('drillChords')], ['scales', t('drillScales')], ['reading', t('drillReading')]], get: () => P.kind, set: v => { P.kind = v; save(); ctx.rerender(); } }),
     h('h3', {}, t('level')), levelSeg,
+    reading ? h('h3', {}, t('readWhat')) : null,
+    reading ? seg({ options: [['note', t('readOneNote')], ['chord', t('readChord')]], get: () => P.readMode || 'note', set: v => { P.readMode = v; save(); nextTarget(); } }) : null,
     reading ? null : h('h3', {}, t('roots')),
     reading ? null : seg({ options: [['naturals', t('rootsNaturals')], ['all', t('rootsAll')]], get: () => P.roots, set: v => { P.roots = v; save(); nextTarget(); } }),
     toggle({ label: reading ? t('showKey') : t('showNotes'), get: () => P.hints, set: v => { P.hints = v; save(); refreshPractice(); } }));
@@ -192,12 +194,19 @@ function renderDrills(view, ctx) {
     feedback.textContent = fb.text;
     stats.textContent = st.done ? t('drillStats', { done: st.done, streak: st.streak }) : t('drillStart');
     if (target.kind === 'reading') {
-      prompt.textContent = t('drillReadNote');
+      prompt.textContent = t(target.chord ? 'drillReadChord' : 'drillReadNote');
       symbol.classList.add('staff-note');
-      const sig = target.midi + ':' + target.spelling.acc + ':' + target.clef;
+      const sig = target.midis.join(',') + ':' + target.spellings.map(s => s.acc).join(',') + ':' + target.clef;
       if (symbol.dataset.sig !== sig) { symbol.dataset.sig = sig; drawSingleNote(symbol, target); }
-      name.textContent = fb.kind === 'success' || P.hints ? spelled(target.spelling) + spelledOctave(target.midi, target.spelling) : '';
-      chips.replaceChildren();
+      const show = fb.kind === 'success' || P.hints;
+      const label = (m, i) => spelled(target.spellings[i]) + spelledOctave(m, target.spellings[i]);
+      if (!target.chord) { name.textContent = show ? label(target.midi, 0) : ''; chips.replaceChildren(); }
+      else {
+        name.textContent = '';
+        const held = new Set(soundingNotes());
+        chips.replaceChildren(...target.midis.map((m, i) => chip(held.has(m) || show ? label(m, i) : '?', held.has(m) ? 'good' : '')),
+          ...[...held].filter(m => !target.midis.includes(m)).map(m => chip(spelled(defaultSpelling(m % 12)) + spelledOctave(m, defaultSpelling(m % 12)), 'bad')));
+      }
     } else if (target.kind === 'chords') {
       symbol.classList.remove('staff-note'); delete symbol.dataset.sig;
       prompt.textContent = t('drillPlayChord');

@@ -10,15 +10,15 @@
 // When a MIDI file is open, the staff shows that song instead, with its own
 // rhythm and time signature, and turns its lines as the song plays.
 
-import { subscribe } from "./notes.js?v=202611120";
-import { S, on } from "./store.js?v=202611120";
-import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=202611120";
-import { currentSong, onSongChange, onSongPosition } from "./song.js?v=202611120";
+import { subscribe } from "./notes.js?v=202611121";
+import { S, on } from "./store.js?v=202611121";
+import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=202611121";
+import { currentSong, onSongChange, onSongPosition } from "./song.js?v=202611121";
 
 // The staff shows the open song on the Learn screen, what is played elsewhere
 let songMode = false;
 const activeSong = () => (songMode ? currentSong() : null);
-import { palette } from "./colors.js?v=202611120";
+import { palette } from "./colors.js?v=202611121";
 
 const settings = {
     get scaleRoot() { return S.scale.root; },
@@ -687,11 +687,11 @@ on("tempo", () => queueDraw());
 on("theme", () => queueDraw());
 on("lang", () => queueDraw());
 
-// One note on a short staff, for the note-reading exercise
-export async function drawSingleNote(element, { clef, midi, spelling }) {
+// One note (or one chord) on a short staff, for the note-reading exercise
+export async function drawSingleNote(element, { clef, midi, spelling, midis = [midi], spellings = [spelling] }) {
     await loadVexflow();
     if (!VF || !element.isConnected) return;
-    const { key, accidental } = vexKey(midi, spelling);
+    const keys = midis.map((m, i) => vexKey(m, spellings[i]));
     const P = palette();
     const width = 220, height = 150, scale = Math.min(2.2, Math.max(1.2, element.clientWidth / width));
     element.replaceChildren();
@@ -704,8 +704,8 @@ export async function drawSingleNote(element, { clef, midi, spelling }) {
     const stave = new VF.Stave(10, 22, width - 20);
     stave.addClef(clef);
     stave.setContext(ctx).draw();
-    const note = new VF.StaveNote({ keys: [key], duration: "w", clef });
-    if (accidental) note.addModifier(new VF.Accidental(accidental), 0);
+    const note = new VF.StaveNote({ keys: keys.map(k => k.key), duration: "w", clef });
+    keys.forEach((k, i) => { if (k.accidental) note.addModifier(new VF.Accidental(k.accidental), i); });
     note.setStyle({ fillStyle: P.accent, strokeStyle: P.accent });
     note.setLedgerLineStyle({ fillStyle: P.text, strokeStyle: P.text });
     note.setXShift(36);

@@ -1,7 +1,7 @@
 // App state, persisted in localStorage (every access wrapped: private mode can throw).
 // One object, S, read and written everywhere; `emit` tells the views what moved.
-import { FACTORY } from './presets.js?v=202611120';
-import { clonePatch } from './dx7.js?v=202611120';
+import { FACTORY } from './presets.js?v=202611121';
+import { clonePatch } from './dx7.js?v=202611121';
 
 const KEY = 'octave.state.v1';
 const BANKS = 'octave.banks.v1';
@@ -39,7 +39,7 @@ function defaults() {
     kb: { dock: 'full', size: 'm', start: 48, follow: 'free', labels: 'c' },
     view: { colors: 'parts', scope: true, chordNames: true },
     midi: { input: 'all', velCurve: 'normal', bendRange: 2, bend: true, poly: 16 },
-    practice: { kind: 'chords', chords: 'triads', scales: 'majorScales', reading: 'trebleEasy', roots: 'naturals', hints: true },
+    practice: { kind: 'chords', chords: 'triads', scales: 'majorScales', reading: 'trebleEasy', readMode: 'note', roots: 'naturals', hints: true },
     song: { part: 'right', speed: 1, staff: true, lookahead: 3 },
     lumi: { enabled: false, blocks: 'auto', octave: 0, guide: true, color: '#2ec4b6', restore: 'rainbow', restoreColor: '#44aca3', restoreRoot: '#f2b84b', brightness: 0.6 },
     mute: false,               // Octave silent (the piano sounds by itself); the metronome still clicks

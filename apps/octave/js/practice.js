@@ -1,10 +1,10 @@
 // Exercises: chords (play the chord shown, any octave or inversion) and scales
 // (one octave up then back down, starting anywhere). Logic only: the Learn
 // screen draws the state and listens to onPracticeChange.
-import { subscribe, soundingNotes } from './notes.js?v=202611120';
-import { S } from './store.js?v=202611120';
-import { buildChord, scaleNotes, pitchClass, defaultSpelling, SCALES } from './theory.js?v=202611120';
-import { t, spelled } from './i18n.js?v=202611120';
+import { subscribe, soundingNotes } from './notes.js?v=202611121';
+import { S } from './store.js?v=202611121';
+import { buildChord, scaleNotes, pitchClass, defaultSpelling, SCALES } from './theory.js?v=202611121';
+import { t, spelled } from './i18n.js?v=202611121';
 
 export const LEVELS = {
   chords: {
@@ -53,7 +53,7 @@ export const refreshPractice = () => changed();
 // Notes to mark: strong = play these now, soft = the rest of the scale
 export function practiceGuide() {
   if (!active || !target || !conf().hints) return null;
-  if (target.kind === 'reading') return { midis: new Set([target.midi]) };
+  if (target.kind === 'reading') return { midis: new Set(target.midis) };
   if (target.kind === 'chords') return { strong: target.pcs, soft: new Set() };
   const next = target.steps[target.position];
   return { strong: new Set(next === undefined ? [] : [next.pc]), soft: new Set(target.notes.map(n => n.pc)) };
@@ -72,6 +72,7 @@ const FLAT = [[0, 0], [1, -1], [1, 0], [2, -1], [2, 0], [3, 0], [4, -1], [4, 0],
 
 function readingTarget() {
   const L = readingLevel();
+  if (conf().readMode === 'chord' && !L.pool) return readingChord(L);
   const black = m => [1, 3, 6, 8, 10].includes(m % 12);
   const pool = [];
   for (let m = L.lo; m <= L.hi; m++) if (L.accidentals || !black(m)) pool.push(m);
@@ -82,7 +83,34 @@ function readingTarget() {
   const [letter, acc] = (useFlat ? FLAT : SHARP)[midi % 12];
   // middle C may sit on either staff; elsewhere the staff follows the note
   const clef = L.clefs.length === 1 ? L.clefs[0] : midi > 60 ? 'treble' : midi < 60 ? 'bass' : pick(L.clefs);
-  return { kind: 'reading', midi, clef, spelling: { letter, acc }, pcs: new Set([midi % 12]) };
+  return { kind: 'reading', midi, midis: [midi], spellings: [{ letter, acc }], clef, spelling: { letter, acc }, pcs: new Set([midi % 12]) };
+}
+
+// A three-note chord stacked in thirds on one staff: on the white keys
+// (C-E-G, D-F-A, B-D-F...), or major and minor triads on any root when the
+// level has accidentals.
+const WHITE = [0, 2, 4, 5, 7, 9, 11];
+function readingChord(L) {
+  const clef = pick(L.clefs);
+  const lo = clef === 'treble' && L.clefs.length > 1 ? 60 : L.lo;
+  const hi = clef === 'bass' && L.clefs.length > 1 ? 60 : L.hi;
+  const options = [];
+  for (let r = lo; r <= hi; r++) {
+    if (L.accidentals) {
+      for (const type of ['maj', 'min']) {
+        const ch = buildChord(r % 12, type);
+        const midis = [r, r + (ch.notes[1].pc - r % 12 + 12) % 12, r + (ch.notes[2].pc - r % 12 + 12) % 12];
+        if (midis[2] <= hi) options.push({ midis, spellings: ch.notes.map(n => n.spelling), name: ch });
+      }
+    } else if (WHITE.includes(r % 12)) {
+      const step = k => { const i = WHITE.indexOf(r % 12) + k; return 12 * (Math.floor(r / 12) + Math.floor(i / 7)) + WHITE[i % 7]; };
+      const midis = [r, step(2), step(4)];
+      if (midis[2] <= hi) options.push({ midis, spellings: midis.map(m => ({ letter: WHITE.indexOf(m % 12), acc: 0 })) });
+    }
+  }
+  let o;
+  do { o = pick(options); } while (target && target.kind === 'reading' && target.midis[0] === o.midis[0] && target.midis[1] === o.midis[1] && options.length > 1);
+  return { kind: 'reading', chord: true, midi: o.midis[0], midis: o.midis, spellings: o.spellings, spelling: o.spellings[0], clef, pcs: new Set(o.midis.map(m => m % 12)) };
 }
 
 export function nextTarget() {
@@ -177,10 +205,25 @@ export function setPracticing(on) {
 }
 
 function checkReading(e) {
+  if (target.chord) return checkReadingChord(e);
   if (e.type !== 'on') return;
   if (e.midi === target.midi) return succeed();
   if (e.midi % 12 === target.midi % 12) return miss(t(e.midi < target.midi ? 'drillHigherOct' : 'drillLowerOct'));
   miss(t('drillNotThisNote', { note: nameOfPc(e.midi % 12) }));
+}
+
+// Chord reading: the exact keys, all held together
+function checkReadingChord(e) {
+  const held = new Set(soundingNotes());
+  if (!held.size) { attemptMissed = false; return changed(); }
+  if (held.size === target.midis.length && target.midis.every(m => held.has(m))) return succeed();
+  if (e.type === 'on' && !target.midis.includes(e.midi) && !attemptMissed) {
+    attemptMissed = true;
+    const same = target.midis.find(m => m % 12 === e.midi % 12);
+    if (same !== undefined) return miss(t(e.midi < same ? 'drillHigherOct' : 'drillLowerOct'));
+    return miss(t('drillNotInChord', { note: nameOfPc(e.midi % 12) }));
+  }
+  changed();
 }
 
 subscribe(e => {
