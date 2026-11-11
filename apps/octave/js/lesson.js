@@ -1,23 +1,23 @@
 // Learn › Course: the course map, and the lesson player that runs each step
 // (see course.js for the step types). Progress lives in coach.js.
-import { h, icon, seg, toast } from './ui.js?v=202611123';
-import { S, save } from './store.js?v=202611123';
-import { t, spelled, lang, scaleName } from './i18n.js?v=202611123';
-import { subscribe } from './notes.js?v=202611123';
-import { setOverride, setSide } from './keys.js?v=202611123';
-import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611123';
-import { mountFall } from './fall.js?v=202611123';
-import { spelledOctave } from './theory.js?v=202611123';
-import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611123';
+import { h, icon, seg, toast } from './ui.js?v=202611124';
+import { S, save } from './store.js?v=202611124';
+import { t, spelled, lang, scaleName } from './i18n.js?v=202611124';
+import { subscribe, soundingNotes } from './notes.js?v=202611124';
+import { setOverride, setSide } from './keys.js?v=202611124';
+import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611124';
+import { mountFall } from './fall.js?v=202611124';
+import { spelledOctave } from './theory.js?v=202611124';
+import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611124';
 import {
   openSongData, closeSong, playSong, pauseSong, isSongPlaying, seekSong, setSongPart, setSongSpeed, setSongFollow,
   onSongChange, onSongEnd, songTally, onSongTally, resetTally, songClock, currentSong, isWaitingForPlayer,
-} from './song.js?v=202611123';
-import * as E from './engine.js?v=202611123';
+} from './song.js?v=202611124';
+import * as E from './engine.js?v=202611124';
 import {
   P, PASS, LESSONS, COURSE, lessonById, starsOf, isOpen, nextLesson, recordLesson, saveCoach, resetCoach,
   parse, notesOf, lengthOf, pitch, setCoachGuide, demo, clicks, latency, isPlayer, median, audioOf,
-} from './coach.js?v=202611123';
+} from './coach.js?v=202611124';
 
 // ── text ───────────────────────────────────────────────────────
 const tx = v => (v && typeof v === 'object' ? v[lang()] ?? v.en : v ?? '');
@@ -318,6 +318,7 @@ function runPhrase(step, api) {
   const card = h('div', { class: 'card step-card center' }, prog, prompt, step.staff ? line : chips, fb, listenBtn);
   api.body.append(card);
   let i = 0, pos = 0, mistakes = 0, totalNotes = 0, missedHere = false, busy = false, d = null, done = false;
+  const got = new Set(); // keys of the current chord already down
   rounds.forEach(r => (totalNotes += notesOf(r).length));
   const notes = () => notesOf(rounds[i]);
   const states = () => notes().map((_, k) => (k < pos ? 'good' : k === pos ? (missedHere ? 'bad' : 'now') : ''));
@@ -325,7 +326,7 @@ function runPhrase(step, api) {
     prog.textContent = t('cRound', { n: i + 1, total: rounds.length });
     if (step.staff) drawLessonLine(line, { items: rounds[i], clef: step.clef, keySignature: step.key, states: states() });
     else chips.replaceChildren(...notes().map((n, k) => h('span', { class: 'note-chip ' + (k < pos ? 'good' : k === pos ? 'next' + (missedHere ? ' shake' : '') : '') },
-      step.hint === 'keys' || k < pos ? midiName(n.midis[0]).replace(/-?\d+$/, '') : '•')));
+      step.hint === 'keys' || k < pos ? n.midis.map(m => midiName(m).replace(/-?\d+$/, '')).join(' ') : '•')));
     const target = notes()[pos];
     const help = !busy && target && (step.hint === 'keys' || (step.hint === 'miss' && missedHere));
     if (!busy) setCoachGuide(help ? { midis: new Set(target.midis) } : null);
@@ -344,12 +345,16 @@ function runPhrase(step, api) {
     fb.textContent = t('cYourTurn');
     paint();
   };
-  const startRound = () => { pos = 0; missedHere = false; card.dataset.feedback = ''; fb.textContent = ''; paint(); if (step.listen) setTimeout(() => card.isConnected && play(), 350); };
+  const startRound = () => { pos = 0; missedHere = false; got.clear(); card.dataset.feedback = ''; fb.textContent = ''; paint(); if (step.listen) setTimeout(() => card.isConnected && play(), 350); };
   const un = subscribe(e => {
     if (e.type !== 'on' || !isPlayer(e) || busy || done) return;
     const target = notes()[pos];
     if (!target) return;
     if (target.midis.includes(e.midi)) {
+      // a chord moves on once all its keys are down together
+      got.add(e.midi);
+      if (target.midis.length > 1 && !target.midis.every(m => got.has(m) && soundingNotes().includes(m))) { fb.textContent = ''; card.dataset.feedback = ''; return; }
+      got.clear();
       pos++;
       missedHere = false;
       fb.textContent = '';
@@ -382,6 +387,7 @@ function runPhrase(step, api) {
 // ── rhythm ─────────────────────────────────────────────────────
 const BAR = 4;
 function runRhythm(step, api) {
+  const BAR = step.meter || 4;
   const rounds = step.rounds.map(src => parse(src));
   api.keys({ lo: 57, hi: 72 });
   const prompt = rich(step.prompt, 'div', 'rich step-prompt');
@@ -395,7 +401,7 @@ function runRhythm(step, api) {
   api.body.append(card);
   const best = rounds.map(() => 0);
   let i = 0, running = false, timers = [], taps = [];
-  const draw = (states = []) => drawLessonLine(line, { items: rounds[i], rhythm: true, states, timeSignature: [4, 4] });
+  const draw = (states = []) => drawLessonLine(line, { items: rounds[i], rhythm: true, states, timeSignature: [BAR, 4] });
   const show = () => {
     prog.textContent = t('cRound', { n: i + 1, total: rounds.length });
     fb.textContent = ''; card.dataset.feedback = ''; count.textContent = '';
@@ -526,7 +532,8 @@ function runDrill(step, api) {
 function runPiece(step, api, ctx) {
   const voice = (src, hand) => (src ? notesOf(parse(src)).flatMap(it => it.midis.map(midi => ({ midi, start: it.start, end: it.start + it.beats - 0.06, hand }))) : []);
   const notes = [...voice(step.right, 'right'), ...voice(step.left, 'left')];
-  const song = openSongData({ title: tx(step.title), bpm: step.bpm, notes });
+  const BAR = step.meter || 4;
+  const song = openSongData({ title: tx(step.title), bpm: step.bpm, timeSignature: [BAR, 4], notes });
   // the hands the step asks for; with two, each hand can be practised alone (no stars)
   const goal = step.part || (step.right && step.left ? 'both' : step.left ? 'left' : 'right');
   let part = goal;

@@ -1,11 +1,11 @@
 // Coach: the course's progress, the tiny music notation the lessons are written
 // in, the keys a lesson lights, and the clock helpers (demo playback, clicks,
 // latency calibration) shared by the lesson steps.
-import { press, lift } from './notes.js?v=202611123';
-import * as E from './engine.js?v=202611123';
-import { COURSE } from './course.js?v=202611123';
+import { press, lift } from './notes.js?v=202611124';
+import * as E from './engine.js?v=202611124';
+import { COURSE } from './course.js?v=202611124';
 export { COURSE };
-import { defaultSpelling } from './theory.js?v=202611123';
+import { defaultSpelling } from './theory.js?v=202611124';
 
 // Every piece of the course once: versions of one song (right hand, left hand,
 // both) count as one, played in its fullest version under its first, plain title
@@ -16,7 +16,7 @@ export const COURSE_PIECES = (() => {
     const key = s.song || (s.right || '') + '|' + (s.left || '');
     const size = (s.right ? s.right.length : 0) + (s.left ? s.left.length : 0);
     const have = bySong.get(key);
-    if (!have) bySong.set(key, { id: 'course-' + l.id, title: s.title, unit: ui + 1, bpm: s.bpm, right: s.right, left: s.left, size });
+    if (!have) bySong.set(key, { id: 'course-' + l.id, title: s.title, unit: ui + 1, bpm: s.bpm, meter: s.meter || 4, right: s.right, left: s.left, size });
     else if (size > have.size) Object.assign(have, { bpm: s.bpm, right: s.right, left: s.left, size });
   })));
   return [...bySong.values()];

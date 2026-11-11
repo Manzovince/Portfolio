@@ -58,6 +58,16 @@ const FA_AIR = 'F4q G4q A4q Bb4q | C5h A4h | Bb4q G4q E4q G4q | F4w | A4q Bb4q C
 const FA_AIR_L = 'F3w | F3w | C3w | F3w | F3w | C3w | F3h C3h | F3w';
 const TWINKLE = 'G4q G4q D5q D5q | E5q E5q D5h | C5q C5q B4q B4q | A4q A4q G4h | D5q D5q C5q C5q | B4q B4q A4h | D5q D5q C5q C5q | B4q B4q A4h | G4q G4q D5q D5q | E5q E5q D5h | C5q C5q B4q B4q | A4q A4q G4h';
 const TWINKLE_L = 'G3w | C3h G3h | C3h D3h | D3h G3h | G3h C3h | G3h D3h | G3h C3h | G3h D3h | G3w | C3h G3h | C3h D3h | D3h G3h';
+// Unit 6: chords (left hand in the C position: C = C E G, F = C F A, G = B D G)
+const LH_C = 'C3+E3+G3', LH_F = 'C3+F3+A3', LH_G = 'B2+D3+G3';
+const ODE_CHORDS = `${LH_C}w | ${LH_G}w | ${LH_C}w | ${LH_G}w | ${LH_C}w | ${LH_G}w | ${LH_C}w | ${LH_G}h ${LH_C}h`;
+const TWINKLE_C = 'C4q C4q G4q G4q | A4q A4q G4h | F4q F4q E4q E4q | D4q D4q C4h | G4q G4q F4q F4q | E4q E4q D4h | G4q G4q F4q F4q | E4q E4q D4h | C4q C4q G4q G4q | A4q A4q G4h | F4q F4q E4q E4q | D4q D4q C4h';
+const TWINKLE_C_L = `${LH_C}w | ${LH_F}h ${LH_C}h | ${LH_F}h ${LH_C}h | ${LH_G}h ${LH_C}h | ${LH_C}h ${LH_F}h | ${LH_C}h ${LH_G}h | ${LH_C}h ${LH_F}h | ${LH_C}h ${LH_G}h | ${LH_C}w | ${LH_F}h ${LH_C}h | ${LH_F}h ${LH_C}h | ${LH_G}h ${LH_C}h`;
+// Unit 7: rhythm 2
+const JACQUES_FULL = JACQUES + ' | G4e A4e G4e F4e E4q C4q | G4e A4e G4e F4e E4q C4q | C4q G3q C4h | C4q G3q C4h';
+const VALSE = 'E4h G4q | F4h D4q | E4q F4q G4q | C4h. | E4h G4q | A4h F4q | G4q F4q D4q | C4h.';
+const VALSE_L = 'C3h. | G3h. | C3h. | C3h. | C3h. | F3h. | G3h. | C3h.';
+const BIRTHDAY = 'rq rq G3e G3e | A3q G3q C4q | B3h G3e G3e | A3q G3q D4q | C4h G3e G3e | G4q E4q C4q | B3q A3q F4e F4e | E4q C4q D4q | C4h.';
 const POS_LH = { lo: 45, hi: 60 };    // left hand around C3 (A2 to C4)
 const TWO_HANDS = { lo: 45, hi: 72 };
 const POS_G = { lo: 53, hi: 79 };
@@ -311,7 +321,7 @@ export const COURSE = [
           { type: 'drill', count: 12, prompt: T('Échauffement de lecture.', 'Reading warm-up.'),
             config: { kind: 'reading', reading: { lo: 60, hi: 67, clefs: ['treble'] }, hints: false } },
           { type: 'rhythm', bpm: 96, prompt: T('Le rythme de la troisième phrase.', 'The rhythm of the third phrase.'), rounds: ['q q h | q q h'] },
-          { type: 'piece', title: T('Frère Jacques', 'Frère Jacques'), bpm: 100, right: JACQUES, staff: true, range: POS_C, mode: 'tempo',
+          { type: 'piece', song: 'jacques', title: T('Frère Jacques', 'Frère Jacques'), bpm: 100, right: JACQUES, staff: true, range: POS_C, mode: 'tempo',
             text: T('Directement en rythme. Bravo pour le chemin parcouru !', 'Straight in time. Well done for coming this far!') },
         ],
       },
@@ -497,6 +507,188 @@ export const COURSE = [
             config: { kind: 'scales', scales: ['major'], roots: [0, 7, 5], hints: false } },
           { type: 'piece', title: T('Ah ! vous dirai-je, maman', 'Twinkle, Twinkle, Little Star'), bpm: 96, right: TWINKLE, left: TWINKLE_L, staff: true, range: { lo: 45, hi: 77 },
             text: T('Main droite sur [G4]. Elle monte jusqu’à [E5] : allonge un peu le 5e doigt.', 'Right hand on [G4]. It reaches up to [E5]: stretch the 5th finger a little.') },
+        ],
+      },
+    ],
+  },
+  // ═══ Unit 6 ═══════════════════════════════════════════════════
+  {
+    id: 'u6',
+    title: T('Les accords', 'Chords'),
+    blurb: T('Majeur, mineur, les lire, accompagner une mélodie.', 'Major, minor, reading them, accompanying a tune.'),
+    lessons: [
+      {
+        id: 'a1',
+        title: T('La triade majeure', 'The major triad'),
+        goal: T('Construire et jouer un accord majeur sur n’importe quelle note.', 'Build and play a major chord on any note.'),
+        steps: [
+          { type: 'info', title: T('Une touche sur deux', 'Every other key'),
+            text: T('Un **accord**, ce sont plusieurs notes jouées ensemble. Le plus courant a 3 notes : la **triade**.\nPose le pouce sur [C], saute une touche blanche, puis une autre : [C] [E] [G]. C’est l’accord de **[C] majeur**, joué avec les doigts 1, 3 et 5.\nDe [C] à [E] il y a 4 demi-tons (une **tierce majeure**), de [E] à [G] 3 demi-tons (une **tierce mineure**). Majeur = 4 + 3.',
+              'A **chord** is several notes played together. The most common has 3 notes: the **triad**.\nPut your thumb on [C], skip a white key, then another: [C] [E] [G]. That is the **C major** chord, played with fingers 1, 3 and 5.\nFrom [C] to [E] there are 4 semitones (a **major third**), from [E] to [G] 3 semitones (a **minor third**). Major = 4 + 3.'),
+            line: { src: 'C4+E4+G4w' }, listen: 'C4q E4q G4q C4+E4+G4w', bpm: 80, keys: { lo: 55, hi: 72, midis: [60, 64, 67] } },
+          { type: 'phrase', range: { lo: 55, hi: 79 }, listen: true, hint: 'keys', bpm: 60,
+            prompt: T('Écoute, puis joue l’accord : les trois touches **en même temps**.', 'Listen, then play the chord: all three keys **at once**.'),
+            rounds: ['C4+E4+G4w', 'F4+A4+C5w', 'G4+B4+D5w'] },
+          { type: 'quiz', rounds: [
+            { q: T('L’accord de [F] majeur, c’est…', 'The F major chord is…'), options: ['[F] [A] [C]', '[F] [G] [A]', '[F] [Ab] [C]'], answer: 0 },
+            { q: T('Une triade majeure, c’est une tierce majeure puis…', 'A major triad is a major third then…'), options: [T('une tierce mineure', 'a minor third'), T('une autre tierce majeure', 'another major third')], answer: 0,
+              explain: T('4 demi-tons, puis 3.', '4 semitones, then 3.') },
+            { q: T('Sur [D], la tierce majeure tombe sur…', 'On [D], the major third lands on…'), options: ['[F]', '[F#]', '[E]'], answer: 1,
+              explain: T('[D] → [F#] : 4 demi-tons. D’où l’accord [D] [F#] [A].', '[D] → [F#]: 4 semitones. Hence the chord [D] [F#] [A].') },
+          ] },
+          { type: 'drill', count: 5, range: { lo: 55, hi: 79 }, prompt: T('Joue l’accord majeur affiché, à la hauteur que tu veux.', 'Play the major chord shown, at any height.'),
+            config: { kind: 'chords', chords: ['maj'], roots: [0, 5, 7, 2, 9], hints: true } },
+        ],
+      },
+      {
+        id: 'a2',
+        title: T('La triade mineure', 'The minor triad'),
+        goal: T('Entendre et jouer la différence majeur / mineur.', 'Hear and play the major / minor difference.'),
+        steps: [
+          { type: 'info', title: T('Un demi-ton qui change tout', 'One semitone changes everything'),
+            text: T('Garde [C] et [G], mais descends la note du milieu d’un demi-ton : [C] [Eb] [G]. C’est **[C] mineur**.\nMineur = 3 + 4 : la tierce mineure d’abord, la majeure ensuite. Le son devient plus sombre, plus triste.\nSur les touches blanches, trois accords sont déjà mineurs : [D] [F] [A], [E] [G] [B] et [A] [C] [E].',
+              'Keep [C] and [G], but lower the middle note by a semitone: [C] [Eb] [G]. That is **C minor**.\nMinor = 3 + 4: the minor third first, the major one after. The sound gets darker, sadder.\nOn the white keys, three chords are already minor: [D] [F] [A], [E] [G] [B] and [A] [C] [E].'),
+            line: { src: 'C4+E4+G4h C4+Eb4+G4h' }, listen: 'C4+E4+G4h C4+Eb4+G4h | C4+E4+G4h C4+Eb4+G4h', bpm: 60, keys: { lo: 55, hi: 72, midis: [60, 63, 64, 67] } },
+          { type: 'phrase', range: { lo: 55, hi: 79 }, listen: true, hint: 'keys', bpm: 60,
+            prompt: T('Majeur puis mineur : seule la note du milieu bouge.', 'Major then minor: only the middle note moves.'),
+            rounds: ['C4+E4+G4h C4+Eb4+G4h', 'A4+C#5+E5h A4+C5+E5h', 'D4+F#4+A4h D4+F4+A4h'] },
+          { type: 'quiz', rounds: [
+            { q: T('[A] mineur, c’est…', 'A minor is…'), options: ['[A] [C#] [E]', '[A] [C] [E]', '[A] [B] [E]'], answer: 1 },
+            { q: T('Pour passer de [G] majeur à [G] mineur, on…', 'To go from G major to G minor, you…'), options: [T('descend [B] en [Bb]', 'lower [B] to [Bb]'), T('monte [G] en [G#]', 'raise [G] to [G#]'), T('descend [D] en [Db]', 'lower [D] to [Db]')], answer: 0 },
+          ] },
+          { type: 'drill', count: 6, range: { lo: 55, hi: 79 }, prompt: T('Majeur ou mineur, regarde bien le symbole : « m » veut dire mineur.', 'Major or minor, read the symbol carefully: “m” means minor.'),
+            config: { kind: 'chords', chords: ['maj', 'min'], roots: 'naturals', hints: true } },
+          { type: 'drill', count: 6, range: { lo: 55, hi: 79 }, prompt: T('Les mêmes, sans les notes affichées.', 'The same, without the notes shown.'),
+            config: { kind: 'chords', chords: ['maj', 'min'], roots: 'naturals', hints: false } },
+        ],
+      },
+      {
+        id: 'a3',
+        title: T('Lire un accord', 'Reading a chord'),
+        goal: T('Reconnaître une triade sur la portée et la jouer à la bonne hauteur.', 'Recognise a triad on the staff and play it at the right pitch.'),
+        steps: [
+          { type: 'info', title: T('Le bonhomme de neige', 'The snowman'),
+            text: T('Sur la portée, une triade se lit d’un coup d’œil : trois notes empilées, **toutes sur des lignes** ou **toutes dans des interlignes**. On l’appelle parfois le « bonhomme de neige ».\nLis seulement la note du bas : les deux autres sont une tierce, puis une autre tierce au-dessus.',
+              'On the staff, a triad reads at a glance: three stacked notes, **all on lines** or **all in spaces**. It is sometimes called the “snowman”.\nRead only the bottom note: the other two are a third, then another third above.'),
+            line: { src: 'C4+E4+G4h D4+F4+A4h | E4+G4+B4h F4+A4+C5h' }, listen: 'C4+E4+G4h D4+F4+A4h | E4+G4+B4h F4+A4+C5h', bpm: 70 },
+          { type: 'phrase', range: { lo: 57, hi: 79 }, listen: false, staff: true, hint: 'miss', bpm: 70,
+            prompt: T('Lis la note du bas, puis empile deux tierces.', 'Read the bottom note, then stack two thirds.'),
+            rounds: ['C4+E4+G4w', 'F4+A4+C5w', 'G4+B4+D5w', 'D4+F4+A4w', 'A4+C5+E5w'] },
+          { type: 'drill', count: 8, prompt: T('Des accords au hasard en clé de sol, à la bonne hauteur.', 'Random chords in the treble clef, at the right pitch.'),
+            config: { kind: 'reading', readMode: 'chord', reading: { lo: 60, hi: 79, clefs: ['treble'] }, hints: false } },
+        ],
+      },
+      {
+        id: 'a4',
+        title: T('[C], [F], [G] : accompagner', 'C, F, G: accompanying'),
+        goal: T('Enchaîner les trois accords principaux sans lever la main.', 'Move between the three main chords without lifting the hand.'),
+        steps: [
+          { type: 'info', title: T('Trois accords suffisent', 'Three chords are enough'),
+            text: T('Dans la gamme de [C], trois accords portent presque toutes les chansons simples : **[C]** (le I, la maison), **[F]** (le IV) et **[G]** (le V, qui appelle le retour à [C]).\nPour passer de l’un à l’autre sans sauter, on change l’ordre des notes : c’est un **renversement**. [F] devient [C] [F] [A], [G] devient [B] [D] [G]. La main ne bouge presque plus : un ou deux doigts seulement.',
+              'In the C scale, three chords carry nearly every simple song: **C** (the I, home), **F** (the IV) and **G** (the V, which wants to go back to C).\nTo move between them without jumping, you change the order of the notes: an **inversion**. F becomes [C] [F] [A], G becomes [B] [D] [G]. The hand barely moves: one or two fingers only.'),
+            line: { src: 'C3+E3+G3w | C3+F3+A3w | B2+D3+G3w | C3+E3+G3w', clef: 'bass' }, listen: 'C3+E3+G3h C3+F3+A3h | B2+D3+G3h C3+E3+G3h', bpm: 60,
+            keys: { lo: 43, hi: 60, midis: [47, 48, 50, 52, 53, 55, 57] } },
+          { type: 'phrase', range: { lo: 43, hi: 64 }, listen: true, hint: 'keys', bpm: 60,
+            prompt: T('Main gauche. Garde le pouce sur [G] ou le 5e doigt sur [C] : seuls les doigts du milieu bougent.', 'Left hand. Keep the thumb on [G] or the 5th finger on [C]: only the middle fingers move.'),
+            rounds: ['C3+E3+G3h C3+F3+A3h', 'C3+E3+G3h B2+D3+G3h', 'C3+E3+G3q C3+F3+A3q B2+D3+G3q C3+E3+G3q'] },
+          { type: 'quiz', rounds: [
+            { q: T('En [C] majeur, l’accord du V, c’est…', 'In C major, the V chord is…'), options: ['[F]', '[G]', '[A] mineur'], answer: 1 },
+            { q: T('Un renversement, c’est…', 'An inversion is…'), options: [T('les mêmes notes dans un autre ordre', 'the same notes in another order'), T('un accord mineur', 'a minor chord'), T('l’accord joué à l’envers dans le temps', 'the chord played backwards in time')], answer: 0 },
+          ] },
+          { type: 'piece', title: T('Ode à la joie, accords', 'Ode to Joy, chords'), bpm: 84, right: ODE, left: ODE_CHORDS, staff: true, range: { lo: 45, hi: 72 },
+            text: T('La main gauche tient [C] ou [G] toute la mesure. Travaille-la seule d’abord.', 'The left hand holds C or G for the whole bar. Practise it alone first.') },
+        ],
+      },
+      {
+        id: 'a5',
+        title: T('Bilan : Ah ! vous dirai-je, maman accompagné', 'Check-point: Twinkle, Twinkle with chords'),
+        goal: T('Une mélodie et ses trois accords, deux mains.', 'A tune and its three chords, both hands.'),
+        steps: [
+          { type: 'drill', count: 6, range: { lo: 48, hi: 72 }, prompt: T('Échauffement : [C], [F] ou [G], au hasard.', 'Warm-up: C, F or G, at random.'),
+            config: { kind: 'chords', chords: ['maj'], roots: [0, 5, 7], hints: false } },
+          { type: 'piece', title: T('Ah ! vous dirai-je, maman (accords)', 'Twinkle, Twinkle (chords)'), bpm: 84, right: TWINKLE_C, left: TWINKLE_C_L, staff: true, range: { lo: 45, hi: 72 },
+            text: T('Le même air qu’en [G], cette fois en [C]. Deux accords par mesure : [C] [F] [C] [G]…', 'The same tune as in G, this time in C. Two chords per bar: C F C G…') },
+        ],
+      },
+    ],
+  },
+
+  // ═══ Unit 7 ═══════════════════════════════════════════════════
+  {
+    id: 'u7',
+    title: T('Rythme 2', 'Rhythm 2'),
+    blurb: T('Croches, notes pointées, valse et levée.', 'Eighth notes, dotted notes, waltz and pickup.'),
+    lessons: [
+      {
+        id: 't1',
+        title: T('Les croches', 'Eighth notes'),
+        goal: T('Jouer deux notes par temps, bien régulières.', 'Play two even notes per beat.'),
+        steps: [
+          { type: 'info', title: T('Couper le temps en deux', 'Splitting the beat in two'),
+            text: T('La **croche** dure un demi-temps : deux croches remplissent une noire. Seule, elle a un petit crochet ; à plusieurs, elles sont reliées par une **barre**.\nPour les compter, on ajoute « et » entre les temps : **1 et 2 et 3 et 4 et**. Les croches tombent sur les chiffres **et** sur les « et ».',
+              'An **eighth note** lasts half a beat: two eighths fill a quarter. On its own it has a small flag; in groups they are joined by a **beam**.\nTo count them, add “and” between the beats: **1 and 2 and 3 and 4 and**. Eighths land on the numbers **and** on the “ands”.'),
+            line: { src: 'q q e e e e | e e q h', rhythm: true }, listen: 'C5q C5q C5e C5e C5e C5e | C5e C5e C5q C5h', bpm: 72 },
+          { type: 'quiz', rounds: [
+            { q: T('Deux croches durent autant qu’…', 'Two eighth notes last as long as…'), options: [T('une noire', 'a quarter note'), T('une blanche', 'a half note'), T('une croche', 'an eighth note')], answer: 0, line: { src: 'e e', rhythm: true } },
+            { q: T('Combien de croches dans une mesure à 4/4 ?', 'How many eighth notes in a 4/4 bar?'), options: ['4', '6', '8'], answer: 2 },
+          ] },
+          { type: 'rhythm', bpm: 72, prompt: T('Compte « 1 et 2 et » dans ta tête. Les croches, bien égales.', 'Count “1 and 2 and” in your head. Keep the eighths even.'),
+            rounds: ['q q e e q | q q h', 'e e e e q q | e e q h', 'q e e q e e | e e e e h'] },
+          { type: 'piece', song: 'jacques', title: T('Frère Jacques', 'Frère Jacques'), bpm: 84, right: JACQUES_FULL, staff: true, range: { lo: 55, hi: 72 },
+            text: T('La chanson entière : les croches arrivent sur « Sonnez les matines ».', 'The whole song: the eighths come on “Sonnez les matines”.') },
+        ],
+      },
+      {
+        id: 't2',
+        title: T('Noire pointée, croche', 'Dotted quarter, eighth'),
+        goal: T('Sentir le rythme long-court.', 'Feel the long-short rhythm.'),
+        steps: [
+          { type: 'info', title: T('Un temps et demi', 'A beat and a half'),
+            text: T('Le point ajoute la moitié de la valeur : la **noire pointée** dure 1 temps **et demi**. La croche qui suit complète le 2e temps.\nCompte : **1 (et) 2-et** : on tient pendant le « et » du 1, la croche tombe sur le « et » du 2.\nTu l’as déjà joué : c’est la fin de chaque phrase de l’*Ode à la joie*.',
+              'A dot adds half the value: the **dotted quarter** lasts 1 **and a half** beats. The eighth after it completes beat 2.\nCount: **1 (and) 2-and**: hold through the “and” of 1, the eighth lands on the “and” of 2.\nYou have played it already: it ends each phrase of the *Ode to Joy*.'),
+            line: { src: 'q. e q q | q. e h', rhythm: true }, listen: 'C5q. C5e C5q C5q | C5q. C5e C5h', bpm: 72 },
+          { type: 'rhythm', bpm: 72, prompt: T('Tiens bien la noire pointée, la croche arrive tard.', 'Hold the dotted quarter, the eighth comes late.'),
+            rounds: ['q. e q q | q. e h', 'q q q. e | h h', 'q. e q. e | w'] },
+          { type: 'info', title: T('Le demi-soupir', 'The eighth rest'),
+            text: T('Le **demi-soupir** est un silence d’un demi-temps, comme une croche muette. Placé sur le temps, il fait tomber la note suivante sur le « et » : c’est un **contretemps**.',
+              'The **eighth rest** is half a beat of silence, like a silent eighth note. Placed on the beat, it pushes the next note onto the “and”: an **offbeat**.'),
+            line: { src: 'q re e q re e | h h', rhythm: true }, listen: 'C5q re C5e C5q re C5e | C5h C5h', bpm: 72 },
+          { type: 'rhythm', bpm: 66, prompt: T('Sur les demi-soupirs, compte « 1 » sans jouer, et joue sur le « et ».', 'On the eighth rests, count “1” without playing, and play on the “and”.'),
+            rounds: ['q re e q re e | h h', 'q q re e q | w'] },
+        ],
+      },
+      {
+        id: 't3',
+        title: T('La mesure à 3/4', 'Three-four time'),
+        goal: T('Compter et jouer à trois temps.', 'Count and play in three.'),
+        steps: [
+          { type: 'info', title: T('Un, deux, trois', 'One, two, three'),
+            text: T('En **3/4**, chaque mesure a 3 temps : **1 2 3, 1 2 3**. Le 1 est fort, les deux autres légers : c’est le balancement de la **valse**.\nUne mesure entière dure une **blanche pointée** (3 temps).',
+              'In **3/4**, each bar has 3 beats: **1 2 3, 1 2 3**. The 1 is strong, the other two light: the sway of the **waltz**.\nA full bar lasts a **dotted half note** (3 beats).'),
+            line: { src: 'q q q | h q | h.', rhythm: true }, listen: 'C3q G4q G4q | C3h G4q | C3h.', bpm: 96 },
+          { type: 'quiz', rounds: [
+            { q: T('En 3/4, une blanche pointée dure…', 'In 3/4, a dotted half note lasts…'), options: [T('une demi-mesure', 'half a bar'), T('une mesure entière', 'a whole bar'), T('deux mesures', 'two bars')], answer: 1, line: { src: 'h.', rhythm: true } },
+            { q: T('Dans une valse, le temps fort est…', 'In a waltz, the strong beat is…'), options: [T('le 1', 'the 1'), T('le 2', 'the 2'), T('le 3', 'the 3')], answer: 0 },
+          ] },
+          { type: 'rhythm', bpm: 96, meter: 3, prompt: T('Le décompte est à 3 temps. Appuie un peu plus sur le 1.', 'The count-in is in three. Lean a little on the 1.'),
+            rounds: ['q q q | h q | q h | h.', 'h q | h q | q q q | h.'] },
+          { type: 'piece', title: T('Petite valse', 'Little waltz'), bpm: 104, meter: 3, right: VALSE, left: VALSE_L, staff: true, range: { lo: 45, hi: 72 },
+            text: T('La main gauche joue une note par mesure, sur le 1, et la tient trois temps.', 'The left hand plays one note per bar, on the 1, and holds it three beats.') },
+        ],
+      },
+      {
+        id: 't4',
+        title: T('La levée', 'The pickup'),
+        goal: T('Commencer un morceau avant le premier temps.', 'Start a piece before the first beat.'),
+        steps: [
+          { type: 'info', title: T('Avant le 1', 'Before the 1'),
+            text: T('Beaucoup de chansons ne commencent pas sur le 1 : les premières notes arrivent juste avant, comme un élan. C’est la **levée** (ou anacrouse).\n*Joyeux anniversaire* est à 3/4 et commence par deux croches sur le **3** : on compte « 1, 2 » en silence, et on chante « Joy-eux » sur le 3. Le « an- » d’« anniversaire » tombe sur le 1 suivant.',
+              'Many songs don’t start on the 1: the first notes come just before, like a run-up. That is the **pickup** (or anacrusis).\n*Happy Birthday* is in 3/4 and starts with two eighths on beat **3**: count “1, 2” silently, and sing “Hap-py” on 3. “Birth-” lands on the next 1.'),
+            line: { src: 'rq rq e e | q q q | h', rhythm: true }, listen: BIRTHDAY.split(' | ').slice(0, 3).join(' | '), bpm: 100 },
+          { type: 'rhythm', bpm: 100, meter: 3, prompt: T('Les deux croches sur le 3, puis le 1 bien marqué.', 'The two eighths on 3, then a clear 1.'),
+            rounds: ['rq rq e e | q q q | h e e | q q q | h.'] },
+          { type: 'piece', title: T('Joyeux anniversaire', 'Happy Birthday'), bpm: 100, meter: 3, right: BIRTHDAY, staff: true, range: { lo: 53, hi: 72 },
+            text: T('Main droite. Le grand saut [G3] → [G4] arrive au milieu : prépare la main pendant la blanche.', 'Right hand. The big leap [G3] → [G4] comes in the middle: get the hand ready during the half note.') },
         ],
       },
     ],
