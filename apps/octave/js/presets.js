@@ -1,7 +1,7 @@
 // Factory sounds. Written from scratch for Phase in DX7 terms; none are copies
 // of a commercial ROM. o(coarse, fine, level, rates, levels, extras), ops
 // listed 1 → 6. `d` in extras is detune relative to centre (-7…+7).
-import { initOp, initPatch } from './dx7.js?v=202611127';
+import { initOp, initPatch } from './dx7.js?v=202611128';
 
 const o = (coarse, fine, ol, r, l, x = {}) => {
   const { d = 0, ...rest } = x;

@@ -53,7 +53,7 @@ export const STRINGS = {
     filter: 'Filtre', filterLH: 'Bas ◂ ▸ Haut', resonance: 'Résonance', depth: 'Profondeur', feedbackDl: 'Retours', tone: 'Couleur', size: 'Taille', output: 'Sortie',
 
     // Learn
-    mute: 'Couper le son d’Octave', muteOn: 'Son d’Octave coupé : il suit tes notes sans les jouer (le métronome reste audible)', muteOff: 'Son d’Octave rétabli',
+    mute: 'Couper le son de mon jeu', muteOn: 'Ton jeu est muet : Octave suit tes notes sans les jouer. Les leçons, les morceaux et le métronome restent audibles', muteOff: 'Ton jeu est de nouveau joué par Octave',
     tabSongs: 'Morceaux', tabDrills: 'Exercices', tabCoach: 'Cours',
     cStart: 'Pour commencer', cContinue: 'On continue', cGo: 'Commencer', cRedo: 'Refaire', cProgress: '{done} / {total} leçons · {stars} / {max} étoiles',
     cLocked: 'Verrouillée', cStars: '{n} étoiles sur 3', cOptions: 'Réglages du cours', cLatency: 'Retard du clavier',
@@ -182,7 +182,7 @@ export const STRINGS = {
     recStepHint: 'Step REC: play a note or a chord, it moves to the next step.', transposeHint: 'Play + transpose: the key you hold (C4 = original) transposes the pattern.',
     filter: 'Filter', filterLH: 'Low ◂ ▸ High', resonance: 'Resonance', depth: 'Depth', feedbackDl: 'Feedback', tone: 'Tone', size: 'Size', output: 'Output',
 
-    mute: 'Mute Octave', muteOn: 'Octave muted: it follows your notes without playing them (the metronome still clicks)', muteOff: 'Octave sound back on',
+    mute: 'Mute my playing', muteOn: 'Your playing is muted: Octave follows your notes without sounding them. Lessons, songs and the metronome still play', muteOff: 'Octave sounds your playing again',
     tabSongs: 'Songs', tabDrills: 'Exercises', tabCoach: 'Course',
     cStart: 'Start here', cContinue: 'Keep going', cGo: 'Start', cRedo: 'Again', cProgress: '{done} / {total} lessons · {stars} / {max} stars',
     cLocked: 'Locked', cStars: '{n} stars out of 3', cOptions: 'Course settings', cLatency: 'Keyboard delay',

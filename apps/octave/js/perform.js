@@ -1,10 +1,10 @@
 // Between the note bus and the engine: split, per-part octave, velocity curve,
 // arpeggiator, step sequencer (playback, step and live recording, transpose)
 // and the shared tempo clock. Song playback skips the arp and the sequencer.
-import * as E from './engine.js?v=202611127';
-import { PIANO_SOUNDS } from './engine.js?v=202611127';
-import { S, save, emit } from './store.js?v=202611127';
-import { subscribe } from './notes.js?v=202611127';
+import * as E from './engine.js?v=202611128';
+import { PIANO_SOUNDS } from './engine.js?v=202611128';
+import { S, save, emit } from './store.js?v=202611128';
+import { subscribe } from './notes.js?v=202611128';
 
 const held = new Map(); // midi -> { part, note, arp } | { transpose: true }
 
@@ -122,6 +122,12 @@ function keyOn(key, vel, source) {
   }
   const note = key + S.parts[part].octave * 12;
   if (!fromSong && seq.rec && part === S.seq.part) seqRecord(note, vel);
+  // muted: the player's own notes stay silent (their piano sounds already);
+  // songs, lessons and the metronome still play
+  if (S.mute && !/^(song|take|suggest|coach)/.test(String(source))) {
+    held.set(key, { silent: true, rec: !fromSong && seq.rec });
+    return;
+  }
   if (!fromSong && arpOn(part)) {
     arpAdd(part, note, vel);
     held.set(key, { part, note, arp: true });
@@ -137,6 +143,7 @@ function keyOff(key) {
   held.delete(key);
   if (h.transpose) return;
   if (h.rec) seqRecordUp();
+  if (h.silent) return;
   if (h.arp) arpRemove(h.part, h.note);
   else E.noteOff(h.part, h.note);
 }
@@ -214,5 +221,4 @@ export function applyAll() {
   applyPart(0); applyPart(1);
   E.setPoly(S.midi.poly);
   E.setFx(S.fx, S.tempo);
-  E.setMuted(S.mute);
 }

@@ -3,9 +3,9 @@
 //   piano sampler, one tone stage per part  ──┴→ input → DJ filter → chorus
 //   → delay + reverb sends → compressor → master
 // Each of the two parts (A, B) is either the sampled piano or an FM patch.
-import { ALGORITHMS } from './algorithms.js?v=202611127';
+import { ALGORITHMS } from './algorithms.js?v=202611128';
 
-const V = '?v=202611127';
+const V = '?v=202611128';
 const SAMPLE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 // The sampled piano in a few colours: shelf (dB above 2.5 kHz), lowpass (Hz), damper (s)

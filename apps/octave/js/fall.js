@@ -1,10 +1,10 @@
 // Learn screen: the song falls onto the keys. A note reaches the hit line on
 // the keyboard when it is due; the notes of the player's hand are solid, the
 // ones the song plays itself are outlined. The awaited chord glows.
-import { geometry, onLayout } from './keys.js?v=202611127';
-import { currentSong, songPosition, songPart, awaitedChord, isWaitingForPlayer } from './song.js?v=202611127';
-import { noteColor, palette } from './colors.js?v=202611127';
-import { S } from './store.js?v=202611127';
+import { geometry, onLayout } from './keys.js?v=202611128';
+import { currentSong, songPosition, songPart, awaitedChord, isWaitingForPlayer } from './song.js?v=202611128';
+import { noteColor, palette } from './colors.js?v=202611128';
+import { S } from './store.js?v=202611128';
 
 let canvas = null, g = null, raf = 0, size = { w: 0, h: 0, left: 0 };
 
