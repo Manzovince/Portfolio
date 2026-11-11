@@ -1,24 +1,25 @@
 // Coach: the course's progress, the tiny music notation the lessons are written
 // in, the keys a lesson lights, and the clock helpers (demo playback, clicks,
 // latency calibration) shared by the lesson steps.
-import { press, lift } from './notes.js?v=202611119';
-import * as E from './engine.js?v=202611119';
-import { COURSE } from './course.js?v=202611119';
+import { press, lift } from './notes.js?v=202611120';
+import * as E from './engine.js?v=202611120';
+import { COURSE } from './course.js?v=202611120';
 export { COURSE };
-import { defaultSpelling } from './theory.js?v=202611119';
+import { defaultSpelling } from './theory.js?v=202611120';
 
-// Every piece of the course (once each), for the Songs library
+// Every piece of the course once: versions of one song (right hand, left hand,
+// both) count as one, played in its fullest version under its first, plain title
 export const COURSE_PIECES = (() => {
-  const seen = new Set();
-  const out = [];
+  const bySong = new Map();
   COURSE.forEach((u, ui) => u.lessons.forEach(l => l.steps.forEach(s => {
     if (s.type !== 'piece') return;
-    const key = (s.right || '') + '|' + (s.left || '');
-    if (seen.has(key)) return;
-    seen.add(key);
-    out.push({ id: 'course-' + l.id, title: s.title, unit: ui + 1, bpm: s.bpm, right: s.right, left: s.left });
+    const key = s.song || (s.right || '') + '|' + (s.left || '');
+    const size = (s.right ? s.right.length : 0) + (s.left ? s.left.length : 0);
+    const have = bySong.get(key);
+    if (!have) bySong.set(key, { id: 'course-' + l.id, title: s.title, unit: ui + 1, bpm: s.bpm, right: s.right, left: s.left, size });
+    else if (size > have.size) Object.assign(have, { bpm: s.bpm, right: s.right, left: s.left, size });
   })));
-  return out;
+  return [...bySong.values()];
 })();
 export function pieceNotes(p) {
   const voice = (src, hand) => (src ? notesOf(parse(src)).flatMap(it => it.midis.map(midi => ({ midi, start: it.start, end: it.start + it.beats - 0.06, hand }))) : []);
