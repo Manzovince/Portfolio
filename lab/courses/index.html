@@ -6,11 +6,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Courses</title>
 <meta name="theme-color" content="#f4f2ec">
+<script>
+// Thème appliqué avant le premier rendu (évite un flash clair en mode sombre).
+(function () {
+  var t; try { t = localStorage.getItem('courses.theme'); } catch (e) {}
+  if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  var dark = t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.querySelector('meta[name="theme-color"]').content = dark ? '#141816' : '#f4f2ec';
+})();
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Courses">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=14">
+<link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
 <header id="top" hidden>
@@ -49,6 +58,6 @@
 <script src="config.js?v=11"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="recipes.js?v=3"></script>
-<script src="app.js?v=14"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>
