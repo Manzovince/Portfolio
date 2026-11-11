@@ -557,7 +557,7 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
 .unit-num { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--panel2); border: 1px solid var(--line2); font-weight: 700; flex: none; }
 .coach-lessons { list-style: none; margin: 0; padding: 0 0 0 16px; border-left: 2px solid var(--line); margin-left: 16px; display: flex; flex-direction: column; gap: 8px; }
 .coach-lesson { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; min-height: 60px; text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); position: relative; }
-.coach-lesson::before { content: ''; position: absolute; left: -24px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: var(--bg); border: 2px solid var(--line2); }
+.coach-lesson::before { content: ''; box-sizing: border-box; position: absolute; left: -25px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: var(--bg); border: 2px solid var(--line2); }
 .coach-lesson.passed::before { background: var(--accent); border-color: var(--accent); }
 .coach-lesson.next { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
 .coach-lesson.next::before { border-color: var(--accent); }
