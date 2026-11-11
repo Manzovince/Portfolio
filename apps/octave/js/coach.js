@@ -1,11 +1,11 @@
 // Coach: the course's progress, the tiny music notation the lessons are written
 // in, the keys a lesson lights, and the clock helpers (demo playback, clicks,
 // latency calibration) shared by the lesson steps.
-import { press, lift } from './notes.js?v=202611117';
-import * as E from './engine.js?v=202611117';
-import { COURSE } from './course.js?v=202611117';
+import { press, lift } from './notes.js?v=202611118';
+import * as E from './engine.js?v=202611118';
+import { COURSE } from './course.js?v=202611118';
 export { COURSE };
-import { defaultSpelling } from './theory.js?v=202611117';
+import { defaultSpelling } from './theory.js?v=202611118';
 
 // Every piece of the course (once each), for the Songs library
 export const COURSE_PIECES = (() => {

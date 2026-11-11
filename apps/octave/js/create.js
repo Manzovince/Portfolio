@@ -1,15 +1,15 @@
 // Create screen (from Phase): Sounds (piano + FM banks, .syx import/export),
 // Edit (six-operator FM editor with the animated graph), Arp, Seq, Effects.
-import { h, param, knob, seg, toggle, toast, icon } from './ui.js?v=202611117';
-import { S, banks, save, saveBanks, emit, pianoPart } from './store.js?v=202611117';
-import { FACTORY, CATEGORIES } from './presets.js?v=202611117';
-import { clonePatch, parseSyx, buildSyx } from './dx7.js?v=202611117';
-import { createGraph, ratioText } from './graph.js?v=202611117';
-import * as E from './engine.js?v=202611117';
-import { PIANO_SOUNDS } from './engine.js?v=202611117';
-import { applyPart, seq, seqPlay, seqRest, seqPosition, arpClear } from './perform.js?v=202611117';
-import { ALGORITHMS } from './algorithms.js?v=202611117';
-import { t, noteLabel } from './i18n.js?v=202611117';
+import { h, param, knob, seg, toggle, toast, icon } from './ui.js?v=202611118';
+import { S, banks, save, saveBanks, emit, pianoPart } from './store.js?v=202611118';
+import { FACTORY, CATEGORIES } from './presets.js?v=202611118';
+import { clonePatch, parseSyx, buildSyx } from './dx7.js?v=202611118';
+import { createGraph, ratioText } from './graph.js?v=202611118';
+import * as E from './engine.js?v=202611118';
+import { PIANO_SOUNDS } from './engine.js?v=202611118';
+import { applyPart, seq, seqPlay, seqRest, seqPosition, arpClear } from './perform.js?v=202611118';
+import { ALGORITHMS } from './algorithms.js?v=202611118';
+import { t, noteLabel } from './i18n.js?v=202611118';
 
 let CTX = null;
 const sub = (evt, fn) => CTX.sub(evt, fn);

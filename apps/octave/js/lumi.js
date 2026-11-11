@@ -9,11 +9,11 @@
 //   brightness, a note-off gives the key back to the LUMI. Used only to show
 //   the notes to play during an exercise or while learning a song.
 
-import { S, on } from "./store.js?v=202611117";
-import { midiAccess, onMidiAccess, connectMidi } from "./midi.js?v=202611117";
-import { onGuideChange, guideActive, learnGuide as currentGuide } from "./guide.js?v=202611117";
-import { pitchClass } from "./theory.js?v=202611117";
-import { setLumiRange } from "./keys.js?v=202611117";
+import { S, on } from "./store.js?v=202611118";
+import { midiAccess, onMidiAccess, connectMidi, onSysex } from "./midi.js?v=202611118";
+import { onGuideChange, guideActive, learnGuide as currentGuide } from "./guide.js?v=202611118";
+import { pitchClass } from "./theory.js?v=202611118";
+import { setLumiRange } from "./keys.js?v=202611118";
 
 // The LUMI is left alone: its own mode stays on, except while a guide is shown
 // (an exercise or a song being learnt), when the notes to play are lit. Then
@@ -302,14 +302,97 @@ function refresh() {
         guideLook = false;
         sendRaw([0xd0, 127]); // channel pressure: full brightness for the keys lit from here
         requestKeys();
+        setTimeout(requestLumiBattery, 400);
     }
 }
+
+// === Battery (experimental) ===
+//
+// The LUMI speaks ROLI's BLOCKS protocol. Asked for its topology, a block
+// answers with the list of blocks, each with its serial number, a battery
+// level (5 bits, 0-31) and a charging bit. The layout below comes from ROLI's
+// open-source BLOCKS SDK (BlocksProtocolDefinitions.h), not from a capture:
+// every SysEx received is kept in a log so the decoding can be checked.
+const MSG_DEVICE_COMMAND = 0x01, CMD_REQUEST_TOPOLOGY = 0x01;
+const MSG_TOPOLOGY = 0x01, MSG_TOPOLOGY_EXTEND = 0x04;
+let battery = null;                 // { level 0-1, raw, charging, serial, at }
+const batteryListeners = new Set();
+const sysexLog = [];                // last messages received, as hex
+export const lumiBattery = () => battery;
+export const onLumiBattery = fn => { batteryListeners.add(fn); return () => batteryListeners.delete(fn); };
+export const lumiSysexLog = () => sysexLog.slice();
+let requestedAt = 0;
+export const lumiBatteryAsked = () => requestedAt;
+
+// Bits read least significant first out of 7-bit bytes (the reverse of pack)
+function bitReader(bytes) {
+    let bit = 0;
+    const total = bytes.length * 7;
+    return {
+        left: () => total - bit,
+        read(size) {
+            let value = 0;
+            for (let i = 0; i < size; i++, bit++) {
+                const byte = bytes[Math.floor(bit / 7)] ?? 0;
+                if ((byte >> (bit % 7)) & 1) value |= 1 << i;
+            }
+            return value >>> 0;
+        },
+    };
+}
+
+// The blocks of a topology message, or null if the bits don't make sense
+function readTopology(payload, skipTimestamp) {
+    const r = bitReader(payload);
+    if (skipTimestamp) r.read(32);
+    const type = r.read(7);
+    if (type !== MSG_TOPOLOGY && type !== MSG_TOPOLOGY_EXTEND) return null;
+    if (type === MSG_TOPOLOGY) r.read(8); // protocol version
+    const count = r.read(7);
+    r.read(8);                            // connections
+    if (!count || count > 8) return null;
+    const blocks = [];
+    for (let i = 0; i < count && r.left() >= 16 * 7 + 13; i++) {
+        let serial = '';
+        for (let c = 0; c < 16; c++) serial += String.fromCharCode(r.read(7));
+        const index = r.read(7), level = r.read(5), charging = r.read(1);
+        // a real serial is printable letters and digits
+        if (!/^[0-9A-Z]{6,16}\0*$/i.test(serial.replace(/\0+$/, '')) ) return null;
+        blocks.push({ serial: serial.replace(/\0+$/, ''), index, level, charging: !!charging });
+    }
+    return blocks.length ? blocks : null;
+}
+
+export function onLumiSysex(data, input) {
+    if (!/lumi/i.test(input.name || '')) return;
+    const bytes = [...data];
+    sysexLog.push(new Date().toLocaleTimeString() + '  ' + bytes.map(b => b.toString(16).padStart(2, '0')).join(' '));
+    if (sysexLog.length > 30) sysexLog.shift();
+    // F0 00 21 10 77 <index> <payload…> <checksum> F7
+    if (bytes[1] !== 0x00 || bytes[2] !== 0x21 || bytes[3] !== 0x10 || bytes[4] !== 0x77) return batteryListeners.forEach(fn => fn(battery));
+    const payload = bytes.slice(6, -2);
+    const blocks = readTopology(payload, true) || readTopology(payload, false);
+    if (blocks) {
+        const b = blocks.find(x => x.level > 0) || blocks[0];
+        battery = { level: b.level / 31, raw: b.level, charging: b.charging, serial: b.serial, at: Date.now(), blocks };
+    }
+    batteryListeners.forEach(fn => fn(battery));
+}
+
+export function requestLumiBattery() {
+    if (state !== "connected") return;
+    requestedAt = Date.now();
+    send(pack([[MSG_DEVICE_COMMAND, 7], [CMD_REQUEST_TOPOLOGY, 9]]));
+    batteryListeners.forEach(fn => fn(battery));
+}
+setInterval(() => { if (state === "connected") requestLumiBattery(); }, 60000);
 
 // Ask again, e.g. after the SysEx prompt was dismissed
 export const retryLumi = () => connectMidi(true);
 
 export function initLumi() {
     onMidiAccess(refresh);
+    onSysex(onLumiSysex);
     onGuideChange(onLights);
     setLumiRange(() => (state === "connected" || settings.lumiEnabled ? { lo: lumiLowest(), hi: lumiLowest() + lumiKeyCount() - 1 } : null));
     refresh();

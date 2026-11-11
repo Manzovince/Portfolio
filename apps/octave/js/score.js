@@ -10,15 +10,15 @@
 // When a MIDI file is open, the staff shows that song instead, with its own
 // rhythm and time signature, and turns its lines as the song plays.
 
-import { subscribe } from "./notes.js?v=202611117";
-import { S, on } from "./store.js?v=202611117";
-import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=202611117";
-import { currentSong, onSongChange, onSongPosition } from "./song.js?v=202611117";
+import { subscribe } from "./notes.js?v=202611118";
+import { S, on } from "./store.js?v=202611118";
+import { detectChord, scaleContext, spellPc, vexKey, pitchClass } from "./theory.js?v=202611118";
+import { currentSong, onSongChange, onSongPosition } from "./song.js?v=202611118";
 
 // The staff shows the open song on the Learn screen, what is played elsewhere
 let songMode = false;
 const activeSong = () => (songMode ? currentSong() : null);
-import { palette } from "./colors.js?v=202611117";
+import { palette } from "./colors.js?v=202611118";
 
 const settings = {
     get scaleRoot() { return S.scale.root; },

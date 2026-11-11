@@ -1,12 +1,12 @@
 // Settings sheet and theme.
-import { h, param, seg, toggle, toast } from './ui.js?v=202611117';
-import { S, save, emit, resetAll } from './store.js?v=202611117';
-import * as E from './engine.js?v=202611117';
-import { allOff } from './perform.js?v=202611117';
-import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611117';
-import { t, noteLabel, setLang } from './i18n.js?v=202611117';
-import { keyHint } from './keys.js?v=202611117';
-import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES } from './lumi.js?v=202611117';
+import { h, param, seg, toggle, toast, icon } from './ui.js?v=202611118';
+import { S, save, emit, resetAll } from './store.js?v=202611118';
+import * as E from './engine.js?v=202611118';
+import { allOff } from './perform.js?v=202611118';
+import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611118';
+import { t, noteLabel, setLang } from './i18n.js?v=202611118';
+import { keyHint } from './keys.js?v=202611118';
+import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES, lumiBattery, onLumiBattery, lumiSysexLog, requestLumiBattery, lumiBatteryAsked } from './lumi.js?v=202611118';
 
 // 'auto' follows the device; 'light' / 'dark' force it
 export function applyTheme() {
@@ -19,6 +19,36 @@ export function applyTheme() {
 }
 
 const row = (label, control) => h('div', { class: 'row' }, h('span', { class: 'lab' }, label), control);
+
+// LUMI battery (experimental): level, charging, and the SysEx received, to check the decoding
+function batteryBox(box) {
+  const gauge = h('span', { class: 'battery-gauge' }, h('i'));
+  const text = h('span');
+  const log = h('pre', { class: 'lumi-log', hidden: true });
+  const logBtn = h('button', { type: 'button', class: 'btn ghost', onclick: () => { log.hidden = !log.hidden; paint(); } }, t('lumiDiag'));
+  const copyBtn = h('button', { type: 'button', class: 'btn ghost', onclick: async () => {
+    try { await navigator.clipboard.writeText(lumiSysexLog().join('\n') || '—'); toast(t('lumiDiagCopied')); } catch { toast(t('lumiDiagCopyFail')); }
+  } }, t('lumiDiagCopy'));
+  const el = h('div', { class: 'lumi-battery' },
+    h('div', { class: 'row' }, gauge, text, h('div', { class: 'spacer' }), h('button', { type: 'button', class: 'icon-btn', 'aria-label': t('lumiBatteryAsk'), onclick: () => requestLumiBattery() }, icon('restart'))),
+    h('div', { class: 'row' }, logBtn, copyBtn), log);
+  function paint() {
+    const b = lumiBattery();
+    gauge.hidden = !b;
+    if (b) {
+      const pct = Math.round(b.level * 100);
+      gauge.querySelector('i').style.width = `calc(${pct}% - 4px)`;
+      gauge.classList.toggle('low', pct < 20);
+      text.textContent = t('lumiBattery', { pct }) + (b.charging ? ' · ' + t('lumiCharging') : '');
+    } else text.textContent = lumiBatteryAsked() ? t('lumiBatteryWaiting') : t('lumiBatteryUnknown');
+    copyBtn.hidden = log.hidden;
+    if (!log.hidden) log.textContent = (lumiSysexLog().join('\n') || t('lumiDiagEmpty')) + (b ? '\n\n→ ' + JSON.stringify(b.blocks) : '');
+  }
+  const un = onLumiBattery(paint);
+  box.addEventListener('close', un, { once: true });
+  paint();
+  return el;
+}
 
 export function renderSettings(box, ctx) {
   box.dataset.kind = 'settings';
@@ -76,6 +106,7 @@ export function renderSettings(box, ctx) {
         h('h3', {}, 'LUMI'),
         toggle({ label: t('lumiEnable'), get: () => S.lumi.enabled, set: v => { S.lumi.enabled = v; lumi('enabled'); ctx.openSheet(); } }),
         S.lumi.enabled ? h('p', { class: 'midi-line ' + lumiState() }, h('i'), lumiLine) : null,
+        S.lumi.enabled && lumiState() === 'connected' ? batteryBox(box) : null,
         S.lumi.enabled ? row(t('lumiBlocks'), seg({ options: [['auto', t('auto')], ['1', '1 · 24'], ['2', '2 · 48']], get: () => S.lumi.blocks, set: v => { S.lumi.blocks = v; lumi('blocks'); } })) : null,
         S.lumi.enabled ? param({ label: t('lumiOctave'), min: -3, max: 3, bipolar: true, def: 0, get: () => S.lumi.octave, set: v => { S.lumi.octave = v; lumi('octave'); }, fmt: sign }) : null,
         S.lumi.enabled ? param({ label: t('lumiBrightness'), min: 0.05, max: 1, step: 0.05, def: 0.6, get: () => S.lumi.brightness, set: v => { S.lumi.brightness = v; lumi('brightness'); }, fmt: v => Math.round(v * 100) + ' %' }) : null,

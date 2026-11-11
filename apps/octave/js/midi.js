@@ -1,9 +1,9 @@
 // Web MIDI input. iOS Safari has no Web MIDI: on iPhone / iPad open the app in
 // a browser that adds it (Web MIDI Browser). Outputs are only used by lumi.js,
 // and only when the LUMI guide lights are switched on.
-import { press, lift, setPedal, allNotesOff } from './notes.js?v=202611117';
-import * as E from './engine.js?v=202611117';
-import { S } from './store.js?v=202611117';
+import { press, lift, setPedal, allNotesOff } from './notes.js?v=202611118';
+import * as E from './engine.js?v=202611118';
+import { S } from './store.js?v=202611118';
 
 let access = null;
 let stateCb = () => {};
@@ -13,6 +13,9 @@ export let status = { state: 'idle', inputs: [] };
 export const onMidiState = fn => { stateCb = fn; };
 export const midiAccess = () => access;
 export const onMidiAccess = fn => accessCbs.add(fn);
+// SysEx from any input (the LUMI answers here), whatever input is chosen for notes
+const sysexCbs = new Set();
+export const onSysex = fn => sysexCbs.add(fn);
 
 function parse(d) {
   const st = d[0] & 0xf0, a = d[1], b = d[2] ?? 0;
@@ -31,7 +34,13 @@ function parse(d) {
 function update() {
   const inputs = [...access.inputs.values()];
   const sel = S.midi.input;
-  for (const inp of inputs) inp.onmidimessage = sel === 'all' || sel === inp.id ? e => parse(e.data) : null;
+  for (const inp of inputs) {
+    const notes = sel === 'all' || sel === inp.id;
+    inp.onmidimessage = e => {
+      if (e.data[0] === 0xf0) return sysexCbs.forEach(fn => fn(e.data, inp));
+      if (notes) parse(e.data);
+    };
+  }
   status = { state: inputs.length ? 'connected' : 'none', inputs: inputs.map(i => ({ id: i.id, name: i.name || 'MIDI' })) };
   stateCb(status);
   accessCbs.forEach(fn => fn(access));
