@@ -624,7 +624,7 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
 .lab-goals { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
 .lab-goals li { color: var(--faint); }
 .lab-goals li.now { color: var(--text); font-weight: 600; }
-.lab-goals li.done { color: var(--dim); text-decoration: line-through; text-decoration-color: var(--accent); }
+.lab-goals li.done { color: var(--dim); list-style-type: '✓  '; }
 .lab-goals li.done::marker { color: var(--accent); }
 .btn.ab.on { border-color: var(--accent); color: var(--accent); }
 .lab-choice { display: flex; flex-direction: column; gap: 6px; grid-column: 1 / -1; }
