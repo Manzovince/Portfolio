@@ -1,29 +1,29 @@
 // Learn › Course: the course map, and the lesson player that runs each step
 // (see course.js for the step types). Progress lives in coach.js.
-import { h, icon, seg, toast } from './ui.js?v=202611130';
-import { S, save } from './store.js?v=202611130';
-import { t, spelled, lang, scaleName } from './i18n.js?v=202611130';
-import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611130';
-import { setOverride, setSide } from './keys.js?v=202611130';
-import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611130';
-import { mountFall } from './fall.js?v=202611130';
-import { spelledOctave } from './theory.js?v=202611130';
-import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611130';
+import { h, icon, seg, toast } from './ui.js?v=202611131';
+import { S, save } from './store.js?v=202611131';
+import { t, spelled, lang, scaleName } from './i18n.js?v=202611131';
+import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611131';
+import { setOverride, setSide } from './keys.js?v=202611131';
+import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611131';
+import { mountFall } from './fall.js?v=202611131';
+import { spelledOctave } from './theory.js?v=202611131';
+import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611131';
 import {
   openSongData, closeSong, playSong, pauseSong, isSongPlaying, seekSong, setSongPart, setSongSpeed, setSongFollow,
   onSongChange, onSongEnd, songTally, onSongTally, resetTally, songClock, currentSong, isWaitingForPlayer,
-} from './song.js?v=202611130';
-import * as E from './engine.js?v=202611130';
+} from './song.js?v=202611131';
+import * as E from './engine.js?v=202611131';
 import {
   P, PASS, LESSONS, COURSE, TRACKS, lessonsOf, lessonById, starsOf, isOpen, nextLesson, recordLesson, saveCoach, resetCoach,
   parse, notesOf, lengthOf, pitch, setCoachGuide, demo, hear, clicks, latency, isPlayer, median, audioOf,
-} from './coach.js?v=202611130';
+} from './coach.js?v=202611131';
 
-import { startLab, endLab, labOn, labPatch, labFx, setLabFx, setLabPatch, labChanged, keepLab, playWith, labViews, controlEl, readKey, shown } from './lab.js?v=202611130';
-import { envCanvas } from './create.js?v=202611130';
-import { createGraph } from './graph.js?v=202611130';
-import { clonePatch } from './dx7.js?v=202611130';
-import { applyPart } from './perform.js?v=202611130';
+import { startLab, endLab, labOn, labPatch, labFx, setLabFx, setLabPatch, labChanged, keepLab, playWith, labViews, controlEl, readKey, shown } from './lab.js?v=202611131';
+import { envCanvas } from './create.js?v=202611131';
+import { createGraph } from './graph.js?v=202611131';
+import { clonePatch } from './dx7.js?v=202611131';
+import { applyPart } from './perform.js?v=202611131';
 // ── text ───────────────────────────────────────────────────────
 const tx = v => (v && typeof v === 'object' ? v[lang()] ?? v.en : v ?? '');
 function noteText(tok) {

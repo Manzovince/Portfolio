@@ -9,8 +9,8 @@
 //          changes the sound when the step opens, `patch` replaces it.
 //   match  copy a target sound: the same controls, a target to listen to
 //   quiz   with `sounds: [a, b]`, the question is heard (A then B)
-import { initPatch, initOp } from './dx7.js?v=202611130';
-import { S } from './store.js?v=202611130';
+import { initPatch, initOp } from './dx7.js?v=202611131';
+import { S } from './store.js?v=202611131';
 const S_FX = () => S.fx; // the workshop's effects, during a lesson
 
 const T = (fr, en) => ({ fr, en });
@@ -56,6 +56,14 @@ const VIBRATO = () => { const p = FM(60); Object.assign(p.lfo, { wave: 4, speed:
 const BRIGHT = () => FM(94, 1, 3);
 const PAD = () => { const p = sound('Ma nappe', 32, [{ ol: 95, r: [60, 99, 99, 50], l: [99, 99, 99, 0] }, { ol: 92, r: [60, 99, 99, 50], l: [99, 99, 99, 0] }]); Object.assign(p.lfo, { wave: 4, speed: 30, delay: 30, pmd: 0, amd: 0, pms: 3, sync: 0 }); return p; };
 const vMax = (touch) => touch.max - touch.min;
+
+// recipes 3–7
+const BASS = () => { const p = sound('Ma basse', 2, [{ ol: 99, r: [99, 45, 40, 75], l: [99, 80, 70, 0] }, { ol: 55, r: [99, 99, 99, 75], l: [99, 99, 99, 0] }]); return p; };
+const MARIMBA = () => sound('Mon marimba', 5, [{ ol: 99, r: [99, 99, 99, 72], l: [99, 99, 99, 0] }, { ol: 0, r: [99, 99, 99, 72], l: [99, 99, 99, 0] }]);
+const BRASS = () => { const p = sound('Mes cuivres', 2, [{ ol: 99, r: [80, 60, 60, 60], l: [99, 92, 90, 0] }, { ol: 82, r: [99, 99, 99, 60], l: [99, 99, 99, 0] }], 4); Object.assign(p.lfo, { wave: 4, speed: 36, delay: 0, pmd: 0, amd: 0, pms: 3, sync: 0 }); return p; };
+const ROCK = () => { const p = sound('Mon orgue rock', 32, [{ ol: 0, coarse: 0 }, { ol: 99, coarse: 1 }, { ol: 0, coarse: 2 }, { ol: 0, coarse: 3 }, { ol: 0, coarse: 4 }, { ol: 0, coarse: 3, r: [99, 99, 99, 72], l: [99, 99, 99, 0] }]); Object.assign(p.lfo, { wave: 4, speed: 30, delay: 0, pmd: 0, amd: 0, pms: 1, sync: 0 }); return p; };
+const LEAD = () => { const p = sound('Mon lead', 2, [{ ol: 99 }, { ol: 40 }]); Object.assign(p.lfo, { wave: 4, speed: 38, delay: 0, pmd: 0, amd: 0, pms: 3, sync: 0 }); return p; };
+const copyOp = (p, from, to) => Object.assign(p.ops[to], JSON.parse(JSON.stringify(p.ops[from])));
 
 export const SOUND_COURSE = [
   // ═══ Unit 1 ═══════════════════════════════════════════════════
@@ -560,6 +568,97 @@ export const SOUND_COURSE = [
             prepare: p => { Object.assign(p.ops[2], JSON.parse(JSON.stringify(p.ops[0])), { ol: 0, det: 7 }); Object.assign(p.ops[3], JSON.parse(JSON.stringify(p.ops[1]))); copyEnv(p.ops[0], p.ops[1]); copyEnv(p.ops[0], p.ops[3]); },
             text: T('Deux cloches presque pareilles, légèrement désaccordées, se mettent à **battre** : le son ondule.', 'Two nearly identical bells, slightly detuned, start to **beat**: the sound wavers.'),
             goals: [{ text: T('Ajoute la deuxième cloche et désaccorde-la un peu.', 'Add the second bell and detune it a little.'), check: p => p.ops[2].ol >= 70 && p.ops[2].det !== 7 }] },
+        ],
+      },
+      {
+        id: 'z3',
+        title: T('Basse FM', 'FM bass'),
+        goal: T('Un grave rond, une attaque qui claque, du grain.', 'A round low end, a snappy attack, some grit.'),
+        lab: BASS, keep: 'Ma basse',
+        steps: [
+          { type: 'synth', views: ['scope', 'spectrum'], range: { lo: 28, hi: 60 }, controls: [C('op1.coarse', T('Registre', 'Register'), { options: [[1, T('Normal', 'Normal')], [0, T('Une octave plus bas', 'One octave down')]] }), MOD], play: 'C2q C2q G2q C3q',
+            text: T('Une basse vit tout en bas. Le rapport ×0,5 de la porteuse la descend d’une octave sans changer de touche.', 'A bass lives at the very bottom. A ×0.5 carrier ratio drops it an octave without changing key.'),
+            goals: [{ text: T('Une octave plus bas, avec de la modulation (60 ou plus) pour qu’on l’entende même sur de petits haut-parleurs.', 'One octave down, with modulation (60 or more) so it carries even on small speakers.'), check: p => p.ops[0].coarse === 0 && p.ops[1].ol >= 60 }] },
+          { type: 'synth', views: ['spectrum'], env: 1, range: { lo: 28, hi: 60 }, controls: [MDEC, MSUS], play: 'C2e C2e rq G2e C3e rq',
+            text: T('Le « pop » d’une basse : une brillance très courte au début de chaque note, puis un son plus rond.', 'A bass “pop”: a very short burst of brightness at the start of each note, then a rounder sound.'),
+            goals: [{ text: T('Déclin de la modulation court, maintien bas.', 'Short modulation decay, low sustain.'), check: p => 99 - p.ops[1].r[1] <= 45 && p.ops[1].l[2] <= 40 }] },
+          { type: 'synth', views: ['scope'], range: { lo: 28, hi: 60 }, controls: [FB, C('op2.vel', T('Toucher', 'Touch'))], play: 'C2q C2q G2q C3q',
+            text: T('Le **grain** : un peu de feedback pour la rugosité, et du toucher pour que la basse claque quand tu tapes.', '**Grit**: a little feedback for roughness, and touch so the bass snaps when you hit hard.'),
+            goals: [{ text: T('Feedback à 4 ou plus, toucher à 3 ou plus.', 'Feedback at 4 or more, touch at 3 or more.'), check: p => p.fb >= 4 && p.ops[1].vel >= 3 }] },
+        ],
+      },
+      {
+        id: 'z4',
+        title: T('Marimba', 'Marimba'),
+        goal: T('Une lame de bois frappée, courte et boisée.', 'A struck wooden bar, short and woody.'),
+        lab: MARIMBA, keep: 'Mon marimba',
+        steps: [
+          { type: 'synth', views: ['scope'], env: 0, controls: [DEC, SUS], play: 'C4e E4e G4e C5e G4e E4e C4q',
+            text: T('Une lame frappée ne tient pas : le son meurt en une fraction de seconde.', 'A struck bar doesn’t hold: the sound dies in a fraction of a second.'),
+            goals: [{ text: T('Maintien à zéro, déclin court (entre 15 et 45).', 'Zero sustain, short decay (between 15 and 45).'), check: p => sus(p) <= 5 && dec(p) >= 15 && dec(p) <= 45 }] },
+          { type: 'synth', views: ['spectrum'], controls: [MOD, C('op2.r.1&op2.r.2', T('Durée du choc', 'Strike length'), { invert: true })], play: 'C4e E4e G4e C5e G4e E4e C4q',
+            prepare: p => { Object.assign(p.ops[1], { coarse: 4, ol: 70, r: [99, 75, 75, 72], l: [99, 0, 0, 0] }); },
+            text: T('Le **bois** : un modulateur au rapport 4 qui ne dure qu’un instant, le choc de la mailloche.', 'The **wood**: a ratio-4 modulator lasting only an instant, the mallet’s strike.'),
+            goals: [{ text: T('Modulation entre 50 et 85, choc court (30 ou moins).', 'Modulation between 50 and 85, short strike (30 or less).'), check: p => p.ops[1].ol >= 50 && p.ops[1].ol <= 85 && 99 - p.ops[1].r[1] <= 30 }] },
+          { type: 'synth', views: ['spectrum'], controls: [C('op3.ol', T('Harmonique de la lame', 'Bar overtone')), C('fx.reverb.mix', T('Réverbération', 'Reverb'), { scale: 100, max: 100 })], play: 'C4e E4e G4e C5e G4e E4e C4q',
+            prepare: p => { Object.assign(p.ops[2], { coarse: 4, ol: 0, r: [99, 85, 85, 72], l: [99, 0, 0, 0] }); },
+            text: T('Une lame de marimba est taillée pour que sa première harmonique soit 4 fois la note. Ajoute-la, courte, et un peu de salle.', 'A marimba bar is cut so its first overtone is 4 times the note. Add it, short, and a bit of room.'),
+            goals: [{ text: T('Harmonique de la lame entre 40 et 80, réverbération à 25 ou plus.', 'Bar overtone between 40 and 80, reverb at 25 or more.'), check: p => p.ops[2].ol >= 40 && p.ops[2].ol <= 80 && S_FX().reverb.mix >= 0.25 }] },
+        ],
+      },
+      {
+        id: 'z5',
+        title: T('Section de cuivres', 'Brass section'),
+        goal: T('Un souffle qui s’ouvre, plusieurs instruments, un vibrato tardif.', 'Breath that opens up, several players, a late vibrato.'),
+        lab: BRASS, keep: 'Mes cuivres',
+        steps: [
+          { type: 'synth', views: ['spectrum'], env: 1, controls: [MOD, MATT, MSUS], play: 'C4h G4h | E4+G4+C5w',
+            text: T('Le **souffle** : la brillance arrive un peu après le début de la note, puis tient.', '**Breath**: the brightness arrives just after the note starts, then holds.'),
+            goals: [{ text: T('Attaque de la modulation entre 25 et 60, maintien haut.', 'Modulation attack between 25 and 60, high sustain.'), check: p => 99 - p.ops[1].r[0] >= 25 && 99 - p.ops[1].r[0] <= 60 && p.ops[1].l[2] >= 80 }] },
+          { type: 'synth', views: ['scope'], controls: [C('op3.ol', T('Deuxième instrument', 'Second player')), C('op3.det', T('Son désaccord', 'Its detune'))], play: 'E4+G4+C5w',
+            prepare: p => { copyOp(p, 0, 2); copyOp(p, 1, 3); p.ops[2].ol = 0; },
+            text: T('Une **section**, c’est plusieurs musiciens jamais tout à fait accordés. Une deuxième paire, désaccordée d’un rien, suffit à l’imiter.', 'A **section** is several players never quite in tune. A second pair, detuned a hair, is enough to fake it.'),
+            goals: [{ text: T('Deuxième instrument à 85 ou plus, désaccordé.', 'Second player at 85 or more, detuned.'), check: p => p.ops[2].ol >= 85 && p.ops[2].det !== 7 }] },
+          { type: 'synth', views: ['scope'], controls: [C('lfo.pmd', T('Vibrato', 'Vibrato')), C('lfo.delay', T('Retard du vibrato', 'Vibrato delay'))], play: 'C4w',
+            text: T('Les cuivres attaquent droit, puis le vibrato arrive sur les notes tenues.', 'Brass attacks straight, then vibrato comes in on held notes.'),
+            goals: [{ text: T('Un vibrato léger (4 à 15) qui arrive tard (retard 40 ou plus).', 'A light vibrato (4 to 15) that comes in late (delay 40 or more).'), check: p => p.lfo.pmd >= 4 && p.lfo.pmd <= 15 && p.lfo.delay >= 40 }] },
+        ],
+      },
+      {
+        id: 'z6',
+        title: T('Orgue rock', 'Rock organ'),
+        goal: T('Les tirettes, le clic de percussion, la cabine tournante.', 'Drawbars, the percussion click, the rotating speaker.'),
+        lab: ROCK, keep: 'Mon orgue rock',
+        steps: [
+          { type: 'synth', graph: true, views: ['spectrum'], controls: [C('op1.ol', T('16′', '16′')), C('op2.ol', T('8′', '8′')), C('op3.ol', T('4′', '4′')), C('op4.ol', T('2⅔′', '2⅔′')), C('op5.ol', T('2′', '2′'))], play: 'C3+G3+C4+E4w',
+            text: T('Cinq tirettes pour le corps, la sixième servira à la percussion.', 'Five drawbars for the body, the sixth will be the percussion.'),
+            goals: [{ text: T('Le son rock : 16′, 8′ et 4′ à fond.', 'The rock sound: 16′, 8′ and 4′ full.'), check: p => [0, 1, 2].every(i => p.ops[i].ol >= 90) }] },
+          { type: 'synth', views: ['scope'], controls: [C('op6.ol', T('Percussion', 'Percussion')), C('op6.r.1&op6.r.2', T('Durée de la percussion', 'Percussion length'), { invert: true })], play: 'C4q E4q G4q C5q',
+            prepare: p => { Object.assign(p.ops[5], { coarse: 3, r: [99, 70, 70, 72], l: [99, 0, 0, 0] }); },
+            text: T('La **percussion** : un « tic » très court sur la quinte (2⅔′) au début de chaque note. C’est elle qui fait claquer l’orgue rock.', 'The **percussion**: a very short “tick” on the fifth (2⅔′) at the start of each note. It is what makes the rock organ bite.'),
+            goals: [{ text: T('Percussion à 80 ou plus, très courte (35 ou moins).', 'Percussion at 80 or more, very short (35 or less).'), check: p => p.ops[5].ol >= 80 && 99 - p.ops[5].r[1] <= 35 }] },
+          { type: 'synth', views: ['scope'], fx: { chorus: { on: true, mix: 0 } }, controls: [C('lfo.speed', T('Vitesse de rotation', 'Rotation speed')), C('lfo.amd', T('Profondeur', 'Depth')), C('fx.chorus.mix', T('Chorus', 'Chorus'), { scale: 100, max: 100 })], play: 'C3+G3+C4+E4w',
+            prepare: p => { p.ops.forEach(o => (o.ams = 1)); },
+            text: T('La **cabine tournante** (un haut-parleur qui tourne) fait onduler le volume et le timbre. Un trémolo rapide et un peu de chorus l’imitent.', 'The **rotating speaker** makes the volume and tone swirl. A fast tremolo and a little chorus imitate it.'),
+            goals: [{ text: T('Rotation rapide (55 ou plus), profondeur 20 ou plus, chorus 40 ou plus.', 'Fast rotation (55 or more), depth 20 or more, chorus 40 or more.'), check: p => p.lfo.speed >= 55 && p.lfo.amd >= 20 && S_FX().chorus.mix >= 0.4 }] },
+        ],
+      },
+      {
+        id: 'z7',
+        title: T('Lead synthé', 'Synth lead'),
+        goal: T('Une scie épaisse et expressive pour jouer des solos.', 'A thick, expressive saw for playing solos.'),
+        lab: LEAD, keep: 'Mon lead',
+        steps: [
+          { type: 'synth', views: ['scope', 'spectrum'], controls: [MOD, FB], play: 'C4q E4q G4q C5q',
+            text: T('Le lead classique est une **dent de scie**. En FM : rapport 1, beaucoup de modulation, et du feedback.', 'The classic lead is a **sawtooth**. In FM: ratio 1, lots of modulation, and feedback.'),
+            goals: [{ text: T('Modulation 85 ou plus, feedback 5 ou plus : regarde l’onde prendre des dents.', 'Modulation 85 or more, feedback 5 or more: watch the wave grow teeth.'), check: p => p.ops[1].ol >= 85 && p.fb >= 5 }] },
+          { type: 'synth', views: ['scope'], controls: [C('op3.ol', T('Deuxième scie', 'Second saw')), C('op3.det', T('Désaccord', 'Detune'))], play: 'C4w',
+            prepare: p => { copyOp(p, 0, 2); copyOp(p, 1, 3); p.ops[2].ol = 0; },
+            text: T('Deux scies désaccordées : le son s’épaissit et bouge.', 'Two detuned saws: the sound thickens and moves.'),
+            goals: [{ text: T('Deuxième scie à 85 ou plus, désaccordée.', 'Second saw at 85 or more, detuned.'), check: p => p.ops[2].ol >= 85 && p.ops[2].det !== 7 }] },
+          { type: 'synth', views: ['spectrum'], controls: [C('lfo.pmd', T('Vibrato', 'Vibrato')), C('lfo.delay', T('Retard du vibrato', 'Vibrato delay')), C('fx.filter.pos', T('Filtre', 'Filter'), { scale: 100, bipolar: true, min: -100, max: 100 }), C('fx.filter.res', T('Résonance', 'Resonance'), { scale: 100, max: 100 })], play: 'C4q E4q G4w',
+            text: T('Pour chanter : un vibrato qui arrive sur les notes tenues, et un filtre qui adoucit les aigus.', 'To make it sing: a vibrato that comes in on held notes, and a filter to soften the highs.'),
+            goals: [{ text: T('Vibrato 4 à 20 avec un retard de 30 ou plus, filtre passe-bas (−20 ou moins).', 'Vibrato 4 to 20 with a delay of 30 or more, low-pass filter (−20 or lower).'), check: p => p.lfo.pmd >= 4 && p.lfo.pmd <= 20 && p.lfo.delay >= 30 && S_FX().filter.pos <= -0.2 }] },
         ],
       },
     ],
