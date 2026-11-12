@@ -1,12 +1,12 @@
 // The notes to show on the keys right now: from an exercise (with hints on) or
 // the song being learnt (these also light the LUMI), or, on the Play screen,
 // the next suggested chord when asked for (keys only).
-import { isPracticing, practiceGuide, onPracticeChange } from './practice.js?v=202611126';
-import { songGuide, onSongGuide } from './song.js?v=202611126';
-import { suggestGuide } from './suggest.js?v=202611126';
-import { coachGuide, onCoachGuide } from './coach.js?v=202611126';
-import { currentSong } from './song.js?v=202611126';
-import { S, on } from './store.js?v=202611126';
+import { isPracticing, practiceGuide, onPracticeChange } from './practice.js?v=202611127';
+import { songGuide, onSongGuide } from './song.js?v=202611127';
+import { suggestGuide } from './suggest.js?v=202611127';
+import { coachGuide, onCoachGuide } from './coach.js?v=202611127';
+import { currentSong } from './song.js?v=202611127';
+import { S, on } from './store.js?v=202611127';
 
 const listeners = new Set();
 export const onGuideChange = fn => listeners.add(fn);

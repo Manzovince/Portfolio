@@ -1,22 +1,22 @@
 // Play screen: the stage (rising notes over the oscilloscope, or the staff of
 // what is played), the chord readout, and the side panel for the sound.
-import { h, icon, knob, param, seg, toggle, toast } from './ui.js?v=202611126';
-import { S, save, emit } from './store.js?v=202611126';
-import * as E from './engine.js?v=202611126';
-import { subscribe, soundingNotes } from './notes.js?v=202611126';
-import { applyPart, seq, seqPlay, seqHasNotes, arpClear, allOff } from './perform.js?v=202611126';
-import { mountRoll, clearRoll, wake } from './roll.js?v=202611126';
-import { mountStaff, clearScore, hasScore, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi } from './score.js?v=202611126';
-import { detectChord, chordSymbol, scaleContext, intervalBetween, spellPc, pitchClass, SCALES } from './theory.js?v=202611126';
-import { t, chordQuality, inversionName, intervalName, scaleName, spelled, notation, noteLabel } from './i18n.js?v=202611126';
-import { createGraph } from './graph.js?v=202611126';
-import { soundName, soundMeta, stepVoice, loadVoice } from './create.js?v=202611126';
-import { PIANO_SOUNDS } from './engine.js?v=202611126';
-import { setSide, keyHint } from './keys.js?v=202611126';
-import { currentSong } from './song.js?v=202611126';
-import { isRecording, startRecording, stopRecording, recordingMs, takes, playTake, stopTake, playingTake, takeProgress, deleteTake, renameTake, exportTakeMidi, exportTakeAudio, audioExportSupported } from './recorder.js?v=202611126';
-import { suggestState, playSuggestion, SUGGEST_COLORS } from './suggest.js?v=202611126';
-import { on } from './store.js?v=202611126';
+import { h, icon, knob, param, seg, toggle, toast } from './ui.js?v=202611127';
+import { S, save, emit } from './store.js?v=202611127';
+import * as E from './engine.js?v=202611127';
+import { subscribe, soundingNotes } from './notes.js?v=202611127';
+import { applyPart, seq, seqPlay, seqHasNotes, arpClear, allOff } from './perform.js?v=202611127';
+import { mountRoll, clearRoll, wake } from './roll.js?v=202611127';
+import { mountStaff, clearScore, hasScore, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi } from './score.js?v=202611127';
+import { detectChord, chordSymbol, scaleContext, intervalBetween, spellPc, pitchClass, SCALES } from './theory.js?v=202611127';
+import { t, chordQuality, inversionName, intervalName, scaleName, spelled, notation, noteLabel } from './i18n.js?v=202611127';
+import { createGraph } from './graph.js?v=202611127';
+import { soundName, soundMeta, stepVoice, loadVoice } from './create.js?v=202611127';
+import { PIANO_SOUNDS } from './engine.js?v=202611127';
+import { setSide, keyHint } from './keys.js?v=202611127';
+import { currentSong } from './song.js?v=202611127';
+import { isRecording, startRecording, stopRecording, recordingMs, takes, playTake, stopTake, playingTake, takeProgress, deleteTake, renameTake, exportTakeMidi, exportTakeAudio, audioExportSupported } from './recorder.js?v=202611127';
+import { suggestState, playSuggestion, SUGGEST_COLORS } from './suggest.js?v=202611127';
+import { on } from './store.js?v=202611127';
 
 export function renderPlay(view, ctx) {
   setSide(null);
@@ -28,7 +28,7 @@ export function renderPlay(view, ctx) {
   const panelBtn = h('button', { type: 'button', class: 'icon-btn panel-btn' + (S.panel ? ' on' : ''), 'aria-label': t('soundPanel'), 'aria-pressed': S.panel, onclick: () => { S.panel = !S.panel; save(); ctx.rerender(); } }, icon('panel'));
   const recBtn = recButton(ctx);
   const takesBtn = h('button', { type: 'button', class: 'icon-btn', 'aria-label': t('takes'), title: t('takes'), onclick: () => ctx.openSheet(takesSheet) }, icon('takes'));
-  const sugBtn = h('button', { type: 'button', class: 'icon-btn' + (S.suggest.on ? ' on' : ''), 'aria-label': t('suggestions'), title: t('suggestions'), 'aria-pressed': S.suggest.on, onclick: () => { S.suggest.on = !S.suggest.on; save(); emit('suggest'); ctx.rerender(); } }, icon('bulb'));
+  const sugBtn = h('button', { type: 'button', class: 'icon-btn' + (S.suggest.on ? ' on' : ''), 'aria-label': t('suggestions'), title: t('suggestions'), 'aria-pressed': S.suggest.on, onclick: () => { S.suggest.on = !S.suggest.on; save(); emit('suggest'); ctx.rerender(); } }, icon('sparkle'));
   const tools = h('div', { class: 'stage-tools' }, recBtn, takesBtn, sugBtn, viewSeg, panelBtn);
 
   if (S.playView === 'staff') {
