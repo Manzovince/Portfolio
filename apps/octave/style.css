@@ -14,6 +14,7 @@
   --accent-ink: #062a20;
   --danger: #ff6b6b;
   --good: #6ff0c8;
+  --s0: #6ff0c8; --s1: #ffb35c; --s2: #b79cff;
   --r: 14px;
   --hit: 44px;
   --mono: ui-monospace, 'SF Mono', Menlo, monospace;
@@ -31,14 +32,14 @@
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     --bg: #f3f4f7; --panel: #ffffff; --panel2: #eceef3; --line: #dde0e7; --line2: #c6cad5;
-    --text: #15171d; --dim: #5b6070; --faint: #8d92a1; --a: #10a982; --b: #d97a12; --danger: #d93a3a; --good: #10a982;
+    --text: #15171d; --dim: #5b6070; --faint: #8d92a1; --a: #10a982; --b: #d97a12; --danger: #d93a3a; --good: #10a982; --s0: #10a982; --s1: #e08a1e; --s2: #7c5ce0;
     --key-w: #ffffff; --key-w-hi: #f6e8d3; --key-b: #2a2d36; --key-edge: #c6cad5; --glow: #e7f6f1;
     color-scheme: light;
   }
 }
 :root[data-theme="light"] {
   --bg: #f3f4f7; --panel: #ffffff; --panel2: #eceef3; --line: #dde0e7; --line2: #c6cad5;
-  --text: #15171d; --dim: #5b6070; --faint: #8d92a1; --a: #10a982; --b: #d97a12; --danger: #d93a3a; --good: #10a982;
+  --text: #15171d; --dim: #5b6070; --faint: #8d92a1; --a: #10a982; --b: #d97a12; --danger: #d93a3a; --good: #10a982; --s0: #10a982; --s1: #e08a1e; --s2: #7c5ce0;
   --key-w: #ffffff; --key-w-hi: #f6e8d3; --key-b: #2a2d36; --key-edge: #c6cad5; --glow: #e7f6f1;
   color-scheme: light;
 }
@@ -176,14 +177,28 @@ input.color { width: 52px; height: 36px; border: 1px solid var(--line); border-r
 .key small { position: absolute; bottom: 6px; left: 0; right: 0; text-align: center; font-size: 10px; color: #6b6f7c; font-family: var(--mono); pointer-events: none; }
 .key .dot { position: absolute; left: 50%; bottom: 10px; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: var(--accent); opacity: 0; pointer-events: none; }
 .key.b .dot { bottom: 6px; }
+/* suggestion marks: a row of small dots (a column on black keys), one per chord */
+.key .marks { position: absolute; left: 0; right: 0; bottom: 9px; display: flex; justify-content: center; gap: 2px; pointer-events: none; }
+.key .marks:empty { display: none; }
+.key .marks i { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--key-edge); flex: none; }
+.key.w:has(small) .marks { bottom: 19px; }
+.key.b .marks { flex-direction: column-reverse; align-items: center; bottom: 6px; }
+.key.b .marks i { width: 7px; height: 7px; }
+.dock.mini .marks { display: none; }
+.sug { position: relative; }
+.sug-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; }
 .key.w:has(small) .dot { bottom: 19px; }
 .key.soft .dot { opacity: 1; width: 8px; height: 8px; margin-left: -4px; }
 .key.w.soft .dot { background: #0a7a5c; }
 .key.b.soft .dot { background: #6ff0c8; }
-.key.guide { box-shadow: inset 0 -5px 0 var(--c), inset 0 0 0 2px color-mix(in srgb, var(--c) 70%, transparent); }
-.key.guide .dot { opacity: 1; background: var(--c); width: 11px; height: 11px; margin-left: -5.5px; animation: beat 1s ease-in-out infinite; }
-.key.w.guide:not(.on) { background: color-mix(in srgb, var(--c) 18%, var(--key-w)); }
-.key.b.guide:not(.on) { background: color-mix(in srgb, var(--c) 40%, var(--key-b)); }
+/* a key to play: filled from the bottom in its colour, fading towards the top
+   (a pressed key is filled all over), a thick edge and a pulsing dot */
+.key.guide { box-shadow: inset 0 -9px 0 var(--c), inset 0 0 0 3px var(--c); }
+.key.guide .dot { opacity: 1; background: #fff; width: 14px; height: 14px; margin-left: -7px; box-shadow: 0 0 0 3px var(--c); animation: beat 1s ease-in-out infinite; }
+.key.w.guide:not(.on) { background: linear-gradient(to top, color-mix(in srgb, var(--c) 85%, var(--key-w)) 0%, color-mix(in srgb, var(--c) 55%, var(--key-w)) 45%, color-mix(in srgb, var(--c) 22%, var(--key-w)) 100%); }
+.key.b.guide:not(.on) { background: linear-gradient(to top, var(--c) 0%, color-mix(in srgb, var(--c) 70%, var(--key-b)) 50%, color-mix(in srgb, var(--c) 35%, var(--key-b)) 100%); }
+.dock.mini .key.guide { box-shadow: none; }
+.key.w.guide:has(small) .dot { bottom: 26px; }
 @keyframes beat { 50% { transform: scale(1.35); } }
 .dock.mini { height: calc(34px + var(--kb-sb)); padding-top: 3px; cursor: pointer; }
 .dock.mini .oct-col > .oct:not(.fold), .dock.mini > .oct { display: none; }
@@ -730,6 +745,20 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
 .understand-btn { flex: none; }
 .loop-chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 16px; background: color-mix(in srgb, var(--accent) 18%, var(--panel2)); color: var(--accent); font-size: 12px; font-weight: 600; flex: none; }
 .loop-chip .ic svg { width: 14px; height: 14px; }
+.icon-btn.loop-btn.on { color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, var(--panel2)); }
+/* timeline: playhead + loop bounds */
+.timeline { position: relative; flex: 1; min-width: 160px; height: 44px; touch-action: none; cursor: pointer; outline-offset: 4px; }
+.tl-track { position: absolute; left: 0; right: 0; top: 18px; height: 8px; border-radius: 4px; background: var(--panel2); box-shadow: inset 0 0 0 1px var(--line2); }
+.tl-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--accent); }
+.tl-head { position: absolute; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--bg); z-index: 2; }
+.tl-range { position: absolute; top: -7px; bottom: -7px; display: none; border-radius: 6px; background: color-mix(in srgb, var(--accent) 22%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 70%, transparent); }
+.timeline.looping .tl-range { display: block; }
+.timeline.looping .tl-fill { opacity: .55; }
+.tl-bound { position: absolute; top: 0; bottom: 0; width: 26px; margin-left: -13px; display: none; z-index: 3; cursor: ew-resize; }
+.timeline.looping .tl-bound { display: block; }
+.tl-bound::before { content: ''; position: absolute; left: 50%; top: 5px; bottom: 13px; width: 6px; margin-left: -3px; border-radius: 3px; background: var(--text); box-shadow: 0 0 0 2px var(--bg); }
+.tl-bound small { position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); line-height: 12px; font-family: var(--mono); font-size: 11px; color: var(--accent); background: var(--bg); padding: 0 3px; border-radius: 4px; white-space: nowrap; }
+.tl-bound:focus-visible { outline: 2px solid var(--accent); }
 .sheet-cols .u-wide { grid-column: 1 / -1; }
 .u-big { font-size: 26px; font-weight: 750; }
 .u-row { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }

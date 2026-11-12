@@ -1,25 +1,25 @@
 // Learn screen: Songs (library, then the song falling onto the keys with its
 // staff above, waiting for the player's hand) and Exercises (chords, scales).
-import { h, icon, seg, toggle, toast } from './ui.js?v=202611124';
-import { S, save } from './store.js?v=202611124';
-import { t, chordQuality, scaleName, spelled, notation } from './i18n.js?v=202611124';
-import { chordSymbol } from './theory.js?v=202611124';
-import { importedSongs, addSong, songFile, removeSong, onLibraryChange } from './library.js?v=202611124';
-import { currentSong, openSongFile, closeSong, playSong, pauseSong, isSongPlaying, seekSong, songPosition, setSongPart, setSongSpeed, songPart, onSongChange, onSongPosition, isWaitingForPlayer } from './song.js?v=202611124';
-import { mountFall } from './fall.js?v=202611124';
-import { mountStaff, drawSingleNote } from './score.js?v=202611124';
-import { setOverride, setSide } from './keys.js?v=202611124';
-import { LEVELS, setPracticing, practiceState, onPracticeChange, skip, nextTarget, refreshPractice, readingRange } from './practice.js?v=202611124';
-import { soundingNotes } from './notes.js?v=202611124';
-import { pitchClass, defaultSpelling, spelledOctave } from './theory.js?v=202611124';
-import { fullScoreSheet } from './play.js?v=202611124';
-import { renderCoach } from './lesson.js?v=202611124';
-import { understandSheet } from './understand.js?v=202611124';
-import { songLoop, setSongLoop, onSongLoop } from './song.js?v=202611124';
-import { COURSE_PIECES, pieceNotes, pitch } from './coach.js?v=202611124';
+import { h, icon, seg, toggle, toast } from './ui.js?v=202611125';
+import { S, save } from './store.js?v=202611125';
+import { t, chordQuality, scaleName, spelled, notation } from './i18n.js?v=202611125';
+import { chordSymbol } from './theory.js?v=202611125';
+import { importedSongs, addSong, songFile, removeSong, onLibraryChange } from './library.js?v=202611125';
+import { currentSong, openSongFile, closeSong, playSong, pauseSong, isSongPlaying, seekSong, songPosition, setSongPart, setSongSpeed, songPart, onSongChange, onSongPosition, isWaitingForPlayer } from './song.js?v=202611125';
+import { mountFall } from './fall.js?v=202611125';
+import { mountStaff, drawSingleNote } from './score.js?v=202611125';
+import { setOverride, setSide } from './keys.js?v=202611125';
+import { LEVELS, setPracticing, practiceState, onPracticeChange, skip, nextTarget, refreshPractice, readingRange } from './practice.js?v=202611125';
+import { soundingNotes } from './notes.js?v=202611125';
+import { pitchClass, defaultSpelling, spelledOctave } from './theory.js?v=202611125';
+import { fullScoreSheet } from './play.js?v=202611125';
+import { renderCoach } from './lesson.js?v=202611125';
+import { understandSheet } from './understand.js?v=202611125';
+import { songLoop, setSongLoop, onSongLoop } from './song.js?v=202611125';
+import { COURSE_PIECES, pieceNotes, pitch } from './coach.js?v=202611125';
 // course titles carry note names as [G]: written in the player's notation
 const pieceTitle = p => (p.title[S.lang] ?? p.title.en).replace(/\[([A-G][#b]?)\]/g, (_, n) => spelled(pitch(n + '4').spelling));
-import { openSongData } from './song.js?v=202611124';
+import { openSongData } from './song.js?v=202611125';
 
 export function renderLearn(view, ctx) {
   const nav = seg({ cls: 'subnav', options: [['coach', t('tabCoach')], ['songs', t('tabSongs')], ['drills', t('tabDrills')]], get: () => S.learnTab, set: v => { S.learnTab = v; save(); ctx.rerender(); } });
@@ -115,17 +115,20 @@ function renderPlayer(view, ctx, bar) {
     loopChip.hidden = !l;
     if (l) loopChip.replaceChildren(icon('restart'), h('span', {}, t('uLoopChip', { label: l.label, from: l.from, to: l.to })), icon('close'));
   };
-  const unLoop = onSongLoop(paintLoop);
+  // the timeline: playhead, and two loop bounds that appear with the loop button
+  const line = timeline(song);
+  const loopBtn = h('button', { type: 'button', class: 'icon-btn loop-btn', 'aria-label': t('loopPick'), title: t('loopPick'),
+    onclick: () => (songLoop() ? setSongLoop(null) : line.loopAll()) }, icon('loop'));
+  const unLoop = onSongLoop(() => { paintLoop(); line.paint(); loopBtn.classList.toggle('on', !!songLoop()); loopBtn.setAttribute('aria-pressed', !!songLoop()); });
   ctx.onLeave(unLoop);
   bar.append(h('div', { class: 'spacer' }), close);
 
-  const seek = h('input', { type: 'range', class: 'seek', min: 0, max: Math.round(song.durationMs), step: 10, value: 0, 'aria-label': t('position'), oninput: e => seekSong(+e.target.value) });
   const time = h('span', { class: 'time' });
   const wait = h('span', { class: 'wait-badge' }, t('waiting'));
   const controls = h('div', { class: 'song-bar' },
     h('div', { class: 'song-main' }, playBtn, restart, title, understand, staffTog, full),
     h('div', { class: 'song-opts' }, h('span', { class: 'lab' }, t('youPlay')), parts, h('span', { class: 'lab' }, t('speedL')), speed),
-    h('div', { class: 'song-seek' }, loopChip, seek, time, wait));
+    h('div', { class: 'song-seek' }, loopChip, loopBtn, line.el, time, wait));
 
   const stage = h('section', { class: 'stage learn-stage' });
   const canvas = h('canvas', { class: 'roll' });
@@ -147,12 +150,95 @@ function renderPlayer(view, ctx, bar) {
   };
   const pos = () => {
     const p = songPosition();
-    if (document.activeElement !== seek) seek.value = Math.round(p);
+    line.paint();
     time.textContent = fmtTime(p) + ' / ' + fmtTime(song.durationMs);
   };
   onSongChange(() => { if (playBtn.isConnected) sync(); });
-  onSongPosition(() => { if (seek.isConnected) pos(); });
-  sync(); pos(); paintLoop();
+  onSongPosition(() => { if (line.el.isConnected) pos(); });
+  sync(); pos(); paintLoop(); loopBtn.classList.toggle('on', !!songLoop());
+}
+
+// ── timeline: the playhead to seek, and the loop's two bounds ──
+// Bounds appear while a loop is on (the loop button starts one over the whole
+// song); dragging one moves it bar by bar, the loop follows on release.
+function timeline(song) {
+  const [num, den] = song.timeSignature;
+  const barQ = num * 4 / den;
+  const barMs = b => Math.min(song.durationMs, song.beatToMs(b * barQ));
+  let bars = 1;
+  while (song.beatToMs(bars * barQ) < song.durationMs - 1 && bars < 999) bars++;
+  const fill = h('i', { class: 'tl-fill' });
+  const range = h('i', { class: 'tl-range' });
+  const head = h('i', { class: 'tl-head' });
+  const lo = h('span', { class: 'tl-bound lo', role: 'slider', tabindex: 0, 'aria-label': t('loopStart') }, h('small'));
+  const hi = h('span', { class: 'tl-bound hi', role: 'slider', tabindex: 0, 'aria-label': t('loopEnd') }, h('small'));
+  const track = h('div', { class: 'tl-track' }, range, fill, head);
+  const el = h('div', { class: 'timeline', role: 'slider', tabindex: 0, 'aria-label': t('position') }, track, lo, hi);
+  let drag = null; // { what: 'head' | 'lo' | 'hi', a, b } (bars while dragging bounds)
+  const frac = ms => Math.max(0, Math.min(1, ms / song.durationMs));
+  const xToMs = x => { const r = track.getBoundingClientRect(); return Math.max(0, Math.min(1, (x - r.left) / r.width)) * song.durationMs; };
+  const barAt = ms => { let b = 0; while (b < bars && barMs(b + 1) <= ms + 1) b++; return b; };
+  const nearestBar = ms => { let best = 0; for (let b = 0; b <= bars; b++) if (Math.abs(barMs(b) - ms) < Math.abs(barMs(best) - ms)) best = b; return best; };
+  const bounds = () => { const l = songLoop(); return drag && drag.what !== 'head' ? { a: drag.a, b: drag.b } : l ? { a: nearestBar(l.startMs), b: nearestBar(l.endMs) } : null; };
+  function setLoop(a, b, seek) {
+    setSongLoop({ startMs: barMs(a), endMs: barMs(b), label: t('loopLabel'), from: a + 1, to: b }, { seek });
+  }
+  function paint() {
+    const p = drag?.what === 'head' ? drag.ms : songPosition();
+    const pct = frac(p) * 100;
+    fill.style.width = pct + '%';
+    head.style.left = pct + '%';
+    const bd = bounds();
+    el.classList.toggle('looping', !!bd);
+    if (bd) {
+      const x0 = frac(barMs(bd.a)) * 100, x1 = frac(barMs(bd.b)) * 100;
+      range.style.left = x0 + '%'; range.style.width = (x1 - x0) + '%';
+      lo.style.left = x0 + '%'; hi.style.left = x1 + '%';
+      lo.firstChild.textContent = String(bd.a + 1);
+      hi.firstChild.textContent = String(bd.b);
+      lo.setAttribute('aria-valuenow', bd.a + 1); hi.setAttribute('aria-valuenow', bd.b);
+    }
+    el.setAttribute('aria-valuenow', Math.round(p / 1000));
+  }
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    try { el.setPointerCapture(e.pointerId); } catch {}
+    const bd = bounds();
+    const which = e.target.closest('.tl-bound');
+    if (bd && which) drag = { what: which === lo ? 'lo' : 'hi', a: bd.a, b: bd.b };
+    else { drag = { what: 'head', ms: xToMs(e.clientX) }; }
+    move(e);
+  });
+  function move(e) {
+    if (!drag) return;
+    const ms = xToMs(e.clientX);
+    if (drag.what === 'head') { drag.ms = ms; paint(); return; }
+    const b = nearestBar(ms);
+    if (drag.what === 'lo') drag.a = Math.max(0, Math.min(b, drag.b - 1));
+    else drag.b = Math.min(bars, Math.max(b, drag.a + 1));
+    paint();
+  }
+  el.addEventListener('pointermove', move);
+  const end = () => {
+    if (!drag) return;
+    const d = drag; drag = null;
+    if (d.what === 'head') seekSong(d.ms);
+    else setLoop(d.a, d.b, d.what === 'lo');
+    paint();
+  };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+  // keyboard: arrows seek by 2 s; on a bound, by one bar
+  el.addEventListener('keydown', e => {
+    const d = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -1 : 0;
+    if (!d) return;
+    e.preventDefault();
+    const bd = bounds();
+    if (bd && document.activeElement === lo) setLoop(Math.max(0, Math.min(bd.a + d, bd.b - 1)), bd.b, true);
+    else if (bd && document.activeElement === hi) setLoop(bd.a, Math.min(bars, Math.max(bd.b + d, bd.a + 1)), false);
+    else seekSong(songPosition() + d * 2000);
+  });
+  return { el, paint, loopAll: () => setLoop(0, bars, false) };
 }
 
 // ── exercises ──────────────────────────────────────────────────

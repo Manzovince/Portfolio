@@ -177,6 +177,7 @@ export function icon(name) {
     close: '<path d="M6 6l12 12M18 6 6 18" fill="none"/>',
     back: '<path d="M14 6l-6 6 6 6" fill="none"/>',
     fold: '<path d="M6 9l6 6 6-6" fill="none"/>',
+    loop: '<path d="M17 3l3 3-3 3M20 6H8a4 4 0 0 0-4 4v1M7 21l-3-3 3-3M4 18h12a4 4 0 0 0 4-4v-1" fill="none"/>',
     unfold: '<path d="M6 15l6-6 6 6" fill="none"/>',
     restart: '<path d="M5 12a7 7 0 1 0 2-5" fill="none"/><path d="M5 4v4h4" fill="none"/>',
     pause: '<rect x="6.5" y="5" width="3.5" height="14" rx="1"/><rect x="14" y="5" width="3.5" height="14" rx="1"/>',

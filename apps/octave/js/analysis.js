@@ -1,14 +1,14 @@
 // Song analysis for Learn › Songs › Understand: key and scale, note values and
 // rhythm patterns, melody shape, hand positions, sections (with repeats) and
 // the harmony of each bar. Pure computation on the song from song.js.
-import { pitchClass, scaleNotes, buildChord } from './theory.js?v=202611124';
+import { pitchClass, scaleNotes, buildChord } from './theory.js?v=202611125';
 
 // ── key ────────────────────────────────────────────────────────
 // Krumhansl-Kessler key profiles
-const MAJOR = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
-const MINOR = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+export const MAJOR = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
+export const MINOR = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
 
-function correlate(hist, profile, root) {
+export function correlate(hist, profile, root) {
   const n = 12;
   const x = hist, y = i => profile[(i - root + 12) % 12];
   const mx = x.reduce((a, b) => a + b, 0) / n;

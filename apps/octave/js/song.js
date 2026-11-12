@@ -8,7 +8,7 @@
 // other. The song then waits on each chord of their part until its notes are
 // played, and marks them on the keys (and the LED strip) in the meantime.
 
-import { subscribe, press, liftSource, setPedal } from "./notes.js?v=202611124";
+import { subscribe, press, liftSource, setPedal } from "./notes.js?v=202611125";
 
 const SOURCE = "song";
 const TICK_MS = 10;          // playback clock
@@ -57,9 +57,10 @@ export const setSongFollow = v => { follow = v; resetExpected(); notifyChange();
 export const songFollows = () => follow;
 export const songLoop = () => loop;
 export const onSongLoop = fn => { loopListeners.add(fn); return () => loopListeners.delete(fn); };
-export function setSongLoop(next) {
+// seek: jump to the loop's start (default), or only if the playhead is outside it
+export function setSongLoop(next, { seek = true } = {}) {
     loop = next;
-    if (song && loop) seekSong(loop.startMs);
+    if (song && loop && (seek || positionMs < loop.startMs || positionMs >= loop.endMs)) seekSong(loop.startMs);
     loopListeners.forEach(fn => fn(loop));
 }
 // Where song time 0 sits on the performance.now() clock right now (no waiting)

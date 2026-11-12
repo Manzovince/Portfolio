@@ -3,13 +3,13 @@
 // key is struck), sized from the screen and the key-size setting. "mini": a
 // thin strip of all 88 keys that only shows what sounds, for MIDI players.
 // It also gives the roll and the waterfall their columns (geometry()).
-import { h, icon } from './ui.js?v=202611124';
-import { S, save, on, emit } from './store.js?v=202611124';
-import { press, lift, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from './notes.js?v=202611124';
-import { partOf } from './perform.js?v=202611124';
-import { noteColor } from './colors.js?v=202611124';
-import { noteLabel, t } from './i18n.js?v=202611124';
-import { pitchClass, scaleNotes } from './theory.js?v=202611124';
+import { h, icon } from './ui.js?v=202611125';
+import { S, save, on, emit } from './store.js?v=202611125';
+import { press, lift, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from './notes.js?v=202611125';
+import { partOf } from './perform.js?v=202611125';
+import { noteColor } from './colors.js?v=202611125';
+import { noteLabel, t } from './i18n.js?v=202611125';
+import { pitchClass, scaleNotes } from './theory.js?v=202611125';
 
 const BLACK = new Set([1, 3, 6, 8, 10]);
 const isBlack = m => BLACK.has(((m % 12) + 12) % 12);
@@ -19,7 +19,7 @@ const HEIGHT = { s: 92, m: 132, l: 178 };
 let wrap, bed, down, up, fold, range = { lo: 48, hi: 72 };
 let override = null;        // { lo, hi } forced by a screen (song range)
 let lumiRange = () => null; // set by lumi.js
-let guide = () => null;     // { strong: Set<pc>, soft: Set<pc>, midis: Set<midi>, hands: Map<midi,0|1> }
+let guide = () => null;     // { strong: Set<pc>, soft: Set<pc>, midis: Set<midi>, hands: Map<midi,0|1>, marks: [{ pcs: Set<pc>, color }] }
 let sideOf = midi => partOf(midi);
 const keyEls = new Map();
 const layoutCbs = new Set();
@@ -78,7 +78,7 @@ export function build() {
       if (labels === 'all' || (labels === 'c' && m % 12 === 0)) k.append(h('small', {}, noteLabel(m, m % 12 === 0)));
       whites.push(k);
     }
-    k.append(h('i', { class: 'dot' }));
+    k.append(h('i', { class: 'dot' }), h('span', { class: 'marks' }));
     keyEls.set(m, k);
   }
   bed.append(...whites, ...blacks);
@@ -122,6 +122,10 @@ export function paint() {
       const side = g?.hands?.get(m) ?? sideOf(m);
       if (info || strong) k.style.setProperty('--c', noteColor(m, side));
       else k.style.removeProperty('--c');
+      // several chords at once (suggestions): one coloured dot per chord the key belongs to
+      const colors = g?.marks ? g.marks.filter(x => x.pcs.has(pc)).map(x => x.color) : [];
+      const box = k.lastChild;
+      if (box.dataset.c !== colors.join()) { box.dataset.c = colors.join(); box.replaceChildren(...colors.map(c => h('i', { style: `background:${c}` }))); }
     }
   });
 }
