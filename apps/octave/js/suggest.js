@@ -1,9 +1,10 @@
 // Chord suggestions: the chords of the key (from the chosen scale, or guessed
 // from what is played), the one being played, and the usual next moves.
-import { subscribe, soundingNotes, press, liftSource } from './notes.js?v=202611127';
-import { S, emit } from './store.js?v=202611127';
-import { detectChord, buildChord, scaleNotes } from './theory.js?v=202611127';
-import { MAJOR, MINOR, correlate } from './analysis.js?v=202611127';
+import { subscribe, soundingNotes, press, liftSource } from './notes.js?v=202611128';
+import { S, emit } from './store.js?v=202611128';
+import { detectChord, buildChord, scaleNotes } from './theory.js?v=202611128';
+import { MAJOR, MINOR, correlate } from './analysis.js?v=202611128';
+import { bassChord, setBassTarget } from './bass.js?v=202611128';
 
 const QUALITY = {
   maj: 'maj', dom7: 'maj', maj7: 'maj', six: 'maj', add9: 'maj', dom9: 'maj', maj9: 'maj', sixnine: 'maj', sus4: 'maj', sus2: 'maj', sus4_7: 'maj', dom13: 'maj', dom11: 'maj', power: 'maj',
@@ -106,7 +107,12 @@ export function suggestGuide() {
   return marks.length ? { marks } : null;
 }
 
+// the bass heads for the first suggestion
+setBassTarget(() => { const s = suggestState(); return s.chords[s.next[0]]?.pc ?? null; });
+
 subscribe(e => {
+  // all the player's keys up: the accompaniment bass lets go too
+  if (e.type === 'off') { if (FROM_PLAYER(e) && !soundingNotes().length) bassChord(null); return; }
   if (e.type !== 'on') return;
   if (String(e.source).startsWith('song')) return;
   const notes = soundingNotes();
@@ -123,6 +129,7 @@ subscribe(e => {
   if (!q) return;
   const pc = (found.root.letter != null) ? [0, 2, 4, 5, 7, 9, 11][found.root.letter] + found.root.acc : 0;
   const rootPc = ((pc % 12) + 12) % 12;
+  if (FROM_PLAYER(e)) bassChord({ root: rootPc, third: (rootPc + (q === 'min' || q === 'dim' ? 3 : 4)) % 12 });
   // the chord's root counts a little more in the key guess
   if (FROM_PLAYER(e) && !S.scale.type) { hist[rootPc] += 0.5; keyMoved = reconsider() || keyMoved; }
   const chords = diatonic();

@@ -546,6 +546,10 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
 .sug.next { color: var(--text); border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); border-style: dashed; }
 .sug.next.r0 { border-style: solid; box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent); }
 .sug:active { transform: scale(.96); }
+.suggest-bass { display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; font-size: 13px; }
+.suggest-bass .lab { color: var(--dim); }
+.suggest-bass .seg button { min-height: 32px; padding: 0 10px; font-size: 12px; }
+.suggest-bass .param { height: 34px; width: 130px; flex: none; }
 .stage:has(.suggest) .stage-hint { top: 38%; }
 
 .metro-btn { height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; border-radius: 12px; color: var(--dim); }
@@ -574,8 +578,8 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
   .readout { top: 64px; max-width: calc(100% - 24px); }
   .rec-btn span { display: none; } .rec-btn { padding: 0 14px; }
 }
-.stage:has(.suggest) canvas.roll { height: calc(100% - 100px); }
-@media (max-width: 760px) { .stage:has(.suggest) canvas.roll { height: calc(100% - 90px); } }
+.stage:has(.suggest) canvas.roll { height: calc(100% - 144px); }
+@media (max-width: 760px) { .stage:has(.suggest) canvas.roll { height: calc(100% - 134px); } }
 .sheet-box > .hint, .card > .hint { flex: none; }
 .icon-btn.danger { color: var(--danger); }
 .icon-btn.danger:hover { background: color-mix(in srgb, var(--danger) 14%, transparent); }

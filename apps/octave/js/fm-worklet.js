@@ -124,7 +124,7 @@ class PhaseProcessor extends AudioWorkletProcessor {
     this.algs = opts.processorOptions.algorithms;
     this.voices = Array.from({ length: 24 }, () => new Voice());
     this.poly = 16;
-    this.parts = [new Part(), new Part()];
+    this.parts = [new Part(), new Part(), new Part()]; // A, B, and the accompaniment bass
     this.queue = [];
     this.sustain = false;
     this.bend = 0;
@@ -354,7 +354,7 @@ class PhaseProcessor extends AudioWorkletProcessor {
     this.meterCount += n;
     if (this.meterCount >= 1536) {
       this.meterCount = 0;
-      let busy = [0, 0];
+      let busy = [0, 0, 0];
       for (const v of this.voices) if (v.active) busy[v.part]++;
       this.port.postMessage({ type: 'meter', a: Array.from(this.parts[0].meter), b: Array.from(this.parts[1].meter), voices: busy });
     }

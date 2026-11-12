@@ -3,9 +3,9 @@
 //   piano sampler, one tone stage per part  ──┴→ input → DJ filter → chorus
 //   → delay + reverb sends → compressor → master
 // Each of the two parts (A, B) is either the sampled piano or an FM patch.
-import { ALGORITHMS } from './algorithms.js?v=202611127';
+import { ALGORITHMS } from './algorithms.js?v=202611128';
 
-const V = '?v=202611127';
+const V = '?v=202611128';
 const SAMPLE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 // The sampled piano in a few colours: shelf (dB above 2.5 kHz), lowpass (Hz), damper (s)
@@ -31,7 +31,8 @@ const post = m => {
 };
 
 // ── parts ──────────────────────────────────────────────────────
-const parts = [0, 1].map(() => ({ kind: 'piano', piano: PIANO_SOUNDS[0], volume: 0.85, macros: { bright: 0, attack: 0, release: 0, vibrato: 0 }, bus: null, shelf: null, lp: null }));
+// parts 0 and 1 are A and B; part 2 is the accompaniment bass (chord suggestions)
+const parts = [0, 1, 2].map(() => ({ kind: 'piano', piano: PIANO_SOUNDS[0], volume: 0.85, macros: { bright: 0, attack: 0, release: 0, vibrato: 0 }, bus: null, shelf: null, lp: null }));
 
 export async function startAudio() {
   if (ctx) { if (ctx.state !== 'running') await ctx.resume(); return ctx; }
