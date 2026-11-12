@@ -22,7 +22,6 @@ const isDir = (p) => stat(join(ROOT, p)).then((s) => s.isDirectory(), () => fals
 // Returns { redirect } or { file } (repo-relative path) or null for a 404.
 async function route(path) {
   let m;
-  if ((m = path.match(/^\/dictee(\/.*)?$/))) return { redirect: '/salve/' };
   if ((m = path.match(/^\/recif-hexagonal(\/.*)?$/))) return { redirect: '/recif/' };
   if ((m = path.match(/^\/web-piano(\/.*)?$/))) return { redirect: '/octave/' };
   if ((m = path.match(/^\/+(?:pages|apps|lab)\/(.*)$/))) return { redirect: '/' + m[1] };

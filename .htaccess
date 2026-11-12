@@ -14,7 +14,6 @@ RewriteEngine On
 RewriteBase /
 
 # Renamed projects
-RewriteRule ^dictee(/.*)?$ /salve/ [R=301,L]
 RewriteRule ^recif-hexagonal(/.*)?$ /recif/ [R=301,L]
 RewriteRule ^ponton(/.*)?$ /pechemelba/ [R=301,L]
 RewriteRule ^web-piano(/.*)?$ /octave/ [R=301,L]
