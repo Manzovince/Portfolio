@@ -28,6 +28,7 @@ function scaleLevel(note, op) {
 }
 const scaleRate = (note, s) => (s * Math.min(31, Math.max(0, ((note / 3) | 0) - 7))) >> 3;
 const scaleVel = (vel, s) => ((s * (VEL_DATA[vel >> 1] - 239) + 7) >> 3) << 4;
+const GLIDE = 24000; // units per second: ≈ 30 dB in 50 ms, quick but click-free
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
 class Env {
@@ -51,6 +52,19 @@ class Env {
       // units per second (calibrated at 44.1 kHz like the reference code)
       this.inc = ((4 + (q & 3)) * Math.pow(2, 2 + (q >> 2)) / 65536) * 44100;
     }
+  }
+  // The patch changed under a sounding note: new rates and levels, from where
+  // the envelope is now. A held note glides quickly to its new sustain level.
+  retarget(rates, levels, ol, rs) {
+    this.r = rates; this.l = levels; this.ol = ol; this.rs = rs;
+    if (this.stage >= 4) return;
+    if (this.stage === 3 && this.down) {
+      const t = this.target(levels[2]);
+      if (Math.abs(t - this.level) < 2) return;
+      this.stage = 2; this.tgt = t; this.rising = t > this.level; this.inc = GLIDE;
+      return;
+    }
+    this.advance(this.stage);
   }
   keyUp() { if (this.down) { this.down = false; this.advance(3); } }
   step(dt) {
@@ -151,7 +165,27 @@ class PhaseProcessor extends AudioWorkletProcessor {
   }
 
   refreshStatic(pi) {
-    for (const v of this.voices) if (v.active && v.part === pi) this.computeStatic(v);
+    for (const v of this.voices) if (v.active && v.part === pi) { this.computeStatic(v); this.retune(v); }
+  }
+
+  // Levels, envelopes, velocity and key scaling of a sounding voice, from the
+  // current patch (they are otherwise fixed at note-on)
+  levelsOf(v, op) {
+    const mac = this.parts[v.part].macros;
+    let ol = scaleOL(op.ol) + scaleLevel(v.note, op);
+    ol = Math.min(127, ol) << 5;
+    ol = Math.max(0, ol + scaleVel(v.vel, op.vel));
+    const r = op.r.slice();
+    r[0] = clamp(Math.round(r[0] - mac.attack * 45), 0, 99);
+    r[3] = clamp(Math.round(r[3] - mac.release * 45), 0, 99);
+    return { ol, r, rs: scaleRate(v.note, op.rs) };
+  }
+  retune(v) {
+    const p = this.parts[v.part].patch;
+    for (let i = 0; i < 6; i++) {
+      const { ol, r, rs } = this.levelsOf(v, p.ops[i]);
+      v.env[i].retarget(r, p.ops[i].l, ol, rs);
+    }
   }
 
   computeStatic(v) {
@@ -183,17 +217,11 @@ class PhaseProcessor extends AudioWorkletProcessor {
     const fresh = !v.active || v.part !== pi;
     v.active = true; v.down = true; v.sustained = false;
     v.part = pi; v.note = note; v.src = src; v.vel = vel; v.age = 0; v.time = 0;
-    const mac = part.macros;
     for (let i = 0; i < 6; i++) {
       const op = p.ops[i];
-      let ol = scaleOL(op.ol) + scaleLevel(note, op);
-      ol = Math.min(127, ol) << 5;
-      ol = Math.max(0, ol + scaleVel(vel, op.vel));
-      const r = op.r.slice();
-      r[0] = clamp(Math.round(r[0] - mac.attack * 45), 0, 99);
-      r[3] = clamp(Math.round(r[3] - mac.release * 45), 0, 99);
+      const { ol, r, rs } = this.levelsOf(v, op);
       if (fresh) v.env[i].level = 0;
-      v.env[i].init(r, op.l, ol, scaleRate(note, op.rs));
+      v.env[i].init(r, op.l, ol, rs);
       if (fresh || p.oks) v.ph[i] = p.oks ? 0 : Math.random() * TWO_PI;
       if (fresh) { v.y[i] = 0; v.gain[i] = 0; }
     }

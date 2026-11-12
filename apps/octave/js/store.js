@@ -1,7 +1,7 @@
 // App state, persisted in localStorage (every access wrapped: private mode can throw).
 // One object, S, read and written everywhere; `emit` tells the views what moved.
-import { FACTORY } from './presets.js?v=202611122';
-import { clonePatch } from './dx7.js?v=202611122';
+import { FACTORY } from './presets.js?v=202611123';
+import { clonePatch } from './dx7.js?v=202611123';
 
 const KEY = 'octave.state.v1';
 const BANKS = 'octave.banks.v1';
