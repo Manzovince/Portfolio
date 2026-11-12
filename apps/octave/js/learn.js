@@ -1,25 +1,25 @@
 // Learn screen: Songs (library, then the song falling onto the keys with its
 // staff above, waiting for the player's hand) and Exercises (chords, scales).
-import { h, icon, seg, toggle, toast } from './ui.js?v=202611128';
-import { S, save } from './store.js?v=202611128';
-import { t, chordQuality, scaleName, spelled, notation } from './i18n.js?v=202611128';
-import { chordSymbol } from './theory.js?v=202611128';
-import { importedSongs, addSong, songFile, removeSong, onLibraryChange } from './library.js?v=202611128';
-import { currentSong, openSongFile, closeSong, playSong, pauseSong, isSongPlaying, seekSong, songPosition, setSongPart, setSongSpeed, songPart, onSongChange, onSongPosition, isWaitingForPlayer } from './song.js?v=202611128';
-import { mountFall } from './fall.js?v=202611128';
-import { mountStaff, drawSingleNote } from './score.js?v=202611128';
-import { setOverride, setSide } from './keys.js?v=202611128';
-import { LEVELS, setPracticing, practiceState, onPracticeChange, skip, nextTarget, refreshPractice, readingRange } from './practice.js?v=202611128';
-import { soundingNotes } from './notes.js?v=202611128';
-import { pitchClass, defaultSpelling, spelledOctave } from './theory.js?v=202611128';
-import { fullScoreSheet } from './play.js?v=202611128';
-import { renderCoach } from './lesson.js?v=202611128';
-import { understandSheet } from './understand.js?v=202611128';
-import { songLoop, setSongLoop, onSongLoop } from './song.js?v=202611128';
-import { COURSE_PIECES, pieceNotes, pitch } from './coach.js?v=202611128';
+import { h, icon, seg, toggle, toast } from './ui.js?v=202611129';
+import { S, save } from './store.js?v=202611129';
+import { t, chordQuality, scaleName, spelled, notation } from './i18n.js?v=202611129';
+import { chordSymbol } from './theory.js?v=202611129';
+import { importedSongs, addSong, songFile, removeSong, onLibraryChange } from './library.js?v=202611129';
+import { currentSong, openSongFile, closeSong, playSong, pauseSong, isSongPlaying, seekSong, songPosition, setSongPart, setSongSpeed, songPart, onSongChange, onSongPosition, isWaitingForPlayer } from './song.js?v=202611129';
+import { mountFall } from './fall.js?v=202611129';
+import { mountStaff, drawSingleNote } from './score.js?v=202611129';
+import { setOverride, setSide } from './keys.js?v=202611129';
+import { LEVELS, setPracticing, practiceState, onPracticeChange, skip, nextTarget, refreshPractice, readingRange } from './practice.js?v=202611129';
+import { soundingNotes } from './notes.js?v=202611129';
+import { pitchClass, defaultSpelling, spelledOctave } from './theory.js?v=202611129';
+import { fullScoreSheet } from './play.js?v=202611129';
+import { renderCoach } from './lesson.js?v=202611129';
+import { understandSheet } from './understand.js?v=202611129';
+import { songLoop, setSongLoop, onSongLoop } from './song.js?v=202611129';
+import { COURSE_PIECES, pieceNotes, pitch } from './coach.js?v=202611129';
 // course titles carry note names as [G]: written in the player's notation
 const pieceTitle = p => (p.title[S.lang] ?? p.title.en).replace(/\[([A-G][#b]?)\]/g, (_, n) => spelled(pitch(n + '4').spelling));
-import { openSongData } from './song.js?v=202611128';
+import { openSongData } from './song.js?v=202611129';
 
 export function renderLearn(view, ctx) {
   const nav = seg({ cls: 'subnav', options: [['coach', t('tabCoach')], ['songs', t('tabSongs')], ['drills', t('tabDrills')]], get: () => S.learnTab, set: v => { S.learnTab = v; save(); ctx.rerender(); } });

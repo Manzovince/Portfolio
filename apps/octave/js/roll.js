@@ -1,11 +1,11 @@
 // Play screen stage: notes rise from the keys they were played on, over a
 // faint oscilloscope of the sound. Columns come from the keyboard dock.
-import { subscribe } from './notes.js?v=202611128';
-import { geometry, onLayout } from './keys.js?v=202611128';
-import { partOf } from './perform.js?v=202611128';
-import { noteColor, palette } from './colors.js?v=202611128';
-import { analyser, busy } from './engine.js?v=202611128';
-import { S } from './store.js?v=202611128';
+import { subscribe } from './notes.js?v=202611129';
+import { geometry, onLayout } from './keys.js?v=202611129';
+import { partOf } from './perform.js?v=202611129';
+import { noteColor, palette } from './colors.js?v=202611129';
+import { analyser, busy } from './engine.js?v=202611129';
+import { S } from './store.js?v=202611129';
 
 const SPEED = 0.085; // px per ms
 const MAX = 1500;

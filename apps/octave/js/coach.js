@@ -1,14 +1,14 @@
 // Coach: the course's progress, the tiny music notation the lessons are written
 // in, the keys a lesson lights, and the clock helpers (demo playback, clicks,
 // latency calibration) shared by the lesson steps.
-import { press, lift } from './notes.js?v=202611128';
-import * as E from './engine.js?v=202611128';
-import { COURSE } from './course.js?v=202611128';
-import { SOUND_COURSE } from './sound-course.js?v=202611128';
+import { press, lift } from './notes.js?v=202611129';
+import * as E from './engine.js?v=202611129';
+import { COURSE } from './course.js?v=202611129';
+import { SOUND_COURSE } from './sound-course.js?v=202611129';
 export { COURSE };
 // Two tracks: playing the piano, and making sounds with the synth
 export const TRACKS = { piano: COURSE, sound: SOUND_COURSE };
-import { defaultSpelling } from './theory.js?v=202611128';
+import { defaultSpelling } from './theory.js?v=202611129';
 
 // Every piece of the course once: versions of one song (right hand, left hand,
 // both) count as one, played in its fullest version under its first, plain title

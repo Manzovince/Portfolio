@@ -1,23 +1,23 @@
 // Play screen: the stage (rising notes over the oscilloscope, or the staff of
 // what is played), the chord readout, and the side panel for the sound.
-import { h, icon, knob, param, seg, toggle, toast } from './ui.js?v=202611128';
-import { S, save, emit } from './store.js?v=202611128';
-import * as E from './engine.js?v=202611128';
-import { subscribe, soundingNotes } from './notes.js?v=202611128';
-import { applyPart, seq, seqPlay, seqHasNotes, arpClear, allOff } from './perform.js?v=202611128';
-import { mountRoll, clearRoll, wake } from './roll.js?v=202611128';
-import { mountStaff, clearScore, hasScore, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi } from './score.js?v=202611128';
-import { detectChord, chordSymbol, scaleContext, intervalBetween, spellPc, pitchClass, SCALES } from './theory.js?v=202611128';
-import { t, chordQuality, inversionName, intervalName, scaleName, spelled, notation, noteLabel } from './i18n.js?v=202611128';
-import { createGraph } from './graph.js?v=202611128';
-import { soundName, soundMeta, stepVoice, loadVoice } from './create.js?v=202611128';
-import { PIANO_SOUNDS } from './engine.js?v=202611128';
-import { setSide, keyHint } from './keys.js?v=202611128';
-import { currentSong } from './song.js?v=202611128';
-import { isRecording, startRecording, stopRecording, recordingMs, takes, playTake, stopTake, playingTake, takeProgress, deleteTake, renameTake, exportTakeMidi, exportTakeAudio, audioExportSupported } from './recorder.js?v=202611128';
-import { suggestState, playSuggestion, SUGGEST_COLORS } from './suggest.js?v=202611128';
-import { bassOff, applyBassSound } from './bass.js?v=202611128';
-import { on } from './store.js?v=202611128';
+import { h, icon, knob, param, seg, toggle, toast } from './ui.js?v=202611129';
+import { S, save, emit } from './store.js?v=202611129';
+import * as E from './engine.js?v=202611129';
+import { subscribe, soundingNotes } from './notes.js?v=202611129';
+import { applyPart, seq, seqPlay, seqHasNotes, arpClear, allOff } from './perform.js?v=202611129';
+import { mountRoll, clearRoll, wake } from './roll.js?v=202611129';
+import { mountStaff, clearScore, hasScore, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi } from './score.js?v=202611129';
+import { detectChord, chordSymbol, scaleContext, intervalBetween, spellPc, pitchClass, SCALES } from './theory.js?v=202611129';
+import { t, chordQuality, inversionName, intervalName, scaleName, spelled, notation, noteLabel } from './i18n.js?v=202611129';
+import { createGraph } from './graph.js?v=202611129';
+import { soundName, soundMeta, stepVoice, loadVoice } from './create.js?v=202611129';
+import { PIANO_SOUNDS } from './engine.js?v=202611129';
+import { setSide, keyHint } from './keys.js?v=202611129';
+import { currentSong } from './song.js?v=202611129';
+import { isRecording, startRecording, stopRecording, recordingMs, takes, playTake, stopTake, playingTake, takeProgress, deleteTake, renameTake, exportTakeMidi, exportTakeAudio, audioExportSupported } from './recorder.js?v=202611129';
+import { suggestState, playSuggestion, SUGGEST_COLORS } from './suggest.js?v=202611129';
+import { bassOff, applyBassSound } from './bass.js?v=202611129';
+import { on } from './store.js?v=202611129';
 
 export function renderPlay(view, ctx) {
   setSide(null);
@@ -263,7 +263,7 @@ function suggestStrip(ctx) {
     // the accompaniment bass under the chords: its style, and its sound
     const bassRow = h('div', { class: 'suggest-bass' },
       h('span', { class: 'lab' }, t('bassL')),
-      seg({ cls: 'bass-style', options: [['off', t('bassOff')], ['hold', t('bassHold')], ['rhythm', t('bassRhythm')], ['walk', t('bassWalk')]], get: () => S.bass.style,
+      seg({ cls: 'bass-style', options: [['off', t('bassOff')], ['hold', t('bassHold')], ['rhythm', t('bassRhythm')], ['walk', t('bassWalk')], ['impro', t('bassImpro')]], get: () => S.bass.style,
         set: v => { S.bass.style = v; save(); bassOff(); paint(); } }),
       S.bass.style !== 'off' ? seg({ cls: 'bass-sound', options: [['bass', t('bassSoundBass')], ['mine', t('bassSoundMine')]], get: () => S.bass.sound,
         set: v => { S.bass.sound = v; save(); bassOff(); } }) : null,
