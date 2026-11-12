@@ -639,6 +639,22 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
 .quiz-option.bad { border-color: var(--danger); color: var(--danger); animation: shake .35s; }
 .count-in { font-size: 34px; font-weight: 750; min-height: 40px; color: var(--accent); font-family: var(--mono); }
 .count-in.big { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); font-size: 96px; pointer-events: none; }
+/* jam: improvising over a backing */
+.jam-stage { display: flex; flex-direction: column; align-items: center; gap: 6px; width: min(100%, 420px); }
+.jam-chords { display: flex; align-items: baseline; gap: 12px; min-height: 52px; }
+.jam-chord { font-size: 44px; font-weight: 750; line-height: 1; font-family: var(--mono); }
+.jam-next { font-size: 15px; font-family: var(--mono); }
+.jam-role { min-height: 20px; font-size: 13px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.jam-bar { width: 100%; height: 6px; border-radius: 3px; background: var(--panel2); overflow: hidden; }
+.jam-bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 3px; }
+.jam-goals { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; width: min(100%, 460px); text-align: left; }
+.jam-goals li { display: flex; align-items: baseline; gap: 10px; color: var(--dim); }
+.jam-goals li .rich { flex: 1; }
+.jam-goals li .rich p { margin: 0; }
+.jam-mark { width: 16px; flex: none; text-align: center; color: var(--faint); }
+.jam-goals li.ok { color: var(--text); }
+.jam-goals li.ok .jam-mark { color: var(--good); }
+.jam-goals li.no .jam-mark { color: var(--danger); }
 .pulse-dot { width: 54px; height: 54px; border-radius: 50%; background: var(--panel2); border: 2px solid var(--line2); }
 .pulse-dot.beat { animation: pulse .35s ease-out; }
 @keyframes pulse { 0% { background: var(--accent); transform: scale(1.15); } 100% { background: var(--panel2); transform: scale(1); } }

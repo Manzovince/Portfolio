@@ -1,29 +1,29 @@
 // Learn › Course: the course map, and the lesson player that runs each step
 // (see course.js for the step types). Progress lives in coach.js.
-import { h, icon, seg, toast } from './ui.js?v=202611121';
-import { S, save } from './store.js?v=202611121';
-import { t, spelled, lang, scaleName } from './i18n.js?v=202611121';
-import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611121';
-import { setOverride, setSide } from './keys.js?v=202611121';
-import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611121';
-import { mountFall } from './fall.js?v=202611121';
-import { spelledOctave } from './theory.js?v=202611121';
-import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611121';
+import { h, icon, seg, toast } from './ui.js?v=202611122';
+import { S, save } from './store.js?v=202611122';
+import { t, spelled, lang, scaleName } from './i18n.js?v=202611122';
+import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611122';
+import { setOverride, setSide } from './keys.js?v=202611122';
+import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611122';
+import { mountFall } from './fall.js?v=202611122';
+import { spelledOctave } from './theory.js?v=202611122';
+import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611122';
 import {
   openSongData, closeSong, playSong, pauseSong, isSongPlaying, seekSong, setSongPart, setSongSpeed, setSongFollow,
   onSongChange, onSongEnd, songTally, onSongTally, resetTally, songClock, currentSong, isWaitingForPlayer,
-} from './song.js?v=202611121';
-import * as E from './engine.js?v=202611121';
+} from './song.js?v=202611122';
+import * as E from './engine.js?v=202611122';
 import {
   P, PASS, LESSONS, COURSE, TRACKS, lessonsOf, lessonById, starsOf, isOpen, nextLesson, recordLesson, saveCoach, resetCoach,
-  parse, notesOf, lengthOf, pitch, setCoachGuide, demo, hear, clicks, latency, isPlayer, median, audioOf,
-} from './coach.js?v=202611121';
+  parse, notesOf, lengthOf, pitch, setCoachGuide, demo, hear, clicks, latency, isPlayer, median, audioOf, perfOf,
+} from './coach.js?v=202611122';
 
-import { startLab, endLab, labOn, labPatch, labState, setLabFx, setLabArp, setLabSeq, setLabPatch, labChanged, keepLab, playWith, labViews, controlEl, readKey, shown } from './lab.js?v=202611121';
-import { envCanvas, mountArp, mountSeq } from './create.js?v=202611121';
-import { createGraph } from './graph.js?v=202611121';
-import { clonePatch } from './dx7.js?v=202611121';
-import { applyPart } from './perform.js?v=202611121';
+import { startLab, endLab, labOn, labPatch, labState, setLabFx, setLabArp, setLabSeq, setLabPatch, labChanged, keepLab, playWith, labViews, controlEl, readKey, shown } from './lab.js?v=202611122';
+import { envCanvas, mountArp, mountSeq } from './create.js?v=202611122';
+import { createGraph } from './graph.js?v=202611122';
+import { clonePatch } from './dx7.js?v=202611122';
+import { applyPart } from './perform.js?v=202611122';
 // ── text ───────────────────────────────────────────────────────
 const tx = v => (v && typeof v === 'object' ? v[lang()] ?? v.en : v ?? '');
 function noteText(tok) {
@@ -1015,6 +1015,260 @@ function runCalibrate(step, api) {
   const un = subscribe(e => { if (running && e.type === 'on' && isPlayer(e)) taps.push(e.time); });
   api.onCleanup(() => { un(); timers.forEach(clearTimeout); });
 }
+// ── jam: improvise over a backing, judged on a few goals ───────
+// step: { bpm, meter, loops, backing: [lines] (one loop), chords: 'C Am F G'
+// (one per bar of the loop), scale: [pcs], showChord, call: a line over the
+// whole take (Octave plays it, the player answers in the bars it leaves
+// empty), example: a line played with the backing on "listen", goals: [...] }
+// A goal is { kind, text, … } with an optional hand filter (above / below a midi):
+//   notes n       at least n notes
+//   scale x       share of notes in the scale
+//   variety n     at least n different pitch classes
+//   rests n       at least n silences of 1.5 beats or more between notes
+//   answer        play in every answer bar, keep quiet during the calls
+//   downbeat x    notes on beat 1 that belong to the bar's chord
+//   end pcs       the last note is one of these
+//   motif n       at least n bars sharing one rhythm
+//   use pcs, n    play notes of these pitch classes n times
+//   bass x        a root on beat 1 (below 60) in this share of the bars
+function chordOf(name) {
+  const m = /^([A-G][#b]?)(m?)(7?)$/.exec(name);
+  const root = pitch(m[1] + '4').midi % 12;
+  const tones = [0, m[2] ? 3 : 4, 7, ...(m[3] ? [10] : [])].map(x => (root + x) % 12);
+  return { name, root, tones, label: noteText(m[1]) + m[2] + m[3] };
+}
+const JAM_SLACK = 0.35; // beats either side of a downbeat
+function jamGoal(g, notes, ctx) {
+  const ns = notes.filter(n => (g.above == null || n.midi >= g.above) && (g.below == null || n.midi < g.below));
+  const pct = x => Math.round(x * 100) + ' %';
+  const inBar = (n, b) => n.beat >= b * ctx.meter - JAM_SLACK && n.beat < (b + 1) * ctx.meter - JAM_SLACK;
+  const onDown = (n, b) => Math.abs(n.beat - b * ctx.meter) <= JAM_SLACK;
+  switch (g.kind) {
+    case 'notes': return { ok: ns.length >= g.n, value: `${ns.length} / ${g.n}` };
+    case 'scale': {
+      const x = ns.length ? ns.filter(n => ctx.scale.includes(n.midi % 12)).length / ns.length : 0;
+      return { ok: ns.length >= 4 && x >= g.x, value: `${pct(x)} (≥ ${pct(g.x)})` };
+    }
+    case 'variety': { const k = new Set(ns.map(n => n.midi % 12)).size; return { ok: k >= g.n, value: `${k} / ${g.n}` }; }
+    case 'rests': {
+      let k = 0;
+      for (let i = 1; i < ns.length; i++) {
+        const free = Math.max(...ns.slice(0, i).map(p => p.offBeat ?? p.beat + 0.5));
+        if (ns[i].beat - free >= 1.5) k++;
+      }
+      return { ok: k >= g.n, value: `${k} / ${g.n}` };
+    }
+    case 'answer': {
+      const ans = ctx.answerBars, calls = ctx.callBars;
+      const played = ans.filter(b => ns.some(n => inBar(n, b))).length;
+      const stray = ns.filter(n => calls.some(b => n.beat >= b * ctx.meter + 0.25 && n.beat < (b + 1) * ctx.meter - 0.6)).length;
+      return { ok: played >= ans.length - (ans.length > 3 ? 1 : 0) && stray <= 2, value: `${played} / ${ans.length}` + (stray ? ' · ' + t('jamStray', { n: stray }) : '') };
+    }
+    case 'downbeat': {
+      let hit = 0, seen = 0;
+      for (let b = 0; b < ctx.bars; b++) {
+        const n = ns.find(x => onDown(x, b));
+        if (!n) continue;
+        seen++;
+        if (ctx.chordAt(b).tones.includes(n.midi % 12)) hit++;
+      }
+      const x = seen ? hit / seen : 0;
+      return { ok: seen >= Math.min(4, ctx.bars / 2) && x >= g.x, value: `${hit} / ${seen}` };
+    }
+    case 'end': {
+      const last = ns[ns.length - 1];
+      return { ok: !!last && g.pcs.includes(last.midi % 12), value: last ? midiName(last.midi).replace(/-?\d+$/, '') : '—' };
+    }
+    case 'motif': {
+      const bars = Array.from({ length: ctx.bars }, (_, b) => ns.filter(n => inBar(n, b)).map(n => n.beat - b * ctx.meter));
+      const same = (a, c) => a.length === c.length && a.every((x, i) => Math.abs(x - c[i]) <= 0.3);
+      let best = 0;
+      bars.forEach(a => { if (a.length >= 2) best = Math.max(best, bars.filter(c => same(a, c)).length); });
+      return { ok: best >= g.n, value: `${best} / ${g.n}` };
+    }
+    case 'use': { const k = ns.filter(n => g.pcs.includes(n.midi % 12)).length; return { ok: k >= g.n, value: `${k} / ${g.n}` }; }
+    case 'bass': {
+      let k = 0;
+      for (let b = 0; b < ctx.bars; b++) if (notes.some(n => n.midi < 60 && onDown(n, b) && n.midi % 12 === ctx.chordAt(b).root)) k++;
+      return { ok: k / ctx.bars >= g.x, value: `${k} / ${ctx.bars}` };
+    }
+  }
+  return { ok: false, value: '' };
+}
+function runJam(step, api) {
+  const meter = step.meter || 4, loops = step.loops || 2, bpm = step.bpm || 84;
+  const beatSec = 60 / bpm;
+  const lines = (step.backing || []).map(src => parse(src));
+  const loopBeats = Math.max(meter, ...lines.map(lengthOf));
+  const loopBars = Math.round(loopBeats / meter);
+  const bars = loopBars * loops, total = bars * meter;
+  const chords = (step.chords || '').split(/\s+/).filter(Boolean).map(chordOf);
+  const chordAt = b => chords[b % Math.max(1, chords.length)] || { tones: [], root: -1, label: '' };
+  const scale = step.scale || [];
+  const call = step.call ? parse(step.call) : null;
+  const callBars = [], answerBars = [];
+  if (call) for (let b = 0; b < bars; b++) (notesOf(call).some(n => n.start >= b * meter && n.start < (b + 1) * meter) ? callBars : answerBars).push(b);
+  const example = step.example ? parse(step.example) : null;
+  api.keys(step.range);
+
+  const prompt = rich(step.prompt, 'div', 'rich step-prompt');
+  const count = h('div', { class: 'count-in' });
+  const chordNow = h('b', { class: 'jam-chord' });
+  const chordNext = h('small', { class: 'muted jam-next' });
+  const barTxt = h('small', { class: 'muted' });
+  const bar = h('div', { class: 'bar jam-bar' }, h('i'));
+  const role = h('div', { class: 'jam-role' });
+  const goalList = h('ul', { class: 'jam-goals' });
+  const fb = h('div', { class: 'step-feedback', 'aria-live': 'polite' });
+  const go = h('button', { type: 'button', class: 'btn', onclick: () => (running ? stop() : run('take')) }, icon('start'), t('jamStart'));
+  const ex = example ? h('button', { type: 'button', class: 'btn ghost', onclick: () => (running ? stop() : run('example')) }, icon('start'), t('jamExample')) : null;
+  const card = h('div', { class: 'card step-card center jam' }, prompt,
+    h('div', { class: 'jam-stage' }, count, chords.length ? h('div', { class: 'jam-chords' }, chordNow, chordNext) : null, role, bar, barTxt),
+    goalList, fb, h('div', { class: 'row center-row' }, ex, go),
+    h('small', { class: 'muted' }, t('jamInfo', { bpm, bars })));
+  api.body.append(card);
+
+  const paintGoals = res => goalList.replaceChildren(...(step.goals || []).map((g, k) => h('li', { class: res ? (res[k].ok ? 'ok' : 'no') : '' },
+    h('span', { class: 'jam-mark' }, res ? (res[k].ok ? '✓' : '✗') : '○'), rich(g.text, 'span', 'rich'), res?.[k].value ? h('small', { class: 'muted' }, res[k].value) : null)));
+  const baseGuide = () => (scale.length ? { soft: new Set(scale) } : null);
+  const setGuide = (b, extra) => {
+    const g = { ...(baseGuide() || {}) };
+    if (step.showChord && b >= 0) g.strong = new Set(chordAt(b).tones);
+    if (extra) g.midis = extra;
+    setCoachGuide(Object.keys(g).length ? g : null);
+  };
+  const idle = () => {
+    count.textContent = '';
+    chordNow.textContent = chords[0]?.label || '';
+    chordNext.textContent = '';
+    barTxt.textContent = t('jamBar', { n: 0, total: bars });
+    bar.firstChild.style.width = '0%';
+    role.textContent = '';
+    setGuide(step.showChord ? 0 : -1);
+  };
+
+  let running = false, mode = 'take', src = '', timer = 0, raf = 0, t0 = 0, perf0 = 0, queue = [], qi = 0, notes = [], best = 0, lastBar = -2, exTimers = [];
+  const SRC = 'jam';
+  // every event of the take, in beats from the first bar (count-in is negative)
+  const buildQueue = () => {
+    const q = [];
+    for (let k = 0; k < meter; k++) q.push({ beat: k - meter, click: true, accent: k === 0 });
+    if (step.click !== false) for (let b = 0; b < total; b++) q.push({ beat: b, click: true, accent: b % meter === 0, soft: true });
+    for (let l = 0; l < loops; l++) for (const line of lines) for (const it of notesOf(line)) q.push({ beat: l * loopBeats + it.start, len: it.beats, midis: it.midis, vel: step.backVel || 56 });
+    if (call && mode === 'take') for (const it of notesOf(call)) q.push({ beat: it.start, len: it.beats, midis: it.midis, vel: 84, lead: true });
+    if (example && mode === 'example') for (const it of notesOf(example)) q.push({ beat: it.start, len: it.beats, midis: it.midis, vel: 84, lead: true, show: true });
+    return q.sort((a, b) => a.beat - b.beat);
+  };
+  const atAudio = beat => t0 + (beat + meter) * beatSec;
+  const pump = () => {
+    const ctx = E.audio();
+    if (!ctx) return;
+    // the end is checked here too: animation frames stop in a hidden tab
+    if (running && performance.now() - perf0 >= (total + 0.75) * beatSec * 1000) return finish();
+    const until = ctx.currentTime + 0.35;
+    while (qi < queue.length && atAudio(queue[qi].beat) <= until) {
+      const ev = queue[qi++], at = atAudio(ev.beat);
+      if (ev.click) { E.click(at, ev.accent, ev.soft ? 0.32 : 0.7); continue; }
+      for (const m of ev.midis) {
+        E.noteOn(0, m, ev.vel, src, at);
+        E.noteOff(0, m, src, at + ev.len * beatSec - 0.04);
+      }
+      if (ev.show) {
+        const ms = perfOf(at) - performance.now();
+        exTimers.push(setTimeout(() => running && setGuide(-1, new Set(ev.midis)), ms));
+        exTimers.push(setTimeout(() => running && setGuide(-1, null), ms + ev.len * beatSec * 1000 - 40));
+      }
+    }
+  };
+  const frame = () => {
+    if (!running) return;
+    const beat = (performance.now() - perf0) / (beatSec * 1000);
+    if (beat < 0) count.textContent = String(Math.floor(beat + meter) + 1);
+    else count.textContent = '';
+    const b = Math.max(0, Math.min(bars - 1, Math.floor(beat / meter)));
+    if (beat >= 0 && b !== lastBar) {
+      lastBar = b;
+      chordNow.textContent = chordAt(b).label;
+      chordNext.textContent = b + 1 < bars && chords.length > 1 ? '→ ' + chordAt(b + 1).label : '';
+      barTxt.textContent = t('jamBar', { n: b + 1, total: bars });
+      if (call) role.textContent = answerBars.includes(b) ? t('jamYou') : t('jamOctave');
+      if (mode === 'take' || step.showChord) setGuide(step.showChord ? b : -1);
+    }
+    bar.firstChild.style.width = Math.max(0, Math.min(100, (beat / total) * 100)) + '%';
+    if (beat >= total + 0.75) return finish();
+    raf = requestAnimationFrame(frame);
+  };
+  const run = m => {
+    const ctx = E.audio();
+    if (!ctx) return;
+    stop(true);
+    mode = m;
+    src = SRC + (++jamId);
+    running = true;
+    notes = [];
+    queue = buildQueue(); qi = 0; lastBar = -2;
+    t0 = ctx.currentTime + 0.25;
+    perf0 = perfOf(atAudio(0));
+    card.dataset.feedback = ''; fb.textContent = mode === 'example' ? t('jamListening') : '';
+    if (mode === 'take') paintGoals(null);
+    (mode === 'take' ? go : ex).replaceChildren(icon('stop'), t('jamStop'));
+    (mode === 'take' ? ex : go)?.setAttribute('disabled', '');
+    pump();
+    timer = setInterval(pump, 90);
+    raf = requestAnimationFrame(frame);
+  };
+  // stop the sound, the clock and the timers; buttons back to rest
+  function halt() {
+    running = false;
+    clearInterval(timer); cancelAnimationFrame(raf);
+    exTimers.forEach(clearTimeout); exTimers = [];
+    if (src) E.stopSource(src);
+    go.replaceChildren(icon(best ? 'restart' : 'start'), t(best ? 'cAgain' : 'jamStart'));
+    go.removeAttribute('disabled');
+    if (ex) { ex.replaceChildren(icon('start'), t('jamExample')); ex.removeAttribute('disabled'); }
+  }
+  function stop(quiet = false) {
+    if (quiet) { if (running) halt(); return; }
+    halt();
+    fb.textContent = '';
+    idle();
+  }
+  const finish = () => {
+    const was = mode;
+    // let the last notes ring: only the clock stops here
+    running = false;
+    clearInterval(timer); cancelAnimationFrame(raf);
+    exTimers.forEach(clearTimeout); exTimers = [];
+    if (ex) { ex.replaceChildren(icon('start'), t('jamExample')); ex.removeAttribute('disabled'); }
+    go.removeAttribute('disabled');
+    go.replaceChildren(icon(best ? 'restart' : 'start'), t(best ? 'cAgain' : 'jamStart'));
+    idle();
+    if (was !== 'take') { fb.textContent = ''; return; }
+    const take = notes.filter(n => n.beat >= -0.5 && n.beat < total + 0.5);
+    if (!take.length) { card.dataset.feedback = 'miss'; fb.textContent = t('jamNothing'); return; }
+    const ctx = { meter, bars, scale, chordAt, callBars, answerBars };
+    const res = (step.goals || []).map(g => jamGoal(g, take, ctx));
+    paintGoals(res);
+    const met = res.filter(r => r.ok).length, n = res.length || 1;
+    const stars = met === n ? 3 : met / n >= 0.6 ? 2 : met >= 1 ? 1 : 0;
+    best = Math.max(best, stars);
+    go.replaceChildren(icon('restart'), t('cAgain'));
+    card.dataset.feedback = met === n ? 'success' : 'miss';
+    fb.textContent = met === n ? pick(t('drillWell').split('|')) + ' ' + t('jamAll') : t('jamScore', { n: met, total: n });
+    if (stars) api.complete(stars);
+  };
+  const un = subscribe(e => {
+    if (!running || mode !== 'take' || !isPlayer(e)) return;
+    const beat = (e.time - latency() - perf0) / (beatSec * 1000);
+    if (e.type === 'on') notes.push({ midi: e.midi, vel: e.velocity, beat });
+    else if (e.type === 'off') { const n = [...notes].reverse().find(x => x.midi === e.midi && x.offBeat == null); if (n) n.offBeat = beat; }
+  });
+  api.onCleanup(() => { un(); stop(true); });
+  paintGoals(null);
+  idle();
+}
+let jamId = 0;
+
 function T(fr, en) { return { fr, en }; }
 
-const RUNNERS = { synth: runSynth, match: runMatch, touch: runTouch, info: runInfo, find: runFind, quiz: runQuiz, phrase: runPhrase, rhythm: runRhythm, drill: runDrill, piece: runPiece, calibrate: runCalibrate };
+const RUNNERS = { jam: runJam, synth: runSynth, match: runMatch, touch: runTouch, info: runInfo, find: runFind, quiz: runQuiz, phrase: runPhrase, rhythm: runRhythm, drill: runDrill, piece: runPiece, calibrate: runCalibrate };

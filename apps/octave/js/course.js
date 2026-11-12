@@ -125,6 +125,25 @@ function tunes(n, len) {
     return out.map((m, k) => nm(m) + (k === len - 1 ? 'h' : 'q')).join(' ');
   });
 }
+// Unit 12: improvisation (backings: bass + offbeat chords, one loop)
+const JC = 'C3+E3+G3', JAm = 'C3+E3+A3', JF = 'C3+F3+A3', JG = 'B2+D3+G3';
+const comp = chs => chs.map(c => `rq ${c}q rq ${c}q`).join(' | ');
+const POP_BASS = 'C2w | A1w | F1w | G1w';
+const POP_COMP = comp([JC, JAm, JF, JG]);
+const PENTA_BASS = 'Gb2w | Eb2w';
+const PENTA_COMP = comp(['Gb3+Bb3+Db4', 'Eb3+Gb3+Bb3']);
+const CADENCE_BASS = 'C2w | F1w | G1w | C2w';
+const CADENCE_COMP = comp([JC, JF, JG, JC]);
+const AXIS_BASS = 'C2w | G1w | A1w | F1w';
+const AXIS_COMP = comp([JC, JG, JAm, JF]);
+const BLUES = 'C7 C7 C7 C7 F7 F7 C7 C7 G7 F7 C7 G7'.split(' ');
+const BOOGIE = { C7: 'C2q E2q G2q A2q', F7: 'F1q A1q C2q D2q', G7: 'G1q B1q D2q E2q' };
+const SHELL = { C7: 'E3+Bb3', F7: 'Eb3+A3', G7: 'F3+B3' };
+const BLUES_BASS = BLUES.map(c => BOOGIE[c]).join(' | ');
+const BLUES_COMP = comp(BLUES.map(c => SHELL[c]));
+const PENTA_C = [0, 2, 4, 7, 9], BLUES_C = [0, 3, 5, 6, 7, 10], BLACK = [1, 3, 6, 8, 10];
+const JAM_R = { lo: 55, hi: 79 };
+
 const POS_LH = { lo: 45, hi: 60 };    // left hand around C3 (A2 to C4)
 const TWO_HANDS = { lo: 45, hi: 72 };
 const POS_G = { lo: 53, hi: 79 };
@@ -1028,6 +1047,159 @@ export const COURSE = [
               'To recognise an interval, hook it to the start of a song you know:\n**Second**: “Frè-re” in *Frère Jacques* ([C] [D]).\n**Third**: the bottom of a major chord ([C] [E]).\n**Fifth**: “Twin-kle twin-kle” ([C] [G]).\n**Octave**: the same note, much higher.'),
             listen: 'C4h D4h | C4h E4h | C4q C4q G4q G4q | C4h C5h', bpm: 90 },
           { type: 'quiz', rounds: () => intervals(8) },
+        ],
+      },
+    ],
+  },
+
+  // ═══ Unit 12 ══════════════════════════════════════════════════
+  {
+    id: 'u12',
+    title: T('Improviser', 'Improvising'),
+    blurb: T('Jouer ses propres notes sur un accompagnement : gammes, phrases, accords, blues.', 'Play your own notes over a backing: scales, phrases, chords, blues.'),
+    lessons: [
+      {
+        id: 'j1',
+        title: T('Les touches noires', 'The black keys'),
+        goal: T('Improviser sans aucune fausse note possible.', 'Improvise with no wrong note possible.'),
+        steps: [
+          { type: 'info', title: T('Inventer, pas réciter', 'Making it up, not reciting'),
+            text: T('**Improviser**, c’est inventer la musique en la jouant. Pas besoin de génie : il suffit de **choisir peu de notes** qui sonnent bien ensemble, et de jouer avec.\nLe meilleur point de départ : les **5 touches noires**. Elles forment une **gamme pentatonique** (« penta » = cinq) : elles s’accordent toutes entre elles, dans n’importe quel ordre. Impossible de faire une fausse note !',
+              '**Improvising** means making the music up as you play. No genius needed: just **pick a few notes** that sound good together, and play with them.\nThe best place to start: the **5 black keys**. They make a **pentatonic scale** (“penta” = five): they all fit together, in any order. You can’t play a wrong note!'),
+            keys: { ...JAM_R, pcs: BLACK } },
+          { type: 'quiz', rounds: [
+            { q: T('Une gamme pentatonique a…', 'A pentatonic scale has…'), options: [T('5 notes', '5 notes'), T('7 notes', '7 notes'), T('12 notes', '12 notes')], answer: 0 },
+            { q: T('En improvisation, une « fausse note »…', 'When improvising, a “wrong note”…'), options: [T('n’existe pas vraiment : c’est une note de passage, on continue', 'doesn’t really exist: it is a passing note, carry on'), T('oblige à tout recommencer', 'means starting over')], answer: 0,
+              explain: T('Une note qui frotte, suivie d’une note de la gamme, sonne voulue. Ne t’arrête jamais.', 'A note that clashes, followed by a scale note, sounds intended. Never stop.') },
+          ] },
+          { type: 'jam', range: JAM_R, bpm: 84, loops: 4, backing: [PENTA_BASS, PENTA_COMP], chords: 'Gb Ebm', scale: BLACK,
+            prompt: T('Huit mesures sur les touches noires (allumées). Monte, descends, répète une note : tout marche.', 'Eight bars on the black keys (lit). Go up, go down, repeat a note: it all works.'),
+            example: 'Gb4q Ab4q Bb4h | Db5q Bb4q Ab4h | Bb4q Db5q Eb5q Db5q | Bb4w | Gb4q Ab4q Bb4q Db5q | Eb5h Db5h | Bb4q Ab4q Gb4q Eb4q | Gb4w',
+            goals: [
+              { kind: 'notes', n: 16, text: T('Joue au moins 16 notes.', 'Play at least 16 notes.') },
+              { kind: 'scale', x: 0.9, text: T('Reste sur les touches noires.', 'Stay on the black keys.') },
+              { kind: 'variety', n: 4, text: T('Utilise au moins 4 des 5 notes.', 'Use at least 4 of the 5 notes.') },
+            ] },
+        ],
+      },
+      {
+        id: 'j2',
+        title: T('Question, réponse', 'Call and response'),
+        goal: T('Répondre à une phrase par une phrase à soi.', 'Answer a phrase with one of your own.'),
+        steps: [
+          { type: 'info', title: T('Une conversation', 'A conversation'),
+            text: T('La musique se parle comme une langue : une phrase **pose une question**, une autre **répond**.\nOctave joue une mesure, tu réponds dans la suivante, et ainsi de suite. Tu n’as pas à l’imiter : invente ta réponse, mais garde **le même caractère** (même longueur, même énergie).\nCinq notes en position de [C] : [C] [D] [E] [G] [A], la **pentatonique de [C]**. Sans [F] ni [B], rien ne frotte.',
+              'Music speaks like a language: one phrase **asks a question**, another **answers**.\nOctave plays a bar, you answer in the next one, and so on. You don’t have to copy it: make your answer up, but keep **the same character** (same length, same energy).\nFive notes in C position: [C] [D] [E] [G] [A], the **C pentatonic**. Without [F] and [B], nothing clashes.'),
+            keys: { lo: 55, hi: 74, pcs: PENTA_C } },
+          { type: 'jam', range: { lo: 55, hi: 76 }, bpm: 80, loops: 2, backing: [POP_BASS, POP_COMP], chords: 'C Am F G', scale: PENTA_C,
+            prompt: T('Octave pose la question, tu réponds dans la mesure d’après. Écoute l’exemple d’abord.', 'Octave asks, you answer in the next bar. Hear the example first.'),
+            call: 'C4q D4q E4h | rw | E4q G4q A4h | rw | A4q G4q E4q D4q | rw | C4q D4q E4q G4q | rw',
+            example: 'C4q D4q E4h | E4q D4q C4h | E4q G4q A4h | G4q E4q D4h | A4q G4q E4q D4q | E4q C4q A3h | C4q D4q E4q G4q | E4q D4q C4h',
+            goals: [
+              { kind: 'answer', text: T('Réponds à chaque question, et laisse parler Octave.', 'Answer each question, and let Octave speak.') },
+              { kind: 'scale', x: 0.85, text: T('Reste dans la pentatonique de [C].', 'Stay in the C pentatonic.') },
+              { kind: 'notes', n: 8, text: T('Au moins 8 notes en tout.', 'At least 8 notes in all.') },
+            ] },
+        ],
+      },
+      {
+        id: 'j3',
+        title: T('Respirer', 'Breathing'),
+        goal: T('Faire des phrases, avec des silences entre elles.', 'Make phrases, with silences between them.'),
+        steps: [
+          { type: 'info', title: T('Le silence fait partie de la musique', 'Silence is part of the music'),
+            text: T('Le piège du débutant : jouer **sans arrêt**. Ça devient vite un mur de notes.\nPense comme un chanteur : il doit **respirer**. Joue une phrase de deux mesures environ, puis **laisse un trou** d’au moins deux temps. L’accompagnement continue : il remplit le silence pour toi.\nTu as maintenant les 7 notes blanches. [F] et [B] frottent un peu sur certains accords : passe dessus, ne t’y arrête pas.',
+              'The beginner’s trap: playing **non-stop**. It soon turns into a wall of notes.\nThink like a singer: they have to **breathe**. Play a phrase of about two bars, then **leave a gap** of at least two beats. The backing goes on: it fills the silence for you.\nYou now have all 7 white keys. [F] and [B] clash a little on some chords: move through them, don’t stop on them.'),
+            line: { src: 'E4q G4q A4q G4q | E4h rh | D4q E4q G4q A4q | G4h rh' }, listen: 'E4q G4q A4q G4q | E4h rh | D4q E4q G4q A4q | G4h rh', bpm: 84 },
+          { type: 'jam', range: JAM_R, bpm: 84, loops: 2, backing: [POP_BASS, POP_COMP], chords: 'C Am F G', scale: NATURALS,
+            prompt: T('Des phrases courtes, et entre elles, rien. Compte les temps de silence.', 'Short phrases, and nothing in between. Count the beats of silence.'),
+            example: 'E4q G4q A4q G4q | E4h rh | D4q E4q G4q A4q | G4h rh | C5q A4q G4q E4q | D4h rh | E4q D4q C4q D4q | C4w',
+            goals: [
+              { kind: 'rests', n: 3, text: T('Au moins 3 silences d’un temps et demi ou plus.', 'At least 3 silences of a beat and a half or more.') },
+              { kind: 'notes', n: 12, text: T('Au moins 12 notes quand même.', 'Still at least 12 notes.') },
+              { kind: 'scale', x: 0.85, text: T('Touches blanches seulement.', 'White keys only.') },
+            ] },
+        ],
+      },
+      {
+        id: 'j4',
+        title: T('Atterrir sur l’accord', 'Landing on the chord'),
+        goal: T('Viser les notes de l’accord sur le premier temps.', 'Aim for the chord’s notes on beat one.'),
+        steps: [
+          { type: 'info', title: T('Les notes fortes', 'The strong notes'),
+            text: T('Toutes les notes de la gamme ne se valent pas : à chaque instant, les **3 notes de l’accord** sonnent le plus stable. Les autres sont des **notes de passage**, qui mènent vers elles.\nLe truc : sur le **temps 1** de chaque mesure, quand l’accord change, pose une note de l’accord. Entre deux, promène-toi.\nIci, les notes de l’accord en cours s’allument fort, les autres de la gamme en léger. Et pour finir, reviens à la maison : [C].',
+              'Not every note of the scale is equal: at any moment, the **3 notes of the chord** sound the most settled. The others are **passing notes**, leading to them.\nThe trick: on **beat 1** of each bar, when the chord changes, land on a chord note. In between, wander.\nHere, the current chord’s notes light up strongly, the rest of the scale softly. And to finish, come home: [C].'),
+            listen: 'C2+E4q D4q C4q D4q | F1+F4q E4q D4q C4q | G1+D4q E4q F4q A4q | C2+G4w', bpm: 76 },
+          { type: 'jam', range: JAM_R, bpm: 76, loops: 2, backing: [CADENCE_BASS, CADENCE_COMP], chords: 'C F G C', scale: NATURALS, showChord: true,
+            prompt: T('Sur chaque temps 1, une touche bien allumée. Finis sur un [C].', 'On every beat 1, a brightly lit key. End on a [C].'),
+            example: 'E4q D4q C4q D4q | F4q E4q D4q C4q | D4q E4q F4q A4q | G4w | C5q B4q A4q G4q | A4q G4q F4q E4q | D4q F4q E4q D4q | C4w',
+            goals: [
+              { kind: 'downbeat', x: 0.7, text: T('Sur le temps 1, une note de l’accord (7 fois sur 10).', 'On beat 1, a chord note (7 times out of 10).') },
+              { kind: 'end', pcs: [0], text: T('Termine sur [C].', 'End on [C].') },
+              { kind: 'notes', n: 10, text: T('Au moins 10 notes.', 'At least 10 notes.') },
+            ] },
+        ],
+      },
+      {
+        id: 'j5',
+        title: T('Un motif et ses variations', 'A motif and its variations'),
+        goal: T('Garder un rythme, changer les notes.', 'Keep a rhythm, change the notes.'),
+        steps: [
+          { type: 'info', title: T('Se répéter, c’est bien', 'Repeating yourself is good'),
+            text: T('Ce qui rend une improvisation **mémorable**, c’est la répétition. Choisis un petit **motif rythmique**, par exemple « long, court, noire, noire », et garde-le plusieurs mesures en changeant seulement les notes pour suivre les accords.\nL’oreille reconnaît le motif et suit l’histoire. Change-le à la fin, pour conclure.',
+              'What makes an improvisation **memorable** is repetition. Pick a small **rhythmic motif**, say “long, short, quarter, quarter”, and keep it for several bars, changing only the notes to follow the chords.\nThe ear recognises the motif and follows the story. Change it at the end, to wrap up.'),
+            line: { src: 'q. e q q | q. e q q', rhythm: true } },
+          { type: 'rhythm', bpm: 88, prompt: T('Le motif seul, sur une touche, pour l’avoir dans les doigts.', 'The motif alone, on one key, to get it into your fingers.'), rounds: ['q. e q q | q. e q q'] },
+          { type: 'jam', range: { lo: 53, hi: 79 }, bpm: 88, loops: 2, backing: [AXIS_BASS, AXIS_COMP], chords: 'C G Am F', scale: NATURALS, showChord: true,
+            prompt: T('Le même rythme dans au moins 3 mesures. Les notes, elles, suivent les accords.', 'The same rhythm in at least 3 bars. The notes follow the chords.'),
+            example: 'E4q. D4e C4q D4q | D4q. E4e D4q B3q | C4q. D4e E4q A4q | A4q. G4e F4q C4q | E4q. F4e G4q E4q | D4q. E4e F4q D4q | C4q. B3e A3q C4q | A3q. B3e C4h',
+            goals: [
+              { kind: 'motif', n: 3, text: T('Au moins 3 mesures avec le même rythme.', 'At least 3 bars with the same rhythm.') },
+              { kind: 'notes', n: 12, text: T('Au moins 12 notes.', 'At least 12 notes.') },
+              { kind: 'scale', x: 0.85, text: T('Touches blanches seulement.', 'White keys only.') },
+            ] },
+        ],
+      },
+      {
+        id: 'j6',
+        title: T('Le blues', 'The blues'),
+        goal: T('Improviser sur une grille de blues de 12 mesures.', 'Improvise over a 12-bar blues.'),
+        steps: [
+          { type: 'info', title: T('Douze mesures, trois accords', 'Twelve bars, three chords'),
+            text: T('Le **blues** tient sur une grille de **12 mesures** et 3 accords : 4 mesures de [C], 2 de [F], 2 de [C], puis [G], [F], [C], [G]… et on recommence.\nSa gamme, la **gamme blues** : [C] [Eb] [F] [Gb] [G] [Bb]. La note qui fait tout, c’est [Gb], la **blue note** : glisse dessus vers [G] ou [F], ne t’y arrête pas.\nÉcoute la gamme, puis la grille.',
+              'The **blues** fits in a **12-bar** chart with 3 chords: 4 bars of C, 2 of F, 2 of C, then G, F, C, G… and round again.\nIts scale, the **blues scale**: [C] [Eb] [F] [Gb] [G] [Bb]. The note that does it all is [Gb], the **blue note**: slide through it to [G] or [F], don’t stop on it.\nListen to the scale, then the chart.'),
+            line: { src: 'C4q Eb4q F4q Gb4q | G4q Bb4q C5h' }, listen: 'C4q Eb4q F4q Gb4q | G4q Bb4q C5h | C5q Bb4q G4q Gb4q | F4q Eb4q C4h', bpm: 90, keys: { ...JAM_R, pcs: BLUES_C } },
+          { type: 'quiz', rounds: [
+            { q: T('Une grille de blues compte…', 'A blues chart has…'), options: [T('8 mesures', '8 bars'), T('12 mesures', '12 bars'), T('16 mesures', '16 bars')], answer: 1 },
+            { q: T('La « blue note » de la gamme blues de [C], c’est…', 'The “blue note” of the C blues scale is…'), options: ['[Eb]', '[Gb]', '[Bb]'], answer: 1 },
+          ] },
+          { type: 'jam', range: JAM_R, bpm: 96, loops: 1, backing: [BLUES_BASS, BLUES_COMP], chords: BLUES.join(' '), scale: BLUES_C,
+            prompt: T('Un tour de blues. Des petites phrases, la blue note de temps en temps, et la fin sur [C].', 'One time round the blues. Short phrases, the blue note now and then, and end on [C].'),
+            example: 'C4q Eb4q F4q Gb4q | G4h Eb4q C4q | C4q Eb4q F4q Gb4q | G4w | F4q Gb4q F4q Eb4q | C4h rh | C4q Eb4q F4q Gb4q | G4h rh | Bb4q G4q Gb4q F4q | Eb4q F4q Eb4q C4q | C4h rh | G3q Bb3q C4h',
+            goals: [
+              { kind: 'scale', x: 0.85, text: T('Reste dans la gamme blues.', 'Stay in the blues scale.') },
+              { kind: 'use', pcs: [6], n: 2, text: T('Fais entendre la blue note [Gb] au moins 2 fois.', 'Play the blue note [Gb] at least twice.') },
+              { kind: 'end', pcs: [0], text: T('Termine sur [C].', 'End on [C].') },
+            ] },
+        ],
+      },
+      {
+        id: 'j7',
+        title: T('Bilan : à deux mains', 'Check-point: both hands'),
+        goal: T('La basse à gauche, l’improvisation à droite.', 'The bass on the left, improvising on the right.'),
+        steps: [
+          { type: 'info', title: T('Ton propre accompagnement', 'Your own backing'),
+            text: T('Cette fois, l’accompagnement n’a plus de basse : c’est **ta main gauche** qui la joue. Sur le **temps 1** de chaque mesure, la fondamentale de l’accord, tenue : [C3], [A2], [F2], [G2].\nLa main droite improvise par-dessus, sur les touches blanches, avec tout ce que tu as appris : des phrases, des silences, des notes de l’accord sur le 1.\nTravaille d’abord la main gauche seule un tour, sans rien à droite.',
+              'This time the backing has no bass: **your left hand** plays it. On **beat 1** of each bar, the chord’s root, held: [C3], [A2], [F2], [G2].\nThe right hand improvises on top, on the white keys, with everything you have learnt: phrases, silences, chord notes on the 1.\nFirst practise the left hand alone for one round, nothing on the right.'),
+            keys: { lo: 43, hi: 76, midis: [48, 45, 41, 43] }, listen: 'C3w | A2w | F2w | G2w', bpm: 84 },
+          { type: 'jam', range: { lo: 41, hi: 76 }, bpm: 80, loops: 2, backing: [POP_COMP], backVel: 50, chords: 'C Am F G', scale: NATURALS, showChord: true,
+            prompt: T('Main gauche : la basse sur chaque 1. Main droite : à toi.', 'Left hand: the bass on every 1. Right hand: over to you.'),
+            example: 'C3+E4q G4q A4q G4q | A2+E4h C4h | F2+F4q A4q G4q F4q | G2+D4w | C3+G4q E4q D4q C4q | A2+E4h A4h | F2+A4q G4q F4q E4q | G2+D4w',
+            goals: [
+              { kind: 'bass', x: 0.75, text: T('La bonne basse sur le temps 1 (6 mesures sur 8).', 'The right bass note on beat 1 (6 bars out of 8).') },
+              { kind: 'notes', n: 10, above: 60, text: T('Au moins 10 notes à droite (au-dessus de [C4]).', 'At least 10 notes on the right (from [C4] up).') },
+              { kind: 'scale', x: 0.85, above: 60, text: T('À droite, touches blanches seulement.', 'On the right, white keys only.') },
+            ] },
         ],
       },
     ],

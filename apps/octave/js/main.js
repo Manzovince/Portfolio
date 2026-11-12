@@ -1,19 +1,19 @@
 // Octave — boot, shell (top bar, mode switch, keyboard dock), screen switching.
-import { h, icon, seg, toast, toggle, param } from './ui.js?v=202611121';
-import { setMetro, metroBeat } from './metronome.js?v=202611121';
-import { S, save, on, emit } from './store.js?v=202611121';
-import * as E from './engine.js?v=202611121';
-import { applyAll, seq, seqPlay, seqHasNotes, learnSplit } from './perform.js?v=202611121';
-import { connectMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611121';
-import { createDock, bindComputerKeys, setGuide, applyDock } from './keys.js?v=202611121';
-import { currentGuide, onGuideChange, refreshGuide } from './guide.js?v=202611121';
-import { initLumi } from './lumi.js?v=202611121';
-import { t, noteLabel } from './i18n.js?v=202611121';
-import { renderPlay } from './play.js?v=202611121';
-import { renderLearn } from './learn.js?v=202611121';
-import { renderCreate, soundName } from './create.js?v=202611121';
-import { renderSettings, applyTheme } from './settings.js?v=202611121';
-import { allNotesOff } from './notes.js?v=202611121';
+import { h, icon, seg, toast, toggle, param } from './ui.js?v=202611122';
+import { setMetro, metroBeat } from './metronome.js?v=202611122';
+import { S, save, on, emit } from './store.js?v=202611122';
+import * as E from './engine.js?v=202611122';
+import { applyAll, seq, seqPlay, seqHasNotes, learnSplit } from './perform.js?v=202611122';
+import { connectMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611122';
+import { createDock, bindComputerKeys, setGuide, applyDock } from './keys.js?v=202611122';
+import { currentGuide, onGuideChange, refreshGuide } from './guide.js?v=202611122';
+import { initLumi } from './lumi.js?v=202611122';
+import { t, noteLabel } from './i18n.js?v=202611122';
+import { renderPlay } from './play.js?v=202611122';
+import { renderLearn } from './learn.js?v=202611122';
+import { renderCreate, soundName } from './create.js?v=202611122';
+import { renderSettings, applyTheme } from './settings.js?v=202611122';
+import { allNotesOff } from './notes.js?v=202611122';
 
 const MODES = [['play', 'play', 'modePlay'], ['learn', 'learn', 'modeLearn'], ['create', 'create', 'modeCreate']];
 
@@ -235,4 +235,4 @@ on('tempo', () => E.setFx(S.fx, S.tempo));
 document.addEventListener('visibilitychange', () => { if (document.hidden) allNotesOff(); });
 
 // console handle for testing without a keyboard
-import('./notes.js?v=202611121').then(N => { window.octave = { S, press: N.press, lift: N.lift, emit, applyDock }; });
+import('./notes.js?v=202611122').then(N => { window.octave = { S, press: N.press, lift: N.lift, emit, applyDock }; });
