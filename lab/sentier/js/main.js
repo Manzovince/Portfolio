@@ -347,7 +347,8 @@ function hud(){const SS=sessStats();
     const sp=document.createElement('span');sp.style.cssText='opacity:.55;font-size:8.5px;align-self:center;margin-left:auto';sp.textContent=stockN()+'/'+slots();box.appendChild(sp)}
   document.documentElement.classList.toggle('home',!!G.home);
   const bs=G.boost&&G.boost.t>Date.now()?Math.ceil((G.boost.t-Date.now())/1000):0;
-  $('#why').innerHTML=(bs?`<span style="color:#9ef09a">📣 encouragé +${Math.round((G.boost.k-1)*100)} % · ${bs} s</span> `:'')+(LIVE.why.length?'⚠ '+LIVE.why.join(' · '):'');
+  $('#bSprint').classList.toggle('on',!!LIVE.sprint);$('#bSprint').setAttribute('aria-pressed',!!LIVE.sprint);$('#bSprint').disabled=!!G.rest;{const r=clamp(LIVE.red/RED.safe,0,1),hot=LIVE.red>RED.safe*.5,b=$('#bSprint');b.classList.toggle('hot',hot);b.style.setProperty('--red',Math.round(r*100)+'%');b.firstChild.textContent=hot?'🥵 ':'⚡ '}
+  $('#why').innerHTML=(LIVE.sprint?`<span style="color:#ffb35a">⚡ boost +${Math.round((SPRINT.v-1)*100)} % · eau et énergie ×${fmt(SPRINT.use,1)}</span> `:'')+(bs?`<span style="color:#9ef09a">📣 encouragé +${Math.round((G.boost.k-1)*100)} % · ${bs} s</span> `:'')+(LIVE.why.length?'⚠ '+LIVE.why.join(' · '):'');
   drawProfile();
 }
 // panneau du bivouac : raison de l'arrêt, récupération, bouton Repartir
@@ -454,6 +455,7 @@ document.documentElement.classList.remove('nobag');
  setF(store.get('foodOn',true));$('#foodT').onclick=()=>setF(document.documentElement.classList.contains('nofood'))}
 {const setW=v=>{document.documentElement.classList.toggle('nowatch',!v);const b=$('#wTog');b.title=b.ariaLabel=v?'Masquer la montre':'Afficher la montre';store.set('watchOn',v)};
  setW(store.get('watchOn',true));$('#wTog').onclick=()=>setW(document.documentElement.classList.contains('nowatch'))}
+$('#bSprint').onclick=()=>{if(G.home||G.rest)return;LIVE.sprint=LIVE.sprint?0:1};
 $('#zIn').onclick=()=>setZoom(ZOOM+1);$('#zOut').onclick=()=>setZoom(ZOOM-1);$('#zLbl').textContent=ZOOMS[ZOOM].n;
 $('#mClose').onclick=closeModal;$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
 addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
@@ -785,7 +787,7 @@ function renderAdmin(){
     gauge('◉','Pièces',fmt(Math.floor(G.coins)),[btn('+1 000',()=>addCoins(1000)),btn('+10 000',()=>addCoins(10000))]);
     gauge('✦','Expérience',fmt(Math.floor(G.xp)),[btn('+500',()=>{G.xp+=500}),btn('+5 000',()=>{G.xp+=5000})]);
     const bv=sec('Bivouac',G.rest?`${RESTWHY[G.rest.why][0]} · ${Math.round(G.rest.p*100)} %`:'Le coureur court.');
-    grid(bv,...Object.keys(RESTWHY).map(k=>btn('Arrêt : '+{eau:'eau',energie:'énergie',chaussures:'chaussures'}[k],()=>{if(!G.rest)stopRun(k);else G.rest.why=k},G.rest&&G.rest.why===k)),
+    grid(bv,...Object.keys(RESTWHY).map(k=>btn('Arrêt : '+{eau:'eau',energie:'énergie',chaussures:'chaussures',epuise:'épuisement'}[k],()=>{if(!G.rest)stopRun(k);else G.rest.why=k},G.rest&&G.rest.why===k)),
       btn('Finir le repos',()=>{if(G.rest)G.rest.p=1}),btn('Repartir',()=>{if(G.rest){G.rest.p=1;if(!shoesOk())G.wear=0;restart()}},0,'pri'));
     const cp=sec('Campagne',G.race?`${RACES[G.race.id].n} · ${G.race.st}`:'À l’entraînement.');
     grid(cp,...CAMP.map(id=>btn((G.camp.ok.includes(id)?'✓ ':'')+RACES[id].n,()=>{if(!G.camp.ok.includes(id))G.camp.ok.push(id);else G.camp.ok=G.camp.ok.filter(x=>x!==id)},G.camp.ok.includes(id))));

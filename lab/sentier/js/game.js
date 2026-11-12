@@ -258,14 +258,17 @@ const capL=()=>GEAR[G.gear.bag].cap,slots=()=>GEAR[G.gear.bag].slots;
 const stockN=()=>Object.values(G.stock).reduce((a,b)=>a+b,0);
 
 /* ---------- simulation d'un pas de temps ---------- */
-const LIVE={v:0,hr:62,mode:'run',grade:0,why:[],cad:0,ev:[]};
+const SPRINT={v:1.3,use:2.4,hr:28}; // boost : +30 % de vitesse, eau et énergie ×2,4, +28 bpm
+// zone rouge : au-delà de RED.hr bpm la fatigue s'accumule ; passé RED.safe secondes, le coureur peut s'effondrer d'un coup
+const RED={hr:171,safe:60,span:90,k:.02};
+const LIVE={red:0,sprint:0,v:0,hr:62,mode:'run',grade:0,why:[],cad:0,ev:[]};
 function emit(t1,t2,ic){LIVE.ev.push({t1,t2,ic})}
 function condAt(date,dm){
   const wx=weatherAt(date),alt=elevMacro(dm),T=tempAt(date,alt,wx),e=sunElev(date);
   return{wx,alt,T,night:e<-4,sun:e>8&&WX[wx].cloud<.5};
 }
 // bivouac : pourquoi on s'arrête, combien de minutes il faut pour récupérer ici
-const RESTWHY={eau:['Plus une goutte d’eau','💧'],energie:['Plus d’énergie, plus d’encas','⚡'],chaussures:['Semelles finies, pas de paire de rechange','👟']};
+const RESTWHY={eau:['Plus une goutte d’eau','💧'],energie:['Plus d’énergie, plus d’encas','⚡'],chaussures:['Semelles finies, pas de paire de rechange','👟'],epuise:['Épuisement : trop longtemps dans le rouge','🥵']};
 function restMin(date=now(),dm=G.d){
   const B=GEAR[G.gear.biv]||GEAR.sac,L=leg(dm),c=condAt(date,dm),pen=[];let m=(B.fav&&B.fav.includes(L.b)?B.fr:B.rest)*(1-.12*lvl('recup'));
   if(WX[c.wx].rain&&!B.rain){m*=1.6;pen.push('pluie')}
@@ -295,6 +298,7 @@ function restart(){
   emit('C’est reparti !',B.meal?'Le gardien t’a refait ton sac d’encas':'Bidons pleins, jambes neuves','🏃');return true;
 }
 function step(dt,date){
+  if(G.home||G.rest){LIVE.sprint=0;LIVE.red=0;LIVE.redW=0}
   if(G.home){G.water=capL();G.energy=100;LIVE.hr=lerp(LIVE.hr,58,1-Math.exp(-dt/30));Object.assign(LIVE,{v:0,mode:'home',grade:0,why:[],c:condAt(date,G.d),cad:0});return}
   if(G.rest)return restStep(dt,date);
   const s0=G.d,L=leg(s0),B=BI[L.b],c=condAt(date,s0),gr=gradeAt(s0);
@@ -315,6 +319,8 @@ function step(dt,date){
   const ey=G.gear.eyes&&GEAR[G.gear.eyes];
   if(ey){if(ey.snow&&(L.b==='sommet'||L.b==='glacier'))k*=ey.snow;if(ey.sun&&c.sun)k*=ey.sun;if(ey.hot&&['desert','canyon','savane'].includes(L.b))k*=ey.hot}
   if(G.boost&&G.boost.t>Date.now())k*=G.boost.k;
+  // boost manuel : plus vite, mais le cardio grimpe et les réserves fondent
+  const SP=LIVE.sprint?1:0;if(SP)k*=SPRINT.v;
   const CP=comp();if(CP.spd)k*=CP.spd;if(CP.up&&gr>.02)k*=CP.up;
   const sty=GEAR[G.gear.style]||{};if(sty.nightS&&c.night)k*=sty.nightS;if(sty.up&&gr>.02)k*=sty.up;if(sty.down&&gr<-.02)k*=sty.down;if(sty.flat&&Math.abs(gr)<=.02)k*=sty.flat;if(Math.abs(gr)<=.03)k*=1+.05*lvl('seuil');
   const mt=Math.min(1,.25*lvl('mental'));if(G.water<=0){k*=lerp(.62,1,mt);why.push('déshydraté')}
@@ -324,9 +330,10 @@ function step(dt,date){
   // consommation
   const hot=c.T>24||c.wx==='chaleur';
   let wr=.48*eff*(hot?1.5:1)*(1+B.heat*.5)*top.water*(hot&&c.sun&&hd&&hd.heat?hd.heat:1)*(1-.06*lvl('thermo'))*((G.comp&&COMP[G.comp].water)||1)*(c.wx==='chaleur'&&G.gear.top==='doudoune'?1.2:1);
+  if(SP)wr*=SPRINT.use;
   G.water=Math.max(0,G.water-wr*dt/3600);
   if(G.water<=0&&G.flask>0){G.flask--;G.water=Math.min(capL(),FLASK.l);emit('Gourde de secours','+'+fmt(FLASK.l,1)+' L · encore '+G.flask+' dans le sac','🧴')}
-  G.energy=Math.max(0,G.energy-27*eff*(1-.06*lvl('endu'))*((GEAR[G.gear.style]||{}).endu||1)*dt/3600);
+  G.energy=Math.max(0,G.energy-27*(SP?SPRINT.use:1)*eff*(1-.06*lvl('endu'))*((GEAR[G.gear.style]||{}).endu||1)*dt/3600);
   if(G.energy<G.auto.eat)autoEat();
   // déplacement
   const s1=s0+v*dt,de=elevMacro(s1)-elevMacro(s0);
@@ -352,8 +359,11 @@ function step(dt,date){
   // fréquence cardiaque et cadence (affichage)
   const inten=mode==='hike'?.72+Math.max(0,gr-.14)*.6:gr>0?.68+gr*1.6:Math.max(.55,.68+gr*.8);
   const hrT=58+122*clamp(inten,0,1)+(hot?6:0)+(G.water<=0?10:0)+(c.alt>2200?5:0)-(G.energy<=0?12:0);
-  LIVE.hr=lerp(LIVE.hr,hrT,1-Math.exp(-dt/20));
-  Object.assign(LIVE,{v,mode,grade:gr,why,c,cad:mode==='hike'?108+Math.round(gr*40):168+Math.round(v*2)});
+  LIVE.hr=lerp(LIVE.hr,SP?Math.min(194,hrT+SPRINT.hr):hrT,1-Math.exp(-dt/(SP?8:20)));
+  if(LIVE.hr>=RED.hr)LIVE.red+=dt;else LIVE.red=Math.max(0,LIVE.red-dt);
+  if(LIVE.red>RED.safe*.5){why.push('dans le rouge');if(!LIVE.redW&&!LIVE.off){LIVE.redW=1;emit('Cœur dans le rouge','Lève le pied, sinon c’est l’épuisement.','🥵')}}else if(LIVE.red<5)LIVE.redW=0;
+  if(LIVE.red>RED.safe&&!LIVE.off&&!G.rest&&Math.random()<1-Math.exp(-dt*RED.k*((LIVE.red-RED.safe)/RED.span)**2)){LIVE.sprint=0;LIVE.red=0;LIVE.redW=0;stopRun('epuise');if(G.rest)Object.assign(LIVE,{v:0,mode:'rest'});return}
+  Object.assign(LIVE,{v,mode,grade:gr,why,c,cad:(mode==='hike'?108+Math.round(gr*40):168+Math.round(v*2))+(SP?8:0)});
 }
 function addCoins(n){n=Math.round(n*100)/100;G.coins+=n;G.tot+=n}
 function autoEat(){
@@ -394,10 +404,11 @@ function checkQuests(){
 }
 // rattrapage quand l'onglet était fermé (plafonné)
 function catchUp(sec){
+  LIVE.sprint=0;LIVE.red=0;LIVE.off=1;
   const cap=(4+lvl('bivouac')+((G.comp&&COMP[G.comp].biv)||0))*3600,run=Math.min(sec,cap),d0=G.d,dp0=G.dp,c0=G.tot,start=Date.now()-sec*1000;
   const evs=LIVE.ev.length;
   for(let t=0;t<run;t+=5)step(Math.min(5,run-t),new Date(start+t*1000));
-  LIVE.ev.length=evs;
+  LIVE.ev.length=evs;LIVE.off=0;LIVE.red=0;
   checkQuests();
   return{sec:run,capped:sec>cap,km:(G.d-d0)/1000,dp:G.dp-dp0,coins:G.tot-c0};
 }
