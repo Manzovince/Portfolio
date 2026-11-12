@@ -9,9 +9,9 @@
 //          changes the sound when the step opens, `patch` replaces it.
 //   match  copy a target sound: the same controls, a target to listen to
 //   quiz   with `sounds: [a, b]`, the question is heard (A then B)
-import { initPatch, initOp } from './dx7.js?v=202611125';
-import { S } from './store.js?v=202611125';
-import { seq } from './perform.js?v=202611125';
+import { initPatch, initOp } from './dx7.js?v=202611126';
+import { S } from './store.js?v=202611126';
+import { seq } from './perform.js?v=202611126';
 const S_FX = () => S.fx; // the workshop's effects, during a lesson
 
 const T = (fr, en) => ({ fr, en });

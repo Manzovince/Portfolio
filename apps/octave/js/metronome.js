@@ -1,7 +1,7 @@
 // Metronome on the shared tempo: clicks scheduled ahead on the audio clock,
 // and the beat being heard, for the dots in the top bar.
-import * as E from './engine.js?v=202611125';
-import { S, save, emit, on } from './store.js?v=202611125';
+import * as E from './engine.js?v=202611126';
+import { S, save, emit, on } from './store.js?v=202611126';
 
 const LOOK = 0.12;
 const m = { next: 0, beat: 0, marks: [] };
