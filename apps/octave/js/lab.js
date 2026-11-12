@@ -1,13 +1,13 @@
 // The sound-design workshop: while a "Créer des sons" lesson is open, part A
 // plays a workshop patch instead of the player's own sound. Nothing of it is
 // saved over the player's settings; "keep" stores it in Mes sons.
-import { h, param, seg } from './ui.js?v=202611135';
-import { S, banks, saveBanks, save, setSaveView } from './store.js?v=202611135';
-import { clonePatch } from './dx7.js?v=202611135';
-import { applyPart, setLabSound, arpClear, seq, seqPlay } from './perform.js?v=202611135';
-import { subscribe } from './notes.js?v=202611135';
-import * as E from './engine.js?v=202611135';
-import { t } from './i18n.js?v=202611135';
+import { h, param, seg } from './ui.js?v=202611121';
+import { S, banks, saveBanks, save, setSaveView } from './store.js?v=202611121';
+import { clonePatch } from './dx7.js?v=202611121';
+import { applyPart, setLabSound, arpClear, seq, seqPlay } from './perform.js?v=202611121';
+import { subscribe } from './notes.js?v=202611121';
+import * as E from './engine.js?v=202611121';
+import { t } from './i18n.js?v=202611121';
 
 let active = null; // { orig, split, arp, patch }
 const macros = () => ({ bright: 0, attack: 0, release: 0, vibrato: 0 });
@@ -119,7 +119,8 @@ export async function playWith(patch, run) {
 // key is a path: "fb", "alg", "op2.ol", "op1.r.0", "lfo.pmd", "pitchEnv.l.3",
 // "fx.reverb.mix" (the workshop's effects), or several joined by "&" that
 // move together ("op1.r.1&op1.r.2"). Shown values: inverted ones read as a
-// duration, `scale` and `offset` map the stored value to the shown one.
+// duration, `scale` and `offset` map the stored value to the shown one. A
+// choice (`options`) may also `apply(patch, value)` to rebuild the sound.
 const LIMITS = { ol: 99, coarse: 31, fine: 99, det: 14, vel: 7, rs: 7, ams: 3, fb: 7, alg: 32, r: 99, l: 99, pmd: 99, amd: 99, speed: 99, delay: 99, pms: 7, rd: 99, ld: 99, bp: 99 };
 function access(p, path) {
   const parts = path.split('.');
@@ -144,7 +145,7 @@ const rawOf = (c, v) => (c.invert ? keyMax(c.key) - v : v / (c.scale ?? 1) + off
 export function controlEl(c, getPatch, onChange) {
   if (c.options) {
     return h('div', { class: 'lab-choice' }, h('span', { class: 'lab' }, c.label),
-      seg({ options: c.options.map(([v, l]) => [v, l]), get: () => readKey(getPatch(), c.key), set: v => { writeKey(getPatch(), c.key, v); onChange(); } }));
+      seg({ options: c.options.map(([v, l]) => [v, l]), get: () => readKey(getPatch(), c.key), set: v => { writeKey(getPatch(), c.key, v); c.apply?.(getPatch(), v); onChange(); } }));
   }
   const bi = c.key.endsWith('.det') || c.bipolar;
   const lo = c.min ?? (bi ? -7 : 0);

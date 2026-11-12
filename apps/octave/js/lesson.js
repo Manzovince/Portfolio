@@ -1,29 +1,29 @@
 // Learn › Course: the course map, and the lesson player that runs each step
 // (see course.js for the step types). Progress lives in coach.js.
-import { h, icon, seg, toast } from './ui.js?v=202611135';
-import { S, save } from './store.js?v=202611135';
-import { t, spelled, lang, scaleName } from './i18n.js?v=202611135';
-import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611135';
-import { setOverride, setSide } from './keys.js?v=202611135';
-import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611135';
-import { mountFall } from './fall.js?v=202611135';
-import { spelledOctave } from './theory.js?v=202611135';
-import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611135';
+import { h, icon, seg, toast } from './ui.js?v=202611121';
+import { S, save } from './store.js?v=202611121';
+import { t, spelled, lang, scaleName } from './i18n.js?v=202611121';
+import { subscribe, soundingNotes, setPedal } from './notes.js?v=202611121';
+import { setOverride, setSide } from './keys.js?v=202611121';
+import { drawLessonLine, drawSingleNote, mountStaff } from './score.js?v=202611121';
+import { mountFall } from './fall.js?v=202611121';
+import { spelledOctave } from './theory.js?v=202611121';
+import { setPracticing, setPracticeConfig, practiceState, onPracticeChange, readingRange } from './practice.js?v=202611121';
 import {
   openSongData, closeSong, playSong, pauseSong, isSongPlaying, seekSong, setSongPart, setSongSpeed, setSongFollow,
   onSongChange, onSongEnd, songTally, onSongTally, resetTally, songClock, currentSong, isWaitingForPlayer,
-} from './song.js?v=202611135';
-import * as E from './engine.js?v=202611135';
+} from './song.js?v=202611121';
+import * as E from './engine.js?v=202611121';
 import {
   P, PASS, LESSONS, COURSE, TRACKS, lessonsOf, lessonById, starsOf, isOpen, nextLesson, recordLesson, saveCoach, resetCoach,
   parse, notesOf, lengthOf, pitch, setCoachGuide, demo, hear, clicks, latency, isPlayer, median, audioOf,
-} from './coach.js?v=202611135';
+} from './coach.js?v=202611121';
 
-import { startLab, endLab, labOn, labPatch, labState, setLabFx, setLabArp, setLabSeq, setLabPatch, labChanged, keepLab, playWith, labViews, controlEl, readKey, shown } from './lab.js?v=202611135';
-import { envCanvas, mountArp, mountSeq } from './create.js?v=202611135';
-import { createGraph } from './graph.js?v=202611135';
-import { clonePatch } from './dx7.js?v=202611135';
-import { applyPart } from './perform.js?v=202611135';
+import { startLab, endLab, labOn, labPatch, labState, setLabFx, setLabArp, setLabSeq, setLabPatch, labChanged, keepLab, playWith, labViews, controlEl, readKey, shown } from './lab.js?v=202611121';
+import { envCanvas, mountArp, mountSeq } from './create.js?v=202611121';
+import { createGraph } from './graph.js?v=202611121';
+import { clonePatch } from './dx7.js?v=202611121';
+import { applyPart } from './perform.js?v=202611121';
 // ── text ───────────────────────────────────────────────────────
 const tx = v => (v && typeof v === 'object' ? v[lang()] ?? v.en : v ?? '');
 function noteText(tok) {
@@ -330,9 +330,12 @@ function runQuiz(step, api) {
         await playWith(r.sounds[k], () => demo(parse(r.plays?.[k] || r.play || 'C4h'), r.bpm || 90, { light: false }));
       };
       const both = async () => { const me = ++token; await one(0, me); await new Promise(res => setTimeout(res, 250)); await one(1, me); if (me === token) abBtns.forEach(b => b.classList.remove('on')); };
-      const abBtns = ['A', 'B'].map((x, k) => h('button', { type: 'button', class: 'btn ghost ab', onclick: async () => { const me = ++token; await one(k, me); abBtns[k].classList.remove('on'); } }, icon('start'), x));
-      card.append(h('div', { class: 'row center-row' }, h('button', { type: 'button', class: 'btn ghost listen', onclick: both }, icon('start'), t('labBoth')), ...abBtns));
-      setTimeout(() => card.isConnected && rounds[i] === r && both(), 300);
+      // one sound: a single listen button
+      const solo = r.sounds.length === 1;
+      const abBtns = solo ? [] : ['A', 'B'].map((x, k) => h('button', { type: 'button', class: 'btn ghost ab', onclick: async () => { const me = ++token; await one(k, me); abBtns[k].classList.remove('on'); } }, icon('start'), x));
+      const playAll = solo ? () => one(0, ++token) : both;
+      card.append(h('div', { class: 'row center-row' }, h('button', { type: 'button', class: 'btn ghost listen', onclick: playAll }, icon('start'), t(solo ? 'cListenAgain' : 'labBoth')), ...abBtns));
+      setTimeout(() => card.isConnected && rounds[i] === r && playAll(), 300);
     }
     // a round can be heard (r.play), never seen
     if (r.play && !r.sounds) {

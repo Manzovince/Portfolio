@@ -9,9 +9,9 @@
 //          changes the sound when the step opens, `patch` replaces it.
 //   match  copy a target sound: the same controls, a target to listen to
 //   quiz   with `sounds: [a, b]`, the question is heard (A then B)
-import { initPatch, initOp } from './dx7.js?v=202611135';
-import { S } from './store.js?v=202611135';
-import { seq } from './perform.js?v=202611135';
+import { initPatch, initOp } from './dx7.js?v=202611121';
+import { S } from './store.js?v=202611121';
+import { seq } from './perform.js?v=202611121';
 const S_FX = () => S.fx; // the workshop's effects, during a lesson
 
 const T = (fr, en) => ({ fr, en });
@@ -69,6 +69,30 @@ const MARIMBA = () => sound('Mon marimba', 5, [{ ol: 99, r: [99, 99, 99, 72], l:
 const BRASS = () => { const p = sound('Mes cuivres', 2, [{ ol: 99, r: [80, 60, 60, 60], l: [99, 92, 90, 0] }, { ol: 82, r: [99, 99, 99, 60], l: [99, 99, 99, 0] }], 4); Object.assign(p.lfo, { wave: 4, speed: 36, delay: 0, pmd: 0, amd: 0, pms: 3, sync: 0 }); return p; };
 const ROCK = () => { const p = sound('Mon orgue rock', 32, [{ ol: 0, coarse: 0 }, { ol: 99, coarse: 1 }, { ol: 0, coarse: 2 }, { ol: 0, coarse: 3 }, { ol: 0, coarse: 4 }, { ol: 0, coarse: 3, r: [99, 99, 99, 72], l: [99, 99, 99, 0] }]); Object.assign(p.lfo, { wave: 4, speed: 30, delay: 0, pmd: 0, amd: 0, pms: 1, sync: 0 }); return p; };
 const LEAD = () => { const p = sound('Mon lead', 2, [{ ol: 99 }, { ol: 40 }]); Object.assign(p.lfo, { wave: 4, speed: 38, delay: 0, pmd: 0, amd: 0, pms: 3, sync: 0 }); return p; };
+// waveforms. Each step of operator level is about 0.75 dB, so a harmonic n
+// times weaker sits 20·log10(n) / 0.75 steps lower. The operators all start
+// at phase 0 (key sync), which lines the harmonics up as the shapes need.
+const ADD = (name, ratios, levels) => sound(name, 32, ratios.map((coarse, i) => ({ coarse, ol: levels[i] })));
+const ALL = [1, 2, 3, 4, 5, 6], ODD = [1, 3, 5, 7, 9, 11];
+const SAW_L = [99, 91, 86, 83, 80, 78];           // 1/n
+const SQUARE_L = [99, 86, 80, 76, 74, 71];        // 1/n, odd only
+const TRIANGLE_L = [99, 74, 62, 54, 48, 44];      // 1/n², odd only
+const WAVES = {
+  sine: () => ADD('Sinus', ALL, [99, 0, 0, 0, 0, 0]),
+  triangle: () => ADD('Triangle', ODD, TRIANGLE_L),
+  square: () => ADD('Carré', ODD, SQUARE_L),
+  saw: () => ADD('Scie', ALL, SAW_L),
+};
+const WAVE_NAMES = [['sine', T('Sinus', 'Sine')], ['triangle', T('Triangle', 'Triangle')], ['square', T('Carré', 'Square')], ['saw', T('Scie', 'Saw')]];
+// the picker: rebuilds the workshop sound as the chosen wave
+const PICK = C('name', T('Forme d’onde', 'Waveform'), {
+  options: WAVE_NAMES.map(([k, l]) => [WAVES[k]().name, l]),
+  apply: (p, name) => { const k = Object.keys(WAVES).find(w => WAVES[w]().name === name); Object.assign(p, WAVES[k]()); },
+});
+const ODD_H = n => C(`op${n}.ol`, T('Harmonique ' + ODD[n - 1], 'Harmonic ' + ODD[n - 1]));
+const near = (p, levels, tol) => levels.every((l, i) => i === 0 || Math.abs(p.ops[i].ol - l) <= tol);
+// a single operator feeding back on itself (alg 32: the loop is on op6, a carrier)
+const FB_SAW = (fb = 0) => sound('Scie feedback', 32, [{}, {}, {}, {}, {}, { ol: 99 }], fb);
 const copyOp = (p, from, to) => Object.assign(p.ops[to], JSON.parse(JSON.stringify(p.ops[from])));
 
 // arpeggios and sequences
@@ -309,6 +333,114 @@ export const SOUND_COURSE = [
           { type: 'match', views: ['spectrum', 'scope'], controls: [RATIO, MOD], tol: 12, play: 'C4w',
             text: T('Retrouve le rapport et la modulation de la cible.', 'Find the target’s ratio and modulation.'),
             target: p => { p.ops[1].coarse = 2; p.ops[1].ol = 84; } },
+        ],
+      },
+    ],
+  },
+
+  // ═══ Unit: waveforms ══════════════════════════════════════════
+  {
+    id: 'suf',
+    title: T('Les formes d’onde', 'Waveforms'),
+    blurb: T('Sinus, triangle, carré, scie : les fabriquer avec des harmoniques, puis avec la FM.', 'Sine, triangle, square, saw: build them from harmonics, then with FM.'),
+    lessons: [
+      {
+        id: 'f1',
+        title: T('Les quatre formes', 'The four shapes'),
+        goal: T('Voir et entendre les formes d’onde classiques.', 'See and hear the classic waveforms.'),
+        lab: WAVES.sine, keep: 'Forme',
+        steps: [
+          { type: 'info', title: T('Pas de bouton « forme d’onde »', 'No “waveform” button'),
+            text: T('Sur un synthé analogique, on choisit une **forme d’onde** : sinus, triangle, carré ou scie. Ici, chaque opérateur ne joue qu’une sinusoïde, c’est tout.\nMais chaque forme n’est qu’une **recette d’harmoniques** : lesquelles, et à quel niveau. Avec les opérateurs et l’**algorithme**, on peut donc les fabriquer toutes.\nTrois façons de faire :\n**En empilant** : un opérateur par harmonique, tous entendus (côte à côte).\n**En FM** : un modulateur crée les harmoniques d’un coup.\n**Avec le feedback** : un opérateur qui se module lui-même.',
+              'On an analogue synth you pick a **waveform**: sine, triangle, square or saw. Here, each operator plays only a sine wave, that’s all.\nBut each shape is just a **recipe of harmonics**: which ones, and how loud. With the operators and the **algorithm**, you can build them all.\nThree ways to do it:\n**By stacking**: one operator per harmonic, all heard (side by side).\n**With FM**: a modulator makes the harmonics in one go.\n**With feedback**: an operator modulating itself.') },
+          { type: 'synth', views: ['scope', 'spectrum'], controls: [PICK], play: 'C3w',
+            text: T('Ces quatre sons sont fabriqués en empilant six sinusoïdes. Tiens une note grave et passe d’une forme à l’autre : regarde la forme **et** le spectre.', 'These four sounds are made by stacking six sine waves. Hold a low note and switch shapes: watch the shape **and** the spectrum.'),
+            goals: [
+              { text: T('**Triangle** : seulement les harmoniques impaires (1, 3, 5…), très faibles. Doux, presque une flûte.', '**Triangle**: odd harmonics only (1, 3, 5…), very faint. Soft, almost a flute.'), check: (p, played, seen) => seen.has('name=Triangle') && played.size > 0 },
+              { text: T('**Carré** : les mêmes harmoniques impaires, mais bien plus fortes. Creux, comme une clarinette.', '**Square**: the same odd harmonics, but much louder. Hollow, like a clarinet.'), check: (p, played, seen) => seen.has('name=Carré') },
+              { text: T('**Scie** : **toutes** les harmoniques. Le plus brillant, la base des cordes et des cuivres de synthé.', '**Saw**: **every** harmonic. The brightest, the root of synth strings and brass.'), check: (p, played, seen) => seen.has('name=Scie') },
+            ] },
+          { type: 'quiz', rounds: [
+            { q: T('Lequel est la scie ?', 'Which is the saw?'), sounds: [WAVES.square(), WAVES.saw()], play: 'C3h', options: ['A', 'B'], answer: 1, explain: T('Le carré n’a pas les harmoniques paires : il sonne plus creux.', 'The square lacks the even harmonics: it sounds hollower.') },
+            { q: T('Lequel est le triangle ?', 'Which is the triangle?'), sounds: [WAVES.triangle(), WAVES.square()], play: 'C4h', options: ['A', 'B'], answer: 0, explain: T('Mêmes harmoniques, mais celles du triangle sont bien plus faibles.', 'Same harmonics, but the triangle’s are much fainter.') },
+          ] },
+        ],
+      },
+      {
+        id: 'f2',
+        title: T('Fabriquer la scie', 'Building the saw'),
+        goal: T('Doser les harmoniques une à une pour obtenir une scie.', 'Set the harmonics one by one to get a saw.'),
+        lab: WAVES.sine, keep: 'Ma scie',
+        steps: [
+          { type: 'info', title: T('La recette de la scie', 'The saw recipe'),
+            text: T('La scie contient **toutes** les harmoniques, et l’harmonique n est **n fois plus faible** que la note : la 2 deux fois, la 3 trois fois…\nL’algorithme **côte à côte** (32) fait entendre les six opérateurs. On règle chacun sur une harmonique (rapport 1, 2, 3… 6), puis on dose son niveau.\nLe niveau d’un opérateur se compte en crans d’environ 0,75 dB : **deux fois plus faible, c’est 8 crans de moins**.',
+              'The saw holds **every** harmonic, and harmonic n is **n times weaker** than the note: 2 twice, 3 three times…\nThe **side by side** algorithm (32) lets all six operators be heard. Each is set on one harmonic (ratio 1, 2, 3… 6), then its level is set.\nAn operator’s level counts in steps of about 0.75 dB: **twice as weak is 8 steps less**.') },
+          { type: 'synth', graph: true, views: ['spectrum', 'scope'], controls: [HARM(2), HARM(3), HARM(4), HARM(5), HARM(6)], play: 'C3w',
+            text: T('Tiens une note grave et monte les harmoniques à leur niveau.', 'Hold a low note and bring the harmonics to their level.'),
+            goals: [
+              { text: T('L’harmonique 2 deux fois plus faible : vers **91**.', 'Harmonic 2 twice as weak: about **91**.'), check: p => Math.abs(p.ops[1].ol - 91) <= 4 },
+              { text: T('Les suivantes un peu plus bas à chaque fois : 3 vers **86**, 4 vers **83**, 5 vers **80**, 6 vers **78**.', 'The next ones a little lower each time: 3 about **86**, 4 about **83**, 5 about **80**, 6 about **78**.'), check: p => near(p, SAW_L, 4) },
+            ] },
+          { type: 'info', title: T('Presque une scie', 'Almost a saw'),
+            text: T('Sur l’oscilloscope, une rampe qui monte puis retombe d’un coup, avec de petites vagues : il manque les harmoniques 7, 8, 9… qu’il faudrait d’autres opérateurs pour ajouter.\nC’est la limite de l’empilement : **un opérateur par harmonique**. La FM, plus loin, fait mieux avec deux.',
+              'On the oscilloscope, a ramp that rises then drops at once, with little ripples: harmonics 7, 8, 9… are missing, and they would need more operators.\nThat is the limit of stacking: **one operator per harmonic**. FM, later on, does better with two.') },
+        ],
+      },
+      {
+        id: 'f3',
+        title: T('Le carré et le triangle', 'Square and triangle'),
+        goal: T('Les harmoniques impaires, fortes ou faibles.', 'The odd harmonics, loud or faint.'),
+        lab: () => ADD('Impaires', ODD, [99, 0, 0, 0, 0, 0]), keep: 'Mon carré',
+        steps: [
+          { type: 'synth', graph: true, views: ['spectrum', 'scope'], controls: [ODD_H(2), ODD_H(3), ODD_H(4), ODD_H(5), ODD_H(6)], play: 'C3w',
+            text: T('Les opérateurs sont réglés sur les harmoniques **impaires** : 1, 3, 5, 7, 9, 11. Le **carré**, c’est elles seules, chacune n fois plus faible, comme pour la scie.', 'The operators are set on the **odd** harmonics: 1, 3, 5, 7, 9, 11. The **square** is them alone, each n times weaker, as for the saw.'),
+            goals: [
+              { text: T('Harmonique 3 vers **86** (trois fois plus faible), 5 vers **80**.', 'Harmonic 3 about **86** (three times weaker), 5 about **80**.'), check: p => Math.abs(p.ops[1].ol - 86) <= 4 && Math.abs(p.ops[2].ol - 80) <= 4 },
+              { text: T('Puis 7 vers **76**, 9 vers **74**, 11 vers **71** : l’onde prend la forme d’un créneau.', 'Then 7 about **76**, 9 about **74**, 11 about **71**: the wave turns into a battlement.'), check: p => near(p, SQUARE_L, 4) },
+            ] },
+          { type: 'synth', graph: true, views: ['spectrum', 'scope'], controls: [ODD_H(2), ODD_H(3), ODD_H(4), ODD_H(5), ODD_H(6)], play: 'C3w', patch: () => ADD('Mon triangle', ODD, SQUARE_L),
+            text: T('Le **triangle** a les mêmes harmoniques, mais elles chutent bien plus vite : la n-ième est **n × n** fois plus faible (9 fois pour la 3, 25 fois pour la 5). Pars du carré et baisse-les.', 'The **triangle** has the same harmonics, but they fall much faster: the nth is **n × n** times weaker (9 times for 3, 25 times for 5). Start from the square and lower them.'),
+            goals: [
+              { text: T('Harmonique 3 vers **74**, 5 vers **62**.', 'Harmonic 3 about **74**, 5 about **62**.'), check: p => Math.abs(p.ops[1].ol - 74) <= 5 && Math.abs(p.ops[2].ol - 62) <= 5 },
+              { text: T('7 vers **54**, 9 vers **48**, 11 vers **44**. Le son devient doux, presque une sinusoïde.', '7 about **54**, 9 about **48**, 11 about **44**. The sound turns soft, almost a sine.'), check: p => near(p, TRIANGLE_L, 5) },
+            ] },
+          { type: 'info', title: T('Un triangle un peu bossu', 'A slightly humped triangle'),
+            text: T('À l’écran, ton triangle ressemble plutôt à une vague bossue. Un vrai triangle demande de **retourner** une harmonique sur deux (la 3, la 7, la 11…), ce que les opérateurs ne savent pas faire : ils démarrent tous dans le même sens.\nL’oreille, elle, n’entend pas ce retournement : seul compte le niveau de chaque harmonique. **Ça sonne comme un triangle.**',
+              'On screen, your triangle looks more like a humped wave. A true triangle needs every other harmonic **flipped** (3, 7, 11…), which operators can’t do: they all start the same way.\nThe ear can’t hear that flip: only each harmonic’s level counts. **It sounds like a triangle.**') },
+        ],
+      },
+      {
+        id: 'f4',
+        title: T('Les formes en FM', 'Shapes with FM'),
+        goal: T('Une scie ou un carré avec deux opérateurs, ou un seul.', 'A saw or a square with two operators, or just one.'),
+        lab: () => FM(0), keep: 'Forme FM',
+        steps: [
+          { type: 'info', title: T('Deux opérateurs au lieu de six', 'Two operators instead of six'),
+            text: T('L’algorithme change tout : au lieu de mettre les opérateurs **côte à côte**, on en branche un **sur** l’autre.\n**Rapport 1** : le modulateur crée toutes les harmoniques, comme une **scie**.\n**Rapport 2** : seulement les impaires, comme un **carré**.\nLa **modulation** décide jusqu’où montent les harmoniques. Ce n’est pas exactement la recette « n fois plus faible », mais à l’oreille on s’en approche, avec deux opérateurs seulement.',
+              'The algorithm changes everything: instead of putting operators **side by side**, you plug one **into** the other.\n**Ratio 1**: the modulator makes every harmonic, like a **saw**.\n**Ratio 2**: odd ones only, like a **square**.\nThe **modulation** decides how high the harmonics reach. It isn’t exactly the “n times weaker” recipe, but to the ear it comes close, with only two operators.') },
+          { type: 'synth', graph: true, views: ['spectrum', 'scope'], controls: [RATIO, MOD], play: 'C3w',
+            goals: [
+              { text: T('Une **scie** : rapport 1, modulation entre 70 et 85.', 'A **saw**: ratio 1, modulation between 70 and 85.'), check: (p, played) => p.ops[1].coarse === 1 && p.ops[1].ol >= 70 && p.ops[1].ol <= 85 && played.size > 0 },
+              { text: T('Un **carré** : rapport 2, modulation entre 70 et 85. Les harmoniques paires disparaissent.', 'A **square**: ratio 2, modulation between 70 and 85. The even harmonics go.'), check: p => p.ops[1].coarse === 2 && p.ops[1].ol >= 70 && p.ops[1].ol <= 85 },
+            ] },
+          { type: 'synth', graph: true, views: ['spectrum', 'scope'], controls: [FB], play: 'C3w', patch: () => FB_SAW(0),
+            text: T('Encore plus économe : **un seul opérateur**, avec la boucle de **feedback** du schéma. Il se module lui-même et son onde penche en dents de scie.', 'Even thriftier: **one operator**, with the diagram’s **feedback** loop. It modulates itself and its wave leans into a saw.'),
+            goals: [
+              { text: T('Monte le feedback à 6 : une scie, avec un seul opérateur. À 7, elle se déforme déjà vers le bruit.', 'Raise feedback to 6: a saw, from one operator. At 7 it already bends towards noise.'), check: p => p.fb === 6 },
+            ] },
+        ],
+      },
+      {
+        id: 'f5',
+        title: T('Bilan formes d’onde', 'Waveforms check-point'),
+        goal: T('Reconnaître une forme à l’oreille, puis la refaire en FM.', 'Recognise a shape by ear, then rebuild it with FM.'),
+        lab: () => FM(0), keep: 'Carré FM',
+        steps: [
+          { type: 'quiz', rounds: () => ['saw', 'square', 'triangle'].sort(() => Math.random() - 0.5).map(k => (
+            { q: T('Quelle forme d’onde ?', 'Which waveform?'), sounds: [WAVES[k]()], play: 'C3h', options: WAVE_NAMES.slice(1).map(([, l]) => l), answer: ['triangle', 'square', 'saw'].indexOf(k) })) },
+          { type: 'match', graph: true, views: ['spectrum', 'scope'], controls: [RATIO, MOD], tol: 10, play: 'C3w',
+            text: T('Écoute la cible, une forme faite en FM, et retrouve-la.', 'Listen to the target, a shape made with FM, and find it.'),
+            target: p => { p.ops[1].coarse = 2; p.ops[1].ol = 78; } },
         ],
       },
     ],
