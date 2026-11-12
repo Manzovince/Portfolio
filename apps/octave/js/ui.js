@@ -176,6 +176,8 @@ export function icon(name) {
     trash: '<path d="M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13" fill="none"/>',
     close: '<path d="M6 6l12 12M18 6 6 18" fill="none"/>',
     back: '<path d="M14 6l-6 6 6 6" fill="none"/>',
+    fold: '<path d="M6 9l6 6 6-6" fill="none"/>',
+    unfold: '<path d="M6 15l6-6 6 6" fill="none"/>',
     restart: '<path d="M5 12a7 7 0 1 0 2-5" fill="none"/><path d="M5 4v4h4" fill="none"/>',
     pause: '<rect x="6.5" y="5" width="3.5" height="14" rx="1"/><rect x="14" y="5" width="3.5" height="14" rx="1"/>',
     score: '<path d="M3 7h18M3 11h18M3 15h18" fill="none" opacity=".55"/><path d="M14 17V6l5-1.5" fill="none"/><circle cx="12" cy="17" r="2.3"/>',

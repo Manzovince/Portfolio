@@ -1,15 +1,15 @@
 // Create screen (from Phase): Sounds (piano + FM banks, .syx import/export),
 // Edit (six-operator FM editor with the animated graph), Arp, Seq, Effects.
-import { h, param, knob, seg, toggle, toast, icon } from './ui.js?v=202611123';
-import { S, banks, save, saveBanks, emit, pianoPart } from './store.js?v=202611123';
-import { FACTORY, CATEGORIES } from './presets.js?v=202611123';
-import { clonePatch, parseSyx, buildSyx } from './dx7.js?v=202611123';
-import { createGraph, ratioText } from './graph.js?v=202611123';
-import * as E from './engine.js?v=202611123';
-import { PIANO_SOUNDS } from './engine.js?v=202611123';
-import { applyPart, seq, seqPlay, seqRest, seqPosition, arpClear } from './perform.js?v=202611123';
-import { ALGORITHMS } from './algorithms.js?v=202611123';
-import { t, noteLabel } from './i18n.js?v=202611123';
+import { h, param, knob, seg, toggle, toast, icon } from './ui.js?v=202611124';
+import { S, banks, save, saveBanks, emit, pianoPart } from './store.js?v=202611124';
+import { FACTORY, CATEGORIES } from './presets.js?v=202611124';
+import { clonePatch, parseSyx, buildSyx } from './dx7.js?v=202611124';
+import { createGraph, ratioText } from './graph.js?v=202611124';
+import * as E from './engine.js?v=202611124';
+import { PIANO_SOUNDS } from './engine.js?v=202611124';
+import { applyPart, seq, seqPlay, seqRest, seqPosition, arpClear } from './perform.js?v=202611124';
+import { ALGORITHMS } from './algorithms.js?v=202611124';
+import { t, noteLabel } from './i18n.js?v=202611124';
 
 let CTX = null;
 const sub = (evt, fn) => CTX.sub(evt, fn);
@@ -219,9 +219,16 @@ export function envCanvas(getRL) {
 }
 
 function rlGrid(obj, onChange, labels) {
+  // one row per kind (rates, levels), its name once at the start; the four
+  // stages are numbered, so the values stay readable on a phone
   const grid = h('div', { class: 'rl' });
   for (const [key, lab] of [['r', labels[0]], ['l', labels[1]]]) {
-    for (let i = 0; i < 4; i++) grid.append(param({ label: lab + ' ' + (i + 1), min: 0, max: 99, get: () => obj[key][i], set: v => { obj[key][i] = v; onChange(); } }));
+    grid.append(h('span', { class: 'rl-lab' }, lab));
+    for (let i = 0; i < 4; i++) {
+      const el = param({ label: lab + ' ' + (i + 1), min: 0, max: 99, get: () => obj[key][i], set: v => { obj[key][i] = v; onChange(); } });
+      el.querySelector('span').textContent = String(i + 1);
+      grid.append(el);
+    }
   }
   return grid;
 }

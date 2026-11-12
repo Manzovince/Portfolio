@@ -156,9 +156,16 @@ input.color { width: 52px; height: 36px; border: 1px solid var(--line); border-r
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
 
 /* ── keyboard dock ── */
-.dock { flex: none; height: calc(var(--kh, 132px) + var(--sb)); display: flex; gap: 4px; padding: 4px calc(6px + var(--sr)) calc(6px + var(--sb)) calc(6px + var(--sl)); margin: 0 calc(-1 * var(--sr)) 0 calc(-1 * var(--sl)); border-top: 1px solid var(--line); background: var(--bg); }
+/* --kb-sb: the keys reach down into the home-indicator area, keeping only a
+   third of it free (iPhone web app: 34 px → 11 px), so no empty band below */
+:root { --kb-sb: calc(var(--sb) / 3); }
+.dock { flex: none; height: calc(var(--kh, 132px) + var(--kb-sb)); display: flex; gap: 4px; padding: 4px calc(6px + var(--sr)) calc(6px + var(--kb-sb)) calc(6px + var(--sl)); margin: 0 calc(-1 * var(--sr)) 0 calc(-1 * var(--sl)); border-top: 1px solid var(--line); background: var(--bg); }
 .dock .oct { width: 36px; flex: none; border-radius: 10px; background: var(--panel2); color: var(--dim); display: grid; place-items: center; }
 .dock .oct:active { background: var(--line2); }
+.dock .oct-col { flex: none; width: 36px; display: flex; flex-direction: column; gap: 4px; }
+.dock .oct-col .oct { flex: 1; width: auto; }
+.dock .oct-col .fold { flex: none; height: 30px; }
+.dock.size-s .oct-col .fold { height: 26px; }
 .bed { flex: 1; position: relative; touch-action: none; min-width: 0; }
 .key { position: absolute; top: 0; bottom: 0; border-radius: 0 0 7px 7px; transition: background .06s; }
 .key.w { background: var(--key-w); border: 1px solid var(--key-edge); border-top: 0; }
@@ -178,7 +185,9 @@ input.color { width: 52px; height: 36px; border: 1px solid var(--line); border-r
 .key.w.guide:not(.on) { background: color-mix(in srgb, var(--c) 18%, var(--key-w)); }
 .key.b.guide:not(.on) { background: color-mix(in srgb, var(--c) 40%, var(--key-b)); }
 @keyframes beat { 50% { transform: scale(1.35); } }
-.dock.mini { height: calc(34px + var(--sb)); padding-top: 3px; }
+.dock.mini { height: calc(34px + var(--kb-sb)); padding-top: 3px; cursor: pointer; }
+.dock.mini .oct-col > .oct:not(.fold), .dock.mini > .oct { display: none; }
+.dock.mini .oct-col .fold { height: auto; flex: 1; }
 .dock.mini .key { border-radius: 0 0 2px 2px; }
 .dock.mini .key small, .dock.mini .key .dot { display: none; }
 .dock.mini .bed { pointer-events: none; }
@@ -314,7 +323,9 @@ html.staff-unavailable .staff-live::after { content: '—'; color: var(--faint);
 .edit-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; }
 .ratio-big { font-family: var(--mono); font-size: 20px; color: var(--accent); margin-left: auto; }
 .env { width: 100%; height: 70px; display: block; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; flex: none; }
-.rl { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.rl { display: grid; grid-template-columns: auto repeat(4, 1fr); gap: 6px; align-items: center; }
+.rl-lab { font-size: 12px; color: var(--dim); padding-right: 2px; }
+.rl .param { padding: 0 10px; }
 .more { border: 1px solid var(--line); border-radius: 12px; padding: 6px 10px; }
 .more summary { color: var(--dim); font-size: 13px; padding: 8px 0; cursor: pointer; }
 .more[open] { display: flex; flex-direction: column; gap: 6px; }
@@ -383,6 +394,8 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
 #start h1 { margin: 0; font-size: 44px; letter-spacing: .3em; font-weight: 800; color: var(--a); padding-left: .3em; }
 #start p { color: var(--text); font-size: 15px; }
 #start small { color: var(--dim); max-width: 460px; font-size: 12px; }
+.start-wave { width: 210px; height: 45px; margin-bottom: -2px; }
+.start-wave path { stroke: var(--a); }
 .start-keys { width: 210px; height: 68px; }
 .start-keys .w rect { fill: var(--key-w); stroke: var(--key-edge); }
 .start-keys .b rect { fill: var(--key-b); stroke: var(--key-edge); }
@@ -411,15 +424,32 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
   .banks { flex-direction: row; overflow-x: auto; overflow-y: hidden; padding-bottom: 4px; }
   .bank { flex: none; }
   .bank-group, .btn.import { display: none; }
-  .edit { grid-template-columns: 1fr; overflow-y: auto; }
-  .edit-left .graph-box { height: 150px; flex: none; }
-  .edit-right { min-height: auto; }
-  .edit-body { overflow: visible; }
+  /* Edit, narrow: one scrolling column. The two halves dissolve so their
+     parts can be reordered: title + save, operator chips (sticky), the graph,
+     algorithm and feedback side by side, then the editor */
+  .edit { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px 6px; overflow-y: auto; -webkit-overflow-scrolling: touch; margin: 0 -12px; padding: 0 12px 12px; }
+  .edit-left, .edit-right { display: contents; }
+  .edit > * > * { width: 100%; }
+  .edit-head { order: 1; flex-wrap: nowrap; }
+  .edit-head h2 { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .edit-head h2 em { margin-left: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .edit-head .dirty { display: none; }
+  .edit-head .btn { flex: none; padding: 0 12px; }
+  .opbar { order: 2; position: sticky; top: 0; z-index: 3; background: var(--bg); padding: 4px 0; margin: -4px 0; flex-wrap: nowrap; }
+  .opbar .chip { flex: 1; min-width: 0; padding: 0; }
+  .opbar .chip:first-child { flex: 2; }
+  .edit-left .graph-box { order: 3; height: 128px; flex: none; min-height: 0; }
+  .edit-left > .param { order: 4; width: calc(50% - 3px); }
+  .edit-body { order: 5; overflow: visible; padding-bottom: 0; }
+  .edit-body .row { flex-wrap: wrap; }
   .steps { grid-template-columns: repeat(8, 1fr); }
 }
 @media (max-width: 560px) {
   .subbar .btn.ghost > span:not(.ic) { display: none; }
   .subbar .btn.ghost { width: var(--hit); padding: 0; }
+  .subbar .seg.subnav { flex: 1 1 100%; }
+  .seg.subnav button { flex: 1; padding: 0 4px; font-size: 13px; min-width: 0; }
+  .grid4 { grid-template-columns: 1fr 1fr; }
   .song-opts { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -12px; padding: 0 12px; }
   .song-opts::-webkit-scrollbar { display: none; }
   .song-opts .seg { flex: none; }
@@ -731,3 +761,9 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
 .u-plan li { line-height: 1.45; }
 .u-plan li .btn { margin-left: 8px; vertical-align: middle; }
 @media (max-width: 760px) { .understand-btn > span:not(.ic) { display: none; } .understand-btn { width: var(--hit); padding: 0; } }
+
+/* iPhone web app (standalone): pin the shell to the full screen height, so the
+   keyboard sits on the bottom edge (a fixed inset:0 can stop short there) */
+@media (display-mode: standalone) {
+  @supports (height: 100lvh) { html, body { height: 100lvh; } #app { bottom: auto; height: 100lvh; } }
+}

@@ -3,20 +3,20 @@
 // key is struck), sized from the screen and the key-size setting. "mini": a
 // thin strip of all 88 keys that only shows what sounds, for MIDI players.
 // It also gives the roll and the waterfall their columns (geometry()).
-import { h, icon } from './ui.js?v=202611123';
-import { S, save, on, emit } from './store.js?v=202611123';
-import { press, lift, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from './notes.js?v=202611123';
-import { partOf } from './perform.js?v=202611123';
-import { noteColor } from './colors.js?v=202611123';
-import { noteLabel, t } from './i18n.js?v=202611123';
-import { pitchClass, scaleNotes } from './theory.js?v=202611123';
+import { h, icon } from './ui.js?v=202611124';
+import { S, save, on, emit } from './store.js?v=202611124';
+import { press, lift, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from './notes.js?v=202611124';
+import { partOf } from './perform.js?v=202611124';
+import { noteColor } from './colors.js?v=202611124';
+import { noteLabel, t } from './i18n.js?v=202611124';
+import { pitchClass, scaleNotes } from './theory.js?v=202611124';
 
 const BLACK = new Set([1, 3, 6, 8, 10]);
 const isBlack = m => BLACK.has(((m % 12) + 12) % 12);
 const MIN_WHITE = { s: 24, m: 34, l: 46 };
 const HEIGHT = { s: 92, m: 132, l: 178 };
 
-let wrap, bed, down, up, range = { lo: 48, hi: 72 };
+let wrap, bed, down, up, fold, range = { lo: 48, hi: 72 };
 let override = null;        // { lo, hi } forced by a screen (song range)
 let lumiRange = () => null; // set by lumi.js
 let guide = () => null;     // { strong: Set<pc>, soft: Set<pc>, midis: Set<midi>, hands: Map<midi,0|1> }
@@ -143,7 +143,11 @@ export function createDock() {
   down = h('button', { class: 'oct', type: 'button', 'aria-label': t('octDown') }, icon('back'));
   up = h('button', { class: 'oct', type: 'button', 'aria-label': t('octUp') }, icon('next'));
   bed = h('div', { class: 'bed', role: 'group', 'aria-label': t('keyboard') });
-  wrap.append(down, bed, up);
+  // playable keyboard ⇄ thin strip, in one tap: the fold button sits above the
+  // octave-down button; folded, the whole strip unfolds it
+  fold = h('button', { class: 'oct fold', type: 'button', onclick: () => setDock(S.kb.dock === 'full' ? 'mini' : 'full') }, icon('fold'));
+  wrap.append(h('div', { class: 'oct-col' }, fold, down), bed, up);
+  wrap.addEventListener('click', e => { if (S.kb.dock === 'mini' && e.target !== fold && !fold.contains(e.target)) setDock('full'); });
   applyDock();
 
   bed.addEventListener('pointerdown', e => {
@@ -188,9 +192,14 @@ export function createDock() {
   return wrap;
 }
 
+function setDock(mode) { S.kb.dock = mode; save(); emit('kb'); }
 export function applyDock() {
   if (!wrap) return;
   wrap.className = 'dock ' + S.kb.dock + ' size-' + S.kb.size;
+  const mini = S.kb.dock === 'mini';
+  fold.replaceChildren(icon(mini ? 'unfold' : 'fold'));
+  fold.setAttribute('aria-label', t(mini ? 'kbUnfold' : 'kbFold'));
+  wrap.title = mini ? t('kbUnfold') : '';
   wrap.style.setProperty('--kh', HEIGHT[S.kb.size] + 'px');
   build();
 }
