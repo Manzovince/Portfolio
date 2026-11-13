@@ -1,12 +1,13 @@
 // Settings sheet and theme.
-import { h, param, seg, toggle, toast, icon } from './ui.js?v=202611129';
-import { S, save, emit, resetAll } from './store.js?v=202611129';
-import * as E from './engine.js?v=202611129';
-import { allOff } from './perform.js?v=202611129';
-import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611129';
-import { t, noteLabel, setLang } from './i18n.js?v=202611129';
-import { keyHint } from './keys.js?v=202611129';
-import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES, lumiBattery, onLumiBattery, lumiSysexLog, requestLumiBattery, lumiBatteryAsked } from './lumi.js?v=202611129';
+import { h, param, seg, toggle, toast, icon } from './ui.js?v=202611131';
+import { S, save, emit, resetAll } from './store.js?v=202611131';
+import * as E from './engine.js?v=202611131';
+import { allOff } from './perform.js?v=202611131';
+import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611131';
+import { t, noteLabel, setLang } from './i18n.js?v=202611131';
+import { keyHint } from './keys.js?v=202611131';
+import { persistStorage, isPersisted } from './db.js?v=202611131';
+import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES, lumiBattery, onLumiBattery, lumiSysexLog, requestLumiBattery, lumiBatteryAsked } from './lumi.js?v=202611131';
 
 // 'auto' follows the device; 'light' / 'dark' force it
 export function applyTheme() {
@@ -48,6 +49,39 @@ function batteryBox(box) {
   box.addEventListener('close', un, { once: true });
   paint();
   return el;
+}
+
+// Backup: the storage's protection, and the whole of Octave's data in one file
+function backupCard() {
+  const state = h('p', { class: 'hint store-state' });
+  const protect = h('button', { type: 'button', class: 'btn ghost', hidden: true, onclick: async () => { await persistStorage(); paint(); } }, t('storeProtect'));
+  const paint = async () => {
+    const kept = await isPersisted();
+    state.textContent = t(kept ? 'storeKept' : 'storeAtRisk');
+    state.classList.toggle('warn', !kept);
+    protect.hidden = kept || !navigator.storage?.persist;
+  };
+  const file = h('input', { type: 'file', accept: '.json,application/json', hidden: true, onchange: async e => {
+    const f = e.target.files[0];
+    e.target.value = '';
+    if (!f || !confirm(t('backupConfirm'))) return;
+    try { const { importBackup } = await import('./backup.js?v=202611131'); await importBackup(f); }
+    catch (err) { toast(t(err?.message === 'not a backup' || err instanceof SyntaxError ? 'backupBad' : 'backupFail')); }
+  } });
+  paint();
+  return h('div', { class: 'card' },
+    h('h3', {}, t('backup')),
+    h('p', { class: 'hint' }, t('backupHint')),
+    state,
+    h('div', { class: 'row wrap-row' },
+      h('button', { type: 'button', class: 'btn', onclick: async () => {
+        const { exportBackup } = await import('./backup.js?v=202611131');
+        const n = await exportBackup();
+        toast(t('backupDone', n));
+      } }, icon('download'), t('backupExport')),
+      h('button', { type: 'button', class: 'btn ghost', onclick: () => file.click() }, icon('upload'), t('backupImport')),
+      protect),
+    file);
 }
 
 export function renderSettings(box, ctx) {
@@ -114,6 +148,7 @@ export function renderSettings(box, ctx) {
         S.lumi.enabled ? h('div', { class: 'row' }, h('span', { class: 'lab' }, t('lumiGuideColor')), h('input', { type: 'color', class: 'color', value: S.lumi.color, oninput: e => { S.lumi.color = e.target.value; lumi('color'); } })) : null,
         S.lumi.enabled ? row(t('lumiRestore'), seg({ cls: 'wrap', options: LUMI_MODES.map(m => [m, t('lumiMode_' + m)]), get: () => S.lumi.restore, set: v => { S.lumi.restore = v; lumi('restore'); } })) : null,
         h('p', { class: 'hint' }, t('lumiHelp'))),
+      backupCard(),
       h('div', { class: 'card help' },
         h('h3', {}, t('help')),
         h('p', {}, t('helpIos')),

@@ -1,19 +1,19 @@
 // Octave — boot, shell (top bar, mode switch, keyboard dock), screen switching.
-import { h, icon, seg, toast, toggle, param } from './ui.js?v=202611129';
-import { setMetro, metroBeat } from './metronome.js?v=202611129';
-import { S, save, on, emit } from './store.js?v=202611129';
-import * as E from './engine.js?v=202611129';
-import { applyAll, seq, seqPlay, seqHasNotes, learnSplit } from './perform.js?v=202611129';
-import { connectMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611129';
-import { createDock, bindComputerKeys, setGuide, applyDock } from './keys.js?v=202611129';
-import { currentGuide, onGuideChange, refreshGuide } from './guide.js?v=202611129';
-import { initLumi } from './lumi.js?v=202611129';
-import { t, noteLabel } from './i18n.js?v=202611129';
-import { renderPlay } from './play.js?v=202611129';
-import { renderLearn } from './learn.js?v=202611129';
-import { renderCreate, soundName } from './create.js?v=202611129';
-import { renderSettings, applyTheme } from './settings.js?v=202611129';
-import { allNotesOff } from './notes.js?v=202611129';
+import { h, icon, seg, toast, toggle, param } from './ui.js?v=202611131';
+import { setMetro, metroBeat } from './metronome.js?v=202611131';
+import { S, save, on, emit } from './store.js?v=202611131';
+import * as E from './engine.js?v=202611131';
+import { applyAll, seq, seqPlay, seqHasNotes, learnSplit } from './perform.js?v=202611131';
+import { connectMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611131';
+import { createDock, bindComputerKeys, setGuide, applyDock } from './keys.js?v=202611131';
+import { currentGuide, onGuideChange, refreshGuide } from './guide.js?v=202611131';
+import { initLumi } from './lumi.js?v=202611131';
+import { t, noteLabel } from './i18n.js?v=202611131';
+import { renderPlay } from './play.js?v=202611131';
+import { renderCreate, soundName } from './create.js?v=202611131';
+import { renderSettings, applyTheme } from './settings.js?v=202611131';
+import { allNotesOff } from './notes.js?v=202611131';
+import { persistStorage } from './db.js?v=202611131';
 
 const MODES = [['play', 'play', 'modePlay'], ['learn', 'learn', 'modeLearn'], ['create', 'create', 'modeCreate']];
 
@@ -80,10 +80,12 @@ const metroPop = h('div', { class: 'metro-pop', hidden: true, onclick: e => e.st
 top.append(logo, modes, h('div', { class: 'spacer' }), chips, transport, metroBtn, muteBtn, midiPill, gear);
 document.body.append(metroPop);
 
+let metroRaf = 0, metroLast = -2;
 function paintMetroBtn() {
   metroBtn.classList.toggle('on', S.metro.on);
   metroBtn.setAttribute('aria-label', t('metronome'));
   metroDots.textContent = '';
+  metroLast = -2; // fresh dots: light the current beat again
   if (S.metro.on) for (let i = 0; i < S.metro.beats; i++) metroDots.append(h('i'));
 }
 function toggleMetroPop(open = metroPop.hidden) {
@@ -115,14 +117,19 @@ function tapTempo() {
 }
 document.addEventListener('click', () => { if (!metroPop.hidden) metroPop.hidden = true; });
 on('metro', paintMetroBtn);
-// beat dots follow the clicks
-(function metroLoop() {
-  requestAnimationFrame(metroLoop);
-  if (!S.metro.on) return;
+// beat dots follow the clicks (the loop only runs while the metronome does)
+function metroLoop() {
+  metroRaf = 0;
+  if (!S.metro.on) { metroBtn.classList.remove('down'); return; }
   const b = metroBeat();
-  [...metroDots.children].forEach((d, i) => d.classList.toggle('lit', i === b));
-  metroBtn.classList.toggle('down', b === 0);
-})();
+  if (b !== metroLast) {
+    metroLast = b;
+    [...metroDots.children].forEach((d, i) => d.classList.toggle('lit', i === b));
+    metroBtn.classList.toggle('down', b === 0);
+  }
+  metroRaf = requestAnimationFrame(metroLoop);
+}
+on('metro', () => { metroLast = -2; if (S.metro.on && !metroRaf) metroRaf = requestAnimationFrame(metroLoop); });
 paintMetroBtn();
 paintMute();
 
@@ -164,6 +171,11 @@ function paintMidi(st = midiStatusNow) {
   midiPill.append(h('i'), h('span', {}, label));
 }
 
+// Learn (the course, ~330 kB of lessons) loads the first time it is opened,
+// or in the background once the app is idle
+let learnMod = null;
+const loadLearn = () => (learnMod ??= import('./learn.js?v=202611131').catch(err => { learnMod = null; throw err; }));
+let renderId = 0;
 function render() {
   if (!S.split.on) S.edit = 0;
   subs.forEach(u => u()); subs = [];
@@ -171,9 +183,15 @@ function render() {
   view.textContent = '';
   view.className = 'view v-' + S.mode;
   document.documentElement.dataset.mode = S.mode;
-  ({ play: renderPlay, learn: renderLearn, create: renderCreate }[S.mode] || renderPlay)(view, ctx);
   paintModes();
   paintTop();
+  const id = ++renderId;
+  if (S.mode === 'learn') {
+    loadLearn().then(m => { if (id === renderId) { m.renderLearn(view, ctx); refreshGuide(); } })
+      .catch(() => { if (id === renderId) view.append(h('p', { class: 'muted load-error' }, t('loadError'))); });
+    return;
+  }
+  ({ play: renderPlay, create: renderCreate }[S.mode] || renderPlay)(view, ctx);
   refreshGuide();
 }
 
@@ -207,6 +225,8 @@ async function boot() {
     try {
       await E.startAudio();
       applyAll();
+      // progress or takes already here: ask the browser to keep them
+      try { if (localStorage.getItem('octave.coach.v1')) persistStorage(); } catch {}
       start.classList.add('gone');
       setTimeout(() => start.remove(), 400);
     } catch (err) {
@@ -230,9 +250,12 @@ render();
 bindComputerKeys();
 initLumi();
 connectMidi();
+// fetch the course while nothing happens, so Learn opens at once (and offline)
+// (a few seconds in: start-up, first paint and the piano samples go first)
+setTimeout(() => (window.requestIdleCallback || (fn => fn()))(() => loadLearn().catch(() => {}), { timeout: 8000 }), 5000);
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 on('tempo', () => E.setFx(S.fx, S.tempo));
 document.addEventListener('visibilitychange', () => { if (document.hidden) allNotesOff(); });
 
 // console handle for testing without a keyboard
-import('./notes.js?v=202611129').then(N => { window.octave = { S, press: N.press, lift: N.lift, emit, applyDock }; });
+import('./notes.js?v=202611131').then(N => { window.octave = { S, press: N.press, lift: N.lift, emit, applyDock }; });

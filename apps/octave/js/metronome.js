@@ -1,7 +1,7 @@
 // Metronome on the shared tempo: clicks scheduled ahead on the audio clock,
 // and the beat being heard, for the dots in the top bar.
-import * as E from './engine.js?v=202611129';
-import { S, save, emit, on } from './store.js?v=202611129';
+import * as E from './engine.js?v=202611131';
+import { S, save, emit, on } from './store.js?v=202611131';
 
 const LOOK = 0.12;
 const m = { next: 0, beat: 0, marks: [] };
@@ -37,6 +37,7 @@ function tick() {
   while (m.next < now + LOOK) {
     if (S.metro.sound) E.click(m.next, m.beat === 0 && S.metro.beats > 1, S.metro.volume);
     m.marks.push({ t: m.next, beat: m.beat });
+    while (m.marks.length > 1 && m.marks[1].t <= now) m.marks.shift(); // the dots' rAF sleeps in a hidden tab
     m.beat = (m.beat + 1) % S.metro.beats;
     m.next += 60 / S.tempo;
   }

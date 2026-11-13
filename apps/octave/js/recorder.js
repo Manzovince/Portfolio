@@ -1,13 +1,15 @@
 // Recorder: takes of what is played (keys and pedal, with their real timing),
-// kept in this browser. A take plays back through the note bus, so it sounds
+// kept in this browser (IndexedDB; localStorage only where IndexedDB is missing).
+// A take plays back through the note bus, so it sounds
 // with the current sounds and shows on the keys; it exports as MIDI, or as an
 // audio file recorded in real time from the output.
-import { subscribe, press, liftSource, setPedal } from './notes.js?v=202611129';
-import * as E from './engine.js?v=202611129';
-import { S, emit } from './store.js?v=202611129';
+import { subscribe, press, liftSource, setPedal, isPedalDown } from './notes.js?v=202611131';
+import * as E from './engine.js?v=202611131';
+import { S, emit } from './store.js?v=202611131';
+import { getAll, put, remove } from './db.js?v=202611131';
 
-const KEY = 'octave.takes.v1';
-const MAX_TAKES = 30;
+const KEY = 'octave.takes.v1'; // where takes lived before IndexedDB (moved over at start-up)
+const MAX_TAKES = 100;
 const SRC = 'take';
 
 let recording = false;
@@ -15,13 +17,51 @@ let startAt = 0;          // performance.now() of the first event (leading silen
 let events = [];
 let held = new Set();
 let playing = null;       // { id, timer, start, i }
-export let takes = load();
+export let takes = [];
+let useDb = true;
 
-function load() {
+function legacy() {
   try { const v = JSON.parse(localStorage.getItem(KEY)); return Array.isArray(v) ? v : []; } catch { return []; }
 }
-function persist() {
-  try { localStorage.setItem(KEY, JSON.stringify(takes)); return true; } catch { return false; }
+const byDate = (a, b) => b.date - a.date;
+const stored = take => { const { unsaved, ...rest } = take; return rest; };
+
+// Load the takes (moving the old localStorage ones into IndexedDB once)
+export const takesReady = (async () => {
+  try {
+    const list = await getAll('takes');
+    const old = legacy();
+    if (old.length) {
+      const have = new Set(list.map(t => t.id));
+      for (const t of old) if (!have.has(t.id)) { await put('takes', stored(t)); list.push(t); }
+      try { localStorage.removeItem(KEY); } catch {}
+    }
+    // takes recorded while this loaded are already in `takes` (maybe in list too)
+    takes = [...new Map([...list, ...takes].map(t => [t.id, t])).values()].sort(byDate);
+  } catch {
+    useDb = false; // no IndexedDB (old private mode): the small localStorage it is
+    takes = [...legacy(), ...takes].sort(byDate);
+  }
+  emit('rec');
+})();
+
+// Keep one take; false when the browser refused (storage full)
+async function keep(take) {
+  try {
+    if (useDb) await put('takes', stored(take));
+    else localStorage.setItem(KEY, JSON.stringify(takes.map(stored)));
+    delete take.unsaved;
+    return true;
+  } catch {
+    take.unsaved = true;
+    return false;
+  }
+}
+async function drop(id) {
+  try {
+    if (useDb) await remove('takes', id);
+    else localStorage.setItem(KEY, JSON.stringify(takes.map(stored)));
+  } catch {}
 }
 
 export const isRecording = () => recording;
@@ -33,10 +73,13 @@ subscribe(e => {
   const src = String(e.source ?? '');
   if (src.startsWith('song') || src.startsWith(SRC)) return;
   if (e.type !== 'on' && e.type !== 'off' && e.type !== 'pedal') return;
+  if (e.type === 'pedal' && e.who === 'auto') return; // a song's pedal, not the player's
   const now = e.time ?? performance.now();
   if (!events.length) {
     if (e.type !== 'on') return; // start with the first note
     startAt = now;
+    // the foot was already down before the first note: the take starts with it
+    if (isPedalDown('player')) events.push({ t: 0, pedal: 1 });
   }
   const t = Math.round(now - startAt);
   if (e.type === 'on') { events.push({ t, on: e.midi, v: e.velocity }); held.add(e.midi); }
@@ -52,30 +95,34 @@ export function startRecording() {
   emit('rec');
 }
 
-// Returns the new take, or null when nothing was played
+// Returns { take, saved: Promise<boolean> }, or null when nothing was played
 export function stopRecording() {
   if (!recording) return null;
   recording = false;
   const end = events.length ? Math.round(performance.now() - startAt) : 0;
   for (const midi of held) events.push({ t: end, off: midi });
   held.clear();
-  let take = null;
+  let out = null;
   if (events.some(e => e.on != null)) {
     const n = (takes.reduce((a, t) => Math.max(a, t.n || 0), 0)) + 1;
-    take = { id: 't' + Date.now().toString(36), n, date: Date.now(), dur: end, tempo: S.tempo, events };
+    const take = { id: 't' + Date.now().toString(36), n, date: Date.now(), dur: end, tempo: S.tempo, events };
     takes.unshift(take);
+    for (const old of takes.slice(MAX_TAKES)) drop(old.id);
     takes = takes.slice(0, MAX_TAKES);
-    persist();
+    // refused (storage full): the take only lives until the page closes
+    const saved = keep(take).then(ok => { emit('rec'); return ok; });
+    out = { take, saved };
   }
   events = [];
   emit('rec');
-  return take;
+  return out;
 }
 
 export function deleteTake(id) {
   if (playing?.id === id) stopTake();
   takes = takes.filter(t => t.id !== id);
-  persist();
+  // room made: the takes that could not be kept may fit now
+  drop(id).then(() => Promise.all(takes.filter(t => t.unsaved).map(keep))).then(() => emit('rec'));
   emit('rec');
 }
 
@@ -83,7 +130,7 @@ export function renameTake(id, name) {
   const t = takes.find(x => x.id === id);
   if (!t) return;
   t.name = name.slice(0, 40);
-  persist();
+  keep(t);
 }
 
 // ── playback ───────────────────────────────────────────────────
@@ -91,7 +138,7 @@ export function playTake(id, onEnd, onAbort) {
   stopTake();
   const take = takes.find(t => t.id === id);
   if (!take) return;
-  const p = { id, start: performance.now(), i: 0, take, onEnd, onAbort, ended: false };
+  const p = { id, start: performance.now() + 20, i: 0, take, onEnd, onAbort, ended: false };
   p.timer = setInterval(() => step(p), 8);
   playing = p;
   emit('rec');
@@ -102,9 +149,11 @@ function step(p) {
   const ev = p.take.events;
   while (p.i < ev.length && ev[p.i].t <= t) {
     const e = ev[p.i++];
-    if (e.on != null) press(e.on, e.v, SRC + e.on);
-    else if (e.off != null) liftSource(SRC + e.off);
-    else setPedal(!!e.pedal);
+    // on the audio clock, a little ahead: the timer's jitter is not heard
+    const at = E.audioTimeOf(p.start + e.t) + E.AHEAD;
+    if (e.on != null) press(e.on, e.v, SRC + e.on, at);
+    else if (e.off != null) liftSource(SRC + e.off, at);
+    else setPedal(!!e.pedal, at, 'auto');
   }
   if (p.i >= ev.length) {
     p.ended = true;
@@ -121,7 +170,7 @@ export function stopTake() {
   playing = null;
   if (!p.ended && p.onAbort) p.onAbort();
   liftSource(SRC + '*');
-  setPedal(false);
+  setPedal(false, 0, 'auto');
   emit('rec');
 }
 

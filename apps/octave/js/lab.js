@@ -1,13 +1,13 @@
 // The sound-design workshop: while a "Créer des sons" lesson is open, part A
 // plays a workshop patch instead of the player's own sound. Nothing of it is
 // saved over the player's settings; "keep" stores it in Mes sons.
-import { h, param, seg } from './ui.js?v=202611129';
-import { S, banks, saveBanks, save, setSaveView } from './store.js?v=202611129';
-import { clonePatch } from './dx7.js?v=202611129';
-import { applyPart, setLabSound, arpClear, seq, seqPlay } from './perform.js?v=202611129';
-import { subscribe } from './notes.js?v=202611129';
-import * as E from './engine.js?v=202611129';
-import { t } from './i18n.js?v=202611129';
+import { h, param, seg } from './ui.js?v=202611131';
+import { S, banks, saveBanks, save, setSaveView } from './store.js?v=202611131';
+import { clonePatch } from './dx7.js?v=202611131';
+import { applyPart, setLabSound, arpClear, seq, seqPlay } from './perform.js?v=202611131';
+import { subscribe } from './notes.js?v=202611131';
+import * as E from './engine.js?v=202611131';
+import { t } from './i18n.js?v=202611131';
 
 let active = null; // { orig, split, arp, patch }
 const macros = () => ({ bright: 0, attack: 0, release: 0, vibrato: 0 });

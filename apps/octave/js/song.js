@@ -8,7 +8,8 @@
 // other. The song then waits on each chord of their part until its notes are
 // played, and marks them on the keys (and the LED strip) in the meantime.
 
-import { subscribe, press, liftSource, setPedal } from "./notes.js?v=202611129";
+import { subscribe, press, liftSource, setPedal } from "./notes.js?v=202611131";
+import { audioTimeOf, AHEAD } from "./engine.js?v=202611131";
 
 const SOURCE = "song";
 const TICK_MS = 10;          // playback clock
@@ -23,7 +24,7 @@ let positionMs = 0;
 let noteIndex = 0;
 let pedalIndex = 0;
 let timer = null;
-const holding = new Map();   // midi -> end time (ms) of the note being played
+const holding = new Map();   // midi -> { end: song ms, at: audio time of its start }
 const changeListeners = new Set();
 const positionListeners = new Set();
 const guideListeners = new Set();
@@ -348,24 +349,29 @@ function step() {
         }
     }
 
-    for (const [midi, end] of holding) {
-        if (end <= positionMs) {
+    // Sound on the audio clock: each event is scheduled AHEAD of where it falls,
+    // so a late tick (the page stuttered) does not shift it
+    const audioAt = ms => audioTimeOf(anchorTime + (ms - anchorPosition) / speed) + AHEAD;
+    for (const [midi, held] of holding) {
+        if (held.end <= positionMs) {
             holding.delete(midi);
-            liftSource(SOURCE + midi);
+            liftSource(SOURCE + midi, Math.max(audioAt(held.end), held.at + 0.03));
         }
     }
     while (pedalIndex < pedals.length && pedals[pedalIndex].ms <= positionMs) {
-        const { down } = pedals[pedalIndex++];
+        const { down, ms } = pedals[pedalIndex++];
         // While playing along, the pedal is the visitor's
-        if (part === "listen") setPedal(down);
+        if (part === "listen") setPedal(down, audioAt(ms), "auto");
     }
     while (noteIndex < notes.length && notes[noteIndex].startMs <= positionMs) {
         const note = notes[noteIndex++];
-        if (note.endMs <= positionMs) continue; // too short to catch at this clock
+        // far behind (the tab slept): skip rather than play a burst of old notes
+        if (note.startMs < positionMs - 250) continue;
         if (part !== "listen" && isPlayersNote(note)) continue;
         // One source per key, so that releasing one note leaves the others alone
-        press(note.midi, note.velocity, SOURCE + note.midi);
-        holding.set(note.midi, note.endMs);
+        const at = audioAt(note.startMs);
+        press(note.midi, note.velocity, SOURCE + note.midi, at);
+        holding.set(note.midi, { end: note.endMs, at });
     }
 
     notifyPosition();
@@ -392,7 +398,7 @@ function resetExpected() {
 
 export function setSongPart(value) {
     part = value;
-    if (part !== "listen") setPedal(false);
+    if (part !== "listen") setPedal(false, 0, "auto");
     resetExpected();
     notifyChange();
 }
@@ -445,7 +451,7 @@ export function pauseSong() {
 function releaseAllSongKeys() {
     for (const midi of holding.keys()) liftSource(SOURCE + midi);
     holding.clear();
-    setPedal(false);
+    setPedal(false, 0, "auto");
 }
 
 export function seekSong(ms) {
@@ -456,7 +462,7 @@ export function seekSong(ms) {
     if (noteIndex < 0) noteIndex = song.notes.length;
     pedalIndex = song.pedals.findIndex(p => p.ms > positionMs);
     if (pedalIndex < 0) pedalIndex = song.pedals.length;
-    if (pedalIndex > 0 && song.pedals[pedalIndex - 1].down) setPedal(true);
+    if (pedalIndex > 0 && song.pedals[pedalIndex - 1].down && part === "listen") setPedal(true, 0, "auto");
     anchorPosition = positionMs;
     anchorTime = performance.now();
     resetExpected();

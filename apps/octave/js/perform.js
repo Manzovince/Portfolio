@@ -1,10 +1,10 @@
 // Between the note bus and the engine: split, per-part octave, velocity curve,
 // arpeggiator, step sequencer (playback, step and live recording, transpose)
 // and the shared tempo clock. Song playback skips the arp and the sequencer.
-import * as E from './engine.js?v=202611129';
-import { PIANO_SOUNDS } from './engine.js?v=202611129';
-import { S, save, emit } from './store.js?v=202611129';
-import { subscribe } from './notes.js?v=202611129';
+import * as E from './engine.js?v=202611131';
+import { PIANO_SOUNDS } from './engine.js?v=202611131';
+import { S, save, emit } from './store.js?v=202611131';
+import { subscribe } from './notes.js?v=202611131';
 
 const held = new Map(); // midi -> { part, note, arp } | { transpose: true }
 
@@ -111,8 +111,8 @@ let labSound = false;
 export const setLabSound = on => { labSound = on; };
 export const learnSplit = fn => { learnCb = fn; };
 
-function keyOn(key, vel, source) {
-  if (held.has(key)) keyOff(key);
+function keyOn(key, vel, source, at = 0) {
+  if (held.has(key)) keyOff(key, at);
   if (learnCb && !String(source).startsWith('song')) { const cb = learnCb; learnCb = null; cb(key); }
   const fromSong = String(source).startsWith('song');
   vel = fromSong ? vel : curve(vel);
@@ -135,12 +135,12 @@ function keyOn(key, vel, source) {
     arpAdd(part, note, vel);
     held.set(key, { part, note, arp: true });
   } else {
-    E.noteOn(part, note, vel);
-    held.set(key, { part, note, rec: !fromSong && seq.rec });
+    E.noteOn(part, note, vel, 'live', at);
+    held.set(key, { part, note, at, rec: !fromSong && seq.rec });
   }
 }
 
-function keyOff(key) {
+function keyOff(key, at = 0) {
   const h = held.get(key);
   if (!h) return;
   held.delete(key);
@@ -148,12 +148,14 @@ function keyOff(key) {
   if (h.rec) seqRecordUp();
   if (h.silent) return;
   if (h.arp) arpRemove(h.part, h.note);
-  else E.noteOff(h.part, h.note);
+  // never before its own start: a note scheduled ahead and released right away
+  // (seek, pause) must not leave its note-on behind, still to come
+  else E.noteOff(h.part, h.note, 'live', h.at ? Math.max(at, h.at + 0.01) : at);
 }
 
 subscribe(e => {
-  if (e.type === 'on') keyOn(e.midi, e.velocity, e.source);
-  else if (e.type === 'off') keyOff(e.midi);
+  if (e.type === 'on') keyOn(e.midi, e.velocity, e.source, e.at);
+  else if (e.type === 'off') keyOff(e.midi, e.at);
 });
 
 export function allOff() {
@@ -185,6 +187,8 @@ function tick() {
         }
       }
       seq.marks.push({ t, step: i });
+      // steps already heard: only the current one matters (the grid may not be on screen)
+      while (seq.marks.length > 1 && seq.marks[1].t <= now) seq.marks.shift();
       seq.step = (i + 1) % S.seq.length;
       seq.next += dur;
     }

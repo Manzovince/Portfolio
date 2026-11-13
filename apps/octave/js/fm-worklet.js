@@ -92,6 +92,8 @@ class Voice {
   constructor() {
     this.env = [0, 1, 2, 3, 4, 5].map(() => new Env());
     this.ph = new Float64Array(6);
+    this.inc = new Float64Array(6);  // phase steps, kept while the pitch holds still
+    this.incSemis = NaN; this.incPatch = null;
     this.y = new Float64Array(6);
     this.gain = new Float64Array(6);
     this.base = new Float64Array(6); // static per-op units offset (macros)
@@ -122,11 +124,12 @@ class PhaseProcessor extends AudioWorkletProcessor {
   constructor(opts) {
     super();
     this.algs = opts.processorOptions.algorithms;
+    // carrier flags looked up once, not with includes() in the audio loop
+    for (const a of this.algs) a.isCar = [0, 1, 2, 3, 4, 5].map(i => a.carriers.includes(i));
     this.voices = Array.from({ length: 24 }, () => new Voice());
     this.poly = 16;
     this.parts = [new Part(), new Part(), new Part()]; // A, B, and the accompaniment bass
     this.queue = [];
-    this.sustain = false;
     this.bend = 0;
     this.modWheel = 0;
     this.clock = 0;
@@ -146,10 +149,6 @@ class PhaseProcessor extends AudioWorkletProcessor {
       case 'volume': this.parts[m.part].volume = m.value; break;
       case 'on': this.noteOn(m.part, m.note, m.vel, m.src || 'live'); break;
       case 'off': this.noteOff(m.part, m.note, m.src || 'live'); break;
-      case 'sustain':
-        this.sustain = m.on;
-        if (!m.on) for (const v of this.voices) if (v.sustained) { v.sustained = false; this.release(v); }
-        break;
       case 'bend': this.bend = m.semis; break;
       case 'mod': this.modWheel = m.value; break;
       case 'poly': this.poly = clamp(m.n | 0, 1, this.voices.length); break;
@@ -157,9 +156,10 @@ class PhaseProcessor extends AudioWorkletProcessor {
         this.queue = this.queue.filter(q => q.src !== m.src || q.type === 'off');
         for (const v of this.voices) if (v.src === m.src && v.down) { v.down = false; this.release(v); }
         break;
-      case 'panic':
-        this.queue = [];
-        for (const v of this.voices) { v.active = false; v.down = false; v.sustained = false; }
+      case 'panic': // everything, or only one part's notes (its sound changed)
+        if (m.part == null) this.queue = [];
+        else this.queue = this.queue.filter(q => q.part !== m.part || (q.type !== 'on' && q.type !== 'off'));
+        for (const v of this.voices) if (m.part == null || v.part === m.part) { v.active = false; v.down = false; v.sustained = false; }
         break;
     }
   }
@@ -192,7 +192,7 @@ class PhaseProcessor extends AudioWorkletProcessor {
     const part = this.parts[v.part];
     const alg = this.algs[part.patch.alg - 1];
     const bright = part.macros.bright * 2.2 * 256; // ±2.2 octaves of modulator gain
-    for (let i = 0; i < 6; i++) v.base[i] = alg.carriers.includes(i) ? 0 : bright;
+    for (let i = 0; i < 6; i++) v.base[i] = alg.isCar[i] ? 0 : bright;
   }
 
   allocate(pi, note, src) {
@@ -241,8 +241,7 @@ class PhaseProcessor extends AudioWorkletProcessor {
     for (const v of this.voices) {
       if (v.active && v.down && v.part === pi && v.note === note && v.src === src) {
         v.down = false;
-        if (this.sustain && src === 'live') v.sustained = true;
-        else this.release(v);
+        this.release(v);
       }
     }
   }
@@ -301,24 +300,33 @@ class PhaseProcessor extends AudioWorkletProcessor {
         const pmd = (p.lfo.pmd / 99) * PMS_SEMI[p.lfo.pms] * lfoAmt;
         const vib = (part.macros.vibrato + this.modWheel) * 0.45 * Math.sin(TWO_PI * part.vibPh) * Math.min(1, v.time / 0.35);
         const semis = v.note - 69 + (p.transpose - 24) + this.bend + v.peg + pmd * part.lfoVal + vib;
-        const baseHz = 440 * Math.pow(2, semis / 12);
         const amUni = (1 - part.lfoVal) * 0.5 * (p.lfo.amd / 99) * lfoAmt;
 
-        const inc = this._inc || (this._inc = new Float64Array(6));
+        // operator frequencies: only when the pitch or the patch moved (most
+        // notes hold still: no vibrato, bend or pitch envelope at work)
+        const inc = v.inc;
+        if (semis !== v.incSemis || p !== v.incPatch) {
+          v.incSemis = semis; v.incPatch = p;
+          const baseHz = 440 * Math.pow(2, semis / 12);
+          for (let i = 0; i < 6; i++) {
+            const op = p.ops[i];
+            let hz = op.fixed
+              ? Math.pow(10, (op.coarse & 3) + op.fine / 100)
+              : baseHz * (op.coarse === 0 ? 0.5 : op.coarse) * (1 + op.fine / 100);
+            const det = op.det - 7;
+            if (det) hz *= Math.pow(2, (det * (1.2 + 12 / Math.sqrt(Math.max(hz, 20)))) / 1200);
+            inc[i] = (TWO_PI * hz) / sampleRate;
+          }
+        }
         const g1 = this._g1 || (this._g1 = new Float64Array(6));
+        const isCar = alg.isCar;
         let alive = false;
         for (let i = 0; i < 6; i++) {
           const op = p.ops[i];
-          let hz = op.fixed
-            ? Math.pow(10, (op.coarse & 3) + op.fine / 100)
-            : baseHz * (op.coarse === 0 ? 0.5 : op.coarse) * (1 + op.fine / 100);
-          const det = op.det - 7;
-          if (det) hz *= Math.pow(2, (det * (1.2 + 12 / Math.sqrt(Math.max(hz, 20)))) / 1200);
-          inc[i] = (TWO_PI * hz) / sampleRate;
           const lv = v.env[i].step(dt);
           const units = lv + v.base[i] - amUni * AMS_DB[op.ams] * UNITS_PER_DB;
           g1[i] = op.ol === 0 && op.vel === 0 ? 0 : Math.pow(2, units / 256 - 14);
-          if (alg.carriers.includes(i) && v.env[i].stage < 4 && lv > 600) alive = true;
+          if (isCar[i] && v.env[i].stage < 4 && lv > 600) alive = true;
           const m = g1[i] * 0.5;
           if (m > part.meter[i]) part.meter[i] = m;
         }

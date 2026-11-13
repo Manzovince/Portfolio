@@ -800,3 +800,7 @@ input.name { flex: 1; height: var(--hit); border-radius: 12px; border: 1px solid
 @media (display-mode: standalone) {
   @supports (height: 100lvh) { html, body { height: 100lvh; } #app { bottom: auto; height: 100lvh; } }
 }
+/* settings › backup */
+.card .store-state.warn { color: var(--b); }
+.card .row.wrap-row { flex-wrap: wrap; gap: 8px; }
+.view .load-error { padding: 24px; text-align: center; }

@@ -1,7 +1,7 @@
 // App state, persisted in localStorage (every access wrapped: private mode can throw).
 // One object, S, read and written everywhere; `emit` tells the views what moved.
-import { FACTORY } from './presets.js?v=202611129';
-import { clonePatch } from './dx7.js?v=202611129';
+import { FACTORY } from './presets.js?v=202611131';
+import { clonePatch } from './dx7.js?v=202611131';
 
 const KEY = 'octave.state.v1';
 const BANKS = 'octave.banks.v1';
@@ -68,6 +68,7 @@ export const S = merge(defaults(), load(KEY));
 if (!Array.isArray(S.seq.steps) || S.seq.steps.length !== 16) S.seq.steps = steps();
 if (!Array.isArray(S.parts) || S.parts.length !== 2) S.parts = defaults().parts;
 S.parts.forEach((p, i) => { if (p.kind === 'fm' && !p.patch) S.parts[i] = fmPart(0); });
+S.metro.on = false; // its settings are kept, but it never starts clicking by itself
 
 try {
   const l = localStorage.getItem(LANG_KEY);
@@ -83,12 +84,19 @@ let timer = 0;
 // A temporary view of the state to save instead of S (the sound workshop)
 let saveView = null;
 export const setSaveView = fn => { saveView = fn; };
+let saving = true;
+const writeNow = () => { try { localStorage.setItem(KEY, JSON.stringify(saveView ? saveView(S) : S)); } catch {} };
 export function save() {
+  if (!saving) return;
   clearTimeout(timer);
-  timer = setTimeout(() => {
-    try { localStorage.setItem(KEY, JSON.stringify(saveView ? saveView(S) : S)); } catch {}
-  }, 300);
+  timer = setTimeout(() => { timer = 0; writeNow(); }, 300);
 }
+// the app is closing or hidden: a pending save is written now (iOS gives no later chance)
+const flush = () => { if (timer && saving) { clearTimeout(timer); timer = 0; writeNow(); } };
+addEventListener('pagehide', flush);
+document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
+// a backup is being restored: nothing in memory may overwrite it any more
+export function stopSaving() { saving = false; clearTimeout(timer); timer = 0; }
 export function saveLang() {
   try { localStorage.setItem(LANG_KEY, S.lang); } catch {}
 }
@@ -105,6 +113,7 @@ export function on(evt, fn) {
 export function emit(evt, data) { listeners.get(evt)?.forEach(fn => fn(data)); }
 
 export function resetAll() {
+  stopSaving();
   try { localStorage.removeItem(KEY); } catch {}
   location.reload();
 }

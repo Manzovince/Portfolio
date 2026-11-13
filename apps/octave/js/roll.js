@@ -1,11 +1,11 @@
 // Play screen stage: notes rise from the keys they were played on, over a
 // faint oscilloscope of the sound. Columns come from the keyboard dock.
-import { subscribe } from './notes.js?v=202611129';
-import { geometry, onLayout } from './keys.js?v=202611129';
-import { partOf } from './perform.js?v=202611129';
-import { noteColor, palette } from './colors.js?v=202611129';
-import { analyser, busy } from './engine.js?v=202611129';
-import { S } from './store.js?v=202611129';
+import { subscribe } from './notes.js?v=202611131';
+import { geometry, onLayout } from './keys.js?v=202611131';
+import { partOf } from './perform.js?v=202611131';
+import { noteColor, palette } from './colors.js?v=202611131';
+import { analyser, busy } from './engine.js?v=202611131';
+import { S } from './store.js?v=202611131';
 
 const SPEED = 0.085; // px per ms
 const MAX = 1500;
@@ -39,10 +39,13 @@ function fit() {
 }
 
 let unLayout = null;
+const sizer = new ResizeObserver(() => fit());
 export function mountRoll(el) {
   canvas = el;
   g = el.getContext('2d');
-  new ResizeObserver(fit).observe(el);
+  // one observer, moved to the new canvas (the old one is gone with its screen)
+  sizer.disconnect();
+  sizer.observe(el);
   unLayout?.();
   unLayout = onLayout(fit);
   fit();
@@ -98,7 +101,8 @@ function frame() {
     g.globalAlpha = 1;
   }
   const sound = drawScope(now);
-  timeline = timeline.filter(n => n.end === null || h - (now - n.end) * SPEED > 0);
+  // notes that rose off the top: dropped (a new array only when one has)
+  if (timeline.some(n => n.end !== null && h - (now - n.end) * SPEED <= 0)) timeline = timeline.filter(n => n.end === null || h - (now - n.end) * SPEED > 0);
   for (const n of timeline) {
     const k = geo.get(n.midi);
     if (!k) continue;

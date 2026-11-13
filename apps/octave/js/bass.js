@@ -2,11 +2,11 @@
 // chord, Octave plays its root low down, held, in a rhythm, walking towards
 // the next suggested chord, or improvising a jazz line, at the tempo. Its sound is a bass of its own (part 2
 // of the engine) or the player's sound (part A).
-import * as E from './engine.js?v=202611129';
-import { S } from './store.js?v=202611129';
-import { FACTORY } from './presets.js?v=202611129';
-import { soundingNotes } from './notes.js?v=202611129';
-import { clonePatch } from './dx7.js?v=202611129';
+import * as E from './engine.js?v=202611131';
+import { S } from './store.js?v=202611131';
+import { FACTORY } from './presets.js?v=202611131';
+import { soundingNotes } from './notes.js?v=202611131';
+import { clonePatch } from './dx7.js?v=202611131';
 
 const SRC = 'bass';
 const BASS_PATCH = () => clonePatch(FACTORY.find(p => p.name === 'Basse ronde') || FACTORY.find(p => p.cat === 'Basses'));

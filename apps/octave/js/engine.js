@@ -3,9 +3,9 @@
 //   piano sampler, one tone stage per part  ──┴→ input → DJ filter → chorus
 //   → delay + reverb sends → compressor → master
 // Each of the two parts (A, B) is either the sampled piano or an FM patch.
-import { ALGORITHMS } from './algorithms.js?v=202611129';
+import { ALGORITHMS } from './algorithms.js?v=202611131';
 
-const V = '?v=202611129';
+const V = '?v=202611131';
 const SAMPLE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 // The sampled piano in a few colours: shelf (dB above 2.5 kHz), lowpass (Hz), damper (s)
@@ -20,6 +20,19 @@ let ctx, node, nodes = {};
 let meterCb = () => {};
 let ready = false;
 export const audio = () => ctx;
+
+// performance.now() milliseconds → audio-clock seconds. currentTime moves in
+// render quanta, so the offset is the upper envelope of recent readings
+// (sliding down very slowly, in case the two clocks drift).
+let clockOffset = null;
+export function audioTimeOf(perfMs) {
+  if (!ctx) return 0;
+  const sample = ctx.currentTime - performance.now() / 1000;
+  clockOffset = clockOffset == null || ctx.state !== 'running' ? sample : Math.max(sample, clockOffset - 0.0001);
+  return perfMs / 1000 + clockOffset;
+}
+// How far ahead playback schedules its notes: covers the main thread's stutters
+export const AHEAD = 0.03;
 export const isRunning = () => !!ctx && ctx.state === 'running';
 export const onMeter = fn => { meterCb = fn; };
 
@@ -45,7 +58,14 @@ export async function startAudio() {
   unlock.buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
   unlock.connect(ctx.destination);
   unlock.start();
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && ctx.state !== 'running') ctx.resume(); });
+  // iOS suspends the audio ("interrupted") for a call, Siri, an alarm… and does
+  // not always give it back: try again when it says so, on return to the app,
+  // and at the next touch or key (resume() needs a gesture there)
+  const revive = () => { if (ctx.state !== 'running' && ctx.state !== 'closed' && !document.hidden) ctx.resume().catch(() => {}); };
+  ctx.onstatechange = revive;
+  document.addEventListener('visibilitychange', revive);
+  addEventListener('pointerdown', revive, true);
+  addEventListener('keydown', revive, true);
   buildFx();
   ready = true;
   // The FM engine loads in the background: the piano can play meanwhile
@@ -125,9 +145,8 @@ function buildFx() {
 
   n.comp = new DynamicsCompressorNode(c, { threshold: -12, knee: 8, ratio: 5, attack: 0.004, release: 0.2 });
   n.master = new GainNode(c, { gain: 0.85 });
-  // mute sits after the master, so a recording still hears everything
-  n.mute = new GainNode(c, { gain: muted ? 0 : 1 });
-  n.bus.connect(n.comp).connect(n.master).connect(n.mute).connect(c.destination);
+  // (the top-bar mute silences the player's notes upstream, in perform.js)
+  n.bus.connect(n.comp).connect(n.master).connect(c.destination);
   if (pendingFx) setFx(...pendingFx);
 }
 
@@ -137,16 +156,26 @@ function makeIR(size) {
   const secs = 0.6 + size * 5.4;
   const len = Math.round(secs * c.sampleRate);
   const ir = c.createBuffer(2, len, c.sampleRate);
+  // the decay curve, computed every 64 samples and interpolated (pow is the cost)
+  const B = 64, env = new Float32Array(Math.ceil(len / B) + 2);
+  for (let k = 0; k < env.length; k++) env[k] = Math.pow(Math.max(0, 1 - (k * B) / len), 2.2);
   for (let ch = 0; ch < 2; ch++) {
     const d = ir.getChannelData(ch);
     let lp = 0;
     for (let i = 0; i < len; i++) {
-      const t = i / len;
       lp += 0.5 * ((Math.random() * 2 - 1) - lp);
-      d[i] = lp * Math.pow(1 - t, 2.2) * (i < 200 ? i / 200 : 1);
+      const k = (i / B) | 0, f = (i - k * B) / B;
+      d[i] = lp * (env[k] + (env[k + 1] - env[k]) * f) * (i < 200 ? i / 200 : 1);
     }
   }
   nodes.rv.buffer = ir;
+}
+// While the size slider moves, the room is rebuilt once it rests: the previous
+// one keeps sounding meanwhile, and the page does not stutter
+let irTimer = 0;
+function queueIR(size) {
+  clearTimeout(irTimer);
+  irTimer = setTimeout(() => makeIR(size), 150);
 }
 
 const ramp = (param, v, t = 0.04) => param.setTargetAtTime(v, ctx.currentTime, t);
@@ -182,7 +211,11 @@ export function setFx(fx, tempo) {
   ramp(n.dlTone.frequency, 800 * Math.pow(2, dl.tone * 4.5));
 
   const rv = fx.reverb;
-  if (Math.abs(rv.size - irSize) > 0.02) { irSize = rv.size; makeIR(rv.size); }
+  if (Math.abs(rv.size - irSize) > 0.02) {
+    const first = irSize < 0;
+    irSize = rv.size;
+    first ? makeIR(rv.size) : queueIR(rv.size);
+  }
   ramp(n.rvSend.gain, rv.on ? rv.mix * 0.9 : 0);
   ramp(n.rvTone.frequency, 1200 * Math.pow(2, rv.tone * 4));
 
@@ -190,13 +223,6 @@ export function setFx(fx, tempo) {
 }
 
 export const analyser = () => nodes.analyser || null;
-
-// Octave's own sound off (a piano that sounds by itself, played over MIDI)
-let muted = false;
-export function setMuted(on) {
-  muted = on;
-  if (ctx && nodes.mute) nodes.mute.gain.setTargetAtTime(on ? 0 : 1, ctx.currentTime, 0.015);
-}
 
 // Metronome tick, straight to the output (no effects): a short pitched blip
 export function click(t, accent, volume = 0.6) {
@@ -239,19 +265,33 @@ function loadSample(midi) {
   return samples.get(midi);
 }
 
-let preloaded = false;
+// Samples load a few at a time: first the keys on screen (warmRange), then
+// outwards from middle C. The rest loads when first played.
+let preloaded = false, preloadQueue = [], preloadBusy = false, visible = null;
+const idle = fn => (window.requestIdleCallback || (f => setTimeout(f, 50)))(fn);
+function preloadStep() {
+  const batch = preloadQueue.splice(0, 4).filter(m => !samples.has(m));
+  if (!preloadQueue.length && !batch.length) { preloadBusy = false; return; }
+  Promise.allSettled(batch.map(loadSample)).then(() => idle(preloadStep));
+}
+function queueSamples(list, first = false) {
+  const fresh = list.filter(m => m >= 21 && m <= 108 && !samples.has(m));
+  preloadQueue = first ? [...fresh, ...preloadQueue.filter(m => !fresh.includes(m))] : [...preloadQueue, ...fresh.filter(m => !preloadQueue.includes(m))];
+  if (!preloadBusy && preloadQueue.length) { preloadBusy = true; idle(preloadStep); }
+}
 function preloadSamples() {
   if (preloaded || !parts.some(p => p.kind === 'piano')) return;
   preloaded = true;
-  const queue = [];
-  for (let d = 0; d <= 24; d++) queue.push(60 + d, 60 - d - 1);
-  const idle = window.requestIdleCallback || (fn => setTimeout(fn, 50));
-  const step = () => {
-    const batch = queue.splice(0, 4);
-    if (!batch.length) return;
-    Promise.allSettled(batch.map(loadSample)).then(() => idle(step));
-  };
-  idle(step);
+  if (visible) queueSamples(visible, true);
+  const around = [];
+  for (let d = 0; d <= 24; d++) around.push(60 + d, 60 - d - 1);
+  queueSamples(around);
+}
+// The keyboard shows lo…hi: those samples first (now, or once the audio starts)
+export function warmRange(lo, hi) {
+  visible = [];
+  for (let m = lo; m <= hi; m++) visible.push(m);
+  if (preloaded) queueSamples(visible, true);
 }
 
 const velGain = v => 0.06 + 0.94 * Math.pow(v / 127, 1.6);
@@ -350,7 +390,7 @@ export const setPoly = n => post({ type: 'poly', n });
 function stopPart(i) {
   if (!ctx) return;
   for (const v of [...pianoVoices]) if (v.part === i) releasePiano(v, ctx.currentTime);
-  post({ type: 'panic' });
+  post({ type: 'panic', part: i }); // the other parts keep sounding
 }
 // Stop scheduled and sounding notes from one source (arp / seq)
 export function stopSource(src) {

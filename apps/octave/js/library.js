@@ -3,8 +3,7 @@
 // Imported files are kept in this browser (IndexedDB), so they can be opened
 // again later without looking for the file. Nothing leaves the device.
 
-const DB_NAME = "octave";
-const STORE = "songs";
+import { run as runStore } from "./db.js?v=202611131";
 
 // `fitsLumi`: every note within C3–B4, the 24 keys of one LUMI at its default octave
 export const EXAMPLES = [
@@ -12,31 +11,12 @@ export const EXAMPLES = [
     { id: "example:ode", title: "Ode à la joie", composer: "Beethoven", url: "songs/ode-a-la-joie.mid", fileName: "ode-a-la-joie.mid" },
 ];
 
-let dbPromise = null;
 const listeners = new Set();
 
 export const onLibraryChange = fn => listeners.add(fn);
 const changed = () => listeners.forEach(fn => fn());
 
-function openDb() {
-    dbPromise ??= new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, 1);
-        request.onupgradeneeded = () => request.result.createObjectStore(STORE, { keyPath: "id" });
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-    });
-    return dbPromise;
-}
-
-async function run(mode, fn) {
-    const db = await openDb();
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE, mode);
-        const request = fn(tx.objectStore(STORE));
-        tx.oncomplete = () => resolve(request?.result);
-        tx.onerror = () => reject(tx.error);
-    });
-}
+const run = (mode, fn) => runStore("songs", mode, fn);
 
 // Imported songs, most recently opened first. [] when storage is unavailable (private mode…)
 export async function importedSongs() {

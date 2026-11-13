@@ -1,15 +1,15 @@
 // Learn › Songs › Understand: the song taken apart (key, hands, melody,
 // rhythms, sections and harmony) with a work plan; each section can be put on
 // repeat, for one hand or both.
-import { h, icon, toast } from './ui.js?v=202611129';
-import { S, save, emit } from './store.js?v=202611129';
-import { t, spelled, intervalName, noteLabel, notation } from './i18n.js?v=202611129';
-import { chordSymbol, scaleNotes, defaultSpelling } from './theory.js?v=202611129';
-import { currentSong, setSongPart, setSongLoop, seekSong, playSong, pauseSong } from './song.js?v=202611129';
-import { drawLessonLine } from './score.js?v=202611129';
-import { parse, demo } from './coach.js?v=202611129';
-import { analyzeSong } from './analysis.js?v=202611129';
-import { openLesson } from './lesson.js?v=202611129';
+import { h, icon, toast } from './ui.js?v=202611131';
+import { S, save, emit } from './store.js?v=202611131';
+import { t, spelled, intervalName, noteLabel, notation } from './i18n.js?v=202611131';
+import { chordSymbol, scaleNotes, defaultSpelling } from './theory.js?v=202611131';
+import { currentSong, setSongPart, setSongLoop, seekSong, playSong, pauseSong } from './song.js?v=202611131';
+import { drawLessonLine } from './score.js?v=202611131';
+import { parse, demo } from './coach.js?v=202611131';
+import { analyzeSong } from './analysis.js?v=202611131';
+import { openLesson } from './lesson.js?v=202611131';
 
 const pct = x => Math.round(x * 100) + ' %';
 const mmss = ms => { const s = Math.round(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };

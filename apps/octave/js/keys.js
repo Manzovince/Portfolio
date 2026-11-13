@@ -3,13 +3,14 @@
 // key is struck), sized from the screen and the key-size setting. "mini": a
 // thin strip of all 88 keys that only shows what sounds, for MIDI players.
 // It also gives the roll and the waterfall their columns (geometry()).
-import { h, icon } from './ui.js?v=202611129';
-import { S, save, on, emit } from './store.js?v=202611129';
-import { press, lift, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from './notes.js?v=202611129';
-import { partOf } from './perform.js?v=202611129';
-import { noteColor } from './colors.js?v=202611129';
-import { noteLabel, t } from './i18n.js?v=202611129';
-import { pitchClass, scaleNotes } from './theory.js?v=202611129';
+import { h, icon } from './ui.js?v=202611131';
+import { S, save, on, emit } from './store.js?v=202611131';
+import { press, lift, liftSource, subscribe, soundingNotes, noteInfo, LOWEST, HIGHEST } from './notes.js?v=202611131';
+import { partOf } from './perform.js?v=202611131';
+import { noteColor } from './colors.js?v=202611131';
+import { noteLabel, t } from './i18n.js?v=202611131';
+import { pitchClass, scaleNotes } from './theory.js?v=202611131';
+import { warmRange } from './engine.js?v=202611131';
 
 const BLACK = new Set([1, 3, 6, 8, 10]);
 const isBlack = m => BLACK.has(((m % 12) + 12) % 12);
@@ -63,6 +64,7 @@ export function build() {
   const width = bed.clientWidth || window.innerWidth;
   range = computeRange(width);
   const { lo, hi } = range;
+  if (S.kb.dock === 'full') warmRange(lo, hi);
   const ww = 100 / whitesIn(lo, hi);
   bed.textContent = '';
   keyEls.clear();
@@ -149,9 +151,12 @@ export function createDock() {
   bed = h('div', { class: 'bed', role: 'group', 'aria-label': t('keyboard') });
   // playable keyboard ⇄ thin strip, in one tap: the fold button sits above the
   // octave-down button; folded, the whole strip unfolds it
-  fold = h('button', { class: 'oct fold', type: 'button', onclick: () => setDock(S.kb.dock === 'full' ? 'mini' : 'full') }, icon('fold'));
+  // stopPropagation: the fold swaps its own icon, so by the time the click
+  // reaches the dock its target is no longer inside the button, and the dock
+  // took it for "tap the strip to unfold" (the fold undid itself)
+  fold = h('button', { class: 'oct fold', type: 'button', onclick: e => { e.stopPropagation(); setDock(S.kb.dock === 'full' ? 'mini' : 'full'); } }, icon('fold'));
   wrap.append(h('div', { class: 'oct-col' }, fold, down), bed, up);
-  wrap.addEventListener('click', e => { if (S.kb.dock === 'mini' && e.target !== fold && !fold.contains(e.target)) setDock('full'); });
+  wrap.addEventListener('click', () => { if (S.kb.dock === 'mini') setDock('full'); });
   applyDock();
 
   bed.addEventListener('pointerdown', e => {
@@ -159,7 +164,7 @@ export function createDock() {
     e.preventDefault();
     const hit = noteAt(e.clientX, e.clientY);
     if (!hit) return;
-    bed.setPointerCapture(e.pointerId);
+    try { bed.setPointerCapture(e.pointerId); } catch {} // a pointer the browser no longer knows
     touches.set(e.pointerId, hit.n);
     press(hit.n, velAt(hit.k, e.clientY), 'screen');
   });
@@ -168,8 +173,9 @@ export function createDock() {
     const hit = noteAt(e.clientX, e.clientY);
     const cur = touches.get(e.pointerId);
     if (hit && hit.n !== cur) {
-      lift(cur);
       touches.set(e.pointerId, hit.n);
+      // another finger may still hold the key this one slides off
+      if (![...touches.values()].includes(cur)) lift(cur);
       press(hit.n, velAt(hit.k, e.clientY), 'screen');
     }
   });
@@ -192,7 +198,19 @@ export function createDock() {
   down.onclick = () => shift(-1);
   up.onclick = () => shift(1);
   new ResizeObserver(() => build()).observe(bed);
-  addEventListener('scroll', measure, true);
+  // a scroll only matters if it moved the keyboard sideways: checked once per
+  // frame, and the columns rebuilt only then
+  let scrollQueued = false;
+  addEventListener('scroll', () => {
+    if (scrollQueued) return;
+    scrollQueued = true;
+    requestAnimationFrame(() => {
+      scrollQueued = false;
+      const r = bed.getBoundingClientRect();
+      const first = geo.get(range.lo);
+      if (!first || Math.abs(first.x - r.left) > 0.5) measure();
+    });
+  }, { capture: true, passive: true });
   return wrap;
 }
 

@@ -1,23 +1,23 @@
 // Play screen: the stage (rising notes over the oscilloscope, or the staff of
 // what is played), the chord readout, and the side panel for the sound.
-import { h, icon, knob, param, seg, toggle, toast } from './ui.js?v=202611129';
-import { S, save, emit } from './store.js?v=202611129';
-import * as E from './engine.js?v=202611129';
-import { subscribe, soundingNotes } from './notes.js?v=202611129';
-import { applyPart, seq, seqPlay, seqHasNotes, arpClear, allOff } from './perform.js?v=202611129';
-import { mountRoll, clearRoll, wake } from './roll.js?v=202611129';
-import { mountStaff, clearScore, hasScore, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi } from './score.js?v=202611129';
-import { detectChord, chordSymbol, scaleContext, intervalBetween, spellPc, pitchClass, SCALES } from './theory.js?v=202611129';
-import { t, chordQuality, inversionName, intervalName, scaleName, spelled, notation, noteLabel } from './i18n.js?v=202611129';
-import { createGraph } from './graph.js?v=202611129';
-import { soundName, soundMeta, stepVoice, loadVoice } from './create.js?v=202611129';
-import { PIANO_SOUNDS } from './engine.js?v=202611129';
-import { setSide, keyHint } from './keys.js?v=202611129';
-import { currentSong } from './song.js?v=202611129';
-import { isRecording, startRecording, stopRecording, recordingMs, takes, playTake, stopTake, playingTake, takeProgress, deleteTake, renameTake, exportTakeMidi, exportTakeAudio, audioExportSupported } from './recorder.js?v=202611129';
-import { suggestState, playSuggestion, SUGGEST_COLORS } from './suggest.js?v=202611129';
-import { bassOff, applyBassSound } from './bass.js?v=202611129';
-import { on } from './store.js?v=202611129';
+import { h, icon, knob, param, seg, toggle, toast } from './ui.js?v=202611131';
+import { S, save, emit } from './store.js?v=202611131';
+import * as E from './engine.js?v=202611131';
+import { subscribe, soundingNotes } from './notes.js?v=202611131';
+import { applyPart, seq, seqPlay, seqHasNotes, arpClear, allOff } from './perform.js?v=202611131';
+import { mountRoll, clearRoll, wake } from './roll.js?v=202611131';
+import { mountStaff, clearScore, hasScore, showFullScore, hideFullScore, exportPng, exportSvg, exportMidi } from './score.js?v=202611131';
+import { detectChord, chordSymbol, scaleContext, intervalBetween, spellPc, pitchClass, SCALES } from './theory.js?v=202611131';
+import { t, chordQuality, inversionName, intervalName, scaleName, spelled, notation, noteLabel } from './i18n.js?v=202611131';
+import { createGraph } from './graph.js?v=202611131';
+import { soundName, soundMeta, stepVoice, loadVoice } from './create.js?v=202611131';
+import { PIANO_SOUNDS } from './engine.js?v=202611131';
+import { setSide, keyHint } from './keys.js?v=202611131';
+import { currentSong } from './song.js?v=202611131';
+import { isRecording, startRecording, stopRecording, recordingMs, takes, playTake, stopTake, playingTake, takeProgress, deleteTake, renameTake, exportTakeMidi, exportTakeAudio, audioExportSupported } from './recorder.js?v=202611131';
+import { suggestState, playSuggestion, SUGGEST_COLORS } from './suggest.js?v=202611131';
+import { bassOff, applyBassSound } from './bass.js?v=202611131';
+import { on } from './store.js?v=202611131';
 
 export function renderPlay(view, ctx) {
   setSide(null);
@@ -172,8 +172,9 @@ function recButton(ctx) {
   const label = h('span', {});
   const btn = h('button', { type: 'button', class: 'rec-btn', onclick: () => {
     if (isRecording()) {
-      const take = stopRecording();
-      toast(take ? t('takeSaved', { n: take.n }) : t('takeEmpty'));
+      const rec = stopRecording();
+      if (!rec) toast(t('takeEmpty'));
+      else rec.saved.then(ok => toast(t(ok ? 'takeSaved' : 'takeUnsaved', { n: rec.take.n })));
     } else startRecording();
   } }, h('i'), label);
   let raf = 0;
@@ -216,7 +217,7 @@ export function takesSheet(box, ctx) {
       } }, icon('download'), t('audio'));
       list.append(h('div', { class: 'take' + (playing ? ' playing' : '') },
         h('button', { type: 'button', class: 'take-play', 'aria-label': playing ? t('stop') : t('playL'), onclick: () => { playing ? stopTake() : playTake(take.id, fill); } }, icon(playing ? 'stop' : 'start')),
-        h('div', { class: 'take-main' }, nameField, h('small', {}, `${date} · ${fmtMs(take.dur)} · ${take.events.filter(e => e.on != null).length} ${t('notesWord')}`), bar),
+        h('div', { class: 'take-main' }, nameField, h('small', {}, `${date} · ${fmtMs(take.dur)} · ${take.events.filter(e => e.on != null).length} ${t('notesWord')}${take.unsaved ? ' · ' + t('takeNotKept') : ''}`), bar),
         h('div', { class: 'take-actions' },
           h('button', { type: 'button', class: 'btn ghost', onclick: () => exportTakeMidi(take.id) }, icon('download'), 'MIDI'),
           audioBtn,

@@ -1,14 +1,15 @@
 // Coach: the course's progress, the tiny music notation the lessons are written
 // in, the keys a lesson lights, and the clock helpers (demo playback, clicks,
 // latency calibration) shared by the lesson steps.
-import { press, lift } from './notes.js?v=202611129';
-import * as E from './engine.js?v=202611129';
-import { COURSE } from './course.js?v=202611129';
-import { SOUND_COURSE } from './sound-course.js?v=202611129';
+import { press, lift } from './notes.js?v=202611131';
+import * as E from './engine.js?v=202611131';
+import { persistStorage } from './db.js?v=202611131';
+import { COURSE } from './course.js?v=202611131';
+import { SOUND_COURSE } from './sound-course.js?v=202611131';
 export { COURSE };
 // Two tracks: playing the piano, and making sounds with the synth
 export const TRACKS = { piano: COURSE, sound: SOUND_COURSE };
-import { defaultSpelling } from './theory.js?v=202611129';
+import { defaultSpelling } from './theory.js?v=202611131';
 
 // Every piece of the course once: versions of one song (right hand, left hand,
 // both) count as one, played in its fullest version under its first, plain title
@@ -58,6 +59,7 @@ export function recordLesson(id, stars) {
   P.stars[id] = Math.max(starsOf(id), stars);
   P.last = id;
   saveCoach();
+  persistStorage(); // progress to keep: ask the browser to keep it (asked once, then a no-op)
 }
 
 // ── notation ───────────────────────────────────────────────────
@@ -96,11 +98,7 @@ export const lengthOf = items => items.filter(i => !i.bar).reduce((s, i) => s + 
 export const spellingOf = midi => defaultSpelling(((midi % 12) + 12) % 12);
 
 // ── keys lit by the lesson (and the LUMI) ──────────────────────
-let guide = null;
-const guideListeners = new Set();
-export const coachGuide = () => guide;
-export const onCoachGuide = fn => { guideListeners.add(fn); return () => guideListeners.delete(fn); };
-export function setCoachGuide(g) { guide = g; guideListeners.forEach(fn => fn()); }
+export { coachGuide, onCoachGuide, setCoachGuide } from './coach-guide.js?v=202611131';
 
 // ── clocks ─────────────────────────────────────────────────────
 // Latency between what is heard and what the keyboard reports, measured once
