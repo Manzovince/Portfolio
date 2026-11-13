@@ -114,7 +114,7 @@ html.home #profw,html.home .hrow{display:none}
 .hcol{display:flex;flex-direction:column;align-items:flex-start;gap:6px;order:1}
 .zpill{pointer-events:auto;background:var(--hud);color:var(--hud-ink);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:10px;padding:3px}
 .zpill span{min-width:54px}
-#bSprint{border:0;border-radius:999px;font:inherit;font-size:10px;font-weight:700;padding:6px 11px;cursor:pointer;white-space:nowrap}#bSprint.on{background:#f08a2a;color:#1a0f04;animation:sprintP .5s ease-in-out infinite alternate}#bSprint{background-image:linear-gradient(90deg,rgba(232,72,58,.55) var(--red,0%),transparent var(--red,0%))}#bSprint.hot{background-color:#e8483a;color:#fff;animation:sprintP .25s ease-in-out infinite alternate}#bSprint:disabled{opacity:.45;cursor:default}@keyframes sprintP{to{box-shadow:0 0 0 4px rgba(240,138,42,.35)}}@media (prefers-reduced-motion:reduce){#bSprint.on{animation:none}}
+#bSprint{border:0;border-radius:999px;font:inherit;font-size:10px;font-weight:700;padding:6px 11px;cursor:pointer;white-space:nowrap}#bSprint.on{background:#f08a2a;color:#1a0f04;animation:sprintP .5s ease-in-out infinite alternate}#bSprint{position:relative;overflow:hidden;isolation:isolate}#bSprint::before{content:'';position:absolute;left:0;right:0;bottom:0;height:var(--red,0%);z-index:-1;background:linear-gradient(0deg,#c8281c,#f06a3a);opacity:.8;transition:height .4s linear}#bSprint::after{content:'';position:absolute;left:0;right:0;bottom:50%;border-top:1px dashed rgba(255,255,255,.35);opacity:0;z-index:-1}#bSprint.on::after{opacity:1}#bSprint.hot{color:#fff;animation:sprintP .25s ease-in-out infinite alternate}#bSprint:disabled{opacity:.45;cursor:default}@keyframes sprintP{to{box-shadow:0 0 0 4px rgba(240,138,42,.35)}}@media (prefers-reduced-motion:reduce){#bSprint.on{animation:none}}
 .hrow{display:flex;gap:6px;align-items:center}.bagt{border:0;border-radius:999px;font:inherit;font-size:11px;padding:4px 9px;cursor:pointer;display:flex;gap:4px;align-items:center}.bagt i{font-style:normal;font-size:9px;opacity:.7}html.nobag #bag{display:none}html.nobag .bagt i{transform:rotate(-90deg)}
 .bar{display:grid;grid-template-columns:14px 1fr minmax(44px,auto);align-items:center;gap:6px;white-space:nowrap;font-size:10px}
 .bar .t{height:6px;background:rgba(255,255,255,.14);border-radius:4px;overflow:hidden}
@@ -432,12 +432,12 @@ html.zen .hud,html.zen header,html.zen #search,html.zen #links{display:none!impo
   </div>
   <div class="pb" id="pb"></div>
 </div></div>
-<script src="js/core.js?v=59"></script>
-<script src="js/world.js?v=59"></script>
-<script src="js/layers.js?v=59"></script>
-<script src="js/sprites.js?v=59"></script>
-<script src="js/game.js?v=59"></script>
-<script src="js/home.js?v=59"></script>
-<script src="js/main.js?v=59"></script>
+<script src="js/core.js?v=60"></script>
+<script src="js/world.js?v=60"></script>
+<script src="js/layers.js?v=60"></script>
+<script src="js/sprites.js?v=60"></script>
+<script src="js/game.js?v=60"></script>
+<script src="js/home.js?v=60"></script>
+<script src="js/main.js?v=60"></script>
 </body>
 </html>
