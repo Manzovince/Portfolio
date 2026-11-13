@@ -60,16 +60,16 @@ function loop(t){
 
 // pied d'un objet large : le point le plus bas du sol sous toute sa largeur (rien ne flotte)
 function footY(x0,w,dm,s){let y=-1e9;const n=Math.max(1,Math.ceil(w/2));for(let i=0;i<=n;i++){const xx=x0+w*i/n,d=s+(xx-RX)*MPX;y=Math.max(y,groundY(d,s,cam))}return y}
-// concurrents visibles à l'écran : les plus proches du coureur, espacés pour rester lisibles ; ils marchent dans les pentes raides des trails
+// concurrents visibles à l'écran, espacés pour rester lisibles (on peut croiser et doubler notre coureur) ; ils marchent dans les pentes raides des trails
 function rivalsIn(dm0,dm1,s,t){
   const R=G.race,id=R.id,T=effTab(id),e0=effAt(T,dm0-4),e1=effAt(T,dm1+4),rt=R.t,bunch=clamp(1-rt/240,0,1),out=[];
   for(const p of pack(id)){const u=rivalU(p,rt);if(u>=1&&rt>p.T+40)continue;const e=u*T.tot;if(e<e0||e>e1)continue;
     const d=effInv(T,e)-p.grid*bunch;out.push({p,d})}
-  out.sort((a,b)=>Math.abs(a.d-s)-Math.abs(b.d-s));
+  out.sort((a,b)=>a.p.i-b.p.i);   // priorité fixe par concurrent : personne ne clignote quand l'ordre des distances change
   const res=[],steep=!!(RACES[id].req&&RACES[id].req.includes('trail'));
   const gap=Math.round(9*ZOOMS[ZOOM].k),cap=Math.min(36,W/22);
   for(const{p,d}of out){const x=Math.round(RX+(d-s)/MPX);if(x<-20||x>W+20)continue;
-    if(Math.abs(x-RX)<gap*.8||res.some(o=>o.lane===p.lane&&Math.abs(o.x-x)<gap))continue;if(res.length>=cap)break;
+    if(res.some(o=>o.lane===p.lane&&Math.abs(o.x-x)<gap))continue;if(res.length>=cap)break;
     const done=d>=T.len-.5,gr=(elevMacro(d+12)-elevMacro(d-12))/24,mode=done?'walk':steep&&gr>.13?'walk':'run',N=mode==='run'?10:12;
     const f=done?0:Math.floor(t/1000*(mode==='run'?1.42:.9)*(.9+p.ph*.2)*N+p.ph*N)%N;
     res.push({x,y:Math.round(groundY(d,s,cam)),rf:runnerFrame(mode,f,p.gear),lane:p.lane,lamp:!!p.gear.lamp})}
