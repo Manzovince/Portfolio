@@ -208,6 +208,30 @@ const FIELD={};
 function field(id){if(FIELD[id])return FIELD[id];const C=RACES[id],r=rng(CAMP.indexOf(id)*7919+11),a=[];
   for(let i=0;i<C.nb;i++){const z=Math.sqrt(-2*Math.log(r()+1e-9))*Math.cos(2*Math.PI*r());a.push(C.med*Math.exp(.17*z))}return FIELD[id]=a.sort((x,y)=>x-y)}
 const placeOf=(id,t)=>{const f=field(id);let i=0;while(i<f.length&&f[i]<t)i++;return i+1};
+/* ---------- le peloton visible : chaque concurrent du peloton fictif court vraiment sur le parcours ---------- */
+// « effort » cumulé le long du parcours : 1 m de D+ coûte comme 7 m de plat. Un concurrent avance à effort régulier,
+// avec un départ plus ou moins prudent (a > 0 : part vite et ralentit ; a < 0 : finit fort). Il arrive pile à son chrono.
+const EFF={},PACK={},EFS=25;
+function effTab(id){if(EFF[id])return EFF[id];const len=raceInfo(id).len,cur=ROUTE.id;useRoute(id);
+  const n=Math.ceil(len/EFS)+1,E=new Float64Array(n);let e0=elevMacro(0);
+  for(let i=1;i<n;i++){const d=Math.min(len,i*EFS),e=elevMacro(d);E[i]=E[i-1]+(d-(i-1)*EFS)+7*Math.max(0,e-e0);e0=e}
+  useRoute(cur);return EFF[id]={E,n,len,tot:E[n-1]}}
+const effAt=(T,d)=>{if(d<=0)return 0;if(d>=T.len)return T.tot;const i=Math.floor(d/EFS),f=d/EFS-i;return T.E[i]+(T.E[Math.min(T.n-1,i+1)]-T.E[i])*f};
+function effInv(T,e){if(e<=0)return 0;if(e>=T.tot)return T.len;let lo=0,hi=T.n-1;while(hi-lo>1){const m=(lo+hi)>>1;if(T.E[m]<=e)lo=m;else hi=m}
+  return Math.min(T.len,(lo+(e-T.E[lo])/((T.E[hi]-T.E[lo])||1))*EFS)}
+const SKINS=['#f0cca8','#e8b48c','#d49a70','#b07a52','#8a5a3a','#5e3c28'],HAIRS=['#3a2a22','#1e1a18','#7a4a22','#d8b860','#a83a1a','#c8c4bc'],
+  SHORTS=['#2c3a52','#1e2228','#3a3a44','#6a2a2a','#2a5a4a','#d8d4cc','#3a5ab0','#e86a8a'],
+  TOPS=['#e8483a','#3a8ae0','#f0c030','#3ab86a','#f4f2ec','#1e2228','#8a5ac8','#f08a2a','#2ac0b0','#f04ab0','#9ab0c8','#c8d840'];
+function pack(id){if(PACK[id])return PACK[id];const f=field(id),C=RACES[id],r=rng(CAMP.indexOf(id)*131+7),pick=a=>a[Math.floor(r()*a.length)],mtn=!!(C.req&&C.req.includes('trail'));
+  return PACK[id]=f.map((T,i)=>({T,i,a:(r()-.4)*.22,ph:r(),grid:Math.floor(r()*60)*.7,lane:r()<.5?0:1,
+    gear:{shoes:pick(mtn?['trail','boue','montagne','trail']:['route','trail','carbone','route']),top:'tshirt',shirt:pick(TOPS),skin:pick(SKINS),hair:pick(HAIRS),shorts:pick(SHORTS),
+      head:r()<.35?pick(['casquette','bandeau','casquette',mtn?'bonnet':'bandeau']):null,eyes:r()<.3?pick(['solaires','lunettes','aviateur','solaires']):null,
+      bag:mtn||id==='mara'?pick(['gilet5','gilet12','ceinture']):'gourde',poles:mtn&&r()<.45?'alu':null,lamp:id==='ultra'?'frontale':null,style:'classique',bib:1}}))}
+// part de l'effort total accomplie par un concurrent après t secondes de course
+const rivalU=(R,t)=>{const x=clamp(t/R.T,0,1);return x*(1+R.a*(1-x))};
+const rivalD=(id,R,t)=>{const T=effTab(id);return effInv(T,rivalU(R,t)*T.tot)};
+// place en direct : les concurrents qui ont accompli plus d'effort que toi
+function livePlace(){const R=G.race;if(!R||R.st!=='run')return 0;const T=effTab(R.id),me=effAt(T,G.d)/T.tot;if(me<=0)return 0;let n=1;for(const p of pack(R.id))if(rivalU(p,R.t)>me)n++;return n}
 function takeBib(id){const C=RACES[id];if(G.race||!raceOpen(id)||G.coins<C.fee)return false;G.coins-=C.fee;G.race={id,st:'bib',bib:100+Math.floor(Math.random()*C.nb*1.2)};
   emit('Dossard n° '+G.race.bib,C.n+' · prépare ton matériel, puis prends le départ','🎽');return true}
 function dropBib(){if(G.race&&G.race.st==='bib')G.race=null}

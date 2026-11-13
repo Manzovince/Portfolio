@@ -195,11 +195,11 @@ function poiSprite(p){
 /* ---------- le coureur, tout petit (≈11 px) ---------- */
 const runCache=new Map();
 function runnerFrame(mode,f,gear){
-  const key=mode+f+gearKey(gear)+'z'+ZOOM;let c=runCache.get(key);if(c)return c;
+  const key=mode+f+gearKey(gear)+'z'+ZOOM;let c=runCache.get(key);if(c)return c;if(runCache.size>4000)runCache.clear();
   const K=ZOOMS[ZOOM].k,SZ=Math.ceil(14*K)+4,ST=gear.style||'classique';
   const N=mode==='run'?10:12,q0=f/N,TAU=2*Math.PI;
-  const sk=ST==='zombie'?hex('#8fb07a'):hex('#e8b48c'),skD=mix(sk,[0,0,0],.25);
-  let shirt=hex(GEAR[gear.top].col),shorts=hex('#2c3a52'),shoe=hex(GEAR[gear.shoes].col);
+  const sk=ST==='zombie'?hex('#8fb07a'):hex(gear.skin||'#e8b48c'),skD=mix(sk,[0,0,0],.25);
+  let shirt=hex(gear.shirt||GEAR[gear.top].col),shorts=hex(gear.shorts||'#2c3a52'),shoe=hex(GEAR[gear.shoes].col);
   // tenues imposées par certains styles
   if(ST==='robot'){shirt=hex('#b8c2cc');shorts=hex('#8a949e')}
   if(ST==='pingouin'){shirt=hex('#1e2228');shorts=hex('#1e2228');shoe=hex('#f0a030')}
@@ -248,10 +248,11 @@ function runnerFrame(mode,f,gear){
   arm(q0+.5,skD,false);leg(L2,skD,mix(shoe,[0,0,0],.3));
   line(hip[0],hip[1],sh[0],sh[1]+1,shirt);if(K>1.2){line(hip[0]-1,hip[1]-1,sh[0]-1,sh[1]+1,shirt);P(hip[0]-1,hip[1],shorts);if(K>1.7)P(hip[0],hip[1]-1,shorts)}P(hip[0],hip[1],shorts);
   if(ST==='pingouin')line(hip[0]+1,hip[1]-1,sh[0]+1,sh[1]+2,hex('#f4f4f0'));
+  if(gear.bib&&ST!=='pingouin'){const bx=lerp(hip[0],sh[0],.45),by=lerp(hip[1],sh[1],.45);P(bx,by,hex('#f8f6f0'));if(K>1.2)P(bx-1,by,hex('#f8f6f0'));if(K>1.7)P(bx,by-1,hex('#e8483a'))}
   if(ST==='zombie'){P(sh[0],sh[1]+2,sk);if(K>1.2){P(hip[0]-1,hip[1]-1,sk);P(hip[0]+1,hip[1]+1,hex('#7a2a24'))}}
   if(gear.bag&&GEAR[gear.bag].vest&&ST!=='heros')P(sh[0]-1,sh[1]+1,hex('#3a3a44'));
   const hx0=Math.round(sh[0]),hy0=Math.round(sh[1]),hh=K>1.2?2:1;
-  let hc=gear.head?hex(GEAR[gear.head].col):hex('#3a2a22');
+  let hc=gear.head?hex(GEAR[gear.head].col):hex(gear.hair||'#3a2a22');
   if(ST==='robot')hc=hex('#9aa4b0');if(ST==='pingouin')hc=hex('#1e2228');
   const face=ST==='robot'?hex('#c8d0d8'):ST==='pingouin'?hex('#f4f4f0'):sk;
   for(let j=1;j<=hh;j++){P(hx0,hy0-j,j===hh&&K>1.2?hc:face);P(hx0+1,hy0-j,face)}if(K>1.7)P(hx0+2,hy0-1,ST==='pingouin'?hex('#f0a030'):face);
@@ -270,7 +271,7 @@ function runnerFrame(mode,f,gear){
   const[cv,g]=canvasOf(SZ,SZ);g.putImageData(pb.img,0,0);
   c={cv:outlineCv(cv,'#1c1820',.4+.15*(K>1.2)),ox:ox+1,oy:oy+1};runCache.set(key,c);return c;
 }
-const gearKey=g=>[g.shoes,g.top,g.head,g.eyes,g.bag,g.poles,g.lamp,g.style].join(',');
+const gearKey=g=>[g.shoes,g.top,g.head,g.eyes,g.bag,g.poles,g.lamp,g.style,g.skin,g.hair,g.shirt,g.shorts,g.bib].join(',');
 
 /* ---------- le chien (border collie) ---------- */
 const compCache={};

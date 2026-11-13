@@ -60,6 +60,21 @@ function loop(t){
 
 // pied d'un objet large : le point le plus bas du sol sous toute sa largeur (rien ne flotte)
 function footY(x0,w,dm,s){let y=-1e9;const n=Math.max(1,Math.ceil(w/2));for(let i=0;i<=n;i++){const xx=x0+w*i/n,d=s+(xx-RX)*MPX;y=Math.max(y,groundY(d,s,cam))}return y}
+// concurrents visibles à l'écran : les plus proches du coureur, espacés pour rester lisibles ; ils marchent dans les pentes raides des trails
+function rivalsIn(dm0,dm1,s,t){
+  const R=G.race,id=R.id,T=effTab(id),e0=effAt(T,dm0-4),e1=effAt(T,dm1+4),rt=R.t,bunch=clamp(1-rt/240,0,1),out=[];
+  for(const p of pack(id)){const u=rivalU(p,rt);if(u>=1&&rt>p.T+40)continue;const e=u*T.tot;if(e<e0||e>e1)continue;
+    const d=effInv(T,e)-p.grid*bunch;out.push({p,d})}
+  out.sort((a,b)=>Math.abs(a.d-s)-Math.abs(b.d-s));
+  const res=[],steep=!!(RACES[id].req&&RACES[id].req.includes('trail'));
+  const gap=Math.round(9*ZOOMS[ZOOM].k),cap=Math.min(36,W/22);
+  for(const{p,d}of out){const x=Math.round(RX+(d-s)/MPX);if(x<-20||x>W+20)continue;
+    if(Math.abs(x-RX)<gap*.8||res.some(o=>o.lane===p.lane&&Math.abs(o.x-x)<gap))continue;if(res.length>=cap)break;
+    const done=d>=T.len-.5,gr=(elevMacro(d+12)-elevMacro(d-12))/24,mode=done?'walk':steep&&gr>.13?'walk':'run',N=mode==='run'?10:12;
+    const f=done?0:Math.floor(t/1000*(mode==='run'?1.42:.9)*(.9+p.ph*.2)*N+p.ph*N)%N;
+    res.push({x,y:Math.round(groundY(d,s,cam)),rf:runnerFrame(mode,f,p.gear),lane:p.lane,lamp:!!p.gear.lamp})}
+  return res.sort((a,b)=>a.y-b.y);
+}
 function draw(date,t){
   const s=G.d,se=sunElev(date),wx=weatherAt(date),W0=WX[wx];if(draw.wx!==wx){drops.length=0;flakes.length=0;draw.wx=wx}const sp=scrollPx();
   SK=skyAt(se);
@@ -152,11 +167,18 @@ function draw(date,t){
       // la suricate s'arrête parfois pour faire le guet
       const stand=G.comp==='suricate'&&(t%9000)<1600,hop=C.mv==='hop'?Math.round(Math.abs(Math.sin(phase*Math.PI))*3):0;
       const still=G.rest||G.home,cf=compFrame(G.comp,still?0:stand?3:Math.floor(phase*4)%3);g.drawImage(cf.cv,dx-cf.ox,gy0-cf.oy+1-(still?0:hop))}}
+  // les autres concurrents (course officielle) : une moitié derrière le coureur, l'autre devant
+  const RIV=onRace()?rivalsIn(dm0,dm1,s,t):[];
+  for(const o of RIV)if(!o.lane)g.drawImage(o.rf.cv,o.x-o.rf.ox,o.y-o.rf.oy);
   // le coureur
   if(G.home){const hs0=bigHouse(0,SK.dark>.35),y=footY(RX-hs0.ox,hs0.cv.width,HOME_D,s)-hs0.porch,o=homeSit(Math.floor(t/1700)%3===0?1:0);g.drawImage(o.cv,RX-o.ox,Math.round(y-o.oy+1))}
   else if(G.rest){const bv=bivSprite(G.gear.biv,Math.floor(t/220)%2),y=footY(RX-bv.ox,bv.cv.width,G.d,s);g.drawImage(bv.cv,RX-bv.ox,Math.round(y-bv.oy+1))}
-  else{const N=LIVE.mode==='run'?10:12,rf=runnerFrame(LIVE.mode,Math.floor(phase*N)%N,G.gear);
-  g.drawImage(rf.cv,RX-rf.ox,fy-rf.oy+1)}
+  else{const N=LIVE.mode==='run'?10:12,rf=runnerFrame(LIVE.mode,Math.floor(phase*N)%N,onRace()?Object.assign({},G.gear,{bib:1}):G.gear);
+  g.drawImage(rf.cv,RX-rf.ox,fy-rf.oy+1);
+  // en course : une petite flèche au-dessus de notre coureur pour le retrouver dans le peloton
+  if(onRace()){const K=ZOOMS[ZOOM].k,n=K>1.4?3:2,ax=RX+Math.round(K),ay=fy-Math.round(8.5*K)-3-(Math.floor(t/600)%2);g.globalAlpha=.85;
+    g.fillStyle='#1c1820';g.fillRect(ax-n,ay-n-1,2*n+1,1);for(let i=0;i<n;i++){const j=n-1-i;g.fillStyle='#1c1820';g.fillRect(ax-j-1,ay-n+i,2*j+3,1);g.fillStyle='#f6d860';g.fillRect(ax-j,ay-n+i,2*j+1,1)}g.fillStyle='#1c1820';g.fillRect(ax,ay,1,1);g.globalAlpha=1}}
+  for(const o of RIV)if(o.lane)g.drawImage(o.rf.cv,o.x-o.rf.ox,o.y-o.rf.oy+2);
   drawFauna(g,s,t);
   drawForeground(g,s);
   // teinte de l'heure
@@ -171,6 +193,7 @@ function draw(date,t){
   if(SK.dark>.2){
     ctx.globalCompositeOperation='lighter';const a=Math.min(1,(SK.dark-.2)*1.4);
     if(G.gear.lamp)drawHeadlamp(a);
+    for(const o of RIV)if(o.lamp){const hy=o.y-o.rf.oy+3,gr=ctx.createRadialGradient(o.x+2,hy,0,o.x+2,hy,7);gr.addColorStop(0,`rgba(255,240,190,${.55*a})`);gr.addColorStop(1,'rgba(255,240,190,0)');ctx.fillStyle=gr;ctx.fillRect(o.x-5,hy-7,14,14)}
     for(const p of poisIn(dm0,dm1))if(p.k==='ravito'){const x=RX+(p.d-s)/MPX,y=groundY(p.d,s,cam)-8;const gr=ctx.createRadialGradient(x,y,0,x,y,16);gr.addColorStop(0,`rgba(255,200,120,${.5*a})`);gr.addColorStop(1,'rgba(255,200,120,0)');ctx.fillStyle=gr;ctx.fillRect(x-16,y-16,32,32)}
     ctx.globalCompositeOperation='source-over';
   }
@@ -553,7 +576,8 @@ function homeUI(){
 
 }
 /* ---------- campagne : courses, dossard, panneau de course ---------- */
-function onRoute(){if(resize.home!==!!G.home)resize();ensure(G.d);cam=elev(G.d);camMacro=elevMacro(G.d);ANIM=[];SUP_USED.clear();clearTiles();tileBudget=999;save();hud();if($('#modal').classList.contains('on')&&curTab==='courses')renderRaces()}
+function onRoute(){if(!UIREADY){onRoute.late=1;return}   // pendant le rattrapage au chargement : rejoué une fois tout initialisé
+  if(resize.home!==!!G.home)resize();ensure(G.d);cam=elev(G.d);camMacro=elevMacro(G.d);ANIM=[];SUP_USED.clear();clearTiles();tileBudget=999;save();hud();if($('#modal').classList.contains('on')&&curTab==='courses')renderRaces()}
 const tm=s=>{s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s/60)%60,x=s%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
 const toShop=slot=>{shopCat='equip';shopSlot=slot;store.set('shopCat','equip');store.set('shopSlot',slot);openModal('boutique')};
 function raceUI(){
@@ -574,7 +598,7 @@ function raceUI(){
     x.hidden=false;x.textContent='Rendre le dossard';x.onclick=()=>{dropBib();save();hud()};return}
   if(R&&R.st==='run'){const C=RACES[R.id],I=raceInfo(R.id),f=clamp(G.d/I.len,0,1),est=f>.02?R.t/f:0;el.className='hud run';
     $('#raN').textContent=C.ic+' '+C.n;$('#raB').textContent='n° '+R.bib;
-    $('#raS').innerHTML=`<b class="big">${tm(R.t)}</b><span>${fmt(G.d/1000,2)} / ${fmt(I.len/1000,1)} km</span>`;
+    const pl=livePlace();$('#raS').innerHTML=`<b class="big">${tm(R.t)}</b><span>${fmt(G.d/1000,2)} / ${fmt(I.len/1000,1)} km${pl?` · <b>${pl}<sup>e</sup></b>/${C.nb+1}`:''}</span>`;
     bar.parentNode.hidden=false;bar.style.width=f*100+'%';
     $('#raT').innerHTML=est?`arrivée estimée <b class="${est<=C.goal?'good':'bad'}">${tm(est)}</b> · objectif ${tm(C.goal)}`:`objectif ${tm(C.goal)}`;
     go.hidden=true;x.hidden=false;x.textContent=raArm?'Sûr ? Abandonner':'Abandonner';x.classList.toggle('danger',!!raArm);
@@ -814,4 +838,4 @@ function renderAdmin(){
   save();
 }
 requestAnimationFrame(loop);
-UIREADY=1;hud();
+UIREADY=1;if(onRoute.late)onRoute();hud();
