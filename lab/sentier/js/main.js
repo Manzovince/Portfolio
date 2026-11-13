@@ -723,8 +723,6 @@ function renderSet(){
   sb.onchange=()=>{store.set('search',sb.checked);document.documentElement.classList.toggle('nosearch',!sb.checked)};row('Barre de recherche',sb);
   const ws=document.createElement('select');ws.innerHTML='<option value="face">Cadran de montre</option><option value="strip">Bandeau</option>';ws.value=store.get('watch','face');
   ws.onchange=()=>{store.set('watch',ws.value);document.documentElement.classList.toggle('wface',ws.value==='face');hud()};row('Style de la montre',ws);
-  const sel=document.createElement('select');sel.innerHTML='<option value="">Auto (météo du jour)</option>'+Object.entries(WX).map(([k,w])=>`<option value="${k}">${w.ic} ${w.n}</option>`).join('');
-  sel.value=store.get('meteoForce','')||'';sel.onchange=()=>setWeather(sel.value||null);row('Météo',sel);
   h('Partie');
   const r=document.createElement('button');r.className='btn';r.textContent='Tout recommencer';
   // confirmation en deux temps dans la page (les boîtes confirm() peuvent être bloquées)
