@@ -474,8 +474,6 @@ function openModal(tab){$('#modal').classList.add('on');showTab(tab)}
 const closeModal=()=>{$('#modal').classList.remove('on');document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'))};
 $('#bCoins').onclick=()=>openModal('boutique');$('#bRace').onclick=()=>openModal('courses');$('#bCarnet').onclick=()=>openModal('carnet');$('#bBiome').onclick=()=>openModal('journal');$('#bSet').onclick=()=>openModal('reglages');
 document.documentElement.classList.remove('nobag');
-{const setF=v=>{document.documentElement.classList.toggle('nofood',!v);const b=$('#foodT');b.title=b.ariaLabel=v?'Masquer le sac':'Afficher le sac';store.set('foodOn',v)};
- setF(store.get('foodOn',true));$('#foodT').onclick=()=>setF(document.documentElement.classList.contains('nofood'))}
 {const setW=v=>{document.documentElement.classList.toggle('nowatch',!v);const b=$('#wTog');b.title=b.ariaLabel=v?'Masquer la montre':'Afficher la montre';store.set('watchOn',v)};
  setW(store.get('watchOn',true));$('#wTog').onclick=()=>setW(document.documentElement.classList.contains('nowatch'))}
 $('#bSprint').onclick=()=>{if(G.home||G.rest)return;LIVE.sprint=LIVE.sprint?0:1};
@@ -822,7 +820,7 @@ function renderAdmin(){
     const un=sec('Débloquer');
     grid(un,btn('Tout l’équipement',()=>{for(const id in GEAR)if(!G.own.includes(id))G.own.push(id);if(!G.own.includes('filtre'))G.own.push('filtre')}),
       btn('Tous les compagnons',()=>{for(const id in COMP){if(!G.comps.includes(id))G.comps.push(id);G.st.bio[COMP[id].b]=1}G.comp=G.comp||'chien'}),
-      btn('Toutes les espèces',()=>{for(const k in FAUNA)G.seen[k]=G.seen[k]||1}),btn('Valider les défis',()=>{for(const q of QUESTS)if(!G.q.includes(q.id))G.q.push(q.id)}),btn('Défis à zéro',()=>{G.q=[];G.qSeen=0}));
+      btn('Toutes les espèces',()=>{for(const k in FAUNA)G.seen[k]=G.seen[k]||1}),btn('Entraînement au max',()=>{for(const k in UPG)G.up[k]=UPG[k].max}),btn('Entraînement à zéro',()=>{G.up={}},0,'danger'),btn('Valider les défis',()=>{for(const q of QUESTS)if(!G.q.includes(q.id))G.q.push(q.id)}),btn('Défis à zéro',()=>{G.q=[];G.qSeen=0}));
   }else if(admTab==='faune'){
     const here=Object.entries(FAUNA).filter(([,f])=>f.b.includes(L.b)),rest=Object.entries(FAUNA).filter(([,f])=>!f.b.includes(L.b));
     const one=(t,arr,note)=>{const s=sec(t,note);grid(s,...arr.map(([k,f])=>{const b=btn(f.n,()=>spawnFauna(k),0,'fb');b.title=f.b.map(x=>BI[x]?BI[x].n:x).join(', ');if(G.seen[k])b.classList.add('seen');return b}))};
