@@ -1,15 +1,15 @@
 // Coach: the course's progress, the tiny music notation the lessons are written
 // in, the keys a lesson lights, and the clock helpers (demo playback, clicks,
 // latency calibration) shared by the lesson steps.
-import { press, lift } from './notes.js?v=202611131';
-import * as E from './engine.js?v=202611131';
-import { persistStorage } from './db.js?v=202611131';
-import { COURSE } from './course.js?v=202611131';
-import { SOUND_COURSE } from './sound-course.js?v=202611131';
+import { press, lift } from './notes.js?v=202611141';
+import * as E from './engine.js?v=202611141';
+import { persistStorage } from './db.js?v=202611141';
+import { COURSE } from './course.js?v=202611141';
+import { SOUND_COURSE } from './sound-course.js?v=202611141';
 export { COURSE };
 // Two tracks: playing the piano, and making sounds with the synth
 export const TRACKS = { piano: COURSE, sound: SOUND_COURSE };
-import { defaultSpelling } from './theory.js?v=202611131';
+import { defaultSpelling } from './theory.js?v=202611141';
 
 // Every piece of the course once: versions of one song (right hand, left hand,
 // both) count as one, played in its fullest version under its first, plain title
@@ -98,7 +98,7 @@ export const lengthOf = items => items.filter(i => !i.bar).reduce((s, i) => s + 
 export const spellingOf = midi => defaultSpelling(((midi % 12) + 12) % 12);
 
 // ── keys lit by the lesson (and the LUMI) ──────────────────────
-export { coachGuide, onCoachGuide, setCoachGuide } from './coach-guide.js?v=202611131';
+export { coachGuide, onCoachGuide, setCoachGuide } from './coach-guide.js?v=202611141';
 
 // ── clocks ─────────────────────────────────────────────────────
 // Latency between what is heard and what the keyboard reports, measured once

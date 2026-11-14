@@ -1,19 +1,19 @@
 // Octave — boot, shell (top bar, mode switch, keyboard dock), screen switching.
-import { h, icon, seg, toast, toggle, param } from './ui.js?v=202611131';
-import { setMetro, metroBeat } from './metronome.js?v=202611131';
-import { S, save, on, emit } from './store.js?v=202611131';
-import * as E from './engine.js?v=202611131';
-import { applyAll, seq, seqPlay, seqHasNotes, learnSplit } from './perform.js?v=202611131';
-import { connectMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611131';
-import { createDock, bindComputerKeys, setGuide, applyDock } from './keys.js?v=202611131';
-import { currentGuide, onGuideChange, refreshGuide } from './guide.js?v=202611131';
-import { initLumi } from './lumi.js?v=202611131';
-import { t, noteLabel } from './i18n.js?v=202611131';
-import { renderPlay } from './play.js?v=202611131';
-import { renderCreate, soundName } from './create.js?v=202611131';
-import { renderSettings, applyTheme } from './settings.js?v=202611131';
-import { allNotesOff } from './notes.js?v=202611131';
-import { persistStorage } from './db.js?v=202611131';
+import { h, icon, seg, toast, toggle, param } from './ui.js?v=202611141';
+import { setMetro, metroBeat } from './metronome.js?v=202611141';
+import { S, save, on, emit } from './store.js?v=202611141';
+import * as E from './engine.js?v=202611141';
+import { applyAll, seq, seqPlay, seqHasNotes, learnSplit } from './perform.js?v=202611141';
+import { connectMidi, onMidiState, status as midiStatusNow } from './midi.js?v=202611141';
+import { createDock, bindComputerKeys, setGuide, applyDock } from './keys.js?v=202611141';
+import { currentGuide, onGuideChange, refreshGuide } from './guide.js?v=202611141';
+import { initLumi } from './lumi.js?v=202611141';
+import { t, noteLabel } from './i18n.js?v=202611141';
+import { renderPlay } from './play.js?v=202611141';
+import { renderCreate, soundName } from './create.js?v=202611141';
+import { renderSettings, applyTheme } from './settings.js?v=202611141';
+import { allNotesOff } from './notes.js?v=202611141';
+import { persistStorage } from './db.js?v=202611141';
 
 const MODES = [['play', 'play', 'modePlay'], ['learn', 'learn', 'modeLearn'], ['create', 'create', 'modeCreate']];
 
@@ -174,7 +174,7 @@ function paintMidi(st = midiStatusNow) {
 // Learn (the course, ~330 kB of lessons) loads the first time it is opened,
 // or in the background once the app is idle
 let learnMod = null;
-const loadLearn = () => (learnMod ??= import('./learn.js?v=202611131').catch(err => { learnMod = null; throw err; }));
+const loadLearn = () => (learnMod ??= import('./learn.js?v=202611141').catch(err => { learnMod = null; throw err; }));
 let renderId = 0;
 function render() {
   if (!S.split.on) S.edit = 0;
@@ -253,9 +253,11 @@ connectMidi();
 // fetch the course while nothing happens, so Learn opens at once (and offline)
 // (a few seconds in: start-up, first paint and the piano samples go first)
 setTimeout(() => (window.requestIdleCallback || (fn => fn()))(() => loadLearn().catch(() => {}), { timeout: 8000 }), 5000);
-if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+// sw.js?v= of this version: the host's CDN keeps JS files a week, so an
+// unversioned sw.js could stay stale (and the old worker running) that long
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js' + new URL(import.meta.url).search).catch(() => {});
 on('tempo', () => E.setFx(S.fx, S.tempo));
 document.addEventListener('visibilitychange', () => { if (document.hidden) allNotesOff(); });
 
 // console handle for testing without a keyboard
-import('./notes.js?v=202611131').then(N => { window.octave = { S, press: N.press, lift: N.lift, emit, applyDock }; });
+import('./notes.js?v=202611141').then(N => { window.octave = { S, press: N.press, lift: N.lift, emit, applyDock }; });

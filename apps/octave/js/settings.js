@@ -1,13 +1,13 @@
 // Settings sheet and theme.
-import { h, param, seg, toggle, toast, icon } from './ui.js?v=202611131';
-import { S, save, emit, resetAll } from './store.js?v=202611131';
-import * as E from './engine.js?v=202611131';
-import { allOff } from './perform.js?v=202611131';
-import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611131';
-import { t, noteLabel, setLang } from './i18n.js?v=202611131';
-import { keyHint } from './keys.js?v=202611131';
-import { persistStorage, isPersisted } from './db.js?v=202611131';
-import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES, lumiBattery, onLumiBattery, lumiSysexLog, requestLumiBattery, lumiBatteryAsked } from './lumi.js?v=202611131';
+import { h, param, seg, toggle, toast, icon } from './ui.js?v=202611141';
+import { S, save, emit, resetAll } from './store.js?v=202611141';
+import * as E from './engine.js?v=202611141';
+import { allOff } from './perform.js?v=202611141';
+import { status as midiStatus, selectInput, connectMidi } from './midi.js?v=202611141';
+import { t, noteLabel, setLang } from './i18n.js?v=202611141';
+import { keyHint } from './keys.js?v=202611141';
+import { persistStorage, isPersisted } from './db.js?v=202611141';
+import { lumiState, lumiCount, lumiSettingChanged, LUMI_MODES, lumiBattery, onLumiBattery, lumiSysexLog, requestLumiBattery, lumiBatteryAsked } from './lumi.js?v=202611141';
 
 // 'auto' follows the device; 'light' / 'dark' force it
 export function applyTheme() {
@@ -65,7 +65,7 @@ function backupCard() {
     const f = e.target.files[0];
     e.target.value = '';
     if (!f || !confirm(t('backupConfirm'))) return;
-    try { const { importBackup } = await import('./backup.js?v=202611131'); await importBackup(f); }
+    try { const { importBackup } = await import('./backup.js?v=202611141'); await importBackup(f); }
     catch (err) { toast(t(err?.message === 'not a backup' || err instanceof SyntaxError ? 'backupBad' : 'backupFail')); }
   } });
   paint();
@@ -75,7 +75,7 @@ function backupCard() {
     state,
     h('div', { class: 'row wrap-row' },
       h('button', { type: 'button', class: 'btn', onclick: async () => {
-        const { exportBackup } = await import('./backup.js?v=202611131');
+        const { exportBackup } = await import('./backup.js?v=202611141');
         const n = await exportBackup();
         toast(t('backupDone', n));
       } }, icon('download'), t('backupExport')),

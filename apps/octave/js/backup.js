@@ -1,9 +1,9 @@
 // Backup of everything Octave keeps on this device, in one file: course
 // progress, settings, sound banks, takes and imported songs. Restoring it on
 // another device (or after the browser cleared its data) brings it all back.
-import { getAll, put } from './db.js?v=202611131';
-import { takesReady } from './recorder.js?v=202611131';
-import { stopSaving } from './store.js?v=202611131';
+import { getAll, put } from './db.js?v=202611141';
+import { takesReady } from './recorder.js?v=202611141';
+import { stopSaving } from './store.js?v=202611141';
 
 const LOCAL = ['octave.state.v1', 'octave.banks.v1', 'octave.coach.v1', 'selectedLanguage'];
 const FORMAT = 'octave-backup';

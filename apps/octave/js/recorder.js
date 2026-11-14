@@ -3,10 +3,10 @@
 // A take plays back through the note bus, so it sounds
 // with the current sounds and shows on the keys; it exports as MIDI, or as an
 // audio file recorded in real time from the output.
-import { subscribe, press, liftSource, setPedal, isPedalDown } from './notes.js?v=202611131';
-import * as E from './engine.js?v=202611131';
-import { S, emit } from './store.js?v=202611131';
-import { getAll, put, remove } from './db.js?v=202611131';
+import { subscribe, press, liftSource, setPedal, isPedalDown } from './notes.js?v=202611141';
+import * as E from './engine.js?v=202611141';
+import { S, emit } from './store.js?v=202611141';
+import { getAll, put, remove } from './db.js?v=202611141';
 
 const KEY = 'octave.takes.v1'; // where takes lived before IndexedDB (moved over at start-up)
 const MAX_TAKES = 100;

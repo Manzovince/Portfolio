@@ -3,7 +3,7 @@
 // Imported files are kept in this browser (IndexedDB), so they can be opened
 // again later without looking for the file. Nothing leaves the device.
 
-import { run as runStore } from "./db.js?v=202611131";
+import { run as runStore } from "./db.js?v=202611141";
 
 // `fitsLumi`: every note within C3–B4, the 24 keys of one LUMI at its default octave
 export const EXAMPLES = [
