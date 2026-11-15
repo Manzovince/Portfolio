@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brassage · shuffle lab</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <h1>Brassage</h1>
+      <p class="sub" data-i18n="sub"></p>
+    </div>
+    <div class="seg" id="langSeg" role="group" aria-label="Language">
+      <button data-lang="fr">FR</button><button data-lang="en">EN</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="actionbar" id="actionbar">
+      <select id="quick" aria-label="Shuffle"></select>
+      <label class="times">× <input id="repeat" type="number" min="1" max="1000" value="1"></label>
+      <button id="applyBtn" class="primary"><span data-i18n="shuffleBtn"></span> <kbd>␣</kbd></button>
+      <button id="undo" class="ghost"><span data-i18n="undo"></span> <kbd>⌫</kbd></button>
+      <div class="scrub">
+        <input id="scrub" type="range" min="0" max="0" value="0" aria-label="Step">
+        <span id="scrubLabel"></span>
+      </div>
+      <nav class="viewtabs" id="viewTabs" role="tablist">
+        <button data-view="profile" role="tab"><span data-i18n="sideView"></span><kbd>1</kbd></button>
+        <button data-view="d3" role="tab"><span data-i18n="view3d"></span><kbd>2</kbd></button>
+        <button data-view="stats" role="tab"><span data-i18n="statistics"></span><kbd>3</kbd></button>
+        <button data-view="wall" role="tab"><span data-i18n="wallShort"></span><kbd>4</kbd></button>
+        <button data-view="hands" role="tab"><span data-i18n="dealIt"></span><kbd>5</kbd></button>
+        <button data-view="lab" role="tab"><span data-i18n="lab"></span><kbd>6</kbd></button>
+      </nav>
+      <div id="follow" class="follow"></div>
+    </div>
+
+    <aside class="side">
+      <section class="panel">
+        <h2 data-i18n="shuffles"></h2>
+        <div id="palette"></div>
+        <div id="detail" class="detail"></div>
+      </section>
+
+      <section class="panel">
+        <h2 data-i18n="sequence"></h2>
+        <label class="field"><span data-i18n="preset"></span> <select id="preset"></select></label>
+        <ol id="sequence" class="sequence"></ol>
+        <p id="seqEmpty" class="muted small" data-i18n="seqEmpty"></p>
+        <div class="row">
+          <button id="runSeq" class="primary" data-i18n="runSeq"></button>
+          <button id="clearSeq" class="ghost" data-i18n="clear"></button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 data-i18n="deck"></h2>
+        <label class="field"><span data-i18n="cards"></span> <select id="deckType"></select></label>
+        <label class="field" id="customNField" hidden><span data-i18n="howMany"></span> <input id="customN" type="number" min="4" max="200" value="40"></label>
+        <label class="field"><span data-i18n="startOrder"></span> <select id="startOrder"></select></label>
+        <label class="field"><span data-i18n="seed"></span>
+          <span class="row"><input id="seed" type="number"><button id="reseed" class="ghost" data-i18n="newSeed" data-i18n-title="newSeedTitle"></button></span>
+        </label>
+        <button id="reset" class="ghost wide" data-i18n="resetDeck"></button>
+      </section>
+    </aside>
+
+    <main class="main">
+      <section class="panel view" data-view="profile" hidden>
+        <div class="panel-head">
+          <h2 data-i18n="sideView"></h2>
+          <div class="tools">
+            <label><span data-i18n="colour"></span> <select id="colorMode">
+              <option value="identity" data-i18n="cm.identity"></option>
+              <option value="suit" data-i18n="cm.suit"></option>
+              <option value="disp" data-i18n="cm.disp"></option>
+              <option value="signed" data-i18n="cm.signed"></option>
+              <option value="neighbors" data-i18n="cm.neighbors"></option>
+              <option value="rising" data-i18n="cm.rising"></option>
+            </select></label>
+            <label><span data-i18n="compareWith"></span> <select id="compare">
+              <option value="1" data-i18n="cmp.1"></option>
+              <option value="2">n−2</option>
+              <option value="3">n−3</option>
+              <option value="5">n−5</option>
+              <option value="start" data-i18n="cmp.start"></option>
+            </select></label>
+            <label class="check"><input type="checkbox" id="animate" checked> <span data-i18n="animate"></span></label>
+          </div>
+        </div>
+        <div class="deckwrap"><canvas id="deckCanvas"></canvas></div>
+        <div id="legend" class="legend"></div>
+        <p class="muted small help" data-i18n="deckHelp"></p>
+      </section>
+
+      <section class="panel view" data-view="d3" hidden>
+        <div class="panel-head">
+          <h2 data-i18n="view3d"></h2>
+          <div class="tools">
+            <label><span data-i18n="colour"></span> <select id="colorMode3d"></select></label>
+            <button id="d3reset" class="ghost" data-i18n="resetView"></button>
+          </div>
+        </div>
+        <div class="d3wrap" id="d3wrap"><p id="d3status" class="d3status muted small"></p></div>
+        <div id="legend3d" class="legend"></div>
+        <p class="muted small help" data-i18n="help3d"></p>
+      </section>
+
+      <section class="panel view" data-view="stats" hidden>
+        <div class="panel-head">
+          <h2 data-i18n="statistics"></h2>
+          <span class="muted small" id="statsRef"></span>
+        </div>
+        <div id="tiles" class="tiles"></div>
+        <div class="chart-head"><h3 id="chartTitle"></h3><span class="muted small" data-i18n="chartSub"></span></div>
+        <div class="chartwrap"><canvas id="historyChart"></canvas></div>
+      </section>
+
+      <section class="panel view" data-view="wall" hidden>
+        <div class="panel-head">
+          <h2 data-i18n="wall"></h2>
+          <span class="muted small" data-i18n="wallSub"></span>
+        </div>
+        <div class="wallwrap" id="wallWrap"><canvas id="wallCanvas"></canvas></div>
+      </section>
+
+      <section class="panel view" data-view="hands" hidden>
+        <div class="panel-head">
+          <h2 data-i18n="dealIt"></h2>
+          <div class="tools"><label><span data-i18n="players"></span> <select id="players"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label></div>
+        </div>
+        <div id="hands" class="hands"></div>
+      </section>
+
+      <section class="panel view" data-view="lab" hidden>
+        <div class="panel-head">
+          <h2 data-i18n="lab"></h2>
+          <div class="seg tabs" role="tablist">
+            <button class="tab on" data-tab="heat" data-i18n="tabHeat"></button><button class="tab" data-tab="conv" data-i18n="tabConv"></button>
+          </div>
+        </div>
+
+        <div class="tabpane" id="tab-heat">
+          <p class="muted small" data-i18n="heatHelp"></p>
+          <div class="tools">
+            <label><span data-i18n="routine"></span> <select id="heatSource">
+              <option value="selected" data-i18n="selectedShuffle"></option>
+              <option value="sequence" data-i18n="theSequence"></option>
+            </select></label>
+            <label id="heatRepWrap">× <input id="heatRep" type="number" min="1" max="500" value="1"></label>
+            <label><span data-i18n="runs"></span> <select id="heatRuns"><option>500</option><option selected>2000</option><option>10000</option></select></label>
+            <label><span data-i18n="show"></span> <select id="heatMode"><option value="prob" data-i18n="probability"></option><option value="dev" data-i18n="gapUniform"></option></select></label>
+            <button id="heatGo" class="primary" data-i18n="run"></button>
+          </div>
+          <div class="progress" id="heatProg" hidden><span></span></div>
+          <div class="heatgrid">
+            <div class="heatwrap"><canvas id="heatCanvas"></canvas></div>
+            <div id="heatInfo" class="heatinfo"></div>
+          </div>
+        </div>
+
+        <div class="tabpane" id="tab-conv" hidden>
+          <p class="muted small" data-i18n="convHelp"></p>
+          <div id="convPick" class="convpick"></div>
+          <div class="tools">
+            <label><span data-i18n="measure"></span> <select id="convMetric"></select></label>
+            <label><span data-i18n="upTo"></span> <input id="convK" type="number" min="2" max="1000" value="15"> <span data-i18n="repeats"></span></label>
+            <label><span data-i18n="runs"></span> <select id="convRuns"><option>200</option><option selected>1000</option><option>4000</option></select></label>
+            <button id="convGo" class="primary" data-i18n="run"></button>
+          </div>
+          <div class="progress" id="convProg" hidden><span></span></div>
+          <div class="chartwrap tall"><canvas id="convChart"></canvas></div>
+          <div id="convLegend" class="legend"></div>
+          <p id="convNote" class="muted small"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="tip" class="tip" hidden></div>
+  <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    } }
+  </script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

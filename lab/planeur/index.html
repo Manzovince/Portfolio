@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planeur — vol à voile sur carte topographique</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app">
+  <main class="stage" id="stage">
+    <canvas id="game"></canvas>
+
+    <div class="hud">
+      <div class="hud-row">
+        <div class="cell"><span class="label">Altitude</span><span class="value" id="alt">—</span></div>
+        <div class="cell"><span class="label">Sol</span><span class="value" id="agl">—</span>
+          <div class="gauge"><div class="fill" id="agl-fill"></div></div>
+        </div>
+        <div class="cell"><span class="label">Vario</span><span class="value" id="vario">—</span>
+          <div class="gauge center"><div class="fill" id="vario-fill"></div></div>
+        </div>
+        <div class="cell"><span class="label">Vitesse</span><span class="value" id="speed">—</span></div>
+        <div class="cell"><span class="label">Porte</span><span class="value" id="gate-dist">—</span>
+          <span class="sub" id="gate-alt">—</span>
+        </div>
+        <div class="cell"><span class="label">Portes</span><span class="value" id="gates">—</span></div>
+        <div class="cell"><span class="label">Temps</span><span class="value" id="time">—</span></div>
+      </div>
+    </div>
+
+    <div class="meta">
+      <span>graine <b id="seed">—</b></span>
+      <span><b id="palette">—</b></span>
+      <span>record <b id="best">—</b></span>
+      <span id="fps">—</span>
+    </div>
+
+    <div class="overlay" id="overlay" hidden>
+      <div class="card">
+        <h1 id="ov-title">Planeur</h1>
+        <div class="body" id="ov-body"></div>
+        <p class="hint" id="ov-hint"></p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

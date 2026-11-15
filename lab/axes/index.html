@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Axes — 52 cartes</title>
+<style>
+  :root {
+    --paper: #f1eee6;
+    --card: #fbf9f4;
+    --ink: #2a2826;
+    --muted: #8a857b;
+    --red: #b3412e;
+    --line: #d9d4c8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font: 14px/1.4 ui-sans-serif, -apple-system, "Helvetica Neue", sans-serif;
+  }
+  header {
+    position: sticky; top: 0; z-index: 2; background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+    padding: 10px 16px;
+  }
+  h1 { font-size: 15px; margin: 0 8px 0 0; letter-spacing: .04em; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .seg button {
+    border: 0; background: transparent; padding: 5px 10px; font: inherit; color: var(--muted); cursor: pointer;
+  }
+  .seg button.on { background: var(--ink); color: var(--card); }
+  label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+  input[type=range] { width: 90px; }
+  main { padding: 20px 16px 40px; }
+  .grid { display: grid; gap: var(--gap, 10px); justify-content: center; }
+  .card { width: var(--w, 96px); aspect-ratio: 63 / 88; display: block; }
+  .card svg { width: 100%; height: 100%; display: block; }
+  .legend { max-width: 760px; margin: 28px auto 0; color: var(--muted); font-size: 13px; }
+  .legend table { border-collapse: collapse; width: 100%; }
+  .legend td { padding: 4px 8px; border-top: 1px solid var(--line); }
+  button.act {
+    border: 1px solid var(--line); background: var(--card); border-radius: 6px; padding: 5px 10px;
+    font: inherit; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>AXES</h1>
+  <span class="seg" id="view">
+    <button data-v="deck" class="on">Jeu</button>
+    <button data-v="pave">Pavage</button>
+    <button data-v="axes">15 axes</button>
+  </span>
+  <span class="seg" id="style">
+    <button data-s="crayon" class="on">Crayon</button>
+    <button data-s="net">Net</button>
+  </span>
+  <label><input type="checkbox" id="joint"> Jointif</label>
+  <label>Écart <input type="range" id="off" min="2" max="12" step="0.5" value="5.5"></label>
+  <label>Trait <input type="range" id="thk" min="0.6" max="3" step="0.1" value="1.6"></label>
+  <label>Taille <input type="range" id="size" min="60" max="180" step="2" value="96"></label>
+  <button class="act" id="shuffle" hidden>Mélanger</button>
+</header>
+<main>
+  <div class="grid" id="grid"></div>
+  <div class="legend" id="legend"></div>
+</main>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <filter id="pencil" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="0.9" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency="2.2" numOctaves="1" seed="8" result="g"/>
+      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -0.7 1.2" result="ga"/>
+      <feComposite in="d" in2="ga" operator="in"/>
+    </filter>
+  </defs>
+</svg>
+
+<script>
+// ——— Géométrie ———
+// Carte 63 × 88 mm. Chaque axe = une paire de rails qui encadre les lignes du réseau
+// passant par les coins des cartes (bords pour │ ─, diagonales coin à coin pour ╲ ╱).
+// Posées en grille, les rails se prolongent d'une carte à l'autre.
+const W = 63, H = 88;
+const AX = { V: '│', H: '─', D: '╲', A: '╱' };   // D = haut-gauche/bas-droite, A = haut-droite/bas-gauche
+const SUITS = [
+  { s: '♠', red: false }, { s: '♥', red: true }, { s: '♣', red: false }, { s: '♦', red: true },
+];
+// Répartition par couleur : 2–5 un axe, 6–V deux axes, D/R trois axes, As les quatre.
+function axesFor(rank, si) {
+  const black = !SUITS[si].red;
+  switch (rank) {
+    case 'A': return 'VHDA';
+    case '2': return 'V';
+    case '3': return 'H';
+    case '4': return 'D';
+    case '5': return 'A';
+    case '6': return 'VD';
+    case '7': return 'VA';
+    case '8': return 'HD';
+    case '9': return 'HA';
+    case '10': return 'DA';
+    case 'V': return 'VH';
+    case 'D': return black ? 'VHA' : 'VHD';            // manque une diagonale
+    case 'R': return (si === 0 || si === 1) ? 'HDA' : 'VDA'; // manque │ pour ♠♥, ─ pour ♣♦
+  }
+}
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','V','D','R'];
+const DECK = [];
+SUITS.forEach((su, si) => RANKS.forEach(r => DECK.push({ r, si, ax: axesFor(r, si) })));
+
+// Toutes les combinaisons non vides des 4 axes, par nombre d'axes.
+const ALL = [];
+for (let m = 1; m < 16; m++) ALL.push(['V','H','D','A'].filter((_, i) => m & (1 << i)).join(''));
+ALL.sort((a, b) => a.length - b.length);
+
+const S = { view: 'deck', style: 'crayon', idx: true, joint: false, off: 5.5, thk: 1.6, size: 96, order: null };
+try { Object.assign(S, JSON.parse(localStorage.getItem('axes') || '{}')); } catch {}
+const save = () => { try { localStorage.setItem('axes', JSON.stringify({ ...S, order: null })); } catch {} };
+
+// Segments d'une ligne x/W ± y/H = c, coupée au rectangle de la carte.
+function diag(c, kind) {
+  // kind 'A' (╱) : x/W + y/H = c ; kind 'D' (╲) : x/W - y/H = c
+  const pts = [];
+  const push = (x, y) => { if (x >= -1e-6 && x <= W + 1e-6 && y >= -1e-6 && y <= H + 1e-6) pts.push([x, y]); };
+  if (kind === 'A') {
+    push(0, c * H); push(W, (c - 1) * H); push(c * W, 0); push((c - 1) * W, H);
+  } else {
+    push(0, -c * H); push(W, (1 - c) * H); push(c * W, 0); push((c + 1) * W, H);
+  }
+  const u = [];
+  pts.forEach(p => { if (!u.some(q => Math.hypot(q[0] - p[0], q[1] - p[1]) < 1e-3)) u.push(p); });
+  return u.length >= 2 ? [u[0], u[1]] : null;
+}
+
+function lines(ax, off) {
+  const L = [];
+  // décalage perpendiculaire « off » mm → en coordonnées normalisées pour les diagonales
+  const k = Math.hypot(1 / W, 1 / H);
+  const d = off * k;
+  if (ax.includes('V')) { L.push([[off, 0], [off, H]], [[W - off, 0], [W - off, H]]); }
+  if (ax.includes('H')) { L.push([[0, off], [W, off]], [[0, H - off], [W, H - off]]); }
+  // diagonales : un seul trait, d'un coin à l'autre
+  if (ax.includes('A')) L.push([[0, H], [W, 0]]);
+  if (ax.includes('D')) L.push([[0, 0], [W, H]]);
+  return L;
+}
+
+function cardSVG(card, i) {
+  const { r, si, ax } = card;
+  const su = SUITS[si];
+  const col = su ? (su.red ? 'var(--red)' : 'var(--ink)') : 'var(--ink)';
+  const crayon = S.style === 'crayon';
+  // petites irrégularités de crayon, stables par carte
+  let seed = (i + 1) * 9301;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647 - 0.5);
+  const lns = lines(ax, S.off).map(([[x1, y1], [x2, y2]]) => {
+    const j = crayon ? 0.5 : 0;
+    return `<line x1="${(x1 + rnd() * j).toFixed(2)}" y1="${(y1 + rnd() * j).toFixed(2)}" x2="${(x2 + rnd() * j).toFixed(2)}" y2="${(y2 + rnd() * j).toFixed(2)}"/>`;
+  }).join('');
+  const sw = S.thk * (crayon ? 1.15 : 1);
+  const border = S.joint ? '' :
+    `<rect x="0.4" y="0.4" width="${W - 0.8}" height="${H - 0.8}" rx="${crayon ? 1.2 : 2.5}" fill="none" stroke="var(--ink)" stroke-width="${crayon ? 0.7 : 0.4}" ${crayon ? 'filter="url(#pencil)"' : ''} opacity="${crayon ? .85 : .35}"/>`;
+  const idx = '';
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    <rect width="${W}" height="${H}" fill="var(--card)" ${S.joint ? '' : `rx="${crayon ? 1.2 : 2.5}"`}/>
+    <g stroke="var(--ink)" stroke-width="${sw}" stroke-linecap="${crayon ? 'round' : 'butt'}" ${crayon ? 'filter="url(#pencil)"' : ''} opacity="${crayon ? .9 : 1}">${lns}</g>
+    ${border}${idx}
+  </svg>`;
+}
+
+const $ = id => document.getElementById(id);
+function render() {
+  const g = $('grid');
+  let cards, cols;
+  if (S.view === 'deck') { cards = DECK; cols = 13; }
+  else if (S.view === 'pave') {
+    if (!S.order) S.order = shuffled(DECK.length);
+    cards = S.order.map(i => DECK[i]); cols = 13;
+  } else { cards = ALL.map(ax => ({ ax, r: null, si: null })); cols = 15; }
+  const gap = S.joint ? 0 : Math.round(S.size / 10);
+  g.style.setProperty('--gap', gap + 'px');
+  g.style.setProperty('--w', S.size + 'px');
+  g.style.gridTemplateColumns = `repeat(${cols}, var(--w))`;
+  g.innerHTML = cards.map((c, i) => `<div class="card" title="${c.ax.split('').map(a => AX[a]).join(' ')}">${cardSVG(c, S.view === 'pave' ? S.order[i] : i)}</div>`).join('');
+  $('shuffle').hidden = S.view !== 'pave';
+  $('legend').innerHTML = S.view === 'axes' ? legendAxes() : legendDeck();
+  document.querySelectorAll('#view button').forEach(b => b.classList.toggle('on', b.dataset.v === S.view));
+  document.querySelectorAll('#style button').forEach(b => b.classList.toggle('on', b.dataset.s === S.style));
+  $('joint').checked = S.joint;
+  $('off').value = S.off; $('thk').value = S.thk; $('size').value = S.size;
+  // grille trop large : on réduit pour tenir à l'écran
+  const avail = document.documentElement.clientWidth - 32;
+  const need = cols * S.size + (cols - 1) * gap;
+  g.style.zoom = need > avail ? (avail / need).toFixed(3) : '';
+}
+function shuffled(n) {
+  const a = [...Array(n).keys()];
+  for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function legendDeck() {
+  const rows = [
+    ['un axe', '│ ─ ╲ ╱', '× 4 chacun', '2 cases'],
+    ['deux axes', '┼ ╳ │╲ │╱ ─╲ ─╱', '× 4 chacun', '4 cases'],
+    ['trois axes', '4 combinaisons', '× 2 chacune', '6 cases'],
+    ['quatre axes', '✳', '× 4', '8 cases'],
+  ];
+  return `<table>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table>
+    <p>Déplacement d'un seul pas vers une carte voisine. Les rails suivent les lignes qui passent par les coins des cartes : posées côte à côte, elles forment un réseau continu (cocher « Jointif »).</p>`;
+}
+function legendAxes() {
+  return `<p>Les 15 combinaisons possibles des 4 axes : 4 à un axe, 6 à deux, 4 à trois, 1 à quatre.</p>`;
+}
+
+$('view').onclick = e => { const v = e.target.dataset.v; if (v) { S.view = v; save(); render(); } };
+$('style').onclick = e => { const s = e.target.dataset.s; if (s) { S.style = s; save(); render(); } };
+$('joint').onchange = e => { S.joint = e.target.checked; save(); render(); };
+['off', 'thk', 'size'].forEach(k => $(k).oninput = e => { S[k] = +e.target.value; save(); render(); });
+$('shuffle').onclick = () => { S.order = shuffled(DECK.length); render(); };
+addEventListener('resize', render);
+render();
+</script>
+</body>
+</html>

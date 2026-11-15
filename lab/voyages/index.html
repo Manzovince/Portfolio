@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#efe4cc">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Voyages</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{
+  --paper:#efe4cc; --paper2:#e6d7b6; --ink:#2b2622; --muted:#7a6d5c;
+  --sea:#cfe2e3; --sea2:#a9cbd0; --land:#dcc185; --land2:#a8874a;
+  --route:#1f3a5f; --accent:#b8442f; --gold:#b98a1b; --ok:#3d7a4f;
+  --card:#f6eedb; --chip:#f7efdc; --field:#fffaf0; --crossed:#e3d6bb; --crossed-ink:#a3957d; --sold:#d9ead9;
+  --hexline:#9fb8ba; --regline:#6f9aa1; --wave:#ffffff; --wave2:#5f8f98; --dread:#4a3d3a; --dread2:#2a201e;
+  --label:#5b4a2d; --gold-ink:#5b4310; --coin:#f2cf5b; --coin-done:#e9ddbf; --coin-line:#8a6a1c; --compline:#cdbb95;
+  --accent-soft:#b8442f40; --on-accent:#fff; --on-route:#fff; --toast:#2b2622; --toast-ink:#fff; --scrim:#2b262299; --shadow:#0005;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#081325; --paper2:#1a2c4a; --ink:#e4ebf6; --muted:#8ea2c0;
+  --sea:#0f3354; --sea2:#0a2643; --land:#6a6048; --land2:#9c8a5c;
+  --route:#8fc1ff; --accent:#ff7f61; --gold:#e3b341; --ok:#5fbf86;
+  --card:#0e1d36; --chip:#11233f; --field:#14284a; --crossed:#1f3354; --crossed-ink:#5b7194; --sold:#173f33;
+  --hexline:#1d4669; --regline:#3a6f9c; --wave:#8cc4f0; --wave2:#03101f; --dread:#03070e; --dread2:#000;
+  --label:#c8d5e8; --gold-ink:#2a1e04; --coin:#e3b341; --coin-done:#2e3c58; --coin-line:#8a6a1c; --compline:#2c4468;
+  --accent-soft:#ff7f6140; --on-accent:#0b1626; --on-route:#081325; --toast:#dfe8f5; --toast-ink:#081325; --scrim:#000b; --shadow:#000a;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#081325; --paper2:#1a2c4a; --ink:#e4ebf6; --muted:#8ea2c0;
+  --sea:#0f3354; --sea2:#0a2643; --land:#6a6048; --land2:#9c8a5c;
+  --route:#8fc1ff; --accent:#ff7f61; --gold:#e3b341; --ok:#5fbf86;
+  --card:#0e1d36; --chip:#11233f; --field:#14284a; --crossed:#1f3354; --crossed-ink:#5b7194; --sold:#173f33;
+  --hexline:#1d4669; --regline:#3a6f9c; --wave:#8cc4f0; --wave2:#03101f; --dread:#03070e; --dread2:#000;
+  --label:#c8d5e8; --gold-ink:#2a1e04; --coin:#e3b341; --coin-done:#2e3c58; --coin-line:#8a6a1c; --compline:#2c4468;
+  --accent-soft:#ff7f6140; --on-accent:#0b1626; --on-route:#081325; --toast:#dfe8f5; --toast-ink:#081325; --scrim:#000b; --shadow:#000a;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.35 Georgia,"Iowan Old Style",serif}
+body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+button{font:inherit;color:inherit;cursor:pointer}
+header{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--paper2);flex-wrap:wrap}
+header h1{margin:0;font-size:20px;letter-spacing:.06em;font-variant:small-caps}
+.chip{border:1px solid var(--land2);border-radius:999px;padding:2px 10px;font-size:13px;background:var(--chip);white-space:nowrap}
+.grow{flex:1}
+.stars{display:flex;gap:2px;font-size:15px}
+.stars span{opacity:.25;filter:grayscale(1)}
+.stars span.on{opacity:1;filter:none}
+.iconbtn{border:1px solid var(--land2);background:var(--chip);border-radius:8px;padding:3px 9px}
+main{display:grid;gap:12px;padding:12px 16px 24px;max-width:1200px;margin:0 auto}
+@media(min-width:960px){main{grid-template-columns:minmax(0,1.6fr) minmax(320px,1fr)}#mapWrap{grid-column:1}#ctrl{grid-column:2;grid-row:1}#sheet{grid-column:1/3}}
+.card{background:var(--card);border:1px solid var(--paper2);border-radius:12px;padding:12px}
+#mapWrap{padding:6px}
+#map{width:100%;height:auto;display:block;touch-action:manipulation}
+.hex{stroke:var(--hexline);stroke-width:.35}
+.hex.reg{fill:var(--sea2);stroke:var(--regline);stroke-dasharray:1.2 .8;stroke-width:.45}
+.hex.land{fill:var(--land);stroke:var(--land2);stroke-width:.5}
+.hex.dread{fill:var(--dread);stroke:var(--dread2)}
+.wave{fill:url(#waves);pointer-events:none}
+.trip,.stopdot{transition:none}
+.hex.depart{stroke:var(--accent);stroke-width:1.1;cursor:pointer}
+.ico{font-size:8.5px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.taken{opacity:.25}
+.gold{font:bold 6px Georgia;fill:var(--gold-ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.iname{font:3px Georgia;fill:var(--label);text-anchor:middle;pointer-events:none}
+.trip{fill:none;stroke:var(--route);stroke-width:1;stroke-linecap:round;stroke-linejoin:round;opacity:.8}
+.prev{fill:none;stroke:var(--accent);stroke-width:1.3;stroke-dasharray:2 1.4;stroke-linecap:round}
+.stopdot{fill:var(--route)}
+h2{margin:0 0 8px;font-size:15px;font-variant:small-caps;letter-spacing:.05em;color:var(--muted)}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.slot{text-align:center;font-size:12px;color:var(--muted)}
+.die{width:64px;height:64px;margin:4px auto 0;border-radius:12px;border:2px solid var(--ink);background:var(--field);display:block;padding:0;position:relative}
+.die.sel{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.die.mod::after{content:"✎";position:absolute;top:-8px;right:-8px;font-size:12px;background:var(--accent);color:var(--on-accent);border-radius:50%;width:18px;height:18px;line-height:18px}
+.die svg{width:100%;height:100%}
+.dieval{font-size:12px;color:var(--ink);margin-top:2px}
+.modbar{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:10px;min-height:34px}
+.btn{border:1px solid var(--ink);background:var(--field);border-radius:9px;padding:7px 12px}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.primary{background:var(--route);color:var(--on-route);border-color:var(--route)}
+.btn.small{padding:4px 9px;font-size:13px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.info{margin:10px 0;min-height:40px;font-size:14px}
+.info b{color:var(--accent)}
+.compass{width:92px;height:92px;flex:none}
+.hint{font-size:13px;color:var(--muted)}
+#sheet{display:grid;gap:12px}
+@media(min-width:700px){#sheet{grid-template-columns:repeat(3,1fr)}}
+.sailors{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.sb{aspect-ratio:1;border:1.5px solid var(--land2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--field);position:relative}
+.sb.empty{border-style:dashed;opacity:.5}
+.sb.spent{background:repeating-linear-gradient(45deg,var(--field) 0 4px,var(--crossed) 4px 6px);color:var(--muted)}
+.sb .mk{position:absolute;bottom:0;right:2px;font-size:9px}
+.cargo{display:grid;gap:6px}
+.crow{display:grid;grid-template-columns:90px repeat(3,1fr);gap:5px;align-items:center;font-size:13px}
+.cs{height:30px;border:1.5px solid var(--land2);border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--field);position:relative;font-size:15px}
+.cs small{position:absolute;top:-1px;left:3px;font-size:9px;color:var(--muted)}
+.cs.sold{background:var(--sold);border-color:var(--ok)}
+.duties{display:grid;grid-template-columns:repeat(6,1fr) 46px;gap:4px;font-size:15px}
+.dc{aspect-ratio:1;border:1.5px solid var(--land2);border-radius:5px;display:flex;align-items:center;justify-content:center;background:var(--field);padding:0;font-weight:bold}
+.dc.x{background:var(--crossed);color:var(--crossed-ink);text-decoration:line-through}
+.dc.cand{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.dc.pick{background:var(--accent);color:var(--on-accent)}
+.dc.hole{visibility:hidden}
+.rw{display:flex;align-items:center;justify-content:center;font-size:12px;border-radius:5px;line-height:1}
+.rw.done{opacity:.3}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--muted);margin-top:8px}
+.scoreline{display:flex;justify-content:space-between;border-bottom:1px dotted var(--land2);padding:3px 0;font-size:14px}
+#modal{position:fixed;inset:0;background:var(--scrim);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+#modal.on{display:flex}
+.mbox{background:var(--paper);border-radius:14px;padding:18px;max-width:420px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 10px 40px var(--shadow)}
+.mbox h3{margin:0 0 8px;font-variant:small-caps;letter-spacing:.05em}
+.mbox .btns{display:grid;gap:8px;margin-top:12px}
+.mbox input{font:inherit;padding:8px;border:1px solid var(--land2);border-radius:8px;width:100%;background:var(--field);text-transform:uppercase}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);display:grid;gap:6px;z-index:20;width:min(92vw,420px);pointer-events:none}
+.t{background:var(--toast);color:var(--toast-ink);padding:8px 12px;border-radius:10px;font-size:14px;animation:tin .25s ease}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}}
+.pickvals{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.log{font-size:12px;color:var(--muted);max-height:120px;overflow:auto;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Voyages</h1>
+  <span class="chip" id="roundChip"></span>
+  <span class="chip" id="goldChip"></span>
+  <span class="stars" id="starsEl"></span>
+  <span class="grow"></span>
+  <span class="chip" id="codeChip"></span>
+  <button class="iconbtn" id="themeBtn" aria-label="Theme"></button>
+  <button class="iconbtn" id="langBtn"></button>
+  <button class="iconbtn" id="menuBtn" aria-label="Menu">☰</button>
+</header>
+<main>
+  <section class="card" id="mapWrap"><svg id="map"></svg></section>
+  <section class="card" id="ctrl"></section>
+  <section id="sheet">
+    <div class="card"><h2 data-i18n="crew"></h2><div class="sailors" id="sailorsEl"></div>
+      <div class="legend"><span data-i18n="lg_sailor"></span><span data-i18n="lg_hero"></span><span data-i18n="lg_box12"></span></div></div>
+    <div class="card"><h2 data-i18n="hold"></h2><div class="cargo" id="cargoEl"></div>
+      <div class="legend"><span data-i18n="lg_sell"></span><span data-i18n="lg_unsold"></span></div></div>
+    <div class="card"><h2 data-i18n="duties"></h2><div class="duties" id="dutiesEl"></div>
+      <div class="legend"><span data-i18n="lg_duties"></span></div></div>
+  </section>
+</main>
+<div id="modal"><div class="mbox" id="mbox"></div></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+// ---------- Map (original layout in the spirit of Voyages Map #1) ----------
+// 19 columns × 11 rows of flat-top hexes, odd columns shifted down.
+// . sea  S start  A–K island hexes  X the Dread
+// f fruit  s spice  h hide  g gem  b barrel (wild)  p sailor  r relic  * explore star
+const MAP = [
+  '..b...p..h....g..*.',
+  '...A...f..r..C...s.',
+  '...A....BB..h...D..',
+  '.g....p....b..f.D..',
+  '....s....r...p....h',
+  'S.E...F..g.GG...s..',
+  '..E..p..f..G...H..b',
+  '.h.....g....r..H.p.',
+  '...s..b..K...f...X.',
+  '.p..I..r...g..JJ..s',
+  '..f.......p.....h..',
+];
+const COLS = 19, ROWS = 11, S = 10, R3 = Math.sqrt(3);
+const ISLANDS = {
+  A:{name:'Gull Rock',gold:5}, B:{name:'Brinemouth',settle:true}, C:{name:'Ember Key',gold:3},
+  D:{name:'Farhaven',gold:8}, E:{name:'Westharbor',settle:true}, F:{name:'Turtle Cay',gold:4},
+  G:{name:'Tidecross',settle:true}, H:{name:'Coral Spire',gold:6}, I:{name:'Mistle Isle',gold:7},
+  J:{name:'Saltmere',settle:true}, K:{name:'Pike Isle',gold:3},
+};
+const ICON = {f:'fruit',s:'spice',h:'hide',g:'gem',b:'barrel',p:'sailor',r:'relic','*':'star'};
+const EMO = {fruit:'🍊',spice:'🌶️',hide:'🐾',gem:'💎',barrel:'🛢️',sailor:'⚓',relic:'🏺',star:'⭐',dread:'☠️',settle:'🏘️',hero:'🦸'};
+const TYPES = ['fruit','spice','hide','gem'];
+const SELL = [3,4,5];
+// Seven ocean regions (3 north, 1 central, 3 south): every sea hex within one step of a centre.
+const REGION_CENTRES = [[5,1],[10,1],[15,1],[8,5],[2,9],[9,9],[17,10]];
+const DIRS = {1:[0,-1],2:[1,-1],3:[1,0],4:[0,1],5:[-1,1],6:[-1,0]};
+const STARKEYS = ['cargo','duties','dread','explore','recruit'];
+
+// ---------- Language ----------
+let LANG = (()=>{ try{ const s=localStorage.getItem('voyages-lang'); if(s) return s; }catch(e){} return /^fr/i.test(navigator.language||'')?'fr':'en'; })();
+const NAMES_FR = {A:'Roc des Mouettes',B:'Port-Saumure',C:'Caye de Braise',D:'Havre-Lointain',E:'Port-Ouest',F:'Caye Tortue',G:'Croisée des Marées',H:'Flèche de Corail',I:'Île des Brumes',J:'Salmare',K:'Île du Brochet'};
+const iname = id => LANG==='fr' ? NAMES_FR[id] : ISLANDS[id].name;
+const ware = k => tr('w_'+k);
+const STR = {
+en:{
+  crew:'Crew', hold:'Cargo hold', duties:'Duties',
+  lg_sailor:'⚓ sailor: ±1 to a die', lg_hero:'🦸 heroic: set a die to any value', lg_box12:'⭐ on box 12: Recruit star',
+  lg_sell:'Sell at a settlement 🏘️: all of one type, or one of each', lg_unsold:'Unsold cargo: 1 gold',
+  lg_duties:"Cross off the duty die's number. Finish a row or column to claim its reward.",
+  w_fruit:'fruit', w_spice:'spice', w_hide:'hide', w_gem:'gem', w_barrel:'barrel', w_sailor:'sailor', w_relic:'relic', w_star:'star',
+  star_cargo:'Cargo — sell a third of one type', star_duties:'Duties — finish the long row', star_dread:'Dread — defeat it with 2 heroes',
+  star_explore:'Explore — stop on the far ⭐', star_recruit:'Recruit — fill sailor box 12',
+  dir:['','N','NE','SE','S','SW','NW'], start:'START',
+  starGot:n=>`⭐ Legendary star: ${n}!`, third:'Your 3rd star! Tell the table: one more round after this one.',
+  noRoom:'No room for another sailor.', joins:'⚓ A sailor joins the crew.',
+  relicLost:'🏺 Relic lost — no fresh sailor to train.', relicHero:'🏺 A relic turns a sailor into a hero.',
+  holdFull:(e,w)=>`${e} Hold full — ${w} left behind.`, loaded:(e,w)=>`${e} Loaded ${w}.`,
+  goldIsl:(n,g)=>`💰 ${n}: +${g} gold.`, anchored:n=>`Anchored at ${n}.`,
+  dreadWreck:"☠️ Only the Dread's wreck remains.", dreadWin:'☠️ Two heroes fall upon the Dread and defeat it! +14 gold.',
+  dreadLose:'☠️ The Dread drives you off — a sailor is lost.', dreadNone:'☠️ The Dread looms, but finds no one to take.',
+  lineDone:'📜 Duty line done!', pickDuty:'Pick a Duties box first.', region:n=>`🧭 New region charted (${n}/7).`,
+  edge:"The map's edge stops you short.", noDuty:v=>`No Duties box for a ${v}.`, noUndo:'Nothing to undo.', undone:r=>`Back to the start of round ${r}.`,
+  roundOf:r=>`Round ${r} of 16`, round:r=>`Round ${r}`, finalNow:' — final round', finalNext:' — final round next',
+  over:'Voyage complete', newVoy:'New voyage', lastRoll:d=>`Last roll: ${d}`,
+  soloGoal:'Collect 3 legendary stars within 16 rounds.', groupInfo:s=>`Everyone with code <b>${s}</b> gets the same dice each round.`,
+  roll:'🎲 Roll the dice', manual:'Enter a real roll', trig:'Another captain earned a 3rd star', finalToast:'This is the final round.',
+  labels:['Heading','Speed','Duty'], hexes:v=>v+' hex'+(v>1?'es':''), cross:v=>'cross a '+v,
+  landsOn:n=>`lands on <b>${n}</b>`, meetsDread:'meets <b>the Dread</b> ☠️', edgeAfter:n=>n?`stops at the map's edge after ${n}`:`can't move — the map's edge is right there`,
+  stopsOn:(e,w)=>`stops on ${e} <b>${w}</b>`, openSea:'stops in open sea',
+  tapHint:'Tap two dice to swap them · tap one to spend crew on it', setVal:'🦸 Set value', done:'Done',
+  sailing:(d,s,dest)=>`Sailing <b>${d} ${s}</b> — ${dest}.`, tapDuty:v=>`Tap a highlighted <b>${v}</b> in Duties.`,
+  dutyChosen:'Duty box chosen ✓', dutySkip:v=>`No ${v} left in Duties — skipped.`, departHint:' Tap another hex of this island to leave from there.',
+  resetCrew:'Reset crew', setSail:'⛵ Set sail', heroT:'🦸 Heroic sailor', heroP:n=>`Set the ${n} die to any value. The hero is spent.`,
+  heroDie:['heading','speed','duty'], cancel:'Cancel', rolling:'Rolling…', enterRoll:"Enter the table's roll", useDice:'Use these dice',
+  win:n=>`<b>Victory!</b> You earned ${n} legendary stars.`, lose:n=>`<b>Lost at sea.</b> Only ${n} of 3 stars needed.`,
+  compare:'Compare gold with the other captains — most gold wins.',
+  sc_isl:'Islands visited', sc_reg:n=>`Regions charted (${n}²)`, sc_sold:'Cargo sold', sc_unsold:'Unsold cargo',
+  sc_hero:'Heroes left (×2)', sc_dread:'Dread defeated', sc_stars:'Legendary stars (×3)', sc_total:'Total gold',
+  barrel:'🛢️ Barrel', barrelFull:'Your hold is full — the barrel floats away.', onward:'Onward', barrelWild:'🛢️ Barrel (wild cargo)', inside:"What's inside?",
+  sellAll:(e,w,n,v)=>`Sell all ${e} ${w} ×${n} — +${v}`, sellEach:(e,v)=>`Sell one of each (${e}) — +${v}`,
+  signs:'A sailor signs on.', sellQ:'Sell cargo here? You may only trade once at each settlement.', noCargo:'You have no cargo to sell.', keep:'Keep my cargo',
+  soldEach:v=>`💰 Sold one of each: +${v} gold.`, soldN:(n,w,v)=>`💰 Sold ${n} ${w}: +${v} gold.`,
+  lookMap:'Look at my map', newT:'⛵ New voyage', intro:'Captain your ship across the sea: chart regions, trade cargo, train heroes, and face the Dread.',
+  soloBtn:'Solo — 16 rounds, earn 3 stars', friends:'<b>With friends</b> — every captain enters the same code and gets the same dice each round (or enter real dice).',
+  codeAria:'Shared dice code', grp:'Sail with this code', how:'How to play', otherLang:'🇫🇷 Français', langShort:'FR', enterCode:'Enter a code.',
+  undoL:'Undo last round', logT:"Captain's log", scoreSoFar:'Score so far', close:'Close', nothingYet:'Nothing yet.', goldSoFar:'Gold so far', gotIt:'Got it',
+  howHtml:`<h3>How to play</h3>
+  <p><b>Each round</b> three dice are rolled. Give one to <b>Heading</b> (the compass: 1 N, 2 NE, 3 SE, 4 S, 5 SW, 6 NW), one to <b>Speed</b> and one to <b>Duty</b>. Tap two dice to swap them.</p>
+  <p><b>Sailing.</b> You move the full speed in a straight line, stopping early when you reach an island, the Dread, or the map's edge. You only collect what's on the hex where you stop, and each icon only once.</p>
+  <p><b>Crew.</b> Spend a ⚓ sailor to change a die by ±1 (6 wraps to 1). A 🦸 hero sets a die to any value. Spent crew is gone for good. A 🏺 relic turns a fresh sailor into a hero.</p>
+  <p><b>Islands.</b> Gold islands pay their value once. 🏘️ Settlements give a sailor and let you sell cargo once: all of one type, or one of each. From an island you can leave from any of its hexes.</p>
+  <p><b>The Dread ☠️.</b> Arrive with 2 heroes to defeat it (both are spent): a star and 14 gold. Without them, you lose a sailor.</p>
+  <p><b>Duties.</b> Cross off a box showing the duty die. Finish a row or column to get its reward.</p>
+  <p><b>Stars ⭐</b> (3 gold each): sell a third cargo of one type · finish the long duty row · defeat the Dread · stop on the far ⭐ · fill sailor box 12.</p>
+  <p><b>Gold.</b> Islands + regions charted (1, 4, 9 … 49 for passing through 1–7 darker regions) + cargo sold (3/4/5) + 1 per unsold cargo + 2 per hero left + Dread + stars.</p>
+  <p><b>End.</b> Solo: 16 rounds, win with 3+ stars. With friends: when someone earns a 3rd star, play one more round; most gold wins.</p>
+  <p class="hint">An unofficial fan simulator of Voyages by Postmark Games, with an original map.</p>`,
+},
+fr:{
+  crew:'Équipage', hold:'Cale', duties:'Corvées',
+  lg_sailor:'⚓ marin : ±1 sur un dé', lg_hero:'🦸 héros : fixe un dé à la valeur voulue', lg_box12:'⭐ case 12 : étoile Recrutement',
+  lg_sell:'Vendez dans un comptoir 🏘️ : tout un type, ou un de chaque', lg_unsold:'Marchandise invendue : 1 or',
+  lg_duties:'Cochez le chiffre du dé de corvée. Complétez une ligne ou une colonne pour gagner sa récompense.',
+  w_fruit:'fruits', w_spice:'épices', w_hide:'peaux', w_gem:'gemmes', w_barrel:'tonneau', w_sailor:'marin', w_relic:'relique', w_star:'étoile',
+  star_cargo:'Cargaison — vendre une 3e marchandise d’un même type', star_duties:'Corvées — finir la longue ligne', star_dread:'Fléau — le vaincre avec 2 héros',
+  star_explore:'Exploration — s’arrêter sur l’⭐ lointaine', star_recruit:'Recrutement — remplir la case marin 12',
+  dir:['','N','NE','SE','S','SO','NO'], start:'DÉPART',
+  starGot:n=>`⭐ Étoile légendaire : ${n} !`, third:'Votre 3e étoile ! Prévenez la table : encore un tour après celui-ci.',
+  noRoom:'Plus de place pour un marin.', joins:'⚓ Un marin rejoint l’équipage.',
+  relicLost:'🏺 Relique perdue — aucun marin frais à former.', relicHero:'🏺 Une relique fait d’un marin un héros.',
+  holdFull:(e,w)=>`${e} Cale pleine — pas de place pour : ${w}.`, loaded:(e,w)=>`${e} Chargé : ${w}.`,
+  goldIsl:(n,g)=>`💰 ${n} : +${g} or.`, anchored:n=>`Mouillage à ${n}.`,
+  dreadWreck:'☠️ Il ne reste que l’épave du Fléau.', dreadWin:'☠️ Deux héros terrassent le Fléau ! +14 or.',
+  dreadLose:'☠️ Le Fléau vous repousse — un marin est perdu.', dreadNone:'☠️ Le Fléau rôde, mais ne trouve personne à prendre.',
+  lineDone:'📜 Ligne de corvées terminée !', pickDuty:'Choisissez d’abord une case de corvée.', region:n=>`🧭 Nouvelle région cartographiée (${n}/7).`,
+  edge:'Le bord de la carte vous arrête.', noDuty:v=>`Aucune case de corvée pour un ${v}.`, noUndo:'Rien à annuler.', undone:r=>`Retour au début du tour ${r}.`,
+  roundOf:r=>`Tour ${r} sur 16`, round:r=>`Tour ${r}`, finalNow:' — dernier tour', finalNext:' — dernier tour ensuite',
+  over:'Voyage terminé', newVoy:'Nouveau voyage', lastRoll:d=>`Dernier lancer : ${d}`,
+  soloGoal:'Obtenez 3 étoiles légendaires en 16 tours.', groupInfo:s=>`Tous ceux qui ont le code <b>${s}</b> obtiennent les mêmes dés à chaque tour.`,
+  roll:'🎲 Lancer les dés', manual:'Saisir un vrai lancer', trig:'Un autre capitaine a sa 3e étoile', finalToast:'C’est le dernier tour.',
+  labels:['Cap','Vitesse','Corvée'], hexes:v=>v+' case'+(v>1?'s':''), cross:v=>'cocher un '+v,
+  landsOn:n=>`accoste à <b>${n}</b>`, meetsDread:'affronte <b>le Fléau</b> ☠️', edgeAfter:n=>n?`s’arrête au bord de la carte après ${n}`:`ne bouge pas — le bord de la carte est juste là`,
+  stopsOn:(e,w)=>`s’arrête sur ${e} <b>${w}</b>`, openSea:'s’arrête en pleine mer',
+  tapHint:'Touchez deux dés pour les échanger · un seul pour y dépenser de l’équipage', setVal:'🦸 Fixer', done:'OK',
+  sailing:(d,s,dest)=>`Cap <b>${d} ${s}</b> — ${dest}.`, tapDuty:v=>`Touchez un <b>${v}</b> en surbrillance dans les corvées.`,
+  dutyChosen:'Case de corvée choisie ✓', dutySkip:v=>`Plus de ${v} dans les corvées — ignoré.`, departHint:' Touchez une autre case de l’île pour partir de là.',
+  resetCrew:'Annuler l’équipage', setSail:'⛵ Larguer les amarres', heroT:'🦸 Marin héroïque', heroP:n=>`Fixez le dé ${n} à la valeur voulue. Le héros est dépensé.`,
+  heroDie:['de cap','de vitesse','de corvée'], cancel:'Annuler', rolling:'Lancer…', enterRoll:'Saisir le lancer de la table', useDice:'Utiliser ces dés',
+  win:n=>`<b>Victoire !</b> Vous avez obtenu ${n} étoiles légendaires.`, lose:n=>`<b>Perdu en mer.</b> Seulement ${n} étoile(s) sur 3.`,
+  compare:'Comparez votre or avec les autres capitaines — le plus riche gagne.',
+  sc_isl:'Îles visitées', sc_reg:n=>`Régions cartographiées (${n}²)`, sc_sold:'Marchandises vendues', sc_unsold:'Marchandises invendues',
+  sc_hero:'Héros restants (×2)', sc_dread:'Fléau vaincu', sc_stars:'Étoiles légendaires (×3)', sc_total:'Or total',
+  barrel:'🛢️ Tonneau', barrelFull:'Votre cale est pleine — le tonneau s’éloigne.', onward:'En avant', barrelWild:'🛢️ Tonneau (marchandise joker)', inside:'Qu’y a-t-il dedans ?',
+  sellAll:(e,w,n,v)=>`Vendre tout ${e} ${w} ×${n} — +${v}`, sellEach:(e,v)=>`Vendre un de chaque (${e}) — +${v}`,
+  signs:'Un marin s’engage.', sellQ:'Vendre des marchandises ici ? Un seul échange par comptoir.', noCargo:'Vous n’avez rien à vendre.', keep:'Garder ma cargaison',
+  soldEach:v=>`💰 Vendu un de chaque : +${v} or.`, soldN:(n,w,v)=>`💰 Vendu ${n} ${w} : +${v} or.`,
+  lookMap:'Voir ma carte', newT:'⛵ Nouveau voyage', intro:'Menez votre navire à travers les mers : cartographiez des régions, commercez, formez des héros et affrontez le Fléau.',
+  soloBtn:'Solo — 16 tours, 3 étoiles à gagner', friends:'<b>Entre amis</b> — chaque capitaine saisit le même code et obtient les mêmes dés à chaque tour (ou saisissez de vrais dés).',
+  codeAria:'Code de dés partagé', grp:'Naviguer avec ce code', how:'Règles du jeu', otherLang:'🇬🇧 English', langShort:'EN', enterCode:'Saisissez un code.',
+  undoL:'Annuler le dernier tour', logT:'Journal de bord', scoreSoFar:'Score actuel', close:'Fermer', nothingYet:'Rien pour l’instant.', goldSoFar:'Or actuel', gotIt:'Compris',
+  howHtml:`<h3>Règles du jeu</h3>
+  <p><b>À chaque tour</b>, on lance trois dés. Attribuez-en un au <b>Cap</b> (la boussole : 1 N, 2 NE, 3 SE, 4 S, 5 SO, 6 NO), un à la <b>Vitesse</b> et un à la <b>Corvée</b>. Touchez deux dés pour les échanger.</p>
+  <p><b>Navigation.</b> Vous avancez de toute la vitesse en ligne droite, et vous arrêtez plus tôt en atteignant une île, le Fléau ou le bord de la carte. Vous ne récupérez que ce qui se trouve sur la case d’arrivée, et chaque icône une seule fois.</p>
+  <p><b>Équipage.</b> Dépensez un ⚓ marin pour modifier un dé de ±1 (6 revient à 1). Un 🦸 héros fixe un dé à la valeur voulue. L’équipage dépensé est perdu. Une 🏺 relique transforme un marin frais en héros.</p>
+  <p><b>Îles.</b> Les îles d’or rapportent leur valeur une fois. Les 🏘️ comptoirs donnent un marin et permettent de vendre une fois : tout un type, ou un de chaque. Depuis une île, vous pouvez repartir de n’importe laquelle de ses cases.</p>
+  <p><b>Le Fléau ☠️.</b> Arrivez avec 2 héros pour le vaincre (tous deux dépensés) : une étoile et 14 or. Sinon, vous perdez un marin.</p>
+  <p><b>Corvées.</b> Cochez une case portant le chiffre du dé de corvée. Complétez une ligne ou une colonne pour gagner sa récompense.</p>
+  <p><b>Étoiles ⭐</b> (3 or chacune) : vendre une 3e marchandise d’un type · finir la longue ligne de corvées · vaincre le Fléau · s’arrêter sur l’⭐ lointaine · remplir la case marin 12.</p>
+  <p><b>Or.</b> Îles + régions cartographiées (1, 4, 9 … 49 pour 1 à 7 régions foncées traversées) + marchandises vendues (3/4/5) + 1 par marchandise invendue + 2 par héros restant + Fléau + étoiles.</p>
+  <p><b>Fin.</b> Solo : 16 tours, victoire avec 3 étoiles ou plus. Entre amis : quand quelqu’un obtient sa 3e étoile, on joue encore un tour ; le plus riche gagne.</p>
+  <p class="hint">Simulateur non officiel de Voyages (Postmark Games), avec une carte originale.</p>`,
+}};
+const tr = (k,...a) => { const v = STR[LANG][k] ?? STR.en[k]; return typeof v==='function' ? v(...a) : v; };
+function applyStatic(){
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(n=>n.textContent=tr(n.dataset.i18n));
+  $('langBtn').textContent = tr('langShort');
+  $('codeChip').title = tr('codeAria');
+}
+// ---------- Theme ----------
+const darkMQ = matchMedia('(prefers-color-scheme: dark)');
+let THEME = (()=>{ try{ return localStorage.getItem('voyages-theme'); }catch(e){ return null; } })();
+const isDark = () => THEME ? THEME==='dark' : darkMQ.matches;
+function applyTheme(){
+  if(THEME) document.documentElement.dataset.theme=THEME; else delete document.documentElement.dataset.theme;
+  $('themeBtn').textContent = isDark() ? '☀︎' : '☾';
+  document.querySelector('meta[name=theme-color]').content = isDark() ? '#081325' : '#efe4cc';
+}
+function setTheme(t){ THEME=t; try{ localStorage.setItem('voyages-theme', t); }catch(e){} applyTheme(); }
+darkMQ.addEventListener('change', applyTheme);
+function setLang(l){ LANG=l; try{ localStorage.setItem('voyages-lang', l); }catch(e){} applyStatic(); if(state) render(); }
+
+// Duties grid ('.' = no box). Lines are maximal runs of 3+ boxes.
+const DUTY = ['4621.3','1.5642','651432','3.4.16','2135.5'];
+const DUTY_REWARDS = {r0:['fruit'],r1:['spice'],r2:['barrel','star'],r4:['hide'],c0:['sailor'],c2:['gem'],c3:['sailor'],c4:['relic'],c5:['sailor','relic']};
+
+const key = (c,r) => c+','+r;
+const inMap = (c,r) => c>=0 && c<COLS && r>=0 && r<ROWS;
+const ch = (c,r) => MAP[r][c];
+const toAx = (c,r) => ({q:c, r:r-(c-(c&1))/2});
+const fromAx = (q,r) => [q, r+(q-(q&1))/2];
+const hexDist = (a,b) => { const A=toAx(...a), B=toAx(...b); return (Math.abs(A.q-B.q)+Math.abs(A.q+A.r-B.q-B.r)+Math.abs(A.r-B.r))/2; };
+const centre = (c,r) => [1.5*S*c+S+1, R3*S*(r+0.5*(c&1))+R3*S/2+1];
+const isIsland = (c,r) => /[A-K]/.test(ch(c,r));
+const isSea = (c,r) => !isIsland(c,r) && ch(c,r)!=='X';
+
+const REGION = {};
+REGION_CENTRES.forEach((cc,i)=>{ for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(isSea(c,r) && hexDist([c,r],cc)<=1) REGION[key(c,r)] = i; });
+let START; MAP.forEach((row,r)=>{ const c=row.indexOf('S'); if(c>=0) START=[c,r]; });
+const islandHexes = id => { const out=[]; MAP.forEach((row,r)=>[...row].forEach((x,c)=>{ if(x===id) out.push([c,r]); })); return out; };
+
+const DUTY_CELLS = []; // {i,r,c,v}
+DUTY.forEach((row,r)=>[...row].forEach((v,c)=>{ if(v!=='.') DUTY_CELLS.push({i:DUTY_CELLS.length,r,c,v:+v}); }));
+const cellAt = (r,c) => DUTY_CELLS.find(d=>d.r===r && d.c===c);
+const DUTY_LINES = [];
+for (let r=0;r<5;r++){ let run=[]; for(let c=0;c<=6;c++){ const d=c<6&&cellAt(r,c); if(d) run.push(d.i); else { if(run.length>=3) DUTY_LINES.push({id:'r'+r,cells:run}); run=[]; } } }
+for (let c=0;c<6;c++){ let run=[]; for(let r=0;r<=5;r++){ const d=r<5&&cellAt(r,c); if(d) run.push(d.i); else { if(run.length>=3) DUTY_LINES.push({id:'c'+c,cells:run}); run=[]; } } }
+
+// ---------- Dice ----------
+function hashStr(s){ let h=1779033703^s.length; for(let i=0;i<s.length;i++){ h=Math.imul(h^s.charCodeAt(i),3432918353); h=h<<13|h>>>19; } return ()=>{ h=Math.imul(h^h>>>16,2246822507); h=Math.imul(h^h>>>13,3266489909); return (h^=h>>>16)>>>0; }; }
+function rollFor(seed, round){ const g=hashStr(seed.toUpperCase()+':'+round); return [0,0,0].map(()=>1+g()%6); }
+const WORDS = ['KRAKEN','GALLEON','ANCHOR','CORSAIR','TRIDENT','LAGOON','MERMAID','SEXTANT','CUTLASS','BOSUN','SQUALL','HARBOR','DOUBLOON','COMPASS','MARLIN'];
+const randomCode = () => WORDS[Math.random()*WORDS.length|0] + (10+Math.random()*90|0);
+
+// ---------- State ----------
+const SAVE = 'voyages-v1';
+let state, roundStart = null, history = [];
+function newState(mode, seed){
+  return { mode, seed, round:1, endAfter: mode==='solo'?16:null, phase:'roll', over:false,
+    pos:START.slice(), depart:null, trips:[], regions:[], taken:{}, claimed:[], used:[],
+    sailors:Array.from({length:6},()=>'ready'), cargo:{fruit:[0,0,0],spice:[0,0,0],hide:[0,0,0],gem:[0,0,0]},
+    duties:[], lines:[], stars:{}, dread:false, dice:null, rolled:null, dutyPick:null, sel:null, mods:[0,0,0], queue:[], log:[] };
+}
+function save(){ try{ localStorage.setItem(SAVE, JSON.stringify({state, roundStart, history:history.slice(-20)})); }catch(e){} }
+function load(){ try{ const d=JSON.parse(localStorage.getItem(SAVE)); if(d&&d.state){ state=d.state; roundStart=d.roundStart; history=d.history||[]; return true; } }catch(e){} return false; }
+
+// ---------- Rules ----------
+function computeMove(from, dir, dist){
+  const startIsl = isIsland(...from) ? ch(...from) : null;
+  let a = toAx(...from); const hexes=[from.slice()]; let stop=null;
+  for (let i=0;i<dist;i++){
+    const [dq,dr]=DIRS[dir]; const n=fromAx(a.q+dq, a.r+dr);
+    if(!inMap(...n)){ stop='edge'; break; }
+    hexes.push(n); a={q:a.q+dq, r:a.r+dr};
+    const x=ch(...n);
+    if(/[A-K]/.test(x) && x!==startIsl){ stop='island'; break; }
+    if(x==='X'){ stop='dread'; break; }
+  }
+  return {hexes, end:hexes[hexes.length-1], stop};
+}
+const readyCount = () => state.sailors.filter(s=>s==='ready').length;
+const heroCount = () => state.sailors.filter(s=>s==='hero').length;
+const starCount = () => Object.values(state.stars).filter(Boolean).length;
+
+function note(msg){ state.log.unshift('R'+state.round+' · '+msg); toast(msg); }
+function award(k){
+  if(state.stars[k]) return;
+  state.stars[k]=true; note(tr('starGot', tr('star_'+k).split(' —')[0]));
+  if(state.mode==='group' && starCount()===3 && !state.endAfter){ state.endAfter = state.round+1; note(tr('third')); }
+}
+function addSailor(){
+  if(state.sailors.length>=15){ note(tr('noRoom')); return; }
+  state.sailors.push('ready'); note(tr('joins'));
+  if(state.sailors.length===12) award('recruit');
+}
+function relic(){
+  const i=state.sailors.indexOf('ready');
+  if(i<0){ note(tr('relicLost')); return; }
+  state.sailors[i]='hero'; note(tr('relicHero'));
+}
+function addCargo(t){
+  const sl=state.cargo[t], i=sl.indexOf(0);
+  if(i<0){ note(tr('holdFull', EMO[t], ware(t))); return; }
+  sl[i]=1; note(tr('loaded', EMO[t], ware(t)));
+}
+function grant(item, source){
+  if(TYPES.includes(item)) addCargo(item);
+  else if(item==='barrel') state.queue.push({type:'barrel'});
+  else if(item==='sailor') addSailor();
+  else if(item==='relic') relic();
+  else if(item==='star') award(source==='duty'?'duties':'explore');
+}
+function landing([c,r]){
+  const x=ch(c,r), k=key(c,r);
+  if(/[A-K]/.test(x)){
+    const isl=ISLANDS[x];
+    if(isl.gold && !state.claimed.includes(x)){ state.claimed.push(x); note(tr('goldIsl', iname(x), isl.gold)); }
+    else if(isl.settle && !state.used.includes(x)) state.queue.push({type:'settle', id:x});
+    else note(tr('anchored', iname(x)));
+  } else if(x==='X'){
+    if(state.dread) note(tr('dreadWreck'));
+    else if(heroCount()>=2){ for(let n=0;n<2;n++) state.sailors[state.sailors.indexOf('hero')]='spent'; state.dread=true; note(tr('dreadWin')); award('dread'); }
+    else { const i=state.sailors.indexOf('ready')>=0?state.sailors.indexOf('ready'):state.sailors.indexOf('hero');
+      if(i>=0){ state.sailors[i]='spent'; note(tr('dreadLose')); } else note(tr('dreadNone')); }
+  } else if(ICON[x] && !state.taken[k]){
+    state.taken[k]=true; grant(ICON[x],'map');
+  }
+}
+function crossDuty(i){
+  state.duties.push(i);
+  DUTY_LINES.forEach(L=>{
+    if(state.lines.includes(L.id) || !L.cells.every(c=>state.duties.includes(c))) return;
+    state.lines.push(L.id); note(tr('lineDone'));
+    DUTY_REWARDS[L.id].forEach(it=>grant(it,'duty'));
+  });
+}
+function sellValue(t, n){ const sl=state.cargo[t]; let v=0, from=sl.indexOf(1); for(let k=0;k<n;k++) v+=SELL[from+k]; return v; }
+function sell(t, n){
+  const sl=state.cargo[t];
+  for(let k=0;k<n;k++){ const i=sl.indexOf(1); if(i<0) break; sl[i]=2; }
+  if(sl.every(s=>s===2)) award('cargo');
+}
+function score(){
+  const islands = state.claimed.reduce((a,id)=>a+ISLANDS[id].gold,0);
+  const n = state.regions.length, regions = n*n;
+  let sold=0, unsold=0; TYPES.forEach(t=>state.cargo[t].forEach((s,i)=>{ if(s===2) sold+=SELL[i]; if(s===1) unsold++; }));
+  const heroes = heroCount()*2, dread = state.dread?14:0, stars = starCount()*3;
+  return {islands, regions, n, sold, unsold, heroes, dread, stars, total: islands+regions+sold+unsold+heroes+dread+stars};
+}
+
+// ---------- Round flow ----------
+function startRound(dice){
+  state.rolled=dice.slice(); state.dice=dice.slice(); state.mods=[0,0,0]; state.sel=null; state.dutyPick=null;
+  state.depart = isIsland(...state.pos) ? state.pos.slice() : null;
+  state.phase='plan'; autoPick();
+  roundStart = JSON.stringify(state);
+  save(); render();
+}
+function autoPick(){ const c=dutyCands(); state.dutyPick = c.length===1 ? c[0] : (c.includes(state.dutyPick)?state.dutyPick:null); }
+function dutyCands(){ if(!state.dice) return []; const v=state.dice[2]; return DUTY_CELLS.filter(d=>d.v===v && !state.duties.includes(d.i)).map(d=>d.i); }
+function setSail(){
+  if(dutyCands().length && state.dutyPick==null){ toast(tr('pickDuty')); $('dutiesEl').scrollIntoView({behavior:'smooth',block:'center'}); return; }
+  history.push(roundStart); if(history.length>20) history.shift();
+  const [hd,sp]=state.dice;
+  const mv=computeMove(state.depart||state.pos, hd, sp);
+  state.trips.push(mv.hexes);
+  mv.hexes.forEach(h=>{ const g=REGION[key(...h)]; if(g!=null && !state.regions.includes(g)){ state.regions.push(g); note(tr('region', state.regions.length)); } });
+  state.pos=mv.end.slice(); state.depart=null;
+  if(mv.stop==='edge') note(tr('edge'));
+  landing(mv.end);
+  if(state.dutyPick!=null) crossDuty(state.dutyPick); else note(tr('noDuty', state.dice[2]));
+  state.dice=null; state.sel=null; state.dutyPick=null;
+  if(state.queue.length) state.phase='prompt'; else endRound();
+  save(); render();
+}
+function endRound(){
+  if(state.endAfter && state.round>=state.endAfter){ state.phase='over'; state.over=true; save(); render(); return; }
+  state.round++; state.phase='roll'; save(); render();
+}
+function resolvePrompt(fn){ fn && fn(); state.queue.shift(); if(!state.queue.length) endRound(); else { save(); render(); } }
+function undo(){
+  if(!history.length){ toast(tr('noUndo')); return; }
+  roundStart = history.pop(); state = JSON.parse(roundStart); closeModal(); save(); render(); toast(tr('undone', state.round));
+}
+
+// ---------- Rendering ----------
+const $ = id => document.getElementById(id);
+const el = (h) => { const t=document.createElement('template'); t.innerHTML=h.trim(); return t.content.firstChild; };
+function hexPts(x,y,s=S){ let p=[]; for(let i=0;i<6;i++){ const a=Math.PI/3*i; p.push((x+s*Math.cos(a)).toFixed(2)+','+(y+s*Math.sin(a)).toFixed(2)); } return p.join(' '); }
+function pipSvg(v){
+  const P={1:[[50,50]],2:[[28,28],[72,72]],3:[[28,28],[50,50],[72,72]],4:[[28,28],[72,28],[28,72],[72,72]],5:[[28,28],[72,28],[50,50],[28,72],[72,72]],6:[[28,26],[72,26],[28,50],[72,50],[28,74],[72,74]]};
+  return '<svg viewBox="0 0 100 100">'+(P[v]||[]).map(([x,y])=>`<circle cx="${x}" cy="${y}" r="9" fill="var(--ink)"/>`).join('')+'</svg>';
+}
+
+function renderMap(){
+  const W=1.5*S*(COLS-1)+2*S+2, H=R3*S*(ROWS+0.5)+2;
+  const svg=$('map'); svg.setAttribute('viewBox',`0 0 ${W.toFixed(1)} ${H.toFixed(1)}`);
+  let base='', top='';
+  const departIds = state.phase==='plan' && state.depart ? ch(...state.pos) : null;
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const [x,y]=centre(c,r), v=ch(c,r), k=key(c,r);
+    let cls='hex', fill='';
+    if(/[A-K]/.test(v)) cls+=' land'; else if(v==='X') cls+=' dread'; else if(REGION[k]!=null) cls+=' reg'; else fill=' fill="var(--sea)"';
+    if(departIds && v===departIds) cls+=' depart';
+    base+=`<polygon class="${cls}"${fill} points="${hexPts(x,y)}" data-c="${c}" data-r="${r}"/>`;
+    if(isSea(c,r)) base+=`<polygon class="wave" points="${hexPts(x,y,S-.4)}"/>`;
+    if(ICON[v]) top+=`<text class="ico${state.taken[k]?' taken':''}" x="${x}" y="${y}">${EMO[ICON[v]]}</text>`;
+    if(v==='X') top+=`<text class="ico${state.dread?' taken':''}" x="${x}" y="${y}">${EMO.dread}</text>`;
+    if(v==='S') top+=`<text class="iname" x="${x}" y="${y+7.6}">${tr('start')}</text>`;
+  }
+  // island labels: one per island on its first hex
+  Object.entries(ISLANDS).forEach(([id,isl])=>{
+    const hx=islandHexes(id), [x,y]=centre(...hx[0]);
+    const done = isl.gold ? state.claimed.includes(id) : state.used.includes(id);
+    top+= isl.gold ? `<circle cx="${x}" cy="${y}" r="4.6" fill="${done?'var(--coin-done)':'var(--coin)'}" stroke="var(--coin-line)" stroke-width=".5"/><text class="gold" x="${x}" y="${y+.3}" ${done?'opacity=".35"':''}>${isl.gold}</text>`
+                   : `<text class="ico${done?' taken':''}" x="${x}" y="${y}">${EMO.settle}</text>`;
+    top+=`<text class="iname" x="${x}" y="${y+7.6}">${iname(id)}</text>`;
+  });
+  // routes
+  let routes='';
+  state.trips.forEach(t=>{ if(t.length<2) return; routes+=`<polyline class="trip" points="${t.map(h=>centre(...h).join(',')).join(' ')}"/>`; const [ex,ey]=centre(...t[t.length-1]); routes+=`<circle class="stopdot" cx="${ex}" cy="${ey}" r="1"/>`; });
+  let prev='';
+  if(state.phase==='plan'){
+    const mv=computeMove(state.depart||state.pos, state.dice[0], state.dice[1]);
+    prev=`<polyline class="prev" points="${mv.hexes.map(h=>centre(...h).join(',')).join(' ')}"/>`;
+    const [ex,ey]=centre(...mv.end); prev+=`<polygon points="${hexPts(ex,ey,S*.82)}" fill="none" stroke="var(--accent)" stroke-width="1"/>`;
+  }
+  const [sx,sy]=centre(...(state.phase==='plan'&&state.depart?state.depart:state.pos));
+  const ship=`<circle cx="${sx}" cy="${sy}" r="6.2" fill="var(--field)" stroke="var(--route)" stroke-width="1"/><text class="ico" x="${sx}" y="${sy+.4}" style="font-size:8.5px">⛵</text>`;
+  const defs=`<defs><pattern id="waves" width="12" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-4)">
+    <path d="M1 2 q1.25 -1 2.5 0 t2.5 0" fill="none" stroke="var(--wave)" stroke-width=".4" stroke-linecap="round" opacity=".7"/>
+    <path d="M7 5.5 q1.25 -1 2.5 0 t2.5 0" fill="none" stroke="var(--wave2)" stroke-width=".35" stroke-linecap="round" opacity=".35"/></pattern></defs>`;
+  svg.innerHTML=defs+base+routes+top+prev+ship;
+}
+
+function compassSvg(active){
+  let s='<svg class="compass" viewBox="-50 -50 100 100"><polygon points="'+hexPts(0,0,30).replace(/(-?[\d.]+),(-?[\d.]+)/g,(m,a,b)=>a+','+b)+'" fill="var(--field)" stroke="var(--land2)"/>';
+  for(let d=1;d<=6;d++){
+    const [dq,dr]=DIRS[d]; // direction vector in pixel space for flat-top
+    const [x1,y1]=[1.5*dq, R3*(dr+dq/2)]; const len=Math.hypot(x1,y1); const ux=x1/len, uy=y1/len;
+    const on=d==active;
+    s+=`<line x1="0" y1="0" x2="${ux*26}" y2="${uy*26}" stroke="${on?'var(--accent)':'var(--compline)'}" stroke-width="${on?4:2}" stroke-linecap="round"/>`;
+    s+=`<circle cx="${ux*40}" cy="${uy*40}" r="8.5" fill="${on?'var(--accent)':'var(--card)'}" stroke="var(--land2)"/><text x="${ux*40}" y="${uy*40+.5}" text-anchor="middle" dominant-baseline="central" font-size="10" font-weight="bold" fill="${on?'var(--on-accent)':'var(--ink)'}">${d}</text>`;
+  }
+  return s+'<circle r="3" fill="var(--ink)"/></svg>';
+}
+
+function renderCtrl(){
+  const c=$('ctrl'); c.innerHTML='';
+  const roundTxt = state.mode==='solo' ? tr('roundOf', state.round) : tr('round', state.round)+(state.endAfter?(state.round>=state.endAfter?tr('finalNow'):tr('finalNext')):'');
+  if(state.phase==='over'){ c.append(el(`<div><h2>${tr('over')}</h2><p>${scoreHtml()}</p><div class="row"><button class="btn primary" id="again">${tr('newVoy')}</button></div></div>`)); $('again').onclick=setup; return; }
+  if(state.phase==='roll' || state.phase==='prompt'){
+    const last = state.rolled ? `<div class="hint">${tr('lastRoll', state.rolled.join(' · '))}</div>` : '';
+    c.append(el(`<div><h2>${roundTxt}</h2>
+      <p class="hint">${state.mode==='solo'?tr('soloGoal'):tr('groupInfo', state.seed)}</p>
+      <div class="row"><button class="btn primary" id="rollBtn">${tr('roll')}</button>${state.mode==='group'?'<button class="btn" id="manBtn">'+tr('manual')+'</button>':''}</div>
+      ${state.mode==='group'&&!state.endAfter?'<div class="row" style="margin-top:10px"><button class="btn small" id="trigBtn">'+tr('trig')+'</button></div>':''}
+      ${last}</div>`));
+    $('rollBtn').onclick=()=>{ const d=rollFor(state.seed,state.round); animateRoll(d); };
+    if($('manBtn')) $('manBtn').onclick=manualRoll;
+    if($('trigBtn')) $('trigBtn').onclick=()=>{ state.endAfter=state.round; save(); render(); toast(tr('finalToast')); };
+    return;
+  }
+  // plan phase
+  const labels=tr('labels');
+  const slots=el('<div class="slots"></div>');
+  state.dice.forEach((v,i)=>{
+    const s=el(`<div class="slot">${labels[i]}<button class="die${state.sel===i?' sel':''}${state.mods[i]?' mod':''}" aria-label="${labels[i]} die ${v}">${pipSvg(v)}</button><div class="dieval">${i===0?tr('dir')[v]+' ('+v+')':i===1?tr('hexes',v):tr('cross',v)}</div></div>`);
+    s.querySelector('button').onclick=()=>tapDie(i);
+    slots.append(s);
+  });
+  const mv=computeMove(state.depart||state.pos, state.dice[0], state.dice[1]);
+  const endX=ch(...mv.end);
+  let dest = mv.stop==='island' ? tr('landsOn', iname(endX)) : mv.stop==='dread' ? tr('meetsDread') : mv.stop==='edge' ? tr('edgeAfter', mv.hexes.length-1) : '';
+  if(!dest){ const k=key(...mv.end); dest = ICON[endX]&&!state.taken[k] ? tr('stopsOn', EMO[ICON[endX]], ware(ICON[endX])) : tr('openSea'); }
+  const cands=dutyCands();
+  const box=el(`<div><h2>${roundTxt}</h2></div>`);
+  box.append(slots);
+  const mod=el('<div class="modbar"></div>');
+  if(state.sel==null) mod.append(el('<span class="hint">'+tr('tapHint')+'</span>'));
+  else {
+    const r=readyCount(), h=heroCount();
+    const minus=el(`<button class="btn small" ${r?'':'disabled'}>⚓ −1</button>`), plus=el(`<button class="btn small" ${r?'':'disabled'}>⚓ +1</button>`);
+    minus.onclick=()=>modDie(-1); plus.onclick=()=>modDie(1);
+    const hero=el(`<button class="btn small" ${h?'':'disabled'}>${tr('setVal')}</button>`); hero.onclick=heroDie;
+    const cancel=el('<button class="btn small">'+tr('done')+'</button>'); cancel.onclick=()=>{ state.sel=null; render(); };
+    mod.append(minus,plus,hero,cancel);
+  }
+  box.append(mod);
+  const info=el(`<div class="row" style="margin-top:6px;flex-wrap:nowrap"></div>`);
+  info.append(el(compassSvg(state.dice[0])));
+  info.append(el(`<div class="info">${tr('sailing', tr('dir')[state.dice[0]], state.dice[1], dest)}<br><span class="hint">${cands.length?(state.dutyPick==null?tr('tapDuty',state.dice[2]):tr('dutyChosen')):tr('dutySkip',state.dice[2])}${state.depart?tr('departHint'):''}</span></div>`));
+  box.append(info);
+  const row=el('<div class="row"></div>');
+  const reset=el(`<button class="btn" ${state.mods.some(Boolean)?'':'disabled'}>${tr('resetCrew')}</button>`); reset.onclick=()=>{ state=JSON.parse(roundStart); render(); };
+  const go=el(`<button class="btn primary">${tr('setSail')}</button>`); go.onclick=setSail;
+  row.append(reset,go); box.append(row);
+  c.append(box);
+}
+function tapDie(i){
+  if(state.sel==null){ state.sel=i; }
+  else if(state.sel===i){ state.sel=null; }
+  else { const a=state.sel; [state.dice[a],state.dice[i]]=[state.dice[i],state.dice[a]]; [state.mods[a],state.mods[i]]=[state.mods[i],state.mods[a]]; state.sel=null; autoPick(); }
+  render();
+}
+function modDie(d){
+  const i=state.sel, j=state.sailors.indexOf('ready'); if(j<0) return;
+  state.sailors[j]='spent'; state.dice[i]=((state.dice[i]-1+d+6)%6)+1; state.mods[i]=1; autoPick(); render();
+}
+function heroDie(){
+  const i=state.sel;
+  modal(`<h3>${tr('heroT')}</h3><p>${tr('heroP', tr('heroDie')[i])}</p><div class="pickvals">${[1,2,3,4,5,6].map(v=>`<button class="btn" data-v="${v}">${v}</button>`).join('')}</div><div class="btns"><button class="btn" id="mx">${tr('cancel')}</button></div>`);
+  document.querySelectorAll('.pickvals button').forEach(b=>b.onclick=()=>{ state.sailors[state.sailors.indexOf('hero')]='spent'; state.dice[i]=+b.dataset.v; state.mods[i]=1; autoPick(); closeModal(); render(); });
+  $('mx').onclick=closeModal;
+}
+function animateRoll(final){
+  const c=$('ctrl'); let n=0;
+  const t=setInterval(()=>{ n++; c.innerHTML='<h2>'+tr('rolling')+'</h2><div class="slots">'+[0,1,2].map(()=>`<div class="slot"><span class="die">${pipSvg(1+Math.random()*6|0)}</span></div>`).join('')+'</div>';
+    if(n>7){ clearInterval(t); startRound(final); } }, 70);
+}
+function manualRoll(){
+  let v=[1,1,1];
+  const draw=()=>modal(`<h3>${tr('enterRoll')}</h3>${[0,1,2].map(i=>`<div class="pickvals" style="margin:8px 0">${[1,2,3,4,5,6].map(x=>`<button class="btn${v[i]===x?' primary':''}" data-i="${i}" data-v="${x}">${x}</button>`).join('')}</div>`).join('')}<div class="btns"><button class="btn primary" id="mok">${tr('useDice')}</button><button class="btn" id="mx">${tr('cancel')}</button></div>`);
+  draw();
+  $('mbox').onclick=e=>{ const b=e.target.closest('[data-i]'); if(b){ v[+b.dataset.i]=+b.dataset.v; draw(); }
+    if(e.target.id==='mok'){ closeModal(); startRound(v); } if(e.target.id==='mx') closeModal(); };
+}
+
+function renderSheet(){
+  // sailors
+  const se=$('sailorsEl'); se.innerHTML='';
+  for(let i=0;i<15;i++){ const s=state.sailors[i];
+    se.append(el(`<div class="sb ${s?s:'empty'}">${s==='ready'?'⚓':s==='hero'?'🦸':s==='spent'?'✕':''}${i===11?'<span class="mk">⭐</span>':''}</div>`)); }
+  // cargo
+  const ce=$('cargoEl'); ce.innerHTML='';
+  TYPES.forEach(t=>{ const r=el(`<div class="crow"><span>${EMO[t]} ${ware(t)}</span></div>`);
+    state.cargo[t].forEach((s,i)=>r.append(el(`<div class="cs ${s===2?'sold':''}"><small>${SELL[i]}</small>${s===1?EMO[t]:s===2?'✓':''}</div>`)));
+    ce.append(r); });
+  // duties
+  const de=$('dutiesEl'); de.innerHTML='';
+  const cands = state.phase==='plan'?dutyCands():[];
+  const rw = id => { const it=DUTY_REWARDS[id]; return it?`<div class="rw ${state.lines.includes(id)?'done':''}">${it.map(x=>EMO[x]).join('')}</div>`:'<div></div>'; };
+  for(let r=0;r<5;r++){
+    for(let c=0;c<6;c++){ const d=cellAt(r,c);
+      if(!d){ de.append(el('<div class="dc hole"></div>')); continue; }
+      const x=state.duties.includes(d.i), cand=cands.includes(d.i), pick=state.dutyPick===d.i;
+      const b=el(`<button class="dc${x?' x':''}${cand?' cand':''}${pick?' pick':''}">${d.v}</button>`);
+      if(cand) b.onclick=()=>{ state.dutyPick=d.i; render(); };
+      de.append(b); }
+    de.append(el(rw('r'+r)));
+  }
+  for(let c=0;c<6;c++) de.append(el(rw('c'+c)));
+  de.append(el('<div></div>'));
+}
+
+function scoreHtml(){
+  const s=score(), stars=starCount();
+  const verdict = state.mode==='solo' ? (stars>=3?tr('win',stars):tr('lose',stars)) : tr('compare');
+  return `${verdict}<div style="margin-top:10px">
+  <div class="scoreline"><span>${tr('sc_isl')}</span><b>${s.islands}</b></div>
+  <div class="scoreline"><span>${tr('sc_reg',s.n)}</span><b>${s.regions}</b></div>
+  <div class="scoreline"><span>${tr('sc_sold')}</span><b>${s.sold}</b></div>
+  <div class="scoreline"><span>${tr('sc_unsold')}</span><b>${s.unsold}</b></div>
+  <div class="scoreline"><span>${tr('sc_hero')}</span><b>${s.heroes}</b></div>
+  <div class="scoreline"><span>${tr('sc_dread')}</span><b>${s.dread}</b></div>
+  <div class="scoreline"><span>${tr('sc_stars')}</span><b>${s.stars}</b></div>
+  <div class="scoreline" style="font-size:17px"><span>${tr('sc_total')}</span><b>${s.total}</b></div></div>`;
+}
+
+function renderPrompt(){
+  if(state.phase!=='prompt' || !state.queue.length) return;
+  const p=state.queue[0];
+  if(p.type==='barrel'){
+    const opts=TYPES.filter(t=>state.cargo[t].includes(0));
+    if(!opts.length){ modal('<h3>'+tr('barrel')+'</h3><p>'+tr('barrelFull')+'</p><div class="btns"><button class="btn primary" id="pk">'+tr('onward')+'</button></div>'); $('pk').onclick=()=>{ closeModal(); resolvePrompt(); }; return; }
+    modal(`<h3>${tr('barrelWild')}</h3><p>${tr('inside')}</p><div class="btns">${opts.map(t=>`<button class="btn" data-t="${t}">${EMO[t]} ${ware(t)}</button>`).join('')}</div>`);
+    document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ closeModal(); resolvePrompt(()=>addCargo(b.dataset.t)); });
+  } else if(p.type==='settle'){
+        if(!p.recruited){ p.recruited=true; addSailor(); save(); }
+    const held=TYPES.filter(t=>state.cargo[t].includes(1));
+    const btns=held.map(t=>{ const n=state.cargo[t].filter(s=>s===1).length; return `<button class="btn" data-sell="${t}">${tr('sellAll',EMO[t],ware(t),n,sellValue(t,n))}</button>`; });
+    if(held.length>=2) btns.push(`<button class="btn" data-sell="each">${tr('sellEach',held.map(t=>EMO[t]).join(''),held.reduce((a,t)=>a+sellValue(t,1),0))}</button>`);
+    modal(`<h3>🏘️ ${iname(p.id)}</h3><p>${tr('signs')} ${held.length?tr('sellQ'):tr('noCargo')}</p><div class="btns">${btns.join('')}<button class="btn primary" id="pk">${held.length?tr('keep'):tr('onward')}</button></div>`);
+    const done=fn=>{ closeModal(); resolvePrompt(()=>{ state.used.push(p.id); fn&&fn(); }); };
+    document.querySelectorAll('[data-sell]').forEach(b=>b.onclick=()=>done(()=>{ const t=b.dataset.sell;
+      if(t==='each'){ const v=held.reduce((a,x)=>a+sellValue(x,1),0); held.forEach(x=>sell(x,1)); note(tr('soldEach',v)); }
+      else { const n=state.cargo[t].filter(s=>s===1).length, v=sellValue(t,n); sell(t,n); note(tr('soldN',n,ware(t),v)); } }));
+    $('pk').onclick=()=>done();
+  }
+}
+
+function render(){
+  $('roundChip').textContent = state.mode==='solo' ? tr('round',Math.min(state.round,16))+'/16' : tr('round',state.round);
+  $('goldChip').textContent = '💰 '+score().total;
+  $('codeChip').textContent = state.mode==='group' ? '🎲 '+state.seed : 'Solo';
+  $('starsEl').innerHTML = STARKEYS.map(k=>`<span class="${state.stars[k]?'on':''}" title="${tr('star_'+k)}">⭐</span>`).join('');
+  renderMap(); renderCtrl(); renderSheet(); renderPrompt();
+  if(state.phase==='over' && !$('modal').classList.contains('on')) { modal(`<h3>${tr('over')}</h3>${scoreHtml()}<div class="btns"><button class="btn primary" id="ng">${tr('newVoy')}</button><button class="btn" id="mx">${tr('lookMap')}</button></div>`); $('ng').onclick=setup; $('mx').onclick=closeModal; }
+}
+
+// ---------- Modal / toast / menu ----------
+function modal(html){ $('mbox').onclick=null; $('mbox').innerHTML=html; $('modal').classList.add('on'); }
+function closeModal(){ $('modal').classList.remove('on'); }
+function toast(msg){ const t=el(`<div class="t">${msg}</div>`); $('toast').append(t); setTimeout(()=>t.remove(), 2600); while($('toast').children.length>3) $('toast').firstChild.remove(); }
+
+function setup(){
+  modal(`<h3>${tr('newT')}</h3><p>${tr('intro')}</p>
+  <div class="btns"><button class="btn primary" id="solo">${tr('soloBtn')}</button></div>
+  <p style="margin-top:16px">${tr('friends')}</p>
+  <input id="code" maxlength="16" value="${randomCode()}" aria-label="${tr('codeAria')}">
+  <div class="btns"><button class="btn" id="grp">${tr('grp')}</button><button class="btn" id="howBtn">${tr('how')}</button><button class="btn" id="setLang">${tr('otherLang')}</button>${state&&!state.over?'<button class="btn" id="mx">'+tr('cancel')+'</button>':''}</div>`);
+  $('setLang').onclick=()=>{ setLang(LANG==='fr'?'en':'fr'); setup(); };
+  $('solo').onclick=()=>begin('solo', randomCode());
+  $('grp').onclick=()=>{ const v=$('code').value.trim().toUpperCase(); if(!v){ toast(tr('enterCode')); return; } begin('group', v); };
+  $('howBtn').onclick=how;
+  if($('mx')) $('mx').onclick=closeModal;
+}
+function begin(mode, seed){ state=newState(mode, seed); history=[]; roundStart=null; closeModal(); save(); render(); }
+function how(){
+  modal(`${tr('howHtml')}
+  <div class="btns"><button class="btn primary" id="mx">${tr('gotIt')}</button></div>`);
+  $('mx').onclick=()=>{ closeModal(); if(!state) setup(); };
+}
+function menu(){
+  modal(`<h3>Menu</h3><div class="btns">
+    <button class="btn" id="m1">${tr('how')}</button>
+    <button class="btn" id="m2" ${history.length?'':'disabled'}>${tr('undoL')}</button>
+    <button class="btn" id="m3">${tr('logT')}</button>
+    <button class="btn" id="m4">${tr('scoreSoFar')}</button>
+    <button class="btn" id="m5">${tr('newVoy')}</button>
+    <button class="btn primary" id="mx">${tr('close')}</button></div>`);
+  $('m1').onclick=how; $('m2').onclick=undo;
+  $('m3').onclick=()=>{ modal(`<h3>${tr('logT')}</h3><div class="log" style="max-height:60vh">${state.log.map(l=>'<div>'+l+'</div>').join('')||tr('nothingYet')}</div><div class="btns"><button class="btn primary" id="mx">${tr('close')}</button></div>`); $('mx').onclick=closeModal; };
+  $('m4').onclick=()=>{ modal(`<h3>${tr('goldSoFar')}</h3>${scoreHtml()}<div class="btns"><button class="btn primary" id="mx">${tr('close')}</button></div>`); $('mx').onclick=closeModal; };
+  $('m5').onclick=setup; $('mx').onclick=closeModal;
+}
+$('menuBtn').onclick=menu;
+$('themeBtn').onclick=()=>setTheme(isDark()?'light':'dark');
+applyTheme();
+$('langBtn').onclick=()=>setLang(LANG==='fr'?'en':'fr');
+applyStatic();
+$('modal').onclick=e=>{ if(e.target.id==='modal' && state && state.phase!=='prompt') closeModal(); };
+$('map').addEventListener('click', e=>{
+  const p=e.target.closest('polygon[data-c]'); if(!p || state.phase!=='plan' || !state.depart) return;
+  const h=[+p.dataset.c, +p.dataset.r]; if(ch(...h)!==ch(...state.pos)) return;
+  state.depart=h; render();
+});
+
+if(load()) render(); else { state=newState('solo','KRAKEN1'); render(); setup(); }
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+:root {
+  --ink: #e9e4d8;
+  --dim: #8e8778;
+  --panel: rgba(12, 12, 14, 0.72);
+  --edge: rgba(233, 228, 216, 0.14);
+  --up: #6ee39a;
+  --down: #ff6b6b;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #08080a;
+  color: var(--ink);
+  font-family: var(--mono);
+  overflow: hidden;
+}
+
+.app, .stage { position: absolute; inset: 0; }
+
+.stage { overflow: hidden; }
+
+#game {
+  position: absolute;
+  top: 0; left: 0;
+  image-rendering: pixelated;
+}
+
+/* ------------------------------------------------------------------ hud */
+
+.hud {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  padding: 8px 6px;
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+.hud-row { display: flex; gap: 2px; }
+
+.cell {
+  min-width: 92px;
+  padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-right: 1px solid var(--edge);
+}
+.cell:last-child { border-right: 0; }
+
+.label {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.value { font-size: 15px; font-variant-numeric: tabular-nums; }
+.value.up { color: var(--up); }
+.value.down { color: var(--down); }
+.sub { font-size: 10px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.sub.ok { color: var(--up); }
+
+.gauge {
+  position: relative;
+  height: 3px;
+  background: rgba(233, 228, 216, 0.12);
+  overflow: hidden;
+}
+
+.gauge .fill {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 0;
+  width: 0;
+  background: var(--ink);
+}
+.gauge .fill.danger { background: var(--down); }
+.gauge .fill.down { background: var(--down); }
+.gauge.center::after {
+  content: '';
+  position: absolute;
+  left: 50%; top: 0; bottom: 0;
+  width: 1px;
+  background: rgba(233, 228, 216, 0.35);
+}
+.gauge.center .fill { background: var(--up); }
+
+/* ----------------------------------------------------------------- meta */
+
+.meta {
+  position: absolute;
+  top: 12px; right: 14px;
+  display: flex;
+  gap: 14px;
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 0.08em;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+  padding: 5px 10px;
+  pointer-events: none;
+}
+.meta b { color: var(--ink); font-weight: 500; }
+
+/* -------------------------------------------------------------- overlay */
+
+.overlay[hidden] { display: none; }   /* [hidden] alone loses to display: grid */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(6, 6, 8, 0.62);
+  backdrop-filter: blur(2px);
+}
+
+.card {
+  width: min(560px, 86vw);
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  padding: 26px 28px 22px;
+}
+
+.card h1 {
+  margin: 0 0 14px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.card .body { font-size: 12.5px; line-height: 1.62; color: #cfc9bb; }
+.card .body p { margin: 0 0 10px; }
+.card .body b { color: var(--ink); }
+.card .keys { color: var(--dim); font-size: 11.5px; }
+
+kbd {
+  font: inherit;
+  border: 1px solid var(--edge);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  padding: 0 4px;
+}
+
+.card .hint {
+  margin: 16px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--up);
+}

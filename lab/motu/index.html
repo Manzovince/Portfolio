@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#3eaeb9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Motu">
+<title>Motu</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<canvas id="sea"></canvas>
+
+<div id="hud">
+  <header class="top">
+    <button class="chip boat" id="boatChip" aria-label="Bateau et cale">
+      <span id="boatName">Radeau</span>
+      <span class="bar"><i id="hullBar"></i></span>
+    </button>
+    <div class="chip zone" id="zoneChip"><span id="zoneName">Lagon</span></div>
+    <button class="chip purse" id="purseChip" aria-label="Cale">
+      <span class="pearl"></span><b id="pearls">0</b>
+      <span class="sep"></span>
+      <span class="crate"></span><b id="cargo">0/20</b>
+    </button>
+  </header>
+
+  <div id="status" class="status hidden"></div>
+
+  <div id="ctx" class="ctx"></div>
+
+  <button id="drum" class="drum hidden" aria-label="Battre le pahu">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 20h36l-4 34H18z" fill="#b9784a"/><ellipse cx="32" cy="20" rx="18" ry="6" fill="#f1e2c0"/><path d="M18 30l7 10 7-10 7 10 7-10" stroke="#5a3a26" stroke-width="3" fill="none"/></svg>
+    <i id="drumFill"></i>
+  </button>
+
+  <nav class="bottom">
+    <button data-open="map"><svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z M9 4v14 M15 6v14"/></svg><span>Carte</span></button>
+    <button data-open="hold"><svg viewBox="0 0 24 24"><path d="M3 9l9-5 9 5v8l-9 4-9-4z M3 9l9 4 9-4 M12 13v8"/></svg><span>Cale</span></button>
+    <button data-open="carnet"><svg viewBox="0 0 24 24"><path d="M5 3h11a3 3 0 0 1 3 3v15H8a3 3 0 0 1-3-3z M5 18a3 3 0 0 1 3-3h11"/></svg><span>Carnet</span><i class="dot hidden" id="carnetDot"></i></button>
+    <button data-open="log"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 7v5l3 2"/></svg><span>Journal</span></button>
+  </nav>
+</div>
+
+<div id="sheet" class="sheet" aria-hidden="true">
+  <div class="sheet-card">
+    <div class="tapa"></div>
+    <button class="close" id="sheetClose" aria-label="Fermer">×</button>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+</div>
+
+<div id="mapScreen" class="map hidden">
+  <canvas id="chart"></canvas>
+  <header class="map-top">
+    <h2>Carte des routes</h2>
+    <button class="close" id="mapClose" aria-label="Fermer">×</button>
+  </header>
+  <div class="map-panel">
+    <p class="hint" id="mapHint">Touchez la mer pour un point de passage, une île pour une escale. Touchez une escale pour changer sa durée.</p>
+    <div class="sum" id="mapSum"></div>
+    <div class="row">
+      <button class="btn ghost" id="mapUndo">Retirer</button>
+      <button class="btn ghost" id="mapClear">Effacer</button>
+      <button class="btn" id="mapGo">Lancer la route</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal" class="modal hidden"><div class="modal-card" id="modalCard"></div></div>
+<div id="toasts" class="toasts"></div>
+
+<script type="module" src="js/main.js?v=1"></script>
+</body>
+</html>

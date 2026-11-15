@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Appartement 3D</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #e9edf0; font: 14px/1.3 -apple-system, system-ui, sans-serif; color: #222; }
+  canvas { display: block; touch-action: none; }
+  #ui { position: fixed; top: 12px; left: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
+  #ui button { pointer-events: auto; border: 0; border-radius: 8px; padding: 8px 12px; background: #fff; color: #222; font: inherit; box-shadow: 0 1px 4px rgba(0,0,0,.18); cursor: pointer; }
+  #ui button.on { background: #222; color: #fff; }
+  #tip { position: fixed; pointer-events: none; background: rgba(20,20,20,.85); color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 12px; display: none; white-space: nowrap; }
+  #joy { position: fixed; left: 24px; bottom: 44px; width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,.55); box-shadow: 0 1px 6px rgba(0,0,0,.25); display: none; touch-action: none; }
+  #joy i { position: absolute; left: 35px; top: 35px; width: 40px; height: 40px; border-radius: 50%; background: #222; opacity: .8; pointer-events: none; }
+  #aide { position: fixed; bottom: 10px; left: 12px; font-size: 12px; color: #667; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="ui">
+  <button id="bVide">Vide</button>
+  <button id="bActuel">Actuel</button>
+  <button id="bProjet" class="on">Projet travaux</button>
+  <button id="bInv" class="on">Dressing au fond</button>
+  <button id="bMurs">Murs pleine hauteur</button>
+  <button id="bDessus">Vue de dessus</button>
+  <button id="b3d">Vue 3D</button>
+  <button id="bVisite">Visite</button>
+  <button id="bGlb">Exporter .glb</button>
+</div>
+<div id="tip"></div>
+<div id="joy"><i></i></div>
+<div id="aide" data-orbite="Glisser : tourner · molette / pincer : zoom · clic droit / 2 doigts : déplacer" data-visite="Flèches ou ZQSD : avancer / tourner · glisser : regarder · rond en bas à gauche : se déplacer au doigt"></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+
+/* ---------- Repère ----------
+   Les coordonnées viennent du plan 2D : 2 px = 1 cm.
+   x, y en pixels du plan ; hauteurs z en cm. */
+const S = 1 / 200;                 // px -> m
+const CX = 710.5, CY = 996;        // centre du plan
+const X = px => (px - CX) * S;
+const Z = py => (py - CY) * S;
+const H = 250;                     // hauteur sous plafond (hypothèse)
+const CUT = 130;                   // hauteur des murs en mode "coupé"
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xe9edf0);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.maxPolarAngle = Math.PI / 2 - 0.02;
+controls.target.set(0, 0.5, 0);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0xb8b0a0, 1.5));
+const sun = new THREE.DirectionalLight(0xfff4e0, 2.2);
+sun.position.set(-4, 9, -7);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 1, far: 30 });
+sun.shadow.bias = -0.0005;
+scene.add(sun);
+
+const M = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.85, ...o });
+const mat = {
+  mur: M(0xf5f2ec), coupe: M(0x2a2a2a), sol: M(0xd9b98c), carrelage: M(0xcfd6da),
+  balcon: M(0xa8dba0), blanc: M(0xfafafa, { roughness: 0.5 }), plan: M(0x8b6b4a),
+  noir: M(0x1c1c1c, { roughness: 0.4 }), inox: M(0xb8bcc0, { roughness: 0.3, metalness: 0.6 }),
+  verre: M(0xbfe3f0, { transparent: true, opacity: 0.3, roughness: 0.1 }),
+  porte: M(0xc9a57a), bois: M(0xc8a06a), boisF: M(0x7a5a3c),
+  tissu: M(0x6f8fa6), tissuF: M(0x5b7a90), drap: M(0xf0ece4), couette: M(0x9fb4a8),
+  gris: M(0xc4c4c4), menthe: M(0xb5e0cf, { roughness: 0.4 }), bleu: M(0xa9c9de), chene: M(0xd8b98a),
+  depoli: M(0xffffff, { transparent: true, opacity: 0.55, roughness: 0.6 }), metal: M(0x555a60, { roughness: 0.4, metalness: 0.5 }),
+};
+
+const root = new THREE.Group();   // tout ce qui est exporté
+scene.add(root);
+let archi, mobilier;
+let cur;                          // groupe courant pour B()
+let mode = 'projet', coupe = true, inverse = true;
+let visite = false, obst = [];    // mode visite : boîtes de collision   // mode : 'vide' | 'actuel' | 'projet'
+
+function mesh(geo, m, name) {
+  const o = new THREE.Mesh(geo, m);
+  o.castShadow = !m.transparent; o.receiveShadow = true;
+  if (name) { o.name = name; o.userData.nom = name; }
+  return o;
+}
+// Boîte en coordonnées plan (px) + hauteurs (cm)
+function B(x0, y0, x1, y1, z0, z1, m, name, parent = cur) {
+  const o = mesh(new THREE.BoxGeometry((x1 - x0) * S, (z1 - z0) / 100, (y1 - y0) * S), m, name);
+  o.position.set(X((x0 + x1) / 2), (z0 + z1) / 200, Z((y0 + y1) / 2));
+  parent.add(o);
+  return o;
+}
+// Boîte locale (cm) dans un groupe
+function L(g, w, h, d, x, y, z, m) {
+  const o = mesh(new THREE.BoxGeometry(w / 100, h / 100, d / 100), m);
+  o.position.set(x / 100, y / 100, z / 100);
+  g.add(o);
+  return o;
+}
+function cyl(cxp, cyp, r, z0, z1, m, name, sx = 1, sz = 1) {
+  const o = mesh(new THREE.CylinderGeometry(r / 100, r / 100, (z1 - z0) / 100, 32), m, name);
+  o.scale.set(sx, 1, sz);
+  o.position.set(X(cxp), (z0 + z1) / 200, Z(cyp));
+  cur.add(o);
+  return o;
+}
+// Mur : tronqué en mode coupé, avec un dessus sombre façon plan
+function mur(x0, y0, x1, y1, h = H, z0 = 0, name = 'Mur') {
+  const top = coupe ? Math.min(h, CUT) : h;
+  if (top <= z0) return;
+  B(x0, y0, x1, y1, z0, top, mat.mur, name);
+  if (coupe && h > CUT) B(x0, y0, x1, y1, top, top + 1, mat.coupe);
+}
+function porte(x0, y0, x1, y1, name) {       // ouverture 204 cm + linteau
+  const vertical = (y1 - y0) > (x1 - x0);
+  const top = coupe ? Math.min(204, CUT) : 204;
+  if (visite && name !== "Porte d'entrée") { mur(x0, y0, x1, y1, H, 204); return; }   // portes intérieures ouvertes en visite
+  if (vertical) { const c = (x0 + x1) / 2; B(c - 4, y0, c + 4, y1, 0, top, mat.porte, name); }
+  else { const c = (y0 + y1) / 2; B(x0, c - 4, x1, c + 4, 0, top, mat.porte, name); }
+  mur(x0, y0, x1, y1, H, 204);
+}
+function table(x0, y0, x1, y1, h, m, name, ep = 4, pied = 4) {
+  const g = new THREE.Group(); g.userData.nom = name; g.name = name; cur.add(g);
+  B(x0, y0, x1, y1, h - ep, h, m, null, g);
+  for (const [px, py] of [[x0 + 6, y0 + 6], [x1 - 6 - pied * 2, y0 + 6], [x0 + 6, y1 - 6 - pied * 2], [x1 - 6 - pied * 2, y1 - 6 - pied * 2]])
+    B(px, py, px + pied * 2, py + pied * 2, 0, h - ep, m, null, g);
+  return g;
+}
+function tabouret(cxp, cyp, name) {
+  const g = new THREE.Group(); g.userData.nom = name; g.name = name; cur.add(g);
+  const prev = cur; cur = g;
+  cyl(cxp, cyp, 17, 70, 75, mat.chene);
+  for (const [a, b] of [[-22, -22], [22, -22], [-22, 22], [22, 22]]) B(cxp + a - 3, cyp + b - 3, cxp + a + 3, cyp + b + 3, 0, 70, mat.noir);
+  for (const b of [-22, 22]) B(cxp - 22, cyp + b - 2, cxp + 22, cyp + b + 2, 28, 31, mat.noir);
+  cur = prev;
+}
+function chaise(cxp, cyp, rot, name, m = mat.tissu) {   // dossier côté +Z local
+  const g = new THREE.Group(); g.userData.nom = name; g.name = name;
+  L(g, 44, 6, 44, 0, 43, 0, m);
+  L(g, 44, 42, 5, 0, 66, 21, m);
+  for (const [a, b] of [[-19, -19], [19, -19], [-19, 19], [19, 19]]) L(g, 4, 40, 4, a, 20, b, mat.boisF);
+  g.position.set(X(cxp), 0, Z(cyp)); g.rotation.y = rot;
+  cur.add(g);
+}
+
+function construire() {
+  root.clear();
+  const projet = mode === 'projet';
+  const hm = h => coupe ? Math.min(h, CUT) : h;   // hauteur visible d'un élément mural
+  archi = new THREE.Group(); archi.name = 'Architecture';
+  mobilier = new THREE.Group(); mobilier.name = 'Mobilier';
+  root.add(archi, mobilier);
+
+  /* ===== Architecture ===== */
+  cur = archi;
+  B(236, 400, 1185, 1892, -12, 0, mat.sol, 'Sol');
+  B(236, 100, 1185, 400, -12, 0, mat.balcon, 'Balcon 460 × 139');
+  B(858, 1328, 1173, 1880, 0, 0.6, mat.carrelage, 'Carrelage');
+
+  // Enveloppe
+  mur(236, 100, 1185, 112, 105, 0, 'Garde-corps');          // façade balcon
+  mur(236, 112, 248, 1328);                                 // gauche (haut)
+  mur(236, 1478, 248, 1892);                                // gauche (entrée)
+  mur(1173, 112, 1185, 1892);                               // droite
+  mur(236, 1880, 268, 1892); mur(428, 1880, 1173, 1892);    // bas
+  porte(268, 1880, 428, 1892, "Porte d'entrée");
+  // Retraits entre balcon et séjour
+  mur(248, 380, 347, 462, H, 0, 'Poteau 47/50');
+  mur(845, 393, 1173, 462, H, 0, 'Retour 166 (clim)');
+  // Baie vitrée 220/235
+  const hv = coupe ? CUT : 215;
+  B(347, 393, 845, 397, 0, hv, mat.verre, 'Baie vitrée');
+  B(347, 390, 845, 400, 0, 5, mat.metal); B(591, 391, 601, 399, 0, hv, mat.metal);
+  if (!coupe) B(347, 390, 845, 400, 215, 220, mat.metal);
+  mur(347, 388, 845, 402, H, 220);
+  // Gaine côté cuisine (49/56)
+  mur(236, 1328, 370, 1478, H, 0, 'Gaine 49/56');
+  // Muret cuisine / entrée et retour (hauteur 125/129)
+  if (projet) {   // muret abaissé à 110, retour supprimé
+    mur(370, 1465, 657, 1478, 110, 0, 'Muret h. 110');
+  } else {
+    mur(370, 1465, 657, 1478, 127, 0, 'Muret h. 127');
+    mur(645, 1190, 657, 1465, 127, 0, 'Muret h. 127');
+  }
+  // Placard 157 × 50
+  if (!projet) mur(848, 1173, 1173, 1328, H, 0, 'Placard 157 × 50');
+  else {
+    mur(848, 1316, 1173, 1328);                             // le placard disparaît, reste le mur de la SdB
+    // Verrière fixe des deux côtés d'une ouverture de 90 cm (745–925) vers le coin chambre
+    const hv2 = hm(240);
+    // [y0, y1, z0] : côté bureau jusqu'au sol, côté lit posée sur une allège pleine de 100 cm
+    B(845, 925, 851, 1316, 0, 100, mat.mur, 'Allège h. 100');
+    mur(845, 462, 851, 603, H, 0, 'Cloison');                      // moitié gauche pleine
+    B(845, 603, 851, 745, 0, 100, mat.mur, 'Allège h. 100');
+    for (const [y0, y1, z0, n] of [[603, 745, 100, 2], [925, 1316, 100, 4]]) {
+      const pas = (y1 - y0 - 4) / n;
+      B(847, y0, 849, y1, z0, hv2, mat.verre, 'Verrière');
+      for (let i = 0; i <= n; i++) B(845, y0 + i * pas, 851, y0 + i * pas + 4, z0, hv2, mat.noir, 'Verrière');
+      B(845, y0, 851, y1, z0, z0 + 6, mat.noir);
+      if (hv2 > 100 && z0 < 98) B(845, y0, 851, y1, 98, 102, mat.noir);
+      if (!coupe) B(845, y0, 851, y1, 236, 240, mat.noir);
+    }
+  }
+  // Cloison SdB / WC côté couloir, avec portes
+  mur(848, 1328, 858, 1488); porte(848, 1488, 858, 1605, 'Porte salle de bain');
+  mur(848, 1605, 858, 1737); porte(848, 1737, 858, 1855, 'Porte WC');
+  mur(848, 1855, 858, 1880);
+  mur(858, 1700, 1173, 1712);                               // SdB / WC
+  mur(1045, 1605, 1173, 1700, H, 0, 'Gaine');
+
+  // Cuisine
+  B(248, 978, 366, 1320, 0, 86, mat.blanc, 'Plan de travail 167 × 60');
+  B(248, 978, 370, 1320, 86, 90, mat.plan, 'Plan de travail 167 × 60');
+  B(263, 1064, 349, 1114, 90, 91, mat.noir, 'Plaque de cuisson');
+  cyl(286, 1089, 9, 91, 91.4, mat.metal); cyl(325, 1089, 11, 91, 91.4, mat.metal);
+  B(373, 1354, 645, 1465, 0, 86, mat.blanc, 'Plan de travail 140 × 60');
+  B(373, 1350, 645, 1465, 86, 90, mat.plan, 'Plan de travail 140 × 60');
+  B(398, 1372, 478, 1452, 90, 90.8, mat.inox, 'Évier');
+  B(408, 1380, 468, 1432, 90.8, 91.2, mat.metal);
+  cyl(438, 1444, 1.5, 91, 108, mat.inox);
+
+  // Salle de bain
+  B(1043, 1330, 1173, 1458, 0.6, 8, mat.blanc, 'Douche');
+  if (!coupe || CUT > 8) {
+    const hd = coupe ? CUT : 200;
+    B(1041, 1330, 1045, 1458, 8, hd, mat.verre, 'Paroi de douche');
+    B(1043, 1456, 1173, 1460, 8, hd, mat.verre, 'Paroi de douche');
+  }
+  B(1082, 1472, 1173, 1598, 0.6, 82, mat.blanc, 'Meuble vasque');
+  cyl(1118, 1535, 22, 82, 88, mat.blanc, 'Vasque', 0.7, 1.15);
+  cyl(1118, 1535, 18, 88, 88.4, mat.inox, null, 0.7, 1.15);
+  B(862, 1628, 1040, 1700, 0.6, coupe ? CUT : 180, mat.bois, 'Étagère 87 × 44');
+  // WC
+  cyl(1068, 1797, 20, 0.6, 40, mat.blanc, 'WC', 1.1, 0.85);
+  cyl(1068, 1797, 20.5, 40, 43, mat.blanc, null, 1.1, 0.85);
+  B(1100, 1757, 1133, 1838, 0.6, 78, mat.blanc, 'WC');
+  B(1135, 1722, 1170, 1868, 0.6, coupe ? CUT : 180, mat.bois, 'Étagère WC');
+  // Tableau électrique
+  B(248, 1730, 258, 1840, 60, coupe ? CUT : 180, mat.gris, 'Panneau électrique');
+
+  if (projet) {
+    // Placards hauts blancs + crédence au-dessus du plan de travail
+    B(248, 978, 251, 1320, 90, hm(145), mat.menthe, 'Crédence');
+    B(248, 978, 318, 1320, 145, 215, mat.blanc, 'Placards hauts');
+    for (const y of [1092, 1206]) B(318, y - 1, 319, y + 1, 145, 215, mat.gris);
+    // Bar posé sur le muret, débordant côté entrée
+    B(370, 1462, 660, 1478, 110, 115, mat.chene, 'Bar 60 × 145');
+    B(370, 1478, 660, 1590, 110, 115, mat.chene, 'Bar 60 × 145');
+    B(650, 1578, 656, 1584, 0, 110, mat.noir);
+    // Estrade + arche du coin nuit
+    B(851, 925, 1173, 1316, 0, 40, mat.chene, 'Estrade');
+    if (coupe) {
+      B(852, 1264, 868, 1276, 40, CUT, mat.mur, 'Arche (niche)'); B(1157, 1264, 1173, 1276, 40, CUT, mat.mur, 'Arche (niche)');
+    } else {
+      const W = (1173 - 852) * S, r = 0.725, cx = W / 2, sh = new THREE.Shape();
+      sh.moveTo(0, 0); sh.lineTo(W, 0); sh.lineTo(W, H / 100); sh.lineTo(0, H / 100); sh.closePath();
+      const trou = new THREE.Path();
+      trou.moveTo(cx - r, 0); trou.lineTo(cx - r, 1.35); trou.absarc(cx, 1.35, r, Math.PI, 0, true); trou.lineTo(cx + r, 0); trou.closePath();
+      sh.holes.push(trou);
+      const arche = mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.06, bevelEnabled: false, curveSegments: 24 }), mat.mur, 'Arche (niche)');
+      arche.position.set(X(852), 0, Z(1264));
+      cur.add(arche);
+    }
+  }
+
+  /* ===== Mobilier ===== */
+  cur = mobilier;
+  mobilier.visible = mode !== 'vide';
+  // Balcon
+  if (projet) {
+    B(250, 115, 343, 375, 0, 45, mat.chene, 'Banc balcon 45 × 132');
+    B(250, 115, 262, 375, 45, 85, mat.chene, 'Banc balcon 45 × 132');
+  } else B(250, 115, 343, 375, 0, 90, mat.gris, 'Rangement balcon 45 × 132');
+  B(993, 283, 1168, 388, 0, 70, mat.gris, 'Rangement balcon 88 × 54');
+  // Canapé 170 × 95
+  const cy1 = projet ? 850 : 818;   // 186 cm en projet, 170 aujourd'hui
+  const can = new THREE.Group(); can.userData.nom = projet ? 'Canapé 186 × 95' : 'Canapé 170 × 95'; can.name = 'Canapé'; cur.add(can);
+  B(252, 478, 432, cy1, 8, 42, mat.tissu, null, can);
+  B(252, 478, 292, cy1, 42, 82, mat.tissuF, null, can);
+  B(292, 478, 432, 506, 42, 60, mat.tissuF, null, can);
+  B(292, cy1 - 28, 432, cy1, 42, 60, mat.tissuF, null, can);
+  // Table basse
+  table(536, 546, 643, 745, 36, mat.bois, 'Table basse 54 × 100');
+  if (mode === 'actuel') {
+  // Meuble TV + TV
+  B(808, 468, 861, 727, 0, 50, mat.boisF, 'Meuble TV 27 × 130');
+  B(828, 560, 844, 640, 50, 56, mat.noir);
+  B(832, 490, 838, 710, 55, 118, mat.noir, 'TV');
+  // Lit 140 × 190
+  const lit = new THREE.Group(); lit.userData.nom = 'Lit 140 × 190'; lit.name = 'Lit'; cur.add(lit);
+  B(890, 466, 1171, 845, 0, 28, mat.bois, null, lit);
+  B(894, 470, 1167, 841, 28, 48, mat.drap, null, lit);
+  B(892, 590, 1169, 843, 44, 52, mat.couette, null, lit);
+  B(906, 478, 1020, 560, 48, 60, mat.blanc, null, lit);
+  B(1040, 478, 1154, 560, 48, 60, mat.blanc, null, lit);
+  // Piano 27 × 130
+  const pia = new THREE.Group(); pia.userData.nom = 'Piano 27 × 130'; pia.name = 'Piano'; cur.add(pia);
+  B(1119, 887, 1172, 1147, 62, 76, mat.noir, null, pia);
+  B(1121, 895, 1143, 1139, 76, 77, mat.blanc, null, pia);
+  B(1125, 887, 1172, 895, 0, 62, mat.noir, null, pia);
+  B(1125, 1139, 1172, 1147, 0, 62, mat.noir, null, pia);
+  B(1160, 895, 1168, 1139, 20, 62, mat.noir, null, pia);
+  B(1057, 975, 1102, 1050, 0, 48, mat.noir, 'Tabouret de piano');
+  }
+  // Frigo
+  B(250, 850, 370, 968, 0, 175, mat.blanc, 'Frigo');
+  B(370, 856, 373, 862, 60, 150, mat.metal);
+  if (mode === 'actuel') {
+  // Table repliable 60 × 30 + rallonge dépliée
+  B(536, 1130, 656, 1188, 71, 74, mat.bois, 'Table repliable 60 × 30');
+  B(536, 990, 656, 1130, 71, 74, M(0xc8a06a, { transparent: true, opacity: 0.35 }), 'Table dépliée');
+  B(590, 1150, 602, 1174, 0, 71, mat.boisF);
+  chaise(500, 1060, -Math.PI / 2 + 0.22, 'Chaise');
+  chaise(692, 1058, Math.PI / 2 - 0.22, 'Chaise');
+  // Bureau 70 × 120
+  table(248, 1482, 488, 1620, 75, mat.bois, 'Bureau 70 × 120');
+  chaise(378, 1650, 0.28, 'Chaise de bureau', mat.tissuF);
+  // Meuble imprimante 45 × 90
+  B(488, 1482, 667, 1570, 0, 70, mat.blanc, 'Meuble imprimante 45 × 90');
+  B(535, 1492, 625, 1560, 70, 90, mat.metal, 'Imprimante');
+  // Entrée
+  B(250, 1622, 283, 1728, 0, 40, mat.gris, 'Rangement entrée');
+  B(450, 1806, 610, 1876, 0, 50, mat.bois, 'Meuble bas entrée 35 × 80');
+  B(643, 1796, 807, 1876, 0, 80, mat.gris, 'Meuble 82 × 40');
+
+  }
+  if (projet) {
+    // Meubles bas 200 × 40 devant la verrière
+    B(762, 404, 841, 744, 0, 45, mat.blanc, 'Meubles bas 170 × 40');
+    for (const y of [489, 574, 659]) B(761, y - 1, 762, y + 1, 4, 43, mat.gris);
+    // Coin dressing : deux positions à comparer (bouton « Dressing au fond »)
+    const miroirM = M(0xd6e6ee, { roughness: 0.1, metalness: 0.2 });
+    if (inverse) {   // dressing contre le mur du fond
+      B(853, 463, 1173, 583, 0, 240, mat.chene, 'Dressing 160 × 60');
+      for (const x of [933, 1013, 1093]) B(x - 1, 583, x + 1, 584, 0, 240, mat.boisF);
+      B(1169, 715, 1173, 835, 30, hm(190), miroirM, 'Miroir 60 × 160');
+    } else {         // dressing le long du mur de droite
+      B(900, 462, 1020, 466, 30, hm(190), miroirM, 'Miroir 60 × 160');
+      B(1051, 583, 1171, 925, 0, 240, mat.chene, 'Dressing 60 × 170');
+      for (const y of [697, 811]) B(1050, y - 1, 1051, y + 1, 0, 240, mat.boisF);
+    }
+    // Bureau côté séjour, adossé à l'allège le long du lit
+    table(725, 940, 845, 1240, 75, mat.chene, 'Bureau 150 × 60');
+    chaise(675, 1090, -Math.PI / 2 + 0.15, 'Chaise de bureau', mat.tissuF);
+    // Lit 140 × 190 sur l'estrade, tête contre le mur de la salle de bain
+    const lit2 = new THREE.Group(); lit2.userData.nom = 'Lit 140 × 190'; lit2.name = 'Lit'; cur.add(lit2);
+    B(887, 938, 1168, 1314, 40, 60, mat.drap, null, lit2);
+    B(885, 938, 1170, 1200, 56, 64, mat.bleu, null, lit2);
+    B(900, 1222, 1014, 1304, 60, 72, mat.blanc, null, lit2);
+    B(1040, 1222, 1154, 1304, 60, 72, mat.blanc, null, lit2);
+    // Bibliothèque entre les portes de la salle de bain et des WC
+    const bib = new THREE.Group(); bib.userData.nom = 'Bibliothèque 60 × 22'; bib.name = 'Bibliothèque'; cur.add(bib);
+    B(844, 1611, 848, 1731, 0, 220, mat.chene, null, bib);
+    B(804, 1611, 848, 1615, 0, 220, mat.chene, null, bib); B(804, 1727, 848, 1731, 0, 220, mat.chene, null, bib);
+    const livres = [0x9c4a3c, 0x3f6a8a, 0xe0c36a, 0x5d8a6a, 0xd9d2c4, 0x7a5a8c];
+    for (let i = 0; i <= 6; i++) {
+      const z = i * 36;
+      B(804, 1615, 844, 1727, z, z + 3, mat.chene, null, bib);
+      if (i < 6) for (let k = 0, y = 1618; k < 9 - (i % 3) * 2; k++) {
+        const ep = 7 + (i * 3 + k * 5) % 6, ht = 22 + (i * 7 + k * 3) % 8;
+        B(812, y, 842, y + ep, z + 3, z + 3 + ht, M(livres[(i + k * 2) % 6]), null, bib);
+        y += ep + 1;
+      }
+    }
+    // Entrée : commode, étagères, chaises hautes, penderie avec banc
+    B(248, 1503, 345, 1703, 0, 90, mat.chene, 'Commode 100 × 50');
+    for (const z of [125, 155]) B(248, 1478, 370, 1518, z, z + 3, mat.chene, 'Étagères 61 × 20');
+    tabouret(430, 1628, 'Chaise haute'); tabouret(570, 1628, 'Chaise haute');
+    const pen = new THREE.Group(); pen.userData.nom = 'Banc et penderie 40 × 150'; pen.name = 'Banc et penderie'; cur.add(pen);
+    B(440, 1800, 560, 1880, 0, H, mat.blanc, null, pen);          // colonne penderie
+    B(560, 1800, 740, 1880, 200, H, mat.blanc, null, pen);        // caisson haut
+    B(560, 1800, 740, 1880, 0, 45, mat.chene, null, pen);           // banc
+    B(560, 1876, 740, 1880, 45, 200, mat.blanc, null, pen);
+    for (let x = 566; x < 736; x += 12) B(x, 1871, x + 6, 1876, 45, 200, mat.chene, null, pen);   // tasseaux
+    B(590, 1866, 706, 1870, 160, 162, mat.noir, null, pen);         // patère
+    // Prolongement au-dessus de la porte d'entrée : étagère à livres
+    B(248, 1800, 440, 1880, 208, 212, mat.blanc, null, pen);
+    B(248, 1800, 440, 1880, 246, H, mat.blanc, null, pen);
+    B(248, 1800, 252, 1880, 212, 246, mat.blanc, null, pen);
+    for (let k = 0, x = 256; x < 428; k++) {
+      const ep = 7 + (k * 5) % 6;
+      B(x, 1835, x + ep, 1876, 212, 234 + (k * 3) % 9, M(livres[(k * 2 + 1) % 6]), 'Étagère à livres', pen);
+      x += ep + 1;
+    }
+  }
+  if (visite) obstacles();
+}
+construire();
+
+/* ---------- Caméra & interface ---------- */
+function vue(dessus) {
+  if (dessus) camera.position.set(0, 15.5, 0.01);
+  else camera.position.set(-6.5, 8, 9.5);
+  controls.target.set(0, 0.4, 0);
+  controls.update();
+}
+vue(false);
+
+const $ = id => document.getElementById(id);
+$('aide').textContent = $('aide').dataset.orbite;
+
+/* ---------- Mode visite : marche à hauteur d'yeux ---------- */
+const YEUX = 1.6, RAYON = 0.2;
+let yaw = Math.PI, pitch = 0, coupeAvant = true;
+const pos = new THREE.Vector3(), touches = new Set(), joy = { x: 0, y: 0 };
+function obstacles() {
+  obst = [];
+  root.updateMatrixWorld(true);
+  root.traverse(o => {
+    if (!o.isMesh || o.userData.nom === 'Baie vitrée') return;
+    for (let p = o; p; p = p.parent) if (!p.visible) return;
+    const b = new THREE.Box3().setFromObject(o);
+    if (b.max.y < 0.25 || b.min.y > 1.7) return;      // sol, seuils, linteaux
+    obst.push(b);
+  });
+}
+const libre = (x, z) => !obst.some(b => x > b.min.x - RAYON && x < b.max.x + RAYON && z > b.min.z - RAYON && z < b.max.z + RAYON);
+function marche(dt) {
+  const k = c => touches.has(c) ? 1 : 0;
+  const av = k('KeyW') + k('ArrowUp') - k('KeyS') - k('ArrowDown') - joy.y;
+  const lat = k('KeyD') - k('KeyA');
+  yaw -= (k('ArrowRight') - k('ArrowLeft') + joy.x) * 1.8 * dt;
+  const dx = (-Math.sin(yaw) * av + Math.cos(yaw) * lat) * 1.6 * dt;
+  const dz = (-Math.cos(yaw) * av - Math.sin(yaw) * lat) * 1.6 * dt;
+  if (libre(pos.x + dx, pos.z)) pos.x += dx;
+  if (libre(pos.x, pos.z + dz)) pos.z += dz;
+  camera.position.set(pos.x, YEUX, pos.z);
+  camera.rotation.set(pitch, yaw, 0, 'YXZ');
+}
+function basculeVisite() {
+  visite = !visite;
+  $('bVisite').classList.toggle('on', visite);
+  for (const id of ['bMurs', 'bDessus', 'b3d']) $(id).style.display = visite ? 'none' : '';
+  $('joy').style.display = visite ? 'block' : 'none';
+  $('aide').textContent = $('aide').dataset[visite ? 'visite' : 'orbite'];
+  controls.enabled = !visite;
+  if (visite) { coupeAvant = coupe; coupe = false; pos.set(X(700), 0, Z(480)); yaw = Math.PI; pitch = -0.08; }
+  else { coupe = coupeAvant; touches.clear(); }
+  camera.fov = visite ? 70 : 40; camera.near = visite ? 0.05 : 0.1; camera.updateProjectionMatrix();
+  construire();
+  if (!visite) vue(false);
+}
+$('bVisite').onclick = e => { basculeVisite(); e.target.blur(); };
+addEventListener('keydown', e => { if (visite) { touches.add(e.code); if (e.code.startsWith('Arrow')) e.preventDefault(); } });
+addEventListener('keyup', e => touches.delete(e.code));
+addEventListener('blur', () => touches.clear());
+{ // regarder autour de soi en glissant
+  let glisse = null;
+  const c = renderer.domElement;
+  c.addEventListener('pointerdown', e => { if (visite) { glisse = [e.clientX, e.clientY]; c.setPointerCapture(e.pointerId); } });
+  c.addEventListener('pointermove', e => {
+    if (!visite || !glisse) return;
+    yaw -= (e.clientX - glisse[0]) * 0.005;
+    pitch = Math.max(-1.2, Math.min(1.2, pitch - (e.clientY - glisse[1]) * 0.005));
+    glisse = [e.clientX, e.clientY];
+  });
+  const fin = () => glisse = null;
+  c.addEventListener('pointerup', fin); c.addEventListener('pointercancel', fin);
+  // manette tactile : haut/bas = avancer/reculer, gauche/droite = tourner
+  const j = $('joy'), bouton = j.firstElementChild;
+  const bouge = e => {
+    const r = j.getBoundingClientRect();
+    let x = (e.clientX - r.left) / r.width * 2 - 1, y = (e.clientY - r.top) / r.height * 2 - 1;
+    const n = Math.hypot(x, y); if (n > 1) { x /= n; y /= n; }
+    joy.x = x; joy.y = y; bouton.style.transform = `translate(${x * 35}px, ${y * 35}px)`;
+  };
+  const lache = () => { joy.x = joy.y = 0; bouton.style.transform = ''; };
+  j.addEventListener('pointerdown', e => { j.setPointerCapture(e.pointerId); bouge(e); });
+  j.addEventListener('pointermove', e => { if (j.hasPointerCapture(e.pointerId)) bouge(e); });
+  j.addEventListener('pointerup', lache); j.addEventListener('pointercancel', lache);
+}
+for (const [id, m] of [['bVide', 'vide'], ['bActuel', 'actuel'], ['bProjet', 'projet']])
+  $(id).onclick = () => {
+    mode = m; construire();
+    for (const b of ['bVide', 'bActuel', 'bProjet']) $(b).classList.toggle('on', b === id);
+    $('bInv').style.display = m === 'projet' ? '' : 'none';
+  };
+$('bInv').onclick = e => { inverse = !inverse; e.target.classList.toggle('on', inverse); construire(); };
+$('bMurs').onclick = e => { coupe = !coupe; e.target.classList.toggle('on', !coupe); construire(); };
+$('bDessus').onclick = () => vue(true);
+$('b3d').onclick = () => vue(false);
+$('bGlb').onclick = () => {
+  new GLTFExporter().parse(root, buf => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([buf], { type: 'model/gltf-binary' }));
+    a.download = `appartement-${mode}.glb`;
+    a.click();
+  }, err => alert('Export impossible : ' + err), { binary: true, onlyVisible: true });
+};
+
+// Infobulle : nom de l'élément survolé
+const ray = new THREE.Raycaster(), souris = new THREE.Vector2(), tip = $('tip');
+renderer.domElement.addEventListener('pointermove', e => {
+  souris.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(souris, camera);
+  let nom = null;
+  for (const hit of ray.intersectObject(root, true)) {
+    let o = hit.object, vis = true;
+    for (let p = o; p; p = p.parent) if (!p.visible) vis = false;
+    if (!vis) continue;
+    for (; o && !nom; o = o.parent) nom = o.userData.nom;
+    break;
+  }
+  if (nom && nom !== 'Sol' && nom !== 'Mur') {
+    tip.textContent = nom; tip.style.display = 'block';
+    tip.style.left = e.clientX + 14 + 'px'; tip.style.top = e.clientY + 14 + 'px';
+  } else tip.style.display = 'none';
+});
+renderer.domElement.addEventListener('pointerleave', () => tip.style.display = 'none');
+
+function taille() {
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', taille); taille();
+const horloge = new THREE.Clock();
+window.__app = { scene, camera, root, vue, controls, pos, basculeVisite, get obst() { return obst; } };
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(horloge.getDelta(), 0.05);
+  if (visite) marche(dt); else controls.update();
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>
