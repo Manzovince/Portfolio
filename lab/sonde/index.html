@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Encablure</title>
+<title>Sonde</title>
 <style>
 :root{--bg:#f1f3f2;--panel:#fdfdfb;--ink:#2c2c2a;--muted:#6f6d66;--line:#dde1df;--accent:#185FA5;--accent-soft:#E6F1FB;--stage:#e3e8e8}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#1b1c1d;--panel:#252627;--ink:#ecebe6;--muted:#a3a19a;--line:#38393b;--accent:#85B7EB;--accent-soft:#132c45;--stage:#131415}}
@@ -77,6 +77,10 @@ body.nopanel{grid-template-columns:1fr}body.nopanel aside{display:none}
 .zbar .icon{width:28px;height:28px;font-size:16px;line-height:1}
 .zbar input{width:110px;accent-color:var(--accent)}
 .zbar output{font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--muted);min-width:40px;text-align:right}
+.zbar #edit.on{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.zsep{width:1px;height:20px;background:var(--line);margin:0 2px}
+main.pan{cursor:grab}main.pan.grabbing{cursor:grabbing}main.pan canvas{cursor:inherit}
+body.editing canvas{outline:2px dashed var(--accent);outline-offset:6px}
 .zbar #fit{height:28px;padding:0 10px;display:flex;align-items:center;gap:6px;font-size:12.5px}
 @media (max-width:760px){.zbar{top:auto;bottom:12px;right:12px}.zbar input{width:70px}}
 .foot{position:sticky;bottom:-24px;margin:auto -18px -24px;padding:12px 18px 16px;background:var(--panel);border-top:1px solid var(--line)}
@@ -90,7 +94,7 @@ body.nopanel #show{display:flex}body.nopanel .busy{margin-left:140px}
 <body>
 <aside>
   <div class="hdr"><div>
-    <h1><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 8c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/><path d="M2 13c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/><path d="M2 18c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/></svg>Encablure</h1>
+    <h1><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 8c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/><path d="M2 13c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/><path d="M2 18c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/></svg>Sonde</h1>
     <p class="sub">Dos de cartes marines, format poker 63 × 88 mm. Les isobathes se raccordent quel que soit l'ordre des cartes.</p>
   </div><button id="hide" class="icon" title="Masquer les paramètres (P)" aria-label="Masquer les paramètres"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 10l-2 2 2 2"/></svg></button></div>
 
@@ -109,6 +113,9 @@ body.nopanel #show{display:flex}body.nopanel .busy{margin-left:140px}
     <div class="btns" id="deckBtns"><button id="spread" title="Poser les 52 cartes en 13 × 4">Étaler les 52</button><button id="newDeck" title="Générer un autre jeu de 52">Nouveau jeu</button></div>
     <div id="freeOpts">
     <div><div class="sublab mixhd">Proportion des fonds<button id="eq" title="Même part pour chaque fond">Égaliser</button></div><div class="mix" id="ters"></div></div>
+    <div><div class="sublab">Étendues sur plusieurs cartes</div><div class="chips" id="big"></div></div>
+    <div class="row" id="bfRow"><label for="bfreq">Part des cartes</label><output id="bfreqOut"></output><input id="bfreq" type="range" min="0" max="90" step="5" value="35"></div>
+    <div class="row" id="bmRow"><label for="bmax">Taille maximale</label><output id="bmaxOut"></output><input id="bmax" type="range" min="2" max="9" step="1" value="6"></div>
     <div><div class="sublab">Éléments remarquables</div><div class="chips" id="els"></div></div>
     <div class="row"><label for="lmf">Fréquence des éléments</label><output id="lmfOut"></output><input id="lmf" type="range" min="0" max="100" step="5" value="40"></div>
     </div>
@@ -141,13 +148,15 @@ body.nopanel #show{display:flex}body.nopanel .busy{margin-left:140px}
       <button id="clear" title="Redessiner toutes les cartes"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg>Redessiner</button>
     </div>
     <div class="stats" id="stats"></div>
-    <p class="sub" style="margin:0">Clic sur une carte : la tourner de 180°. Glisser : l'échanger avec une autre.</p>
+    <p class="sub" style="margin:0">Molette : zoomer. Glisser : se déplacer. En mode édition (crayon) : clic pour tourner une carte de 180°, glisser pour l'échanger avec une autre.</p>
   </section>
   <div class="foot"><button id="mix" class="primary"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7h3c4 0 6 10 10 10h5M3 17h3c1.6 0 2.8-1.6 3.9-3.5M14.1 9.5C15.2 7.6 16.4 7 18 7h3M18 4l3 3-3 3M18 14l3 3-3 3"/></svg>Remélanger</button></div>
 </aside>
 <button id="show" title="Afficher les paramètres (P)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M13 10l2 2-2 2"/></svg>Paramètres</button>
 <button id="mix2" class="primary" title="Remélanger"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7h3c4 0 6 10 10 10h5M3 17h3c1.6 0 2.8-1.6 3.9-3.5M14.1 9.5C15.2 7.6 16.4 7 18 7h3M18 4l3 3-3 3M18 14l3 3-3 3"/></svg>Remélanger</button>
 <div class="zbar" role="group" aria-label="Zoom">
+  <button class="icon" id="edit" title="Mode édition : tourner et échanger les cartes (E)" aria-label="Mode édition" aria-pressed="false"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg></button>
+  <span class="zsep"></span>
   <button class="icon" id="zminus" title="Dézoomer" aria-label="Dézoomer">−</button>
   <input id="zoom" type="range" min="1" max="8" step="0.25" value="2.5" aria-label="Zoom">
   <button class="icon" id="zplus" title="Zoomer" aria-label="Zoomer">+</button>
@@ -160,7 +169,7 @@ body.nopanel #show{display:flex}body.nopanel .busy{margin-left:140px}
 </main>
 
 <script>
-// Encablure — the sea-side sibling of Arpent. Same seam trick: every card's relief fades to a fixed value (CL)
+// Sonde — the sea-side sibling of Arpent. Same seam trick: every card's relief fades to a fixed value (CL)
 // at its border, except at 16 fixed "mouths" (ridges / canyons) and optional shared features on edge midpoints / corners.
 const W=63,H=88,TAU=Math.PI*2,CL=-1.125,BL=7,STEP=.25;
 const PAL={
@@ -171,9 +180,11 @@ const SH={ile:'Îles',banc:'Bancs',fosse:'Fosses'};
 const EL={phare:'Phare',village:'Village',mouillage:'Mouillage',epave:'Épave',recif:'Récif',bouee:'Bouée'};
 const $=id=>document.getElementById(id);
 const cv=$('c'),ctx=cv.getContext('2d');
-const S={cols:5,rows:3,gap:0,zoom:2.5,rot:false,round:true,labels:true,sond:true,paper:'auto',lop:100,panel:true,share:true,freq:50,shr:['ile','banc','fosse'],deck:false,deckSeed:1,mix:{ile:25,archipel:25,hautfond:25,large:25},els:Object.keys(EL),lmf:40,closed:[]};
+const BIG={terre:'Grandes terres',fond:'Grands fonds'};
+const LAB={...T,terre:'Grande terre',fond:'Grand fond'};
+const S={cols:5,rows:3,gap:0,zoom:2.5,rot:false,round:true,labels:true,sond:true,paper:'auto',lop:100,panel:true,share:true,freq:50,shr:['ile','banc','fosse'],big:['terre','fond'],bfreq:35,bmax:6,deck:false,deckSeed:1,mix:{ile:25,archipel:25,hautfond:25,large:25},els:Object.keys(EL),lmf:40,closed:[]};
 let shared=0,nel=0;
-try{Object.assign(S,JSON.parse(localStorage.getItem('encablure')||'{}'));}catch(e){}
+try{Object.assign(S,JSON.parse(localStorage.getItem('sonde')||'{}'));}catch(e){}S.edit=false;
 const TK=Object.keys(T);for(const k of TK)if(!(S.mix[k]>=0))S.mix[k]=25;
 const syncTers=()=>{if(!TK.some(k=>S.mix[k]>0))TK.forEach(k=>S.mix[k]=25);S.ters=TK.filter(k=>S.mix[k]>0);};syncTers();
 let cards=[];
@@ -225,6 +236,39 @@ function fx(c,x,y){let v=0;const em=ss(Math.min(x,W-x,y,H-y)/5);
 function hgt(c,x,y){const e=Math.min(x,W-x,y,H-y),w=ss(e/BL);
   const b=CL+spurV(c,x,y)+w*(c.na*fbm(x,y,c.seed)+M(x,y)*bump(c.g,x,y))+(c.feat.length?fx(c,x,y):0);
   return b+(.24*vn(x/3,y/3,c.seed+5)+.11*vn(x/1.4,y/1.4,c.seed+6))*Math.exp(-b*b/.4)*ss(e/5);}
+// ---------- great expanses: one island or deep spread over a w×h block of cards (2 to 9) ----------
+// The block has a single height field in block coordinates, so its inner seams are continuous by construction;
+// it fades to the usual edge profile (CL + mouths + shared reliefs) only on the block's outer border.
+const SHAPES=[[1,2],[2,1],[2,2],[1,3],[3,1],[2,3],[3,2],[3,3]];
+function mkRegion(c0,r0,w,h,t){const g=[],blobs=[],BW=w*W,BH=h*H,n=w*h;
+  // one soft blob per card, pulled toward the block centre, plus a few smaller lobes: an organic outline, never the block's rectangle
+  for(let a=0;a<w;a++)for(let b=0;b<h;b++){const cx=(a+.5)*W+R(-9,9),cy=(b+.5)*H+R(-12,12);
+    blobs.push([cx+(BW/2-cx)*.22,cy+(BH/2-cy)*.22,1,R(23,30)]);}
+  for(let i=0;i<Math.ceil(n/2)+1;i++)blobs.push([R(20,BW-20),R(22,BH-22),R(.5,.9),R(9,15)]);
+  if(t==='terre')for(let i=0;i<n;i++)g.push([R(18,BW-18),R(20,BH-20),R(.8,1.9),R(4,9),1.4]);
+  else{for(let i=0,k=Math.ceil(n*.6);i<k;i++)if(Math.random()<.7)g.push([R(18,BW-18),R(20,BH-20),R(1.4,2.4),R(3,6),1.4]);
+    for(let i=0;i<Math.ceil(n/2);i++)g.push([R(15,BW-15),R(15,BH-15),-R(.6,1.2),R(8,16)]);}
+  return{c0,r0,w,h,t,g,blobs,seed:R(0,1000),A:t==='terre'?R(2.7,3.2):-R(2.2,2.7)};}
+function regField(r,X,Y,eo){
+  const bl=bump(r.blobs,X,Y)+.32*vn(X/13,Y/13,r.seed+3)+.18*vn(X/5.5,Y/5.5,r.seed+4)-.4,
+    env=Math.max(0,Math.tanh(2.2*bl))*ss((eo-3)/16);
+  return r.A*env+(r.t==='terre'?.9:.7)*fbm(X,Y,r.seed)+env*bump(r.g,X,Y);}
+function hgtR(c,x,y){const r=c.reg,X=x+c.ox,Y=y+c.oy,eo=Math.min(X,r.w*W-X,Y,r.h*H-Y);
+  const b=CL+spurV(c,x,y)+ss(eo/BL)*regField(r,X,Y,eo)+(c.feat.length?fx(c,x,y):0);
+  return b+(.24*vn(X/3,Y/3,r.seed+5)+.11*vn(X/1.4,Y/1.4,r.seed+6))*Math.exp(-b*b/.4)*ss(eo/5);}
+function mkR(r,ci,ri){const out={T:ri===0,B:ri===r.h-1,L:ci===0,R:ci===r.w-1};
+  const c={k:r.t,reg:r,ox:ci*W,oy:ri*H,ms:r.seed,seed:R(0,1000),feat:[],fsig:'',lu:Math.random(),lp:Math.random(),lp2:Math.random(),els:[],esig:null,flip:false,img:null,
+    sp:spurs().filter(s=>s.dy===1&&out.T||s.dy===-1&&out.B||s.dx===1&&out.L||s.dx===-1&&out.R)};
+  c.h=(x,y)=>hgtR(c,x,y);deco(c);return c;}
+let regions=[],regKey=null;
+function makeRegions(){regions=[];const C=S.cols,Rw=S.rows,occ=new Uint8Array(C*Rw);if(S.deck||!S.big.length)return;
+  const sh=SHAPES.filter(([w,h])=>w*h<=S.bmax&&w<=C&&h<=Rw);if(!sh.length)return;
+  const goal=Math.round(C*Rw*S.bfreq/100);let cov=0;
+  for(let t=0;t<300&&cov<goal;t++){const[w,h]=sh[Math.floor(Math.random()*sh.length)],c0=Math.floor(Math.random()*(C-w+1)),r0=Math.floor(Math.random()*(Rw-h+1));
+    let free=true;for(let a=0;a<w&&free;a++)for(let b=0;b<h;b++)if(occ[(r0+b)*C+c0+a]){free=false;break;}
+    if(!free||cov+w*h>goal+2)continue;
+    for(let a=0;a<w;a++)for(let b=0;b<h;b++)occ[(r0+b)*C+c0+a]=1;
+    regions.push(mkRegion(c0,r0,w,h,S.big[Math.floor(Math.random()*S.big.length)]));cov+=w*h;}}
 const depthM=h=>Math.max(1,Math.round(8*h*h-6*h));
 
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -244,18 +288,18 @@ function mk(kf){const k=kf||wkind(),g=[],seed=R(0,1000);
     if(Math.random()<.45)g.push([cx+R(-6,6),cy+R(-8,8),R(1,1.3),R(1.5,2.4)]);}
   if(k==='large'){g.push([R(24,39),R(32,56),-R(1.6,2.2),R(15,21)]);
     if(Math.random()<.6)g.push([R(20,43),R(24,64),R(1.8,2.5),R(3,5),1.4]);}
-  const c={k,g,seed,feat:[],fsig:'',lu:Math.random(),lp:Math.random(),lp2:Math.random(),els:[],esig:null,sp:spurs(),na:{ile:.9,archipel:.75,hautfond:.45,large:.9}[k],flip:Math.random()<.5,img:null};
+  const c={k,g,seed,ox:0,oy:0,ms:seed,feat:[],fsig:'',lu:Math.random(),lp:Math.random(),lp2:Math.random(),els:[],esig:null,sp:spurs(),na:{ile:.9,archipel:.75,hautfond:.45,large:.9}[k],flip:Math.random()<.5,img:null};
   c.h=(x,y)=>hgt(c,x,y);deco(c);return c;}
 
-const fmask=(c,x,y)=>vn(x/7,y/7,c.seed+9)+.45*vn(x/3,y/3,c.seed+10);
-function deco(c){const{k,seed}=c,trees=[],reef=[],sonde=[],X0=c.feat.length?1:4,X1=W-X0,Y1=H-X0;
-  const land=k==='ile'||k==='archipel'||k==='hautfond'||c.feat.some(f=>f.t==='ile');
-  if(land)for(let t=0,n=k==='ile'?2600:1100;t<n;t++){const x=R(X0,X1),y=R(X0,Y1),h=c.h(x,y);if(h<.14)continue;const v=fmask(c,x,y);if(v<.05)continue;
+const fmask=(c,x,y)=>{x+=c.ox;y+=c.oy;return vn(x/7,y/7,c.ms+9)+.45*vn(x/3,y/3,c.ms+10);};
+function deco(c){const{k,seed}=c,trees=[],reef=[],sonde=[],X0=c.feat.length||c.reg?1:4,X1=W-X0,Y1=H-X0;
+  const land=k==='ile'||k==='archipel'||k==='hautfond'||k==='terre'||c.feat.some(f=>f.t==='ile');
+  if(land)for(let t=0,n=k==='terre'?4200:k==='ile'?2600:1100;t<n;t++){const x=R(X0,X1),y=R(X0,Y1),h=c.h(x,y);if(h<.14)continue;const v=fmask(c,x,y);if(v<.05)continue;
     if(Math.random()>.25+.75*ss((v-.05)/.4))continue;
     const con=h>1.7||vn(x/9,y/9,seed+11)>.3,r=con?R(.6,.95):R(.7,1.3);
     if(trees.every(q=>Math.hypot(q[0]-x,q[1]-y)>(q[2]+r)*.75))trees.push([x,y,r,con,R(0,TAU),5+Math.floor(R(0,3))]);}
   trees.sort((a,b)=>a[1]-b[1]);
-  const nr={hautfond:70,archipel:34,ile:18,large:4}[k]+(c.feat.some(f=>f.t==='banc')?24:0);
+  const nr={hautfond:70,archipel:34,ile:18,large:4,terre:14,fond:0}[k]+(c.feat.some(f=>f.t==='banc')?24:0);
   for(let t=0;t<3500&&reef.length<nr;t++){const x=R(X0,X1),y=R(X0,Y1),h=c.h(x,y);if(h>-.03||h<-.34)continue;if(vn(x/4,y/4,seed+12)<-.1)continue;
     if(reef.every(q=>Math.hypot(q[0]-x,q[1]-y)>1.25))reef.push([x,y,R(.28,.42)]);}
   for(let t=0;t<600&&sonde.length<18;t++){const x=R(5,W-5),y=R(5,H-5);if(y<14&&x<40)continue;const h=c.h(x,y);if(h>-.4)continue;
@@ -263,7 +307,7 @@ function deco(c){const{k,seed}=c,trees=[],reef=[],sonde=[],X0=c.feat.length?1:4,
   Object.assign(c,{trees,reef,sonde});c.raw={trees,reef,sonde};c.esig=null;}
 
 // ---------- remarkable elements ----------
-const AL={ile:['phare','village','mouillage','epave'],archipel:['phare','mouillage','recif','bouee','village'],hautfond:['recif','epave','bouee'],large:['epave','bouee']};
+const AL={terre:['village','phare','mouillage'],fond:['epave','bouee'],ile:['phare','village','mouillage','epave'],archipel:['phare','mouillage','recif','bouee','village'],hautfond:['recif','epave','bouee'],large:['epave','bouee']};
 const WT={phare:2,village:2,mouillage:1.5,epave:1.5,recif:1.5,bouee:1};
 function wpick(list,u){const tot=list.reduce((a,e)=>a+WT[e],0);let acc=0;for(const e of list){acc+=WT[e]/tot;if(u<acc)return e;}return list[list.length-1];}
 // count of 12 directions at radius r matching test, and the mean angle of those
@@ -375,12 +419,12 @@ function render(c,k){
     for(const[x,y,m]of c.sonde){g.fillStyle=c.h(x,y)<-2.3?C.sondD:C.sond;g.globalAlpha=.9;g.fillText(m,x,y);}g.globalAlpha=1;g.textBaseline='alphabetic';}
   g.textAlign='left';
   if(S.labels){g.fillStyle=C.lab;g.strokeStyle=C.paper;g.lineJoin='round';g.lineWidth=.9;const tx=(s,x,y)=>{g.strokeText(s,x,y);g.fillText(s,x,y);};
-    g.font='600 4px system-ui,sans-serif';tx(T[c.k],4,7);if(c.no){g.textAlign='right';tx(c.no,W-4,7);g.textAlign='left';}if(c.els.length){g.font='500 2.8px system-ui,sans-serif';g.lineWidth=.7;tx(c.els.map(e=>EL[e.t]).join(' · '),4,10.6);}}
+    g.font='600 4px system-ui,sans-serif';tx(LAB[c.k],4,7);if(c.no){g.textAlign='right';tx(c.no,W-4,7);g.textAlign='left';}if(c.els.length){g.font='500 2.8px system-ui,sans-serif';g.lineWidth=.7;tx(c.els.map(e=>EL[e.t]).join(' · '),4,10.6);}}
   c.img=oc;c.imgKey=key();}
 
 const key=()=>[S.zoom,theme(),S.labels,S.lop,S.sond,devicePixelRatio||1].join('|');
 function layout(){const k=S.zoom,cw=W*k,ch=H*k,g=S.gap*k;return{k,cw,ch,g,tw:S.cols*cw+(S.cols-1)*g,th:S.rows*ch+(S.rows-1)*g};}
-const turned=c=>(S.rot&&c.flip&&!c.feat.length)!==!!c.turn;
+const turned=c=>(S.rot&&c.flip&&!c.feat.length&&!c.reg)!==!!c.turn;
 let perm=[];
 function blit(i){const c=cards[perm[i]];if(!c)return;const{cw,ch,g,k}=layout(),col=i%S.cols,row=Math.floor(i/S.cols),ox=col*(cw+g),oy=row*(ch+g);
   ctx.save();ctx.translate(ox,oy);
@@ -394,9 +438,13 @@ let joints={};
 function joint(k){if(!joints[k]){const corner=k[0]==='x',r=Math.random();
   joints[k]={u:Math.random(),t:corner?(r<.5?'ile':'banc'):(r<.4?'ile':r<.72?'banc':'fosse')};}return joints[k];}
 function share(){const n=S.cols*S.rows,pe=S.share?S.freq/100*.45:0,pc=S.share?S.freq/100*.3:0;const used=new Set();
+  // no shared relief inside a great expanse, nor on a corner that touches one
+  const rg=(c,r)=>c>=0&&r>=0&&c<S.cols&&r<S.rows&&cards[r*S.cols+c]?cards[r*S.cols+c].reg:null;
+  const inner=k=>{const[t,a,b]=k.split(':'),c=+a,r=+b;if(t==='v'){const p=rg(c,r);return p&&p===rg(c+1,r);}if(t==='h'){const p=rg(c,r);return p&&p===rg(c,r+1);}
+    return !!(rg(c,r)||rg(c+1,r)||rg(c,r+1)||rg(c+1,r+1));};
   for(let i=0;i<n;i++){const c=cards[i],col=i%S.cols,row=Math.floor(i/S.cols),F=[];
-    const E=(key,side)=>{const j=joint(key);if(j.u<pe&&S.shr.includes(j.t)){F.push({kind:'e',side,t:j.t});used.add(key);}};
-    const V=(key,cx,cy)=>{const j=joint(key);if(j.u<pc&&S.shr.includes(j.t)){F.push({kind:'c',cx,cy,t:j.t});used.add(key);}};
+    const E=(key,side)=>{const j=joint(key);if(inner(key))return;if(j.u<pe&&S.shr.includes(j.t)){F.push({kind:'e',side,t:j.t});used.add(key);}};
+    const V=(key,cx,cy)=>{const j=joint(key);if(inner(key))return;if(j.u<pc&&S.shr.includes(j.t)){F.push({kind:'c',cx,cy,t:j.t});used.add(key);}};
     if(col<S.cols-1)E(`v:${col}:${row}`,'R');if(col>0)E(`v:${col-1}:${row}`,'L');
     if(row<S.rows-1)E(`h:${col}:${row}`,'B');if(row>0)E(`h:${col}:${row-1}`,'T');
     if(col>0&&row>0)V(`x:${col-1}:${row-1}`,0,0);if(col<S.cols-1&&row>0)V(`x:${col}:${row-1}`,W,0);
@@ -456,9 +504,14 @@ function draw(){
     nel=0;shared=0;for(let i=0;i<n;i++){const c=cards[perm[i]];if(!c)continue;nel+=c.els.length;const L=edges(c,!!c.turn),col=i%S.cols,row=Math.floor(i/S.cols);
       if(col<S.cols-1&&L.R)shared++;if(row<S.rows-1&&L.B)shared++;if(col<S.cols-1&&row<S.rows-1&&L.BR)shared++;}}
   else{while(cards.length<n)cards.push(null);
-    const have={};for(let i=0;i<n;i++)if(cards[i])have[cards[i].k]=(have[cards[i].k]||0)+1;
-    const tgt=targets(n,have),keep={},redo=[];
-    for(const i of shuffle([...Array(n).keys()])){const c=cards[i];if(c&&(keep[c.k]||0)<tgt[c.k])keep[c.k]=(keep[c.k]||0)+1;else redo.push(i);}
+    // great expanses are redrawn whenever the grid or their settings change; the other cards are kept
+    const rk=[S.cols,S.rows,S.big.join(),S.bfreq,S.bmax].join('|');
+    if(rk!==regKey){regKey=rk;makeRegions();for(let i=0;i<cards.length;i++)if(cards[i]&&cards[i].reg)cards[i]=null;
+      for(const r of regions)for(let a=0;a<r.w;a++)for(let b=0;b<r.h;b++)cards[(r.r0+b)*S.cols+r.c0+a]=mkR(r,a,b);perm=[];}
+    const free=[...Array(n).keys()].filter(i=>!(cards[i]&&cards[i].reg));
+    const have={};for(const i of free)if(cards[i])have[cards[i].k]=(have[cards[i].k]||0)+1;
+    const tgt=targets(free.length,have),keep={},redo=[];
+    for(const i of shuffle(free)){const c=cards[i];if(c&&(keep[c.k]||0)<tgt[c.k])keep[c.k]=(keep[c.k]||0)+1;else redo.push(i);}
     const need=[];for(const k of TK)for(let q=keep[k]||0;q<tgt[k];q++)need.push(k);shuffle(need);
     redo.forEach((i,q)=>cards[i]=mk(need[q]));
     shared=share();
@@ -477,8 +530,8 @@ function pump(){clearTimeout(raf);$('busy').classList.toggle('on',queue.length>0
 function stats(){const n=S.cols*S.rows,cnt={};for(let i=0;i<n;i++){const c=cards[perm[i]]||cards[i];if(c)cnt[c.k]=(cnt[c.k]||0)+1;}
   const wmm=S.cols*W+(S.cols-1)*S.gap,hmm=S.rows*H+(S.rows-1)*S.gap;
   $('stats').innerHTML=`<span class="big"><span><b>${n}</b> carte${n>1?'s':''}</span><span>${(wmm/10).toFixed(1).replace('.',',')} × ${(hmm/10).toFixed(1).replace('.',',')} cm</span></span>`+
-    TK.filter(k=>cnt[k]).map(k=>`<span>${T[k]} <b>${cnt[k]}</b></span>`).join('')+(S.share||S.deck?`<span>Raccords <b>${shared}</b></span>`:'')+(nel?`<span>Éléments <b>${nel}</b></span>`:'')+(S.deck&&dealt?`<span class="big"><span>Jeu n°<b>${S.deckSeed}</b></span><span>${dealt.fit==='étalé'?'Jeu étalé':dealt.fit==='ok'?'Tout se raccorde':dealt.fit==='bord'?'Raccords coupés au bord':'Pas de donne parfaite'}</span></span>`:'');}
-function save(){try{localStorage.setItem('encablure',JSON.stringify(S));}catch(e){}}
+    Object.keys(LAB).filter(k=>cnt[k]).map(k=>`<span>${LAB[k]} <b>${cnt[k]}</b></span>`).join('')+(S.share||S.deck?`<span>Raccords <b>${shared}</b></span>`:'')+(nel?`<span>Éléments <b>${nel}</b></span>`:'')+(S.deck&&dealt?`<span class="big"><span>Jeu n°<b>${S.deckSeed}</b></span><span>${dealt.fit==='étalé'?'Jeu étalé':dealt.fit==='ok'?'Tout se raccorde':dealt.fit==='bord'?'Raccords coupés au bord':'Pas de donne parfaite'}</span></span>`:'');}
+function save(){try{localStorage.setItem('sonde',JSON.stringify(S));}catch(e){}}
 
 function sync(){$('cols').value=S.cols;$('rows').value=S.rows;$('gap').value=S.gap;$('zoom').value=S.zoom;
   $('gapOut').textContent=S.gap.toFixed(1).replace('.',',')+' mm';$('zoomOut').textContent=Math.round(S.zoom/2.5*100)+' %';
@@ -487,6 +540,10 @@ function sync(){$('cols').value=S.cols;$('rows').value=S.rows;$('gap').value=S.g
   document.querySelectorAll('#els button').forEach(b=>b.classList.toggle('on',S.els.includes(b.dataset.v)));
   document.querySelectorAll('#shr button').forEach(b=>b.classList.toggle('on',S.shr.includes(b.dataset.v)));
   document.querySelectorAll('section[data-sec]').forEach(sc=>sc.classList.toggle('closed',S.closed.includes(sc.dataset.sec)));
+  document.querySelectorAll('#big button').forEach(b=>b.classList.toggle('on',S.big.includes(b.dataset.v)));
+  $('bfreq').value=S.bfreq;$('bfreqOut').textContent=S.bfreq+' %';$('bmax').value=S.bmax;$('bmaxOut').textContent='2 à '+S.bmax+' cartes';
+  $('bfRow').classList.toggle('off',!S.big.length);$('bmRow').classList.toggle('off',!S.big.length);
+  $('edit').classList.toggle('on',S.edit);$('edit').setAttribute('aria-pressed',S.edit);document.body.classList.toggle('editing',S.edit);$('main').classList.toggle('pan',!S.edit);cv.style.touchAction=S.edit?'none':'auto';
   $('share').checked=S.share;$('freq').value=S.freq;$('freqOut').textContent=S.freq+' %';$('shareOpts').classList.toggle('off',!S.share||S.deck);$('shareRow').classList.toggle('off',S.deck);
   $('deck').checked=S.deck;$('deckBtns').hidden=!S.deck;$('freeOpts').classList.toggle('off',S.deck);$('rot').checked=S.rot;$('round').checked=S.round;$('labels').checked=S.labels;$('sond').checked=S.sond;
   document.querySelectorAll('#paper button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.paper));}
@@ -508,6 +565,9 @@ addEventListener('keydown',e=>{const t=document.activeElement;if(e.key.toLowerCa
 const SW={ile:'#BA7517',archipel:'#97C459',hautfond:'#AED3E8',large:'#4277A8'};
 $('ters').innerHTML=Object.entries(T).map(([k,v])=>`<div class="row"><label for="w-${k}"><i class="sw" style="background:${SW[k]}"></i>${v}</label><output id="wo-${k}"></output><input id="w-${k}" type="range" min="0" max="100" step="5" aria-label="Proportion ${v}"></div>`).join('');
 $('els').innerHTML=Object.entries(EL).map(([k,v])=>`<button data-v="${k}">${v}</button>`).join('');
+$('big').innerHTML=Object.entries(BIG).map(([k,v])=>`<button data-v="${k}">${v}</button>`).join('');
+document.querySelectorAll('#big button').forEach(b=>b.onclick=()=>{S.big=tog(S.big,b.dataset.v);sync();draw();});
+let bt;for(const id of['bfreq','bmax'])$(id).oninput=e=>{S[id]=+e.target.value;sync();clearTimeout(bt);bt=setTimeout(draw,200);};
 $('shr').innerHTML=Object.entries(SH).map(([k,v])=>`<button data-v="${k}">${v}</button>`).join('');
 const tog=(arr,v)=>arr.includes(v)?arr.filter(x=>x!==v):[...arr,v];
 let wt;const mixDraw=()=>{syncTers();sync();clearTimeout(wt);wt=setTimeout(draw,200);};
@@ -530,15 +590,31 @@ $('round').onchange=e=>{S.round=e.target.checked;draw();};
 $('labels').onchange=e=>{S.labels=e.target.checked;draw();};
 document.querySelectorAll('#paper button').forEach(b=>b.onclick=()=>{S.paper=b.dataset.v;
   if(S.paper==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=S.paper;sync();draw();});
-$('mix').onclick=$('mix2').onclick=()=>{if(S.deck){dealt=null;draw();return;}cards=[];joints={};perm=[];draw();};
-// click a card: turn it 180°; drag it onto another slot: swap the two
+$('mix').onclick=$('mix2').onclick=()=>{if(S.deck){dealt=null;draw();return;}cards=[];joints={};perm=[];regKey=null;draw();};
+// explore mode (default): wheel zooms around the cursor, dragging pans the grid
+const mainEl=$('main');let zd;
+function zoomAt(z,cx,cy){z=clamp(z,1,8);if(z===S.zoom)return;const r0=cv.getBoundingClientRect(),fx=(cx-r0.left)/r0.width,fy=(cy-r0.top)/r0.height;
+  S.zoom=z;sync();const L=layout();cv.style.width=L.tw+'px';cv.style.height=L.th+'px';
+  const r1=cv.getBoundingClientRect();mainEl.scrollLeft+=r1.left+fx*r1.width-cx;mainEl.scrollTop+=r1.top+fy*r1.height-cy;
+  clearTimeout(zd);zd=setTimeout(draw,220);}
+mainEl.addEventListener('wheel',e=>{e.preventDefault();zoomAt(Math.round(S.zoom*Math.exp(-e.deltaY*(e.ctrlKey?.01:.0018))*100)/100,e.clientX,e.clientY);},{passive:false});
+let pan=null;
+mainEl.addEventListener('pointerdown',e=>{if(S.edit&&e.target===cv||e.button||e.pointerType!=='mouse')return;if(e.target.closest('button,input'))return;
+  pan={x:e.clientX,y:e.clientY,l:mainEl.scrollLeft,t:mainEl.scrollTop};mainEl.setPointerCapture(e.pointerId);mainEl.classList.add('grabbing');});
+mainEl.addEventListener('pointermove',e=>{if(!pan)return;mainEl.scrollLeft=pan.l-(e.clientX-pan.x);mainEl.scrollTop=pan.t-(e.clientY-pan.y);});
+const endPan=()=>{pan=null;mainEl.classList.remove('grabbing');};
+mainEl.addEventListener('pointerup',endPan);mainEl.addEventListener('pointercancel',endPan);
+const setEdit=v=>{S.edit=v;sync();};
+$('edit').onclick=()=>setEdit(!S.edit);
+addEventListener('keydown',e=>{const t=document.activeElement;if(e.key.toLowerCase()!=='e'||e.metaKey||e.ctrlKey||e.altKey||t.tagName==='INPUT'&&t.type!=='range'&&t.type!=='checkbox')return;setEdit(!S.edit);});
+// edit mode: click a card to turn it 180°; drag it onto another slot to swap the two
 let drag=null;
 function slotAt(e){const r=cv.getBoundingClientRect(),{cw,ch,g}=layout(),x=e.clientX-r.left,y=e.clientY-r.top,col=Math.floor(x/(cw+g)),row=Math.floor(y/(ch+g));
   if(col<0||row<0||col>=S.cols||row>=S.rows||x-col*(cw+g)>cw||y-row*(ch+g)>ch)return -1;return row*S.cols+col;}
 function mark(i,on){if(i<0)return;blit(i);if(!on)return;const{cw,ch,g}=layout(),ox=(i%S.cols)*(cw+g),oy=Math.floor(i/S.cols)*(ch+g);
   ctx.save();ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent');ctx.lineWidth=3;ctx.setLineDash([8,5]);ctx.strokeRect(ox+1.5,oy+1.5,cw-3,ch-3);ctx.restore();}
-cv.addEventListener('pointerdown',e=>{const i=slotAt(e);if(i<0||e.button||!cards[perm[i]])return;cv.setPointerCapture(e.pointerId);drag={i,x:e.clientX,y:e.clientY,moved:false,over:-1,gh:null};});
-cv.addEventListener('pointermove',e=>{if(!drag){cv.style.cursor=slotAt(e)<0?'':'grab';return;}
+cv.addEventListener('pointerdown',e=>{if(!S.edit)return;const i=slotAt(e);if(i<0||e.button||!cards[perm[i]])return;cv.setPointerCapture(e.pointerId);drag={i,x:e.clientX,y:e.clientY,moved:false,over:-1,gh:null};});
+cv.addEventListener('pointermove',e=>{if(!drag){cv.style.cursor=S.edit&&slotAt(e)>=0?'pointer':'';return;}
   if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<5)return;
   const{cw,ch}=layout();
   if(!drag.moved){drag.moved=true;cv.style.cursor='grabbing';const c=cards[perm[drag.i]],gh=document.createElement('canvas'),d=devicePixelRatio||1;
@@ -547,16 +623,16 @@ cv.addEventListener('pointermove',e=>{if(!drag){cv.style.cursor=slotAt(e)<0?'':'
     document.body.appendChild(gh);drag.gh=gh;ctx.save();const{g}=layout(),ox=(drag.i%S.cols)*(cw+g),oy=Math.floor(drag.i/S.cols)*(ch+g);ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(ox,oy,cw,ch);ctx.restore();}
   drag.gh.style.left=e.clientX-cw/2+'px';drag.gh.style.top=e.clientY-ch/2+'px';
   const o=slotAt(e),t=o===drag.i?-1:o;if(t!==drag.over){if(drag.over>=0)mark(drag.over,false);drag.over=t;mark(t,true);}});
-function endDrag(e,cancel){if(!drag)return;const d=drag;drag=null;cv.style.cursor='grab';
+function endDrag(e,cancel){if(!drag)return;const d=drag;drag=null;cv.style.cursor='';
   if(d.gh)d.gh.remove();
   if(!d.moved){if(!cancel){const c=cards[perm[d.i]];c.turn=!c.turn;blit(d.i);}return;}
   if(!cancel&&d.over>=0){[perm[d.i],perm[d.over]]=[perm[d.over],perm[d.i]];}
   blit(d.i);if(d.over>=0)blit(d.over);}
 cv.addEventListener('pointerup',e=>endDrag(e,false));cv.addEventListener('pointercancel',e=>endDrag(e,true));
-cv.style.touchAction='none';
+
 $('clear').onclick=()=>{cards.forEach(c=>c.img=null);draw();};
 $('png').onclick=()=>{if(queue.length){$('busy').textContent='Attends la fin du dessin';return;}
-  const a=document.createElement('a');a.download=`encablure-${S.cols}x${S.rows}.png`;a.href=cv.toDataURL('image/png');a.click();};
+  const a=document.createElement('a');a.download=`sonde-${S.cols}x${S.rows}.png`;a.href=cv.toDataURL('image/png');a.click();};
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(S.paper==='auto')draw();});
 if(S.paper!=='auto')document.documentElement.dataset.theme=S.paper;
 sync();draw();
