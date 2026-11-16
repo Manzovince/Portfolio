@@ -335,8 +335,9 @@ function go(phase) { if (S.game) S.game.phase = phase; save(); render(); scrollT
 
 function render() {
   document.documentElement.lang = S.lang;
-  $('langBtn').textContent = S.lang === 'fr' ? 'EN' : 'FR';
   const g = S.game;
+  $('langBtn').textContent = S.lang === 'fr' ? 'EN' : 'FR';
+  $('langBtn').hidden = !!g && !view; // no language switch mid-game
   const q = $('quitBtn');
   q.hidden = !g || g.phase === 'result' || !!view;
   q.textContent = '✕'; q.title = q.ariaLabel = t('quit');
