@@ -101,10 +101,10 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:52px
 .drawbar .meta{font-size:14px;color:var(--muted);text-align:right;min-width:0;max-width:50%}
 .drawbar .meta b{color:var(--ink);font-size:16px}
 @keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.06)}100%{transform:none}}
-.track{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:0 0 8px;font-size:17px}
+.track{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;margin:0 0 4px;font-size:10px}
 .track .av{margin:0;opacity:.3;transition:opacity .2s,transform .2s}
 .track .av.done{opacity:.55}
-.track .av.now{opacity:1;transform:scale(1.15);box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--c)}
+.track .av.now{opacity:1;box-shadow:0 0 0 1.5px var(--bg),0 0 0 3px var(--c)}
 .catpill{display:inline-block;background:transparent;border:1px solid var(--line);border-radius:8px;padding:5px 14px;font-size:16px;font-weight:600}
 .paper{position:relative;width:min(100%, calc((100dvh - 300px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 3 / 5));min-width:220px;aspect-ratio:3/5;margin:0 auto 12px;background:var(--paper);border-radius:3px;box-shadow:0 0 0 1px var(--line),var(--shadow);overflow:hidden}
 .paper canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
@@ -747,9 +747,8 @@ function renderDraw() {
   app.innerHTML = `
     <div class="drawbar">
       <div class="who">${dotOf(id)}<span>${nameOf(id)}</span></div>
-      <div class="meta"><b>${esc(catText(g))}</b><br>${t('turn')(Math.floor(g.turn / R) + 1, S.rounds)} · ${t('stroke')(g.turn + 1, g.order.length)}</div>
+      <div class="meta"><div class="track">${loop.map((pid, i) => dotOf(pid, i < k ? 'done' : i === k ? 'now' : '')).join('')}</div><b>${esc(catText(g))}</b><br>${t('turn')(Math.floor(g.turn / R) + 1, S.rounds)} · ${t('stroke')(g.turn + 1, g.order.length)}</div>
     </div>
-    <div class="track">${loop.map((pid, i) => dotOf(pid, i < k ? 'done' : i === k ? 'now' : '')).join('')}</div>
     <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.turn < R && !g.pending ? `<div class="paperhint" id="phint">${t('drawHint')}</div>` : ''}</div></div>
     <div class="row">
       <button class="btn" id="undo">↺ ${t('undo')}</button>
