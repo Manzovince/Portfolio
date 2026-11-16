@@ -222,7 +222,7 @@ const T = {
     rulesTitle: 'Règles du jeu',
     rules: [
       'Chaque joueur prend le téléphone à tour de rôle et découvre le mot secret… sauf un : le <b>faux artiste</b>, qui ne connaît que la catégorie.',
-      'Chacun à son tour ajoute <b>un seul trait</b> au dessin commun, sans lever le doigt. On fait deux tours de table. Pincez avec deux doigts pour zoomer.',
+      'Chacun à son tour ajoute <b>un seul trait</b> au dessin commun, sans lever le doigt. Un tour de table par défaut (réglable). Pincez avec deux doigts pour zoomer.',
       'Les vrais artistes doivent montrer qu\'ils connaissent le mot sans le rendre trop évident ; le faux artiste doit faire illusion.',
       'Ensuite, on discute, puis tout le monde pointe un suspect. En cas d\'égalité ou d\'erreur, le faux artiste gagne.',
       'S\'il est démasqué, le faux artiste peut encore gagner en devinant le mot.',
@@ -272,7 +272,7 @@ const T = {
     rulesTitle: 'How to play',
     rules: [
       'Everyone takes the phone in turn and sees the secret word… except one: the <b>fake artist</b>, who only knows the category.',
-      'In turn, each player adds <b>one single line</b> to the shared drawing, without lifting their finger. Go around the table twice. Pinch with two fingers to zoom.',
+      'In turn, each player adds <b>one single line</b> to the shared drawing, without lifting their finger. One round by default (adjustable). Pinch with two fingers to zoom.',
       'Real artists must show they know the word without making it obvious; the fake artist must blend in.',
       'Then discuss, and everyone points at a suspect. On a tie or a wrong guess, the fake artist wins.',
       'If caught, the fake artist can still win by guessing the word.',
@@ -288,7 +288,7 @@ const pick = a => a[Math.floor(Math.random() * a.length)];
 let S = load() || {
   lang: (navigator.language || 'fr').toLowerCase().startsWith('fr') ? 'fr' : 'en',
   players: [1, 2, 3, 4].map(i => ({ id: uid(), name: '', color: COLORS[i - 1], emoji: EMOJIS[(i * 7) % EMOJIS.length], score: 0 })),
-  mode: 'auto', rounds: 2, cat: 'random', target: 5, used: [], gmPtr: 0, game: null,
+  mode: 'auto', rounds: 1, cat: 'random', target: 5, used: [], gmPtr: 0, game: null,
 };
 S.players.forEach(p => { if (!p.emoji) p.emoji = freeEmoji(); });
 // Move saves from the old palette onto the contrasted one, one distinct colour each.
@@ -296,6 +296,7 @@ S.players.forEach((p, i) => {
   if (!COLORS.includes(p.color) || S.players.findIndex(x => x.color === p.color) < i)
     p.color = COLORS.find(c => !S.players.some(x => x !== p && x.color === c));
 });
+if (!S.r1) { S.rounds = 1; S.r1 = true; } // one-time switch of saved setups to the new 1-round default
 if (S.game && S.game.phase === 'reveal') S.game.phase = 'pass'; // never reopen on a secret
 const t = k => T[S.lang][k];
 function uid() { return Math.random().toString(36).slice(2, 9); }
