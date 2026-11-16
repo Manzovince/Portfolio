@@ -70,6 +70,10 @@ main>.card:first-child{border-top:0}
 .seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 0 0 1px var(--line),0 2px 6px -2px rgba(0,0,0,.2)}
 .field{margin-top:18px}
 .field label{display:block;font-size:16px;font-weight:600;margin-bottom:8px}
+.rlabel{display:flex!important;gap:10px;align-items:baseline;justify-content:space-between}
+.rlabel b{flex:none;color:var(--accent);font-size:17px}
+input[type=range]{width:100%;height:44px;margin:0;accent-color:var(--accent);cursor:pointer}
+input[type=range]::-webkit-slider-thumb{width:30px;height:30px}
 select,input[type=text]{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:var(--r);min-height:56px;padding:12px 14px;font-size:18px}
 .players{display:flex;flex-direction:column;gap:10px}
 .prow{display:flex;align-items:center;gap:10px}
@@ -87,18 +91,24 @@ select,input[type=text]{width:100%;border:1px solid var(--line);background:var(-
 .pass{min-height:62dvh;display:flex;flex-direction:column;justify-content:center}
 .pass .btn{margin-top:18px}
 .drawbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px}
-.drawbar .who{font-size:26px;font-weight:700;display:flex;align-items:center;min-width:0;animation:pop .35s ease-out}
+.drawbar .who{font-size:22px;font-weight:700;display:flex;align-items:center;min-width:0;animation:pop .35s ease-out}
 .drawbar .who span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .drawbar .meta{font-size:14px;color:var(--muted);text-align:right;min-width:0;max-width:50%}
 .drawbar .meta b{color:var(--ink);font-size:16px}
 @keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.06)}100%{transform:none}}
-.track{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:0 0 10px;font-size:20px}
+.track{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:0 0 8px;font-size:17px}
 .track .av{margin:0;opacity:.3;transition:opacity .2s,transform .2s}
 .track .av.done{opacity:.55}
 .track .av.now{opacity:1;transform:scale(1.15);box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--c)}
 .catpill{display:inline-block;background:transparent;border:1px solid var(--line);border-radius:8px;padding:5px 14px;font-size:16px;font-weight:600}
 .paper{position:relative;width:min(100%, calc((100dvh - 300px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 3 / 5));min-width:220px;aspect-ratio:3/5;margin:0 auto 12px;background:var(--paper);border-radius:3px;box-shadow:0 0 0 1px var(--line),var(--shadow);overflow:hidden}
 .paper canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+.stage{flex:1;min-height:0;container-type:size;display:flex;align-items:center;justify-content:center;margin:0 0 10px}
+.stage .paper{width:min(100cqw, 100cqh * 3 / 5);min-width:0;margin:0}
+body.drawing{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+body.drawing header{width:100%}
+body.drawing main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;padding-bottom:10px}
+.paperhint{position:absolute;left:10px;right:10px;top:10px;z-index:2;text-align:center;font-size:14px;color:#6f675d;pointer-events:none}
 .paper.view{width:min(86%, 360px);min-width:0}
 .zoomctl{position:absolute;right:8px;bottom:8px;display:flex;gap:8px;z-index:2}
 .zoomctl button{width:46px;height:46px;border-radius:50%;border:1px solid rgba(31,29,26,.15);background:rgba(255,253,248,.92);color:#1f1d1a;font-size:24px;font-weight:600;line-height:1;cursor:pointer;padding:0;box-shadow:0 4px 12px -6px rgba(0,0,0,.4);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
@@ -183,7 +193,7 @@ const T = {
     mode: 'Qui choisit le mot ?', modeAuto: 'Le téléphone', modeGm: 'Un maître du jeu',
     modeAutoHint: 'Tout le monde dessine. Le mot est tiré au hasard.',
     modeGmHint: 'À tour de rôle, un joueur choisit le mot et ne dessine pas. Il gagne avec le faux artiste.',
-    category: 'Catégorie', random: 'Au hasard', rounds: 'Tours de dessin', target: 'Points pour gagner',
+    category: 'Catégorie', random: 'Au hasard', rounds: 'Tours de dessin', firstFake: 'Chance que le faux artiste dessine en premier', firstAuto: n => `hasard (${n} %)`, firstReset: 'Remettre au hasard', target: 'Points pour gagner',
     start: 'Commencer la manche', resetScores: 'Remettre les scores à zéro',
     needPlayers: n => `Il faut au moins ${n} joueurs.`,
     gmTitle: 'Maître du jeu', gmPass: name => `Passe le téléphone à <b>${name}</b>, le maître du jeu.`,
@@ -233,7 +243,7 @@ const T = {
     mode: 'Who picks the word?', modeAuto: 'The phone', modeGm: 'A question master',
     modeAutoHint: 'Everyone draws. The word is picked at random.',
     modeGmHint: 'Players take turns choosing the word and sit out the drawing. They win with the fake artist.',
-    category: 'Category', random: 'Random', rounds: 'Drawing rounds', target: 'Points to win',
+    category: 'Category', random: 'Random', rounds: 'Drawing rounds', firstFake: 'Chance the fake artist draws first', firstAuto: n => `random (${n} %)`, firstReset: 'Back to random', target: 'Points to win',
     start: 'Start the round', resetScores: 'Reset scores',
     needPlayers: n => `You need at least ${n} players.`,
     gmTitle: 'Question master', gmPass: name => `Hand the phone to <b>${name}</b>, the question master.`,
@@ -331,6 +341,7 @@ function render() {
   gb.title = gb.ariaLabel = t('gallery');
   $('rulesBtn').title = t('rulesTitle');
   keepAwake();
+  document.body.classList.toggle('drawing', !view && !!g && g.phase === 'draw');
   if (view) return view.shot != null ? renderShot() : renderGallery();
   if (!g) return renderSetup();
   ({ gm: renderGm, pass: renderPass, reveal: renderReveal, draw: renderDraw, vote: renderVote, guess: renderGuess, result: renderResult })[g.phase]();
@@ -384,6 +395,9 @@ function renderSetup() {
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>` : ''}
       <div class="field"><label>${t('rounds')}</label>
         <div class="seg" id="roundSeg">${[1, 2, 3].map(n => `<button data-v="${n}" aria-pressed="${S.rounds === n}">${n}</button>`).join('')}</div></div>
+      <div class="field"><label for="ffRange" class="rlabel"><span>${t('firstFake')}</span><b id="ffVal"></b></label>
+        <input type="range" id="ffRange" min="0" max="100" step="5">
+        ${S.firstFake != null ? `<button class="link" id="ffReset" style="margin:4px 0 0 auto">${t('firstReset')}</button>` : ''}</div>
       <div class="field"><label>${t('target')}</label>
         <div class="seg" id="targetSeg">${[3, 5, 7, 10].map(n => `<button data-v="${n}" aria-pressed="${S.target === n}">${n}</button>`).join('')}</div></div>
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
@@ -410,6 +424,12 @@ function renderSetup() {
   seg('modeSeg', v => S.mode = v);
   seg('roundSeg', v => S.rounds = +v);
   seg('targetSeg', v => S.target = +v);
+  const ffR = $('ffRange'), ffV = $('ffVal'), auto = () => Math.round(100 / (S.players.length - (S.mode === 'gm' ? 1 : 0)));
+  const ffShow = () => { ffV.textContent = S.firstFake == null ? t('firstAuto')(auto()) : S.firstFake + ' %'; };
+  ffR.value = S.firstFake ?? auto(); ffShow();
+  ffR.oninput = () => { S.firstFake = +ffR.value; ffShow(); save(); };
+  ffR.onchange = () => renderSetup(); // show the reset link
+  $('ffReset')?.addEventListener('click', () => { S.firstFake = null; save(); renderSetup(); });
   $('catSel')?.addEventListener('change', e => { S.cat = e.target.value; save(); });
   $('resetBtn')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); save(); renderSetup(); });
   $('startBtn').addEventListener('click', startGame);
@@ -454,13 +474,19 @@ function startGame() {
   const ids = S.players.map(p => p.id);
   const gm = S.mode === 'gm' ? ids[S.gmPtr++ % ids.length] : null;
   const drawers = ids.filter(id => id !== gm);
-  const start = Math.floor(Math.random() * drawers.length);
+  const fake = pick(drawers), fi = drawers.indexOf(fake);
+  // S.firstFake (0–100, or null = plain random) is the chance the fake artist opens the drawing.
+  let start = Math.floor(Math.random() * drawers.length);
+  if (S.firstFake != null) {
+    if (Math.random() * 100 < S.firstFake) start = fi;
+    else { const others = drawers.map((_, i) => i).filter(i => i !== fi); start = pick(others); }
+  }
   const loop = drawers.slice(start).concat(drawers.slice(0, start));
   const order = [];
   for (let r = 0; r < S.rounds; r++) order.push(...loop);
   view = null;
   S.game = {
-    phase: gm ? 'gm' : 'pass', gm, drawers, fake: pick(drawers), order, turn: 0, strokes: [], pending: false,
+    phase: gm ? 'gm' : 'pass', gm, drawers, fake, order, turn: 0, strokes: [], pending: false,
     revealI: 0, accused: null, guessed: null, outcome: null, scored: false,
     ...(gm ? { custom: null } : pickWord(S.cat)),
   };
@@ -716,19 +742,18 @@ function renderDraw() {
       <div class="meta"><b>${esc(catText(g))}</b><br>${t('turn')(Math.floor(g.turn / R) + 1, S.rounds)} · ${t('stroke')(g.turn + 1, g.order.length)}</div>
     </div>
     <div class="track">${loop.map((pid, i) => dotOf(pid, i < k ? 'done' : i === k ? 'now' : '')).join('')}</div>
-    <div class="paper"><canvas id="cv"></canvas></div>
+    <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.turn < R && !g.pending ? `<div class="paperhint" id="phint">${t('drawHint')}</div>` : ''}</div></div>
     <div class="row">
       <button class="btn" id="undo">↺ ${t('undo')}</button>
       <button class="btn primary" id="ok">${t('validate')} →</button>
-    </div>
-    ${g.turn < R ? `<p class="hint">${t('drawHint')}</p>` : ''}`;
+    </div>`;
   const undo = $('undo'), ok = $('ok');
   const sync = () => { undo.disabled = ok.disabled = !g.pending; };
   const api = mountCanvas($('cv'), {
     strokes: () => g.strokes, colorOf: s => P(s.id)?.color,
     draw: {
       can: () => !g.pending,
-      start: p => { const s = { id, pts: [p] }; g.strokes.push(s); return s; },
+      start: p => { $('phint')?.remove(); const s = { id, pts: [p] }; g.strokes.push(s); return s; },
       cancel: () => { g.strokes.pop(); },
       end: () => { g.pending = true; save(); sync(); buzz(8); },
     },
