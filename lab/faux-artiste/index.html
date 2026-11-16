@@ -20,114 +20,151 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f4efe6; --card:#fffdf8; --ink:#1f1d1a; --muted:#776f65; --line:rgba(31,29,26,.12);
+  --bg:#f4efe6; --card:#fffdf8; --ink:#1f1d1a; --muted:#6f675d; --line:rgba(31,29,26,.14);
   --primary:#1f1d1a; --primary-ink:#fffdf8; --accent:#ff5a36; --accent-ink:#fff;
   --ok:#1f8a4c; --ok-ink:#fff; --ok-bg:#dcf1e3; --bad:#c9372c; --bad-bg:#fbe2de;
-  --paper:#fffdf8; --shadow:0 1px 0 rgba(0,0,0,.04),0 8px 22px -10px rgba(40,30,10,.3); --r:6px;
+  --paper:#fffdf8; --shadow:0 1px 0 rgba(0,0,0,.04),0 8px 22px -10px rgba(40,30,10,.3); --r:12px;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#16140f; --card:#221f19; --ink:#f3ede2; --muted:#a59d90; --line:rgba(255,255,255,.1);
+    --bg:#16140f; --card:#221f19; --ink:#f3ede2; --muted:#a59d90; --line:rgba(255,255,255,.12);
     --primary:#f3ede2; --primary-ink:#16140f; --ok:#57cf8a; --ok-ink:#0c2416; --ok-bg:#173524; --bad:#ff6d5e; --bad-bg:#3b1d19;
     --shadow:0 1px 0 rgba(255,255,255,.03),0 10px 24px -12px rgba(0,0,0,.7);
   }
 }
 :root[data-theme="dark"]{
-  --bg:#16140f; --card:#221f19; --ink:#f3ede2; --muted:#a59d90; --line:rgba(255,255,255,.1);
+  --bg:#16140f; --card:#221f19; --ink:#f3ede2; --muted:#a59d90; --line:rgba(255,255,255,.12);
   --primary:#f3ede2; --primary-ink:#16140f; --ok:#57cf8a; --ok-ink:#0c2416; --ok-bg:#173524; --bad:#ff6d5e; --bad-bg:#3b1d19;
   --shadow:0 1px 0 rgba(255,255,255,.03),0 10px 24px -12px rgba(0,0,0,.7);
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Fredoka,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
-body{min-height:100dvh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Fredoka,system-ui,sans-serif;-webkit-tap-highlight-color:transparent;font-size:17px}
+body{min-height:100dvh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overscroll-behavior:none}
 button,input,select{font:inherit;color:inherit}
-header{max-width:560px;margin:0 auto;padding:12px 16px 4px;display:flex;align-items:center;gap:8px}
-.logo{font-family:Caveat,cursive;font-size:clamp(24px, 8vw, 32px);font-weight:700;letter-spacing:.5px;flex:1;min-width:0;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+header{max-width:600px;margin:0 auto;padding:12px 16px 6px;display:flex;align-items:center;gap:8px}
+.logo{font-family:Caveat,cursive;font-size:clamp(28px, 9vw, 36px);font-weight:700;letter-spacing:.5px;flex:1;min-width:0;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .logo span{color:var(--accent)}
-.iconbtn{flex:none;border:1px solid var(--line);background:transparent;border-radius:6px;height:38px;min-width:38px;padding:0 12px;cursor:pointer;font-weight:600;font-size:14px}
-main{max-width:560px;margin:0 auto;padding:8px 16px 28px}
+.iconbtn{flex:none;border:1px solid var(--line);background:transparent;border-radius:var(--r);height:48px;min-width:48px;padding:0 12px;cursor:pointer;font-weight:600;font-size:18px;display:inline-flex;align-items:center;justify-content:center}
+.iconbtn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:transparent}
+main{max-width:600px;margin:0 auto;padding:8px 16px 28px}
 h1,h2{margin:.3em 0 .4em;line-height:1.15}
-h2{font-size:24px}
+h2{font-size:27px}
 p{line-height:1.45}
 .muted{color:var(--muted)}
-.card{background:none;border:0;border-top:1px solid var(--line);border-radius:0;padding:16px 0;margin:4px 0}
+.card{background:none;border:0;border-top:1px solid var(--line);border-radius:0;padding:18px 0;margin:4px 0}
 main>.card:first-child{border-top:0}
-.card h3{margin:0 0 10px;font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:1px solid var(--line);background:var(--card);border-radius:6px;min-height:52px;padding:10px 16px;font-size:17px;font-weight:600;cursor:pointer}
+.card h3,.sub{margin:0 0 12px;font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:1px solid var(--line);background:var(--card);border-radius:var(--r);min-height:62px;padding:12px 18px;font-size:19px;font-weight:600;cursor:pointer;transition:transform .08s,opacity .15s}
+.btn:active:not(:disabled){transform:scale(.97)}
 .btn.primary{background:var(--primary);color:var(--primary-ink);border-color:transparent}
 .btn.accent{background:var(--accent);color:var(--accent-ink);border-color:transparent}
-.btn:disabled{opacity:.4;cursor:default}
+.btn:disabled{opacity:.35;cursor:default}
 .btn+.btn{margin-top:10px}
 .row{display:flex;gap:10px}
 .row>.btn{margin-top:0}
-.seg{display:flex;background:var(--bg);border-radius:6px;padding:3px;gap:3px}
-.seg button{flex:1;border:0;background:transparent;border-radius:4px;padding:9px 6px;font-weight:600;font-size:14px;cursor:pointer;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
-.field{margin-top:14px}
-.field label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
-select,input[type=text]{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:11px 12px;font-size:16px}
-.players{display:flex;flex-direction:column;gap:8px}
-.prow{display:flex;align-items:center;gap:8px}
-.swatch{width:36px;height:36px;border-radius:50%;border:0;flex:none;cursor:pointer;font-size:19px;display:flex;align-items:center;justify-content:center;padding:0}
-.prow .reroll{border:0;background:none;font-size:18px;cursor:pointer;width:30px;padding:0;opacity:.7}
+.row+.row,.btn+.row,.row+.btn{margin-top:10px}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:transparent;border-radius:9px;min-height:50px;padding:10px 6px;font-weight:600;font-size:17px;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 0 0 1px var(--line),0 2px 6px -2px rgba(0,0,0,.2)}
+.field{margin-top:18px}
+.field label{display:block;font-size:16px;font-weight:600;margin-bottom:8px}
+select,input[type=text]{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:var(--r);min-height:56px;padding:12px 14px;font-size:18px}
+.players{display:flex;flex-direction:column;gap:10px}
+.prow{display:flex;align-items:center;gap:10px}
+.swatch{width:56px;height:56px;border-radius:50%;border:0;flex:none;cursor:pointer;font-size:30px;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:inset 0 0 0 3px rgba(255,255,255,.3);position:relative}
+.swatch::after{content:'✎';position:absolute;right:-3px;bottom:-3px;width:22px;height:22px;border-radius:50%;background:var(--card);color:var(--ink);font-size:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1px var(--line)}
 .prow input{flex:1;min-width:0}
-.prow .score{font-weight:700;min-width:28px;text-align:center;color:var(--muted)}
-.prow .del{border:0;background:none;font-size:22px;color:var(--muted);cursor:pointer;width:32px}
-.add{margin-top:10px;border:1px dashed var(--line);background:none;border-radius:6px;width:100%;padding:10px;font-weight:600;cursor:pointer;color:var(--muted)}
+.prow .score{font-weight:700;min-width:36px;text-align:center;color:var(--muted);font-size:18px}
+.prow .del{border:0;background:none;font-size:30px;color:var(--muted);cursor:pointer;width:44px;height:48px;padding:0;flex:none}
+.add{margin-top:12px;border:2px dashed var(--line);background:none;border-radius:var(--r);width:100%;min-height:58px;padding:10px;font-weight:600;font-size:17px;cursor:pointer;color:var(--muted)}
+.sticky{position:sticky;bottom:0;padding:14px 0 calc(10px + env(safe-area-inset-bottom));background:linear-gradient(to bottom, transparent, var(--bg) 30%);z-index:3}
 .center{text-align:center}
-.big-name{font-size:34px;font-weight:700;margin:.2em 0}
-.av{display:inline-flex;align-items:center;justify-content:center;width:1.45em;height:1.45em;border-radius:50%;margin-right:.4em;flex:none;vertical-align:middle;line-height:1}
+.big-name{font-size:38px;font-weight:700;margin:.2em 0;display:flex;align-items:center;justify-content:center;flex-wrap:wrap}
+.av{display:inline-flex;align-items:center;justify-content:center;width:1.5em;height:1.5em;border-radius:50%;margin-right:.4em;flex:none;vertical-align:middle;line-height:1}
 .av i{font-style:normal;font-size:.85em}
-.role{border-radius:8px;padding:28px 18px;text-align:center;margin:16px 0}
-.role .k{font-size:14px;text-transform:uppercase;letter-spacing:.08em;opacity:.75;font-weight:600}
-.role .v{font-family:Caveat,cursive;font-size:56px;line-height:1.05;font-weight:700;margin:.15em 0 .3em;overflow-wrap:anywhere}
-.role{background:var(--card);border:1px solid var(--line)}
-.pass{min-height:56dvh;display:flex;flex-direction:column;justify-content:center}
-.drawbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px}
-.drawbar .who{font-size:22px;font-weight:700;display:flex;align-items:center;min-width:0}
+.role{border-radius:14px;padding:30px 18px;text-align:center;margin:18px 0;background:var(--card);border:1px solid var(--line)}
+.role .k{font-size:15px;text-transform:uppercase;letter-spacing:.08em;opacity:.75;font-weight:600}
+.role .v{font-family:Caveat,cursive;font-size:60px;line-height:1.05;font-weight:700;margin:.15em 0 .3em;overflow-wrap:anywhere}
+.pass{min-height:62dvh;display:flex;flex-direction:column;justify-content:center}
+.pass .btn{margin-top:18px}
+.drawbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px}
+.drawbar .who{font-size:26px;font-weight:700;display:flex;align-items:center;min-width:0;animation:pop .35s ease-out}
 .drawbar .who span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.drawbar .meta{font-size:13px;color:var(--muted);text-align:right;min-width:0;max-width:55%}
-.drawbar .meta b{color:var(--ink);font-size:14px}
-.catpill{display:inline-block;background:transparent;border:1px solid var(--line);border-radius:4px;padding:4px 12px;font-size:14px;font-weight:600}
-.paper{position:relative;width:min(100%, calc((100dvh - 230px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 3 / 5));min-width:200px;aspect-ratio:3/5;margin:0 auto 12px;background:var(--paper);border-radius:2px;box-shadow:0 0 0 1px var(--line)}
-.paper canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;border-radius:2px}
-.paper.small{width:min(56%, 240px);min-width:0}
-.hint{text-align:center;font-size:14px;color:var(--muted);margin:10px 0 0}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.chip{display:flex;align-items:center;gap:8px;border:2px solid var(--line);background:var(--card);border-radius:6px;padding:12px;font-weight:600;font-size:16px;cursor:pointer;text-align:left;min-width:0}
+.drawbar .meta{font-size:14px;color:var(--muted);text-align:right;min-width:0;max-width:50%}
+.drawbar .meta b{color:var(--ink);font-size:16px}
+@keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.06)}100%{transform:none}}
+.track{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:0 0 10px;font-size:20px}
+.track .av{margin:0;opacity:.3;transition:opacity .2s,transform .2s}
+.track .av.done{opacity:.55}
+.track .av.now{opacity:1;transform:scale(1.15);box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--c)}
+.catpill{display:inline-block;background:transparent;border:1px solid var(--line);border-radius:8px;padding:5px 14px;font-size:16px;font-weight:600}
+.paper{position:relative;width:min(100%, calc((100dvh - 300px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 3 / 5));min-width:220px;aspect-ratio:3/5;margin:0 auto 12px;background:var(--paper);border-radius:3px;box-shadow:0 0 0 1px var(--line),var(--shadow);overflow:hidden}
+.paper canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+.paper.view{width:min(86%, 360px);min-width:0}
+.zoomctl{position:absolute;right:8px;bottom:8px;display:flex;gap:8px;z-index:2}
+.zoomctl button{width:46px;height:46px;border-radius:50%;border:1px solid rgba(31,29,26,.15);background:rgba(255,253,248,.92);color:#1f1d1a;font-size:24px;font-weight:600;line-height:1;cursor:pointer;padding:0;box-shadow:0 4px 12px -6px rgba(0,0,0,.4);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.zoomctl button:disabled{opacity:.35}
+.zoomctl button[hidden]{display:none}
+.zoomlvl{position:absolute;left:8px;top:8px;z-index:2;background:rgba(31,29,26,.75);color:#fff;font-size:13px;font-weight:600;border-radius:6px;padding:3px 8px;pointer-events:none;transition:opacity .3s}
+.hint{text-align:center;font-size:15px;color:var(--muted);margin:12px 0 0}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.chip{display:flex;align-items:center;gap:8px;border:2px solid var(--line);background:var(--card);border-radius:var(--r);min-height:64px;padding:12px;font-weight:600;font-size:18px;cursor:pointer;text-align:left;min-width:0}
 .chip span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--bg)}
-.verdict{border-radius:8px;padding:22px 16px;text-align:center;margin:8px 0 12px}
+.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--bg);box-shadow:inset 0 0 0 1px var(--ink)}
+.verdict{border-radius:14px;padding:22px 16px;text-align:center;margin:8px 0 12px}
 .verdict.fake{background:var(--accent);color:var(--accent-ink)}
 .verdict.art{background:var(--ok);color:var(--ok-ink)}
-.verdict h2{font-size:28px;margin:.1em 0 .2em}
-.verdict p{margin:0;opacity:.95}
-.word{font-family:Caveat,cursive;font-size:40px;font-weight:700}
+.verdict h2{font-size:30px;margin:.1em 0 .2em}
+.verdict p{margin:0;opacity:.95;font-size:18px}
+.word{font-family:Caveat,cursive;font-size:44px;font-weight:700;line-height:1.05}
 .scores{list-style:none;padding:0;margin:0}
-.scores li{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:17px}
+.scores li{display:flex;align-items:center;gap:8px;padding:11px 0;border-bottom:1px solid var(--line);font-size:18px}
 .scores li:last-child{border-bottom:0}
 .scores .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .scores .gain{font-weight:700;color:var(--ok);min-width:30px;text-align:right}
 .scores .pts{font-weight:700;min-width:30px;text-align:right}
-.legend{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;font-size:14px;margin-bottom:12px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;font-size:16px;margin-bottom:14px}
+.legend span{display:inline-flex;align-items:center}
 .compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
-.compare div{background:var(--bg);border-radius:6px;padding:12px;text-align:center}
-.compare small{display:block;color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
-.compare b{font-family:Caveat,cursive;font-size:30px;overflow-wrap:anywhere}
-.match{font-size:14px;text-align:center;font-weight:600}
-.trophy{background:#ffd447;color:#1f1d1a;border-radius:6px;padding:14px;text-align:center;font-weight:700;font-size:18px;margin:12px 0}
-dialog{border:1px solid var(--line);border-radius:8px;padding:0;max-width:min(520px, calc(100vw - 32px));background:var(--card);color:var(--ink)}
-dialog::backdrop{background:rgba(0,0,0,.45)}
-dialog .in{padding:20px 20px 16px;max-height:80dvh;overflow:auto}
-dialog ol{padding-left:20px;line-height:1.5}
-dialog li{margin-bottom:6px}
-.link{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:14px;padding:8px;display:block;margin:10px auto 0}
+.compare div{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:12px;text-align:center}
+.compare small{display:block;color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em}
+.compare b{font-family:Caveat,cursive;font-size:32px;overflow-wrap:anywhere}
+.match{font-size:16px;text-align:center;font-weight:600}
+.trophy{background:#ffd447;color:#1f1d1a;border-radius:var(--r);padding:16px;text-align:center;font-weight:700;font-size:20px;margin:12px 0}
+.note{text-align:center;font-size:14px;color:var(--muted);margin:-4px 0 12px}
+dialog{border:1px solid var(--line);border-radius:16px;padding:0;width:min(520px, calc(100vw - 24px));max-width:none;background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog .in{padding:22px 20px 18px;max-height:84dvh;overflow:auto}
+dialog ol{padding-left:22px;line-height:1.5;font-size:17px}
+dialog li{margin-bottom:8px}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:16px;padding:12px;min-height:48px;display:block;margin:10px auto 0}
+.pal{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.pal button{aspect-ratio:1;border-radius:50%;border:0;box-shadow:inset 0 0 0 2px rgba(128,128,128,.35);font-size:24px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
+.pal button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--card),0 0 0 6px var(--ink)}
+.emo{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:18px}
+.emo button{aspect-ratio:1;font-size:28px;border-radius:10px;border:0;background:var(--bg);cursor:pointer;padding:0}
+.emo button.taken{opacity:.3}
+.emo button[aria-pressed="true"]{box-shadow:inset 0 0 0 3px var(--ink);opacity:1}
+.galhead{display:flex;align-items:center;gap:12px;margin:4px 0 14px}
+.galhead h2{flex:1;margin:0}
+.galhead .t{flex:1;min-width:0}
+.galhead .t small{color:var(--muted);font-size:15px}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px 12px}
+.thumb{border:0;background:none;padding:0;text-align:left;cursor:pointer;min-width:0}
+.thumb canvas{width:100%;aspect-ratio:3/5;display:block;border-radius:3px;box-shadow:0 0 0 1px var(--line),var(--shadow);background:var(--paper)}
+.thumb b{font-family:Caveat,cursive;font-size:28px;display:block;line-height:1.05;margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.thumb small{color:var(--muted);font-size:14px}
+.empty{text-align:center;padding:48px 12px;color:var(--muted);font-size:17px}
+.empty div{font-size:56px;margin-bottom:8px}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">Faux <span>Artiste</span></div>
   <button class="iconbtn" id="quitBtn" hidden></button>
+  <button class="iconbtn" id="galBtn" aria-pressed="false">🖼️</button>
   <button class="iconbtn" id="rulesBtn" aria-label="?">?</button>
   <button class="iconbtn" id="langBtn"></button>
 </header>
@@ -137,7 +174,8 @@ dialog li{margin-bottom:6px}
 <script src="words.js?v=2"></script>
 <script>
 const KEY = 'faux-artiste-v1';
-const COLORS = ['#e63946','#1d6fe0','#22994a','#f08c00','#8e44ad','#e754a8','#0fa3a3','#7a5530','#2b2b2b','#c9a400'];
+// Ordered so the first players get the most distinct hues; all readable on the cream paper.
+const COLORS = ['#e02424','#1d5fe0','#16a34a','#f08000','#8b2fc9','#1a1a1a','#e8459c','#0aa5c0','#8a5a2b','#8f96a3'];
 const MAX_PLAYERS = 10;
 const EMOJIS = ['🦊','🐙','🐸','🦉','🐢','🦄','🐝','🦀','🐳','🦩','🐼','🦁','🐧','🐌','🦔','🐨','🐯','🦖','🍄','🌵','🌻','🍉','🍕','🎈','🚀','⭐','🌙','🎩','👾','🤖','🐞','🦋','🍩','🥑','🐠','🦜'];
 const freeEmoji = (except) => pick(EMOJIS.filter(e => !S.players.some(p => p.emoji === e) && e !== except));
@@ -159,7 +197,7 @@ const T = {
     memorize: 'Mémorise, puis cache l\'écran avant de passer le téléphone.',
     catLabel: 'Catégorie', colon: ' : ', hide: 'Compris, cacher',
     turn: (r, R) => `Tour ${r}/${R}`, stroke: (s, S) => `trait ${s}/${S}`,
-    drawHint: 'Un seul trait, sans lever le doigt.', undo: 'Effacer mon trait', validate: 'Valider',
+    drawHint: 'Un seul trait, sans lever le doigt. Deux doigts pour zoomer.', undo: 'Effacer', validate: 'Valider',
     voteTitle: 'Qui est le faux artiste ?',
     voteHint: 'Discutez ! Puis, à trois, tout le monde pointe un suspect du doigt. Sélectionnez la personne la plus désignée.',
     tie: 'Égalité', revealVote: 'Révéler',
@@ -177,14 +215,19 @@ const T = {
     next: 'Manche suivante', settings: 'Joueurs et réglages', champion: n => `🏆 ${n} remporte la partie !`,
     newGame: 'Nouvelle partie (scores à zéro)', quit: 'Quitter', quitConfirm: 'Abandonner cette manche\u00a0?', quitHint: 'Le dessin et les rôles seront perdus. Les scores sont conservés.', keepPlaying: 'Continuer', quitRound: 'Quitter',
     gm: 'MJ',
+    gallery: 'Galerie', galEmpty: 'Les dessins de vos parties apparaîtront ici. Les 30 derniers sont conservés.',
+    saved: 'Dessin enregistré dans la galerie 🖼️', del: 'Supprimer ce dessin', delConfirm: 'Supprimer ce dessin ?', delHint: 'Il sera retiré de la galerie pour de bon.',
+    cancel: 'Annuler', delOk: 'Supprimer', color: 'Couleur', avatar: 'Avatar', done: 'OK', back: 'Retour', prev: 'Précédent', next2: 'Suivant',
+    choose: 'Couleur et avatar', zoomIn: 'Zoomer', zoomOut: 'Dézoomer', zoomReset: 'Vue entière',
     rulesTitle: 'Règles du jeu',
     rules: [
       'Chaque joueur prend le téléphone à tour de rôle et découvre le mot secret… sauf un : le <b>faux artiste</b>, qui ne connaît que la catégorie.',
-      'Chacun à son tour ajoute <b>un seul trait</b> au dessin commun, sans lever le doigt. On fait deux tours de table.',
+      'Chacun à son tour ajoute <b>un seul trait</b> au dessin commun, sans lever le doigt. On fait deux tours de table. Pincez avec deux doigts pour zoomer.',
       'Les vrais artistes doivent montrer qu\'ils connaissent le mot sans le rendre trop évident ; le faux artiste doit faire illusion.',
       'Ensuite, on discute, puis tout le monde pointe un suspect. En cas d\'égalité ou d\'erreur, le faux artiste gagne.',
       'S\'il est démasqué, le faux artiste peut encore gagner en devinant le mot.',
       '<b>Points :</b> si le faux artiste gagne, lui (et le maître du jeu) marquent 2 points. Sinon, chaque artiste marque 1 point.',
+      'Chaque dessin terminé est rangé dans la <b>galerie</b> 🖼️ (les 30 derniers).',
     ],
     close: 'Fermer',
   },
@@ -204,7 +247,7 @@ const T = {
     memorize: 'Memorize it, then hide the screen before passing the phone.',
     catLabel: 'Category', colon: ': ', hide: 'Got it, hide',
     turn: (r, R) => `Round ${r}/${R}`, stroke: (s, S) => `line ${s}/${S}`,
-    drawHint: 'One single line, without lifting your finger.', undo: 'Erase my line', validate: 'Confirm',
+    drawHint: 'One single line, without lifting your finger. Two fingers to zoom.', undo: 'Erase', validate: 'Confirm',
     voteTitle: 'Who is the fake artist?',
     voteHint: 'Discuss! Then, on three, everyone points at a suspect. Select the person with the most fingers.',
     tie: 'Tie', revealVote: 'Reveal',
@@ -222,14 +265,19 @@ const T = {
     next: 'Next round', settings: 'Players & settings', champion: n => `🏆 ${n} wins the game!`,
     newGame: 'New game (reset scores)', quit: 'Quit', quitConfirm: 'Abandon this round?', quitHint: 'The drawing and roles will be lost. Scores are kept.', keepPlaying: 'Keep playing', quitRound: 'Quit',
     gm: 'QM',
+    gallery: 'Gallery', galEmpty: 'Drawings from your games will show up here. The last 30 are kept.',
+    saved: 'Drawing saved to the gallery 🖼️', del: 'Delete this drawing', delConfirm: 'Delete this drawing?', delHint: 'It will be removed from the gallery for good.',
+    cancel: 'Cancel', delOk: 'Delete', color: 'Colour', avatar: 'Avatar', done: 'OK', back: 'Back', prev: 'Previous', next2: 'Next',
+    choose: 'Colour and avatar', zoomIn: 'Zoom in', zoomOut: 'Zoom out', zoomReset: 'Whole view',
     rulesTitle: 'How to play',
     rules: [
       'Everyone takes the phone in turn and sees the secret word… except one: the <b>fake artist</b>, who only knows the category.',
-      'In turn, each player adds <b>one single line</b> to the shared drawing, without lifting their finger. Go around the table twice.',
+      'In turn, each player adds <b>one single line</b> to the shared drawing, without lifting their finger. Go around the table twice. Pinch with two fingers to zoom.',
       'Real artists must show they know the word without making it obvious; the fake artist must blend in.',
       'Then discuss, and everyone points at a suspect. On a tie or a wrong guess, the fake artist wins.',
       'If caught, the fake artist can still win by guessing the word.',
       '<b>Points:</b> if the fake artist wins, they (and the question master) score 2 points. Otherwise each artist scores 1 point.',
+      'Every finished drawing goes to the <b>gallery</b> 🖼️ (the last 30).',
     ],
     close: 'Close',
   },
@@ -243,6 +291,11 @@ let S = load() || {
   mode: 'auto', rounds: 2, cat: 'random', target: 5, used: [], gmPtr: 0, game: null,
 };
 S.players.forEach(p => { if (!p.emoji) p.emoji = freeEmoji(); });
+// Move saves from the old palette onto the contrasted one, one distinct colour each.
+S.players.forEach((p, i) => {
+  if (!COLORS.includes(p.color) || S.players.findIndex(x => x.color === p.color) < i)
+    p.color = COLORS.find(c => !S.players.some(x => x !== p && x.color === c));
+});
 if (S.game && S.game.phase === 'reveal') S.game.phase = 'pass'; // never reopen on a secret
 const t = k => T[S.lang][k];
 function uid() { return Math.random().toString(36).slice(2, 9); }
@@ -252,25 +305,57 @@ function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<'
 const P = id => S.players.find(p => p.id === id);
 const pname = (p, i) => (p && p.name.trim()) || `${t('player')} ${(i ?? S.players.indexOf(p)) + 1}`;
 const nameOf = id => esc(pname(P(id)));
-const dotOf = id => `<span class="av" style="background:${P(id).color}"><i>${P(id).emoji}</i></span>`;
+const av = (color, emoji, cls = '') => `<span class="av ${cls}" style="background:${color};--c:${color}"><i>${emoji}</i></span>`;
+const dotOf = (id, cls) => av(P(id).color, P(id).emoji, cls);
 const catById = id => CATEGORIES.find(c => c.id === id);
 const L = () => S.lang === 'fr' ? 0 : 1;
 function wordText(g) { return g.custom ? g.custom.word : catById(g.catId).words[g.wordIdx][L()]; }
 function catText(g) { return g.custom ? g.custom.cat : catById(g.catId)[S.lang]; }
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const buzz = ms => { try { navigator.vibrate?.(ms); } catch {} };
+const $ = id => document.getElementById(id);
 
-const app = document.getElementById('app');
+const app = $('app');
+let view = null; // null | { shot: index } | {} for the gallery grid — not persisted
 function go(phase) { if (S.game) S.game.phase = phase; save(); render(); scrollTo(0, 0); }
 
 function render() {
   document.documentElement.lang = S.lang;
-  document.getElementById('langBtn').textContent = S.lang === 'fr' ? 'EN' : 'FR';
-  const q = document.getElementById('quitBtn');
-  q.hidden = !S.game || S.game.phase === 'result';
-  q.textContent = '✕'; q.title = q.ariaLabel = t('quit');
+  $('langBtn').textContent = S.lang === 'fr' ? 'EN' : 'FR';
   const g = S.game;
+  const q = $('quitBtn');
+  q.hidden = !g || g.phase === 'result' || !!view;
+  q.textContent = '✕'; q.title = q.ariaLabel = t('quit');
+  const gb = $('galBtn');
+  gb.hidden = !!g && g.phase !== 'result';
+  gb.setAttribute('aria-pressed', !!view);
+  gb.title = gb.ariaLabel = t('gallery');
+  $('rulesBtn').title = t('rulesTitle');
+  keepAwake();
+  if (view) return view.shot != null ? renderShot() : renderGallery();
   if (!g) return renderSetup();
   ({ gm: renderGm, pass: renderPass, reveal: renderReveal, draw: renderDraw, vote: renderVote, guess: renderGuess, result: renderResult })[g.phase]();
+}
+
+// Keep the screen on while a round is being played (the phone sits on the table between turns).
+let wake = null;
+async function keepAwake() {
+  const want = !!S.game && !view && document.visibilityState === 'visible';
+  try {
+    if (want && !wake && navigator.wakeLock) { wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => { wake = null; }); }
+    else if (!want && wake) { const w = wake; wake = null; w.release(); }
+  } catch {}
+}
+document.addEventListener('visibilitychange', keepAwake);
+
+// ---------- modal helpers ----------
+const dlg = $('rules');
+function modal(html) { $('rulesBody').innerHTML = html; if (!dlg.open) dlg.showModal(); }
+function ask(title, hint, okLabel, onOk) {
+  modal(`<h2>${title}</h2><p class="muted">${hint}</p>
+    <div class="row"><button class="btn" id="qNo">${t('cancel')}</button><button class="btn accent" id="qYes">${okLabel}</button></div>`);
+  $('qNo').onclick = () => dlg.close();
+  $('qYes').onclick = () => { dlg.close(); onOk(); };
 }
 
 // ---------- setup ----------
@@ -282,10 +367,9 @@ function renderSetup() {
       <h3>${t('players')}</h3>
       <div class="players">${S.players.map((p, i) => `
         <div class="prow" data-id="${p.id}">
-          <button class="swatch" style="background:${p.color}" data-act="color" aria-label="color">${p.emoji}</button>
-          <input type="text" value="${esc(p.name)}" placeholder="${t('player')} ${i + 1}" maxlength="18" data-act="name" autocomplete="off">
-          <button class="reroll" data-act="emoji" aria-label="emoji">🎲</button>
-          <span class="score">${p.score}</span>
+          <button class="swatch" style="background:${p.color}" data-act="pick" aria-label="${t('choose')}">${p.emoji}</button>
+          <input type="text" value="${esc(p.name)}" placeholder="${t('player')} ${i + 1}" maxlength="18" data-act="name" autocomplete="off" enterkeyhint="next">
+          ${S.players.some(x => x.score) ? `<span class="score">${p.score}</span>` : ''}
           ${S.players.length > 3 ? `<button class="del" data-act="del" aria-label="remove">×</button>` : ''}
         </div>`).join('')}
       </div>
@@ -297,43 +381,61 @@ function renderSetup() {
         <button data-v="auto" aria-pressed="${S.mode === 'auto'}">${t('modeAuto')}</button>
         <button data-v="gm" aria-pressed="${S.mode === 'gm'}">${t('modeGm')}</button>
       </div>
-      <p class="muted" style="font-size:14px;margin:8px 2px 0">${S.mode === 'auto' ? t('modeAutoHint') : t('modeGmHint')}</p>
+      <p class="muted" style="font-size:15px;margin:10px 2px 0">${S.mode === 'auto' ? t('modeAutoHint') : t('modeGmHint')}</p>
       ${S.mode === 'auto' ? `<div class="field"><label for="catSel">${t('category')}</label>
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>` : ''}
       <div class="field"><label>${t('rounds')}</label>
         <div class="seg" id="roundSeg">${[1, 2, 3].map(n => `<button data-v="${n}" aria-pressed="${S.rounds === n}">${n}</button>`).join('')}</div></div>
       <div class="field"><label>${t('target')}</label>
         <div class="seg" id="targetSeg">${[3, 5, 7, 10].map(n => `<button data-v="${n}" aria-pressed="${S.target === n}">${n}</button>`).join('')}</div></div>
+      ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
     </div>
-    <button class="btn primary" id="startBtn" ${S.players.length < min ? 'disabled' : ''}>${t('start')}</button>
-    ${S.players.length < min ? `<p class="hint">${t('needPlayers')(min)}</p>` : ''}
-    ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
+    <div class="sticky">
+      <button class="btn primary" id="startBtn" ${S.players.length < min ? 'disabled' : ''}>${t('start')} →</button>
+      ${S.players.length < min ? `<p class="hint">${t('needPlayers')(min)}</p>` : ''}
+    </div>
   `;
   app.querySelectorAll('.prow').forEach(row => {
     const p = P(row.dataset.id);
-    row.querySelector('[data-act=name]').addEventListener('input', e => { p.name = e.target.value; save(); });
-    row.querySelector('[data-act=color]').addEventListener('click', () => {
-      const taken = S.players.map(x => x.color);
-      let i = COLORS.indexOf(p.color);
-      for (let k = 1; k <= COLORS.length; k++) { const c = COLORS[(i + k) % COLORS.length]; if (!taken.includes(c)) { p.color = c; break; } }
-      save(); renderSetup();
+    const inp = row.querySelector('[data-act=name]');
+    inp.addEventListener('input', e => { p.name = e.target.value; save(); });
+    inp.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const all = [...app.querySelectorAll('.prow input')], i = all.indexOf(inp);
+      if (all[i + 1]) all[i + 1].focus(); else inp.blur();
     });
-    row.querySelector('[data-act=emoji]').addEventListener('click', () => { p.emoji = freeEmoji(p.emoji); save(); renderSetup(); });
+    row.querySelector('[data-act=pick]').addEventListener('click', () => openPicker(p));
     row.querySelector('[data-act=del]')?.addEventListener('click', () => { S.players = S.players.filter(x => x !== p); save(); renderSetup(); });
   });
-  document.getElementById('addP')?.addEventListener('click', () => {
+  $('addP')?.addEventListener('click', () => {
     const taken = S.players.map(x => x.color);
     S.players.push({ id: uid(), name: '', color: COLORS.find(c => !taken.includes(c)), emoji: freeEmoji(), score: 0 });
     save(); renderSetup();
     const inputs = app.querySelectorAll('.prow input'); inputs[inputs.length - 1].focus();
   });
-  const seg = (id, fn) => document.getElementById(id).querySelectorAll('button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); save(); renderSetup(); }));
+  const seg = (id, fn) => $(id).querySelectorAll('button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); save(); renderSetup(); }));
   seg('modeSeg', v => S.mode = v);
   seg('roundSeg', v => S.rounds = +v);
   seg('targetSeg', v => S.target = +v);
-  document.getElementById('catSel')?.addEventListener('change', e => { S.cat = e.target.value; save(); });
-  document.getElementById('resetBtn')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); save(); renderSetup(); });
-  document.getElementById('startBtn').addEventListener('click', startGame);
+  $('catSel')?.addEventListener('change', e => { S.cat = e.target.value; save(); });
+  $('resetBtn')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); save(); renderSetup(); });
+  $('startBtn').addEventListener('click', startGame);
+}
+
+// Colour + avatar chooser. Picking something another player has swaps it with them.
+function openPicker(p) {
+  const owner = (k, v) => S.players.find(x => x !== p && x[k] === v);
+  modal(`<h2 style="display:flex;align-items:center">${av(p.color, p.emoji)}${esc(pname(p))}</h2>
+    <div class="sub">${t('color')}</div>
+    <div class="pal">${COLORS.map(c => { const o = owner('color', c); return `<button data-c="${c}" style="background:${c}" aria-pressed="${p.color === c}" aria-label="${c}">${o ? o.emoji : ''}</button>`; }).join('')}</div>
+    <div class="sub">${t('avatar')}</div>
+    <div class="emo">${EMOJIS.map(e => `<button data-e="${e}" class="${owner('emoji', e) ? 'taken' : ''}" aria-pressed="${p.emoji === e}">${e}</button>`).join('')}</div>
+    <button class="btn primary" id="pkOk">${t('done')}</button>`);
+  const swap = (k, v) => { const o = owner(k, v); if (o) o[k] = p[k]; p[k] = v; save(); renderSetup(); openPicker(p); };
+  $('rulesBody').querySelectorAll('[data-c]').forEach(b => b.onclick = () => swap('color', b.dataset.c));
+  $('rulesBody').querySelectorAll('[data-e]').forEach(b => b.onclick = () => swap('emoji', b.dataset.e));
+  $('pkOk').onclick = () => dlg.close();
 }
 
 function pickWord(catFilter) {
@@ -355,6 +457,7 @@ function startGame() {
   const loop = drawers.slice(start).concat(drawers.slice(0, start));
   const order = [];
   for (let r = 0; r < S.rounds; r++) order.push(...loop);
+  view = null;
   S.game = {
     phase: gm ? 'gm' : 'pass', gm, drawers, fake: pick(drawers), order, turn: 0, strokes: [], pending: false,
     revealI: 0, accused: null, guessed: null, outcome: null, scored: false,
@@ -372,20 +475,22 @@ function renderGm() {
       <div class="big-name">${dotOf(g.gm)}${nameOf(g.gm)}</div>
       <p>${t('gmPass')(nameOf(g.gm))}</p>
       <button class="btn primary" id="ok">${t('gmReady')}</button></div>`;
-    document.getElementById('ok').onclick = () => { g.gmOpen = true; renderGm(); };
+    $('ok').onclick = () => { g.gmOpen = true; renderGm(); };
     return;
   }
   app.innerHTML = `<div class="card">
       <h3>${t('gmTitle')} · ${nameOf(g.gm)}</h3>
-      <div class="field"><label for="gc">${t('gmCat')}</label><input type="text" id="gc" maxlength="40" autocomplete="off"></div>
-      <div class="field"><label for="gw">${t('gmWord')}</label><input type="text" id="gw" maxlength="40" autocomplete="off"></div>
-      <button class="btn" id="sug" style="margin-top:14px">🎲 ${t('suggest')}</button>
+      <div class="field"><label for="gc">${t('gmCat')}</label><input type="text" id="gc" maxlength="40" autocomplete="off" enterkeyhint="next"></div>
+      <div class="field"><label for="gw">${t('gmWord')}</label><input type="text" id="gw" maxlength="40" autocomplete="off" enterkeyhint="done"></div>
+      <button class="btn" id="sug" style="margin-top:16px">🎲 ${t('suggest')}</button>
     </div>
-    <button class="btn primary" id="go" disabled>${t('gmGo')}</button>`;
-  const gc = document.getElementById('gc'), gw = document.getElementById('gw'), goB = document.getElementById('go');
+    <button class="btn primary" id="go" disabled>${t('gmGo')} →</button>`;
+  const gc = $('gc'), gw = $('gw'), goB = $('go');
   const upd = () => goB.disabled = !(gc.value.trim() && gw.value.trim());
   gc.oninput = gw.oninput = upd;
-  document.getElementById('sug').onclick = () => {
+  gc.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); gw.focus(); } };
+  gw.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); gw.blur(); } };
+  $('sug').onclick = () => {
     const c = pick(CATEGORIES); gc.value = c[S.lang]; gw.value = pick(c.words)[L()]; upd();
   };
   goB.onclick = () => { g.custom = { cat: gc.value.trim(), word: gw.value.trim() }; delete g.gmOpen; go('pass'); };
@@ -398,96 +503,240 @@ function renderPass() {
     <p class="muted">${t('passTo')}</p>
     <div class="big-name">${dotOf(id)}${nameOf(id)}</div>
     <p class="muted">${t('passHint')}</p>
-    <p class="muted" style="font-size:14px">${g.revealI + 1} / ${g.drawers.length}</p>
+    <p class="muted" style="font-size:15px">${g.revealI + 1} / ${g.drawers.length}</p>
     <button class="btn primary" id="ok">${t('reveal')(nameOf(id))}</button></div>`;
-  document.getElementById('ok').onclick = () => go('reveal');
+  $('ok').onclick = () => go('reveal');
 }
 
 function renderReveal() {
   const g = S.game, id = g.drawers[g.revealI], fake = id === g.fake;
   app.innerHTML = `<div class="pass">
-    <div class="center">${dotOf(id)}<b>${nameOf(id)}</b></div>
+    <div class="center" style="font-size:20px">${dotOf(id)}<b>${nameOf(id)}</b></div>
     <div class="role"><div class="k">${t('catLabel')} · ${esc(catText(g))}</div><div class="k" style="margin-top:14px">${t('yourCard')}</div>
       <div class="v">${fake ? t('fakeName') : esc(wordText(g))}</div></div>
     <p class="center muted">${t('memorize')}</p>
     <button class="btn primary" id="ok">${t('hide')}</button></div>`;
-  document.getElementById('ok').onclick = () => { g.revealI++; go(g.revealI >= g.drawers.length ? 'draw' : 'pass'); };
+  $('ok').onclick = () => { g.revealI++; go(g.revealI >= g.drawers.length ? 'draw' : 'pass'); };
 }
 
-// ---------- drawing ----------
-function drawStrokes(ctx, W, H, strokes, limit = Infinity) {
-  ctx.fillStyle = '#fffdf8'; ctx.fillRect(0, 0, W, H);
+// ---------- drawing surface ----------
+const PAPER = '#fffdf8', MAXZ = 6;
+// Paints strokes in "world" units (w × h); the caller sets the view transform.
+function paint(ctx, w, h, strokes, colorOf, limit = Infinity) {
+  ctx.fillStyle = PAPER; ctx.fillRect(0, 0, w, h);
   ctx.lineCap = ctx.lineJoin = 'round';
-  ctx.lineWidth = Math.max(3, W * 0.011);
+  ctx.lineWidth = Math.max(2.5, w * 0.011);
   let budget = limit;
   for (const s of strokes) {
     if (budget <= 0) break;
     const pts = s.pts.slice(0, Math.max(1, Math.min(s.pts.length, budget)));
     budget -= s.pts.length;
-    ctx.strokeStyle = ctx.fillStyle = P(s.id)?.color || '#222';
-    if (pts.length === 1) { ctx.beginPath(); ctx.arc(pts[0][0] * W, pts[0][1] * H, ctx.lineWidth / 2, 0, 7); ctx.fill(); continue; }
-    ctx.beginPath(); ctx.moveTo(pts[0][0] * W, pts[0][1] * H);
+    ctx.strokeStyle = ctx.fillStyle = colorOf(s) || '#222';
+    if (pts.length === 1) { ctx.beginPath(); ctx.arc(pts[0][0] * w, pts[0][1] * h, ctx.lineWidth / 2, 0, 7); ctx.fill(); continue; }
+    ctx.beginPath(); ctx.moveTo(pts[0][0] * w, pts[0][1] * h);
     for (let i = 1; i < pts.length - 1; i++) {
       const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2;
-      ctx.quadraticCurveTo(pts[i][0] * W, pts[i][1] * H, mx * W, my * H);
+      ctx.quadraticCurveTo(pts[i][0] * w, pts[i][1] * h, mx * w, my * h);
     }
-    const l = pts[pts.length - 1]; ctx.lineTo(l[0] * W, l[1] * H); ctx.stroke();
+    const l = pts[pts.length - 1]; ctx.lineTo(l[0] * w, l[1] * h); ctx.stroke();
   }
 }
+function paintStatic(cv, strokes, colorOf) { paint(cv.getContext('2d'), cv.width, cv.height, strokes, colorOf); }
 
-// Sizes the canvas to its box at device resolution; returns a redraw function.
-function mountCanvas(cv, getStrokes) {
-  const ctx = cv.getContext('2d');
-  let W = 0, H = 0;
-  const fit = () => {
-    const r = cv.getBoundingClientRect(), dpr = Math.min(3, devicePixelRatio || 1);
-    W = cv.width = Math.round(r.width * dpr); H = cv.height = Math.round(r.height * dpr); draw();
+/* Sizes a canvas to its box and adds zoom: pinch / two-finger pan, wheel or ctrl+wheel, double-tap
+   (view-only), and +/− buttons. With o.draw, one finger draws a stroke; a second finger landing right
+   after the stroke starts turns it into a pinch instead. Returns { draw(limit), reset() }. */
+function mountCanvas(cv, o) {
+  const ctx = cv.getContext('2d'), wrap = cv.parentElement;
+  let w = 0, h = 0, dpr = 1;
+  const v = { s: 1, x: 0, y: 0 };
+  const clampS = s => Math.min(MAXZ, Math.max(1, s));
+  const clampV = () => { v.s = clampS(v.s); v.x = Math.min(0, Math.max(w - w * v.s, v.x)); v.y = Math.min(0, Math.max(h - h * v.s, v.y)); };
+
+  const ctl = document.createElement('div'); ctl.className = 'zoomctl';
+  ctl.innerHTML = `<button data-z="reset" title="${t('zoomReset')}" aria-label="${t('zoomReset')}">⤢</button><button data-z="out" title="${t('zoomOut')}" aria-label="${t('zoomOut')}">−</button><button data-z="in" title="${t('zoomIn')}" aria-label="${t('zoomIn')}">+</button>`;
+  const lvl = document.createElement('div'); lvl.className = 'zoomlvl'; lvl.style.opacity = 0;
+  wrap.append(ctl, lvl);
+  const [bReset, bOut, bIn] = ctl.querySelectorAll('button');
+  let lvlTimer = 0;
+  const ui = () => {
+    const zoomed = v.s > 1.01;
+    bReset.hidden = !zoomed; bOut.disabled = !zoomed; bIn.disabled = v.s >= MAXZ - .01;
+    cv.style.touchAction = o.draw || zoomed ? 'none' : 'pan-y';
   };
-  const draw = (limit) => drawStrokes(ctx, W, H, getStrokes(), limit);
+  const showLvl = () => { lvl.textContent = `×${v.s.toFixed(1)}`; lvl.style.opacity = 1; clearTimeout(lvlTimer); lvlTimer = setTimeout(() => lvl.style.opacity = 0, 900); };
+
+  const draw = (limit = Infinity) => {
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = PAPER; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.setTransform(dpr * v.s, 0, 0, dpr * v.s, dpr * v.x, dpr * v.y);
+    paint(ctx, w, h, o.strokes(), o.colorOf, limit);
+    ui();
+  };
+  const fit = () => {
+    const r = cv.getBoundingClientRect(); if (!r.width) return;
+    const k = w ? r.width / w : 1;
+    dpr = Math.min(3, devicePixelRatio || 1); w = r.width; h = r.height;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    v.x *= k; v.y *= k; clampV(); draw();
+  };
+  const zoomAt = (px, py, s) => {
+    const ns = clampS(s), wx = (px - v.x) / v.s, wy = (py - v.y) / v.s;
+    v.s = ns; v.x = px - wx * ns; v.y = py - wy * ns; clampV(); draw(); showLvl();
+  };
+  const reset = () => { v.s = 1; v.x = v.y = 0; draw(); };
+  ctl.onclick = e => {
+    const z = e.target.closest('button')?.dataset.z;
+    if (z === 'in') zoomAt(w / 2, h / 2, v.s * 1.6);
+    else if (z === 'out') zoomAt(w / 2, h / 2, v.s / 1.6);
+    else if (z === 'reset') reset();
+  };
+
+  const local = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  const c01 = n => Math.min(1, Math.max(0, n));
+  const toPaper = ([px, py]) => [c01((px - v.x) / v.s / w), c01((py - v.y) / v.s / h)];
+  const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+
+  const pts = new Map(), ignored = new Set();
+  let mode = null, stroke = null, strokeId = null, strokeT = 0, pinch0 = null, panLast = null;
+  let tap = null, lastTap = { t: 0, p: [0, 0] };
+  const startPinch = () => {
+    const [a, b] = [...pts.values()];
+    mode = 'pinch'; pinch0 = { d: Math.max(10, dist(a, b)), m: mid(a, b), s: v.s, x: v.x, y: v.y };
+  };
+  cv.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (pts.size >= 2) { ignored.add(e.pointerId); return; }
+    const p = local(e);
+    pts.set(e.pointerId, p);
+    try { cv.setPointerCapture(e.pointerId); } catch {}
+    if (pts.size === 1) {
+      tap = { t: performance.now(), p };
+      if (o.draw && o.draw.can()) {
+        e.preventDefault(); mode = 'draw'; strokeId = e.pointerId; strokeT = performance.now();
+        stroke = o.draw.start(toPaper(p)); draw();
+      } else if (v.s > 1.01) { e.preventDefault(); mode = 'pan'; panLast = p; }
+      else mode = null;
+    } else {
+      tap = null;
+      if (mode === 'draw') {
+        // A second finger right after touching down means "zoom", not "draw": drop the stroke.
+        if (stroke.pts.length < 15 && performance.now() - strokeT < 350) { o.draw.cancel(); stroke = null; strokeId = null; draw(); }
+        else { pts.delete(e.pointerId); ignored.add(e.pointerId); return; }
+      }
+      e.preventDefault(); startPinch();
+    }
+  });
+  cv.addEventListener('pointermove', e => {
+    if (!pts.has(e.pointerId)) return;
+    if (mode === 'draw' && e.pointerId === strokeId) {
+      const co = e.getCoalescedEvents?.();
+      for (const ev of (co && co.length ? co : [e])) {
+        const p = toPaper(local(ev)), l = stroke.pts[stroke.pts.length - 1];
+        if (Math.hypot(p[0] - l[0], p[1] - l[1]) > 0.003 / v.s) stroke.pts.push(p);
+      }
+      draw(); return;
+    }
+    const p = local(e);
+    pts.set(e.pointerId, p);
+    if (tap && dist(tap.p, p) > 10) tap = null;
+    if (mode === 'pinch' && pts.size >= 2) {
+      const [a, b] = [...pts.values()], m = mid(a, b);
+      const ns = clampS(pinch0.s * dist(a, b) / pinch0.d);
+      const wx = (pinch0.m[0] - pinch0.x) / pinch0.s, wy = (pinch0.m[1] - pinch0.y) / pinch0.s;
+      v.s = ns; v.x = m[0] - wx * ns; v.y = m[1] - wy * ns; clampV(); draw(); showLvl();
+    } else if (mode === 'pan') {
+      v.x += p[0] - panLast[0]; v.y += p[1] - panLast[1]; panLast = p; clampV(); draw();
+    }
+  });
+  const up = e => {
+    if (ignored.delete(e.pointerId)) return;
+    if (!pts.has(e.pointerId)) return;
+    pts.delete(e.pointerId);
+    if (mode === 'draw' && e.pointerId === strokeId) {
+      mode = null; strokeId = null; const s = stroke; stroke = null; o.draw.end(s); draw(); return;
+    }
+    if (mode === 'pinch') {
+      if (pts.size === 1) { mode = 'pan'; panLast = [...pts.values()][0]; } else if (!pts.size) mode = null;
+      return;
+    }
+    if (!pts.size) mode = null;
+    // Double-tap toggles zoom on view-only canvases.
+    if (!o.draw && tap && e.type === 'pointerup' && performance.now() - tap.t < 300) {
+      const now = performance.now();
+      if (now - lastTap.t < 320 && dist(lastTap.p, tap.p) < 30) { v.s > 1.01 ? reset() : zoomAt(tap.p[0], tap.p[1], 2.5); lastTap.t = 0; }
+      else lastTap = { t: now, p: tap.p };
+    }
+    tap = null;
+  };
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => cv.addEventListener(ev, up));
+  cv.addEventListener('wheel', e => {
+    const [px, py] = local(e);
+    if (e.ctrlKey || e.metaKey) { e.preventDefault(); zoomAt(px, py, v.s * Math.exp(-e.deltaY * 0.01)); }
+    else if (v.s > 1.01) { e.preventDefault(); v.x -= e.deltaX; v.y -= e.deltaY; clampV(); draw(); }
+  }, { passive: false });
+  // Safari trackpad pinch (only when no touch pointers are down, so iOS touch pinch isn't counted twice).
+  let gs0 = 1;
+  cv.addEventListener('gesturestart', e => { e.preventDefault(); gs0 = v.s; });
+  cv.addEventListener('gesturechange', e => { e.preventDefault(); if (pts.size) return; const [px, py] = local(e); zoomAt(px, py, gs0 * e.scale); });
+
   new ResizeObserver(fit).observe(cv);
   fit();
-  return draw;
+  return { draw, reset };
 }
 
+// Replay animation + PNG export, shared by the result screen and the gallery.
+function replayer(api, strokes) {
+  let anim = 0;
+  return () => {
+    cancelAnimationFrame(anim);
+    const total = strokes.reduce((n, s) => n + s.pts.length, 0), t0 = performance.now(), dur = Math.min(9000, 700 * strokes.length);
+    const step = now => { const k = Math.min(1, (now - t0) / dur); api.draw(Math.ceil(k * total)); if (k < 1) anim = requestAnimationFrame(step); };
+    anim = requestAnimationFrame(step);
+  };
+}
+function downloadPng(strokes, colorOf, word) {
+  const c = document.createElement('canvas'); c.width = 1200; c.height = 2000;
+  paintStatic(c, strokes, colorOf);
+  c.toBlob(b => {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+    a.download = `faux-artiste-${norm(word) || 'dessin'}.png`; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+}
+
+// ---------- drawing turn ----------
 function renderDraw() {
-  const g = S.game, id = g.order[g.turn], R = g.drawers.length;
+  const g = S.game, id = g.order[g.turn], R = g.drawers.length, k = g.turn % R;
+  const loop = g.order.slice(0, R);
   app.innerHTML = `
     <div class="drawbar">
       <div class="who">${dotOf(id)}<span>${nameOf(id)}</span></div>
       <div class="meta"><b>${esc(catText(g))}</b><br>${t('turn')(Math.floor(g.turn / R) + 1, S.rounds)} · ${t('stroke')(g.turn + 1, g.order.length)}</div>
     </div>
+    <div class="track">${loop.map((pid, i) => dotOf(pid, i < k ? 'done' : i === k ? 'now' : '')).join('')}</div>
     <div class="paper"><canvas id="cv"></canvas></div>
     <div class="row">
-      <button class="btn" id="undo">${t('undo')}</button>
+      <button class="btn" id="undo">↺ ${t('undo')}</button>
       <button class="btn primary" id="ok">${t('validate')} →</button>
     </div>
-    ${g.turn === 0 ? `<p class="hint">${t('drawHint')}</p>` : ''}`;
-  const cv = document.getElementById('cv'), undo = document.getElementById('undo'), ok = document.getElementById('ok');
-  const redraw = mountCanvas(cv, () => g.strokes);
+    ${g.turn < R ? `<p class="hint">${t('drawHint')}</p>` : ''}`;
+  const undo = $('undo'), ok = $('ok');
   const sync = () => { undo.disabled = ok.disabled = !g.pending; };
+  const api = mountCanvas($('cv'), {
+    strokes: () => g.strokes, colorOf: s => P(s.id)?.color,
+    draw: {
+      can: () => !g.pending,
+      start: p => { const s = { id, pts: [p] }; g.strokes.push(s); return s; },
+      cancel: () => { g.strokes.pop(); },
+      end: () => { g.pending = true; save(); sync(); buzz(8); },
+    },
+  });
   sync();
-  let cur = null, pid = null;
-  const pos = e => { const r = cv.getBoundingClientRect(); return [Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height))]; };
-  cv.addEventListener('pointerdown', e => {
-    if (g.pending || cur) return;
-    e.preventDefault(); cv.setPointerCapture(e.pointerId); pid = e.pointerId;
-    cur = { id, pts: [pos(e)] }; g.strokes.push(cur); redraw();
-  });
-  cv.addEventListener('pointermove', e => {
-    if (!cur || e.pointerId !== pid) return;
-    const co = e.getCoalescedEvents?.();
-    for (const ev of (co && co.length ? co : [e])) {
-      const p = pos(ev), l = cur.pts[cur.pts.length - 1];
-      if (Math.hypot(p[0] - l[0], p[1] - l[1]) > 0.003) cur.pts.push(p);
-    }
-    redraw();
-  });
-  const end = e => { if (!cur || e.pointerId !== pid) return; cur = null; g.pending = true; save(); sync(); redraw(); };
-  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => cv.addEventListener(ev, end));
-  undo.onclick = () => { if (!g.pending) return; g.strokes.pop(); g.pending = false; save(); sync(); redraw(); };
+  undo.onclick = () => { if (!g.pending) return; g.strokes.pop(); g.pending = false; save(); sync(); api.draw(); };
   ok.onclick = () => {
     if (!g.pending) return;
-    g.pending = false; g.turn++;
+    g.pending = false; g.turn++; buzz(15);
     if (g.turn >= g.order.length) go('vote'); else { save(); renderDraw(); }
   };
 }
@@ -498,13 +747,13 @@ function renderVote() {
   app.innerHTML = `
     <h2 class="center">${t('voteTitle')}</h2>
     <p class="center muted">${t('voteHint')}</p>
-    <div class="paper small"><canvas id="cv"></canvas></div>
+    <div class="paper view"><canvas id="cv"></canvas></div>
     <div class="grid">${g.drawers.map(id => `<button class="chip" data-id="${id}" aria-pressed="false">${dotOf(id)}<span>${nameOf(id)}</span></button>`).join('')}
       <button class="chip" data-id="tie" aria-pressed="false" style="justify-content:center">⚖️ ${t('tie')}</button></div>
-    <button class="btn accent" id="ok" disabled style="margin-top:14px">${t('revealVote')}</button>`;
-  mountCanvas(document.getElementById('cv'), () => g.strokes);
+    <div class="sticky"><button class="btn accent" id="ok" disabled>${t('revealVote')}</button></div>`;
+  mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color });
   let sel = null;
-  const ok = document.getElementById('ok');
+  const ok = $('ok');
   app.querySelectorAll('.chip').forEach(b => b.onclick = () => {
     sel = b.dataset.id;
     app.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === b));
@@ -535,23 +784,92 @@ function renderGuess() {
   const g = S.game;
   app.innerHTML = `
     <div class="verdict art"><h2>🎯</h2><p>${t('caught')(nameOf(g.fake))}</p></div>
-    <p class="center">${t('guessHint')(nameOf(g.fake))}</p>
-    <div class="center" style="margin-bottom:12px"><span class="catpill">${t('catLabel')}${t('colon')}${esc(catText(g))}</span></div>
-    <input type="text" id="gi" placeholder="${t('guessPh')}" autocomplete="off" maxlength="40">
+    <p class="center" style="font-size:18px">${t('guessHint')(nameOf(g.fake))}</p>
+    <div class="center" style="margin-bottom:14px"><span class="catpill">${t('catLabel')}${t('colon')}${esc(catText(g))}</span></div>
+    <input type="text" id="gi" placeholder="${t('guessPh')}" autocomplete="off" maxlength="40" enterkeyhint="done">
     <div id="out"></div>
     <button class="btn primary" id="ok" style="margin-top:12px">${t('revealWord')}</button>`;
-  const gi = document.getElementById('gi');
-  document.getElementById('ok').onclick = function () {
+  const gi = $('gi'), okB = $('ok');
+  gi.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); okB.click(); } };
+  okB.onclick = function () {
     const guess = gi.value.trim(), word = wordText(g), m = guess && looksRight(guess, word);
     gi.disabled = true; this.remove();
-    document.getElementById('out').innerHTML = `
+    $('out').innerHTML = `
       <div class="compare"><div><small>${t('yourGuess')}</small><b>${guess ? esc(guess) : '🗣️'}</b></div><div><small>${t('theWord')}</small><b>${esc(word)}</b></div></div>
       ${guess ? `<p class="match" style="color:${m ? 'var(--ok)' : 'var(--muted)'}">${m ? t('autoMatch') : t('noMatch')}</p>` : ''}
       <div class="row"><button class="btn ${m ? 'accent' : ''}" id="yes">✓ ${t('gotIt')}</button><button class="btn ${m ? '' : 'primary'}" id="no">✗ ${t('missed')}</button></div>`;
     const done = hit => { g.outcome = { fakeWins: hit, reason: hit ? 'guessed' : 'caught' }; go('result'); };
-    document.getElementById('yes').onclick = () => done(true);
-    document.getElementById('no').onclick = () => done(false);
+    $('yes').onclick = () => done(true);
+    $('no').onclick = () => done(false);
   };
+}
+
+// ---------- gallery (last 30 drawings, newest first, own storage key) ----------
+const GKEY = 'faux-artiste-gallery', GMAX = 30;
+function loadGal() { try { const l = JSON.parse(localStorage.getItem(GKEY)); return Array.isArray(l) ? l : []; } catch { return []; } }
+function saveGal(list) {
+  list = list.slice(0, GMAX);
+  for (;;) {
+    try { localStorage.setItem(GKEY, JSON.stringify(list)); return true; }
+    catch { if (list.length <= 1) return false; list.pop(); } // storage full: drop the oldest
+  }
+}
+function archive(g) {
+  if (!g.strokes.length) return false;
+  const r3 = n => Math.round(n * 1000) / 1000;
+  const entry = {
+    id: uid(), at: Date.now(), fakeWins: g.outcome.fakeWins,
+    catId: g.custom ? null : g.catId, wordIdx: g.custom ? null : g.wordIdx,
+    word: wordText(g), cat: catText(g),
+    players: g.drawers.map(id => { const p = P(id); return { name: pname(p), color: p.color, emoji: p.emoji, fake: id === g.fake }; }),
+    strokes: g.strokes.map(s => ({ i: g.drawers.indexOf(s.id), pts: s.pts.map(([x, y]) => [r3(x), r3(y)]) })),
+  };
+  const list = loadGal(); list.unshift(entry);
+  return saveGal(list);
+}
+const gWord = e => (e.catId && catById(e.catId)?.words[e.wordIdx]?.[L()]) || e.word;
+const gCat = e => (e.catId && catById(e.catId)?.[S.lang]) || e.cat;
+const gColor = e => s => e.players[s.i]?.color;
+const gDate = at => new Date(at).toLocaleString(S.lang, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+function openGallery(shot) { view = shot == null ? {} : { shot }; render(); scrollTo(0, 0); }
+function closeGallery() { view = null; render(); scrollTo(0, 0); }
+
+function renderGallery() {
+  const list = loadGal();
+  app.innerHTML = `
+    <div class="galhead"><button class="iconbtn" id="back" aria-label="${t('back')}">←</button><h2>${t('gallery')}</h2><span class="muted">${list.length}/${GMAX}</span></div>
+    ${list.length ? `<div class="gal">${list.map((e, i) => `<button class="thumb" data-i="${i}">
+        <canvas width="300" height="500"></canvas><b>${esc(gWord(e))}</b><small>${e.fakeWins ? '🎭' : '🎨'} ${gDate(e.at)}</small></button>`).join('')}</div>`
+      : `<div class="empty"><div>🖼️</div>${t('galEmpty')}</div>`}`;
+  $('back').onclick = closeGallery;
+  app.querySelectorAll('.thumb').forEach(b => {
+    const e = list[+b.dataset.i];
+    paintStatic(b.querySelector('canvas'), e.strokes, gColor(e));
+    b.onclick = () => openGallery(+b.dataset.i);
+  });
+}
+
+function renderShot() {
+  const list = loadGal(), i = view.shot, e = list[i];
+  if (!e) return openGallery();
+  app.innerHTML = `
+    <div class="galhead"><button class="iconbtn" id="back" aria-label="${t('back')}">←</button>
+      <div class="t"><div class="word">${esc(gWord(e))}</div><small>${esc(gCat(e))} · ${gDate(e.at)} · ${e.fakeWins ? t('fakeWins') : t('artistsWin')}</small></div></div>
+    <div class="paper"><canvas id="cv"></canvas></div>
+    <div class="legend">${e.players.map(p => `<span>${av(p.color, p.emoji)}${esc(p.name)}${p.fake ? ' 🎭' : ''}</span>`).join('')}</div>
+    <div class="row"><button class="btn" id="replay">▶ ${t('replay')}</button><button class="btn" id="dl">⬇ ${t('save')}</button></div>
+    <div class="row"><button class="btn" id="prev" ${i <= 0 ? 'disabled' : ''}>‹ ${t('prev')}</button><button class="btn" id="nxt" ${i >= list.length - 1 ? 'disabled' : ''}>${t('next2')} ›</button></div>
+    <button class="link" id="del">🗑 ${t('del')}</button>`;
+  const api = mountCanvas($('cv'), { strokes: () => e.strokes, colorOf: gColor(e) });
+  $('back').onclick = () => openGallery();
+  $('replay').onclick = replayer(api, e.strokes);
+  $('dl').onclick = () => downloadPng(e.strokes, gColor(e), gWord(e));
+  $('prev').onclick = () => openGallery(i - 1);
+  $('nxt').onclick = () => openGallery(i + 1);
+  $('del').onclick = () => ask(t('delConfirm'), t('delHint'), t('delOk'), () => {
+    const l = loadGal().filter(x => x.id !== e.id); saveGal(l);
+    l.length ? openGallery(Math.min(i, l.length - 1)) : openGallery();
+  });
 }
 
 // ---------- result ----------
@@ -561,6 +879,7 @@ function applyScore(g) {
   else g.drawers.forEach(id => { if (id !== g.fake) gains[id] = 1; });
   g.gains = gains;
   for (const id in gains) P(id).score += gains[id];
+  g.archived = archive(g);
   g.scored = true;
 }
 
@@ -573,55 +892,36 @@ function renderResult() {
   const champ = ranked[0].score >= S.target && (ranked.length < 2 || ranked[1].score < ranked[0].score) ? ranked[0] : null;
   app.innerHTML = `
     <div class="verdict ${o.fakeWins ? 'fake' : 'art'}"><h2>${o.fakeWins ? t('fakeWins') : t('artistsWin')}</h2><p>${reason}</p></div>
-    <p class="center" style="margin:6px 0">${t('wordWas')}<br><span class="word">${esc(wordText(g))}</span><br><span class="catpill">${esc(catText(g))}</span></p>
+    <p class="center" style="margin:6px 0 12px">${t('wordWas')}<br><span class="word">${esc(wordText(g))}</span><br><span class="catpill">${esc(catText(g))}</span></p>
     ${champ ? `<div class="trophy">${t('champion')(esc(pname(champ)))}</div>` : ''}
     <div class="card">
-      <div class="paper small" style="width:min(80%, 320px)"><canvas id="cv"></canvas></div>
+      <div class="paper view"><canvas id="cv"></canvas></div>
       <div class="legend">${g.drawers.map(id => `<span>${dotOf(id)}${nameOf(id)}${id === g.fake ? ' 🎭' : ''}</span>`).join('')}</div>
+      ${g.archived ? `<p class="note">${t('saved')}</p>` : ''}
       <div class="row"><button class="btn" id="replay">▶ ${t('replay')}</button><button class="btn" id="dl">⬇ ${t('save')}</button></div>
     </div>
     <div class="card"><h3>${t('scores')}</h3><ul class="scores">${ranked.map(p => `<li>${dotOf(p.id)}<span class="n">${esc(pname(p))}${p.id === g.gm ? ` · ${t('gm')}` : ''}${p.id === g.fake ? ' 🎭' : ''}</span>
       <span class="gain">${g.gains[p.id] ? '+' + g.gains[p.id] : ''}</span><span class="pts">${p.score}</span></li>`).join('')}</ul></div>
-    ${champ ? `<button class="btn primary" id="newGame">${t('newGame')}</button>` : `<button class="btn primary" id="next">${t('next')}</button>`}
+    ${champ ? `<button class="btn primary" id="newGame">${t('newGame')}</button>` : `<button class="btn primary" id="next">${t('next')} →</button>`}
     <button class="btn" id="settings">${t('settings')}</button>`;
-  const cv = document.getElementById('cv');
-  const redraw = mountCanvas(cv, () => g.strokes);
-  let anim = 0;
-  document.getElementById('replay').onclick = () => {
-    cancelAnimationFrame(anim);
-    const total = g.strokes.reduce((n, s) => n + s.pts.length, 0), t0 = performance.now(), dur = Math.min(9000, 700 * g.strokes.length);
-    const step = now => { const k = Math.min(1, (now - t0) / dur); redraw(Math.ceil(k * total)); if (k < 1) anim = requestAnimationFrame(step); };
-    anim = requestAnimationFrame(step);
-  };
-  document.getElementById('dl').onclick = () => {
-    redraw();
-    cv.toBlob(b => {
-      const a = document.createElement('a'); a.href = URL.createObjectURL(b);
-      a.download = `faux-artiste-${norm(wordText(g)) || 'dessin'}.png`; a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-    });
-  };
-  document.getElementById('next')?.addEventListener('click', startGame);
-  document.getElementById('newGame')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); startGame(); });
-  document.getElementById('settings').onclick = () => { S.game = null; save(); render(); scrollTo(0, 0); };
+  const colorOf = s => P(s.id)?.color;
+  const api = mountCanvas($('cv'), { strokes: () => g.strokes, colorOf });
+  $('replay').onclick = replayer(api, g.strokes);
+  $('dl').onclick = () => downloadPng(g.strokes, colorOf, wordText(g));
+  $('next')?.addEventListener('click', startGame);
+  $('newGame')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); startGame(); });
+  $('settings').onclick = () => { S.game = null; save(); render(); scrollTo(0, 0); };
 }
 
 // ---------- chrome ----------
-document.getElementById('langBtn').onclick = () => { S.lang = S.lang === 'fr' ? 'en' : 'fr'; save(); render(); };
-document.getElementById('quitBtn').onclick = () => {
-  const d = document.getElementById('rules');
-  document.getElementById('rulesBody').innerHTML = `<h2>${t('quitConfirm')}</h2><p class="muted">${t('quitHint')}</p>
-    <div class="row"><button class="btn" id="qNo">${t('keepPlaying')}</button><button class="btn accent" id="qYes">${t('quitRound')}</button></div>`;
-  document.getElementById('qNo').onclick = () => d.close();
-  document.getElementById('qYes').onclick = () => { d.close(); S.game = null; save(); render(); scrollTo(0, 0); };
-  d.showModal();
+$('langBtn').onclick = () => { S.lang = S.lang === 'fr' ? 'en' : 'fr'; save(); render(); };
+$('galBtn').onclick = () => view ? closeGallery() : openGallery();
+$('quitBtn').onclick = () => ask(t('quitConfirm'), t('quitHint'), t('quitRound'), () => { S.game = null; save(); render(); scrollTo(0, 0); });
+$('rulesBtn').onclick = () => {
+  modal(`<h2>${t('rulesTitle')}</h2><ol>${t('rules').map(r => `<li>${r}</li>`).join('')}</ol>
+    <button class="btn primary" onclick="this.closest('dialog').close()">${t('close')}</button>`);
 };
-document.getElementById('rulesBtn').onclick = () => {
-  document.getElementById('rulesBody').innerHTML = `<h2>${t('rulesTitle')}</h2><ol>${t('rules').map(r => `<li>${r}</li>`).join('')}</ol>
-    <button class="btn primary" onclick="this.closest('dialog').close()">${t('close')}</button>`;
-  document.getElementById('rules').showModal();
-};
-document.getElementById('rules').addEventListener('click', e => { if (e.target.tagName === 'DIALOG') e.target.close(); });
+dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 
 render();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js');
