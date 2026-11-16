@@ -101,7 +101,7 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:52px
 .drawbar .meta{font-size:14px;color:var(--muted);text-align:right;min-width:0;max-width:50%}
 .drawbar .meta b{color:var(--ink);font-size:16px}
 @keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.06)}100%{transform:none}}
-.track{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;margin:0 0 4px;font-size:10px}
+.track{display:flex;gap:5px;justify-content:flex-start;flex-wrap:wrap;margin:0 0 4px 2px;font-size:10px}
 .track .av{margin:0;opacity:.3;transition:opacity .2s,transform .2s}
 .track .av.done{opacity:.55}
 .track .av.now{opacity:1;box-shadow:0 0 0 1.5px var(--bg),0 0 0 3px var(--c)}
@@ -747,8 +747,9 @@ function renderDraw() {
   const loop = g.order.slice(0, R);
   app.innerHTML = `
     <div class="drawbar">
-      <div class="who">${dotOf(id)}<span>${nameOf(id)}</span></div>
-      <div class="meta"><div class="track">${loop.map((pid, i) => dotOf(pid, i < k ? 'done' : i === k ? 'now' : '')).join('')}</div><b>${esc(catText(g))}</b><br>${t('turn')(Math.floor(g.turn / R) + 1, S.rounds)} · ${t('stroke')(g.turn + 1, g.order.length)}</div>
+      <div style="min-width:0"><div class="track">${loop.map((pid, i) => dotOf(pid, i < k ? 'done' : i === k ? 'now' : '')).join('')}</div>
+        <div class="who">${dotOf(id)}<span>${nameOf(id)}</span></div></div>
+      <div class="meta"><b>${esc(catText(g))}</b><br>${t('turn')(Math.floor(g.turn / R) + 1, S.rounds)} · ${t('stroke')(g.turn + 1, g.order.length)}</div>
     </div>
     <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.turn < R && !g.pending ? `<div class="paperhint" id="phint">${t('drawHint')}</div>` : ''}</div></div>
     <div class="row">
