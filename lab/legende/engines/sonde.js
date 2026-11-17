@@ -250,5 +250,15 @@ const key=()=>"";
 function prng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 return{T:typeof LAB!=='undefined'?LAB:T,KINDS:Object.keys(T),AL,EL,PAL,
   make(kind,seed,el){const old=Math.random;Math.random=prng(seed);try{const c=mk(kind);placeEls(c,el?el+'+1':'');return c;}finally{Math.random=old;}},
-  render(c,k,paper,labels){S.paper=paper;S.labels=labels;c.img=null;render(c,k);return c.img;}};
+  render(c,k,paper,labels){S.paper=paper;S.labels=labels;c.img=null;render(c,k);return c.img;},
+  island(seed,k,paper){const old=Math.random;Math.random=prng((seed^0x5bd1e995)>>>0);let c;
+    try{c={k:'fond',g:[],seed:R(0,1000),ox:0,oy:0,ms:0,feat:[],fsig:'',lu:1,lp:0,lp2:0,els:[],esig:null,sp:spurs(),na:.55,flip:false,img:null};c.ms=c.seed;
+      // rounded-rectangle inset (corners cut on a 22 mm radius) pushed in by low and mid noise: bays, capes, round corners
+      const rs=R(0,1000),RR=22,rim=(x,y)=>5+6.5*Math.max(-.35,vn(x/16,y/16,rs))+2.6*vn(x/6,y/6,rs+1)+.8*vn(x/2.2,y/2.2,rs+2);
+      const inset=(x,y)=>{const ex=Math.min(x,W-x),ey=Math.min(y,H-y);return ex<RR&&ey<RR?RR-Math.hypot(RR-ex,RR-ey):Math.min(ex,ey);};
+      c.h=(x,y)=>{const e=Math.min(x,W-x,y,H-y),w=ss(e/BL);
+        const b=CL+spurV(c,x,y)+w*(c.na*fbm(x,y,c.seed)+2.2*ss((inset(x,y)-rim(x,y))/4.5));
+        return b+(.24*vn(x/3,y/3,c.seed+5)+.11*vn(x/1.4,y/1.4,c.seed+6))*Math.exp(-b*b/.4)*ss(e/5);};
+      deco(c);}finally{Math.random=old;}
+    S.paper=paper;S.labels=false;render(c,k);return{img:c.img,h:c.h};}};
 })();

@@ -178,7 +178,8 @@ dialog .act{display:flex;justify-content:flex-end;gap:8px}
   <section>
     <h2>Dos</h2>
     <div><span class="lab">Papier</span><div class="seg" id="paper"><button data-v="light">Clair</button><button data-v="dark">Sombre</button></div></div>
-    <p class="sub" style="margin:0">Les dos se raccordent entre eux quand on pose les cartes côte à côte, comme dans Arpent et Sonde.</p>
+    <label class="toggle">Terres en îles<input id="isles" type="checkbox"></label>
+    <p class="sub" style="margin:0">Les dos se raccordent dans n’importe quel ordre. Avec « Terres en îles », chaque carte terre est entourée de la même mer que les cartes Sonde : terre et mer s’assemblent sans coupure.</p>
   </section>
 </aside>
 <button id="show" title="Afficher le panneau (P)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M13 10l2 2-2 2"/></svg>Panneau</button>
@@ -227,8 +228,8 @@ dialog .act{display:flex;justify-content:flex-end;gap:8px}
 </dialog>
 <div id="print"></div>
 
-<script src="engines/arpent.js?v=1"></script>
-<script src="engines/sonde.js?v=1"></script>
+<script src="engines/arpent.js?v=2"></script>
+<script src="engines/sonde.js?v=2"></script>
 <script src="data.js?v=1"></script>
 <script>
 const $=id=>document.getElementById(id);
@@ -258,7 +259,7 @@ const combo=c=>[...c.sym].sort((a,b)=>a-b).join('');
 const comboName=c=>c.sym.map(t=>SYMN[t].toLowerCase()).join(', ');
 
 // ---------- state ----------
-const S={view:'grid',idx:0,side:'face',gk:2,gap:7,paper:'light',panel:true};
+const S={view:'grid',idx:0,side:'face',gk:2,gap:7,paper:'light',panel:true,isles:true};
 let cards=[];
 const esc=s=>s.replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 const rint=()=>1+Math.floor(Math.random()*2**30);
@@ -272,12 +273,22 @@ function valid(c){return c&&Array.isArray(c.sym)&&c.sym.length===3&&c.sym.every(
 function clean(c){return{sym:c.sym.slice(),text:c.text,back:c.back,seed:Number.isFinite(c.seed)?c.seed:rint(),el:(BACKS[c.back].eng.AL[BACKS[c.back].kind]||[]).includes(c.el)?c.el:''};}
 try{const sv=JSON.parse(localStorage.getItem('legende')||'null');if(sv){Object.assign(S,sv.S||{});if(Array.isArray(sv.cards))cards=sv.cards.filter(valid).map(clean);}}catch(e){}
 if(!cards.length)cards=newDeck();
-delete S.labels;if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
+delete S.labels;if(typeof S.isles!=='boolean')S.isles=true;if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
 
 // ---------- back rendering: async queue + caches ----------
 const models=new Map(),imgs=new Map();let queue=[],qt=0;
 const mkey=c=>c.back+'|'+c.seed+'|'+c.el;
-const ikey=(c,k)=>[mkey(c),k,S.paper,dpr()].join('|');
+const ikey=(c,k)=>[mkey(c),k,S.paper,S.isles&&c.back[0]==='a',dpr()].join('|');
+// land backs (Arpent) become islands: the sea around them comes from the Sonde engine with the same edge as every sea back
+function backImage(c,k){const b=BACKS[c.back],land=b.eng.render(model(c),k,S.paper,false);
+  if(!S.isles||c.back[0]!=='a')return land;
+  const sea=SONDE.island(c.seed,k,S.paper),ow=land.width,oh=land.height,st=.5,nx=Math.round(W/st),ny=Math.round(H/st);
+  const mc=document.createElement('canvas');mc.width=nx+1;mc.height=ny+1;const mg=mc.getContext('2d'),im=mg.createImageData(nx+1,ny+1);
+  for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++){const v=sea.h(i*st,j*st),a=v<.06?1:v>.16?0:1-(v-.06)/.1;im.data[(j*(nx+1)+i)*4+3]=a*255;}
+  mg.putImageData(im,0,0);
+  const out=document.createElement('canvas');out.width=ow;out.height=oh;const g=out.getContext('2d');
+  g.drawImage(sea.img,0,0);g.globalCompositeOperation='destination-in';g.imageSmoothingEnabled=true;
+  g.drawImage(mc,-ow/nx/2,-oh/ny/2,ow+ow/nx,oh+oh/ny);g.globalCompositeOperation='destination-over';g.drawImage(land,0,0);return out;}
 function model(c){const key=mkey(c);let m=models.get(key);if(!m){const b=BACKS[c.back];m=b.eng.make(b.kind,c.seed,c.el);models.set(key,m);
   if(models.size>160)models.delete(models.keys().next().value);}return m;}
 function paint(cv,im){cv.width=im.width;cv.height=im.height;cv.getContext('2d').drawImage(im,0,0);}
@@ -285,7 +296,7 @@ function want(c,k,cv){const key=ikey(c,k),im=imgs.get(key);if(im){paint(cv,im);r
 function pump(){busy();if(qt||!queue.length)return;
   qt=setTimeout(()=>{qt=0;const t0=performance.now();
     while(queue.length&&performance.now()-t0<40){const j=queue.shift();if(!j.cv.isConnected)continue;let im=imgs.get(j.key);
-      if(!im){const b=BACKS[j.c.back];im=b.eng.render(model(j.c),j.k,S.paper,false);imgs.set(j.key,im);if(imgs.size>240)imgs.delete(imgs.keys().next().value);}
+      if(!im){im=backImage(j.c,j.k);imgs.set(j.key,im);if(imgs.size>240)imgs.delete(imgs.keys().next().value);}
       paint(j.cv,im);}
     pump();},0);}
 function busy(){const n=queue.length;$('busy').classList.toggle('on',n>0);if(n)$('busy').textContent=`Dessin des dos… ${n}`;}
@@ -336,7 +347,7 @@ function render(){const g=S.view==='grid';$('grid').classList.toggle('hidden',!g
   $('single').classList.toggle('hidden',g);
   document.querySelectorAll('#view button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
   document.querySelectorAll('#paper button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.paper));
-  $('gk').value=S.gk;$('gap').value=S.gap;setGap();$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
+  $('gk').value=S.gk;$('isles').checked=S.isles;$('gap').value=S.gap;setGap();$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
   queue=[];if(g)drawGrid();else drawSingle();stats();save();}
 // a card changed: what: 'text' | 'sym' | 'back'
 function changed(what){const c=cards[S.idx];
@@ -365,6 +376,7 @@ $('flipAll').onclick=$('flip2').onclick=flipAll;
 function setGap(){const g=$('grid');g.style.setProperty('--gap',S.gap*S.gk+'px');g.classList.toggle('tight',S.gap<4);}
 $('gap').oninput=e=>{S.gap=+e.target.value;setGap();save();};
 let gt;$('gk').oninput=e=>{S.gk=+e.target.value;setGap();document.querySelectorAll('#grid .card').forEach(d=>d.style.fontSize=S.gk+'px');clearTimeout(gt);gt=setTimeout(render,250);};
+$('isles').onchange=e=>{S.isles=e.target.checked;render();};
 document.querySelectorAll('#paper button').forEach(b=>b.onclick=()=>{S.paper=b.dataset.v;render();});
 $('add').onclick=()=>{const used=new Set(cards.map(combo));let s=null;for(let a=0;a<6&&!s;a++)for(let b=a;b<6&&!s;b++)for(let d=b;d<6&&!s;d++)if(!used.has(''+a+b+d))s=[a,b,d];
   const back=BK[Math.floor(Math.random()*BK.length)];cards.push({sym:s||[0,0,0],text:'',back,seed:rint(),el:randEl(back)});S.idx=cards.length-1;setView('card');$('eText').focus();};
@@ -401,7 +413,7 @@ async function buildPrint(opt,prog){const box=$('print');box.innerHTML='';
         // the back of the card in slot (row, col) lands mirrored once the sheet is turned over
         const slot=opt.flip==='long'||!faces?(faces?row*PC+(PC-1-col):i):(PR-1-row)*PC+col;
         const d=document.createElement('div');d.className='card back';
-        const b=BACKS[c.back],im=b.eng.render(model(c),PK/dpr(),S.paper,false),img=new Image();img.alt='';img.src=im.toDataURL('image/jpeg',.9);
+        const im=backImage(c,PK/dpr()),img=new Image();img.alt='';img.src=im.toDataURL('image/jpeg',.9);
         d.appendChild(img);d.insertAdjacentHTML('beforeend',overlay(c,true,S.paper==='dark'));pg.appendChild(place(d,slot));
         prog(`Dessin des dos… ${++done} / ${cards.length}`);await tick();}}}
   await Promise.all([...box.querySelectorAll('img')].map(i=>i.decode().catch(()=>{})));}
