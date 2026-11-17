@@ -72,7 +72,7 @@ main{position:relative;overflow:auto;background:var(--stage)}
 .ov.dark .halo{stroke:#1c1c1b}.ov.dark .halo .f{fill:#1c1c1b;stroke:#1c1c1b}
 
 /* ---------- grid view ---------- */
-.grid{display:flex;flex-wrap:wrap;gap:14px;padding:72px 28px 40px;justify-content:center;align-content:flex-start}
+.grid{display:flex;flex-wrap:wrap;gap:var(--gap,14px);padding:72px 28px 40px;justify-content:center;align-content:flex-start}
 .slot{perspective:1400px;cursor:pointer;position:relative;border:0;padding:0;background:none;height:auto;border-radius:0;font:inherit}
 .slot:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:4px}
 .flip{position:relative;transition:transform .55s cubic-bezier(.4,.1,.2,1);transform-style:preserve-3d}
@@ -90,6 +90,8 @@ body.nopanel .single{padding-top:60px}
 .gbar{position:fixed;top:12px;right:20px;z-index:4;display:flex;align-items:center;gap:8px;padding:5px 6px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
 .gbar button{height:30px;display:flex;align-items:center;gap:6px;font-size:13px}
 .gbar input{width:110px;accent-color:var(--accent)}
+.gbar label{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+.grid.tight .slot .no{display:none}
 .gbar .zsep{width:1px;height:20px;background:var(--line)}
 
 /* ---------- single card view ---------- */
@@ -143,7 +145,7 @@ dialog .act{display:flex;justify-content:flex-end;gap:8px}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 @media (max-width:760px){body{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto;min-height:100vh;overflow:auto}aside{border-right:0;border-bottom:1px solid var(--line)}main{min-height:80vh;overflow:visible}
-  .gbar{top:auto;bottom:12px;right:12px}.gbar input{width:70px}.grid{padding:20px 16px 80px;gap:10px}.single{padding:20px 16px}.editor{width:100%}}
+  .gbar{top:auto;bottom:12px;right:12px}.gbar input{width:70px}.grid{padding:20px 16px 80px}.gbar label span{display:none}.single{padding:20px 16px}.editor{width:100%}}
 </style>
 </head>
 <body>
@@ -185,7 +187,8 @@ dialog .act{display:flex;justify-content:flex-end;gap:8px}
   <div class="gbar" id="gbar">
     <button id="flip2" title="Retourner toutes les cartes (F)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.7L4 15.5M4 20v-4.5h4.5"/></svg><span id="flipLab">Dos</span></button>
     <span class="zsep"></span>
-    <input id="gk" type="range" min="1.2" max="4" step="0.1" aria-label="Taille des cartes">
+    <label title="Taille des cartes"><span>Taille</span><input id="gk" type="range" min="1.2" max="4" step="0.1" aria-label="Taille des cartes"></label>
+    <label title="Espace entre les cartes, en mm"><span>Espace</span><input id="gap" type="range" min="0" max="15" step="0.5" aria-label="Espace entre les cartes"></label>
   </div>
   <div class="grid" id="grid"></div>
   <div class="single" id="single">
@@ -255,7 +258,7 @@ const combo=c=>[...c.sym].sort((a,b)=>a-b).join('');
 const comboName=c=>c.sym.map(t=>SYMN[t].toLowerCase()).join(', ');
 
 // ---------- state ----------
-const S={view:'grid',idx:0,side:'face',gk:2,paper:'light',panel:true};
+const S={view:'grid',idx:0,side:'face',gk:2,gap:7,paper:'light',panel:true};
 let cards=[];
 const esc=s=>s.replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 const rint=()=>1+Math.floor(Math.random()*2**30);
@@ -269,7 +272,7 @@ function valid(c){return c&&Array.isArray(c.sym)&&c.sym.length===3&&c.sym.every(
 function clean(c){return{sym:c.sym.slice(),text:c.text,back:c.back,seed:Number.isFinite(c.seed)?c.seed:rint(),el:(BACKS[c.back].eng.AL[BACKS[c.back].kind]||[]).includes(c.el)?c.el:''};}
 try{const sv=JSON.parse(localStorage.getItem('legende')||'null');if(sv){Object.assign(S,sv.S||{});if(Array.isArray(sv.cards))cards=sv.cards.filter(valid).map(clean);}}catch(e){}
 if(!cards.length)cards=newDeck();
-delete S.labels;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
+delete S.labels;if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
 
 // ---------- back rendering: async queue + caches ----------
 const models=new Map(),imgs=new Map();let queue=[],qt=0;
@@ -333,7 +336,7 @@ function render(){const g=S.view==='grid';$('grid').classList.toggle('hidden',!g
   $('single').classList.toggle('hidden',g);
   document.querySelectorAll('#view button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
   document.querySelectorAll('#paper button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.paper));
-  $('gk').value=S.gk;$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
+  $('gk').value=S.gk;$('gap').value=S.gap;setGap();$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
   queue=[];if(g)drawGrid();else drawSingle();stats();save();}
 // a card changed: what: 'text' | 'sym' | 'back'
 function changed(what){const c=cards[S.idx];
@@ -359,7 +362,9 @@ $('prev').onclick=()=>go(-1);$('next').onclick=()=>go(1);
 document.querySelectorAll('#view button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
 const flipAll=()=>{S.side=S.side==='face'?'back':'face';$('grid').classList.toggle('showback',S.side==='back');$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';save();};
 $('flipAll').onclick=$('flip2').onclick=flipAll;
-let gt;$('gk').oninput=e=>{S.gk=+e.target.value;document.querySelectorAll('#grid .card').forEach(d=>d.style.fontSize=S.gk+'px');clearTimeout(gt);gt=setTimeout(render,250);};
+function setGap(){const g=$('grid');g.style.setProperty('--gap',S.gap*S.gk+'px');g.classList.toggle('tight',S.gap<4);}
+$('gap').oninput=e=>{S.gap=+e.target.value;setGap();save();};
+let gt;$('gk').oninput=e=>{S.gk=+e.target.value;setGap();document.querySelectorAll('#grid .card').forEach(d=>d.style.fontSize=S.gk+'px');clearTimeout(gt);gt=setTimeout(render,250);};
 document.querySelectorAll('#paper button').forEach(b=>b.onclick=()=>{S.paper=b.dataset.v;render();});
 $('add').onclick=()=>{const used=new Set(cards.map(combo));let s=null;for(let a=0;a<6&&!s;a++)for(let b=a;b<6&&!s;b++)for(let d=b;d<6&&!s;d++)if(!used.has(''+a+b+d))s=[a,b,d];
   const back=BK[Math.floor(Math.random()*BK.length)];cards.push({sym:s||[0,0,0],text:'',back,seed:rint(),el:randEl(back)});S.idx=cards.length-1;setView('card');$('eText').focus();};
