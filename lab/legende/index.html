@@ -145,6 +145,7 @@ dialog form{display:flex;flex-direction:column;gap:14px}
 dialog select{width:100%;padding:0 8px}
 dialog .prog{font-size:12.5px;color:var(--muted);min-height:18px}
 dialog .act{display:flex;justify-content:flex-end;gap:8px}
+dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
 #print{display:none}
 .page{position:relative;width:210mm;height:297mm;overflow:hidden;background:#fff;break-after:page;page-break-after:always}
 .page:last-child{break-after:auto;page-break-after:auto}
@@ -250,6 +251,12 @@ dialog .act{display:flex;justify-content:flex-end;gap:8px}
     <label class="toggle">Coins arrondis<input id="pRound" type="checkbox"></label>
     <div class="prog" id="pProg"></div>
     <div class="act"><button value="cancel" id="pCancel">Annuler</button><button id="pGo" class="primary" value="go">Générer</button></div>
+  </form>
+</dialog>
+<dialog id="ask">
+  <form method="dialog" id="askForm">
+    <div><h3 id="askT"></h3><p class="sub" id="askM" style="margin:0"></p></div>
+    <div class="act"><button value="no" id="askNo">Annuler</button><button value="yes" id="askYes" class="primary"></button></div>
   </form>
 </dialog>
 <div id="print"></div>
@@ -447,7 +454,12 @@ $('eBack').onchange=e=>{const c=cards[S.idx],was=fam(c.back);c.back=e.target.val
 $('eSeed').onclick=()=>{cards[S.idx].seed=rint();changed('back');};
 $('eEl').onchange=e=>{cards[S.idx].el=e.target.value;changed('back');};
 $('eText').oninput=e=>{cards[S.idx].text=e.target.value;changed('text');};
-$('eDel').onclick=()=>{if(cards.length<=1)return;if(!confirm(`Supprimer la carte ${S.idx+1} ?`))return;cards.splice(S.idx,1);S.idx=Math.min(S.idx,cards.length-1);render();};
+// in-page confirmation (native confirm/alert are blocked in some embedded browsers and then answer « no » silently)
+function ask(title,msg,yes,danger){return new Promise(res=>{const d=$('ask');$('askT').textContent=title;$('askM').textContent=msg;
+  $('askYes').textContent=yes||'OK';$('askNo').hidden=!danger&&danger!==false;$('askYes').classList.toggle('danger',!!danger);
+  d.onclose=()=>res(d.returnValue==='yes');d.returnValue='';d.showModal();$('askYes').focus();});}
+const okBox=(t,m)=>ask(t,m,'OK');
+$('eDel').onclick=async()=>{if(cards.length<=1)return;if(!await ask(`Supprimer la carte ${S.idx+1} ?`,'Son texte, ses symboles et son dos seront perdus.','Supprimer',true))return;cards.splice(S.idx,1);S.idx=Math.min(S.idx,cards.length-1);render();};
 const go=d=>{S.idx=(S.idx+d+cards.length)%cards.length;$('eText').blur();drawSingle();save();};
 $('prev').onclick=()=>go(-1);$('next').onclick=()=>go(1);
 
@@ -466,16 +478,16 @@ $('coast').onchange=e=>{S.coast=e.target.checked;render();};
 document.querySelectorAll('#paper button').forEach(b=>b.onclick=()=>{S.paper=b.dataset.v;render();});
 $('add').onclick=()=>{const used=new Set(cards.map(combo));let s=null;for(let a=0;a<6&&!s;a++)for(let b=a;b<6&&!s;b++)for(let d=b;d<6&&!s;d++)if(!used.has(''+a+b+d))s=[a,b,d];
   const back=BK[Math.floor(Math.random()*BK.length)];cards.push({sym:s||[0,0,0],text:'',back,seed:rint(),el:randEl(back),edges:fam(back).repeat(4)});S.idx=cards.length-1;setView('card');$('eText').focus();};
-$('rebacks').onclick=()=>{if(!confirm('Tirer de nouveaux dos pour toutes les cartes ? Les types de dos sont redistribués ; bords redistribués ; textes et symboles restent.'))return;
+$('rebacks').onclick=async()=>{if(!await ask('Tirer de nouveaux dos ?','Les types de dos et les bords sont redistribués sur toutes les cartes. Les textes et les symboles restent.','Nouveaux dos',false))return;S.deal=null;
   const backs=shuffle(cards.map((_,i)=>BK[i%BK.length]));cards.forEach((c,i)=>{c.back=backs[i];c.seed=rint();c.el=randEl(c.back);});dealEdges(cards);render();};
-$('reset').onclick=()=>{if(!confirm('Recréer le jeu de 56 cartes par défaut ? Toutes tes modifications seront perdues (pense à exporter avant).'))return;cards=newDeck();S.idx=0;render();};
+$('reset').onclick=async()=>{if(!await ask('Recréer le jeu de 56 cartes ?','Toutes tes modifications seront perdues : textes, symboles, dos et bords. Pense à exporter avant.','Nouveau jeu',true))return;cards=newDeck();S.idx=0;S.deal=null;imgs.clear();render();};
 $('export').onclick=()=>{const blob=new Blob([JSON.stringify({version:1,cards},null,1)],{type:'application/json'}),a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=`legende-${cards.length}-cartes.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
 $('import').onclick=()=>$('file').click();
 $('file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
   try{const d=JSON.parse(await f.text()),arr=(Array.isArray(d)?d:d.cards||[]).filter(valid).map(clean);if(!arr.length)throw 0;
-    if(!confirm(`Remplacer le jeu actuel par les ${arr.length} cartes du fichier ?`))return;cards=arr;dealEdges(cards.filter(c=>!c.edges));S.idx=0;render();}
-  catch(err){alert('Fichier non reconnu : il faut un export de Légende.');}};
+    if(!await ask('Importer ce jeu ?',`Le jeu actuel sera remplacé par les ${arr.length} cartes du fichier.`,'Remplacer',true))return;S.deal=null;cards=arr;dealEdges(cards.filter(c=>!c.edges));S.idx=0;render();}
+  catch(err){okBox('Fichier non reconnu','Il faut un fichier exporté depuis Légende.');}};
 addEventListener('keydown',e=>{const t=e.target;if(t.tagName==='TEXTAREA'||t.tagName==='INPUT'&&t.type!=='range'||t.tagName==='SELECT'||e.metaKey||e.ctrlKey||e.altKey)return;
   if(S.view==='card'&&e.key==='ArrowLeft'){go(-1);e.preventDefault();}
   else if(S.view==='card'&&e.key==='ArrowRight'){go(1);e.preventDefault();}
