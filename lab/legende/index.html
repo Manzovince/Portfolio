@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#e9e4d8">
+<meta name="apple-mobile-web-app-title" content="Légende">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Légende</title>
+<style>
+:root{--bg:#f4f1ea;--panel:#fffdf8;--ink:#2c2c2a;--muted:#6f6d66;--line:#e2ddd0;--accent:#854F0B;--accent-soft:#FAEEDA;--stage:#e9e4d8;--warn:#A32D2D;--warn-soft:#FCEBEB}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#1c1c1b;--panel:#262624;--ink:#ecebe6;--muted:#a3a19a;--line:#3a3936;--accent:#EF9F27;--accent-soft:#3a2c14;--stage:#141413;--warn:#F09595;--warn-soft:#3b1d1d}}
+:root[data-theme=dark]{--bg:#1c1c1b;--panel:#262624;--ink:#ecebe6;--muted:#a3a19a;--line:#3a3936;--accent:#EF9F27;--accent-soft:#3a2c14;--stage:#141413;--warn:#F09595;--warn-soft:#3b1d1d}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;grid-template-columns:272px 1fr;height:100vh;overflow:hidden}
+aside{background:var(--panel);border-right:1px solid var(--line);padding:18px 18px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
+h1{font-size:17px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px}
+h1 svg{color:var(--accent)}
+.sub{color:var(--muted);font-size:12.5px;margin:4px 0 0}
+section{display:flex;flex-direction:column;gap:12px;padding-top:16px;border-top:1px solid var(--line)}
+section h2{font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0}
+.row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px}
+.row label{font-size:13px}
+.row output{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);min-width:52px;text-align:right}
+.row input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--accent)}
+button,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;height:34px;padding:0 12px;cursor:pointer}
+button:hover,select:hover{border-color:var(--muted)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme=dark] button.primary,:root:not([data-theme=light]) button.primary{color:#1c1c1b}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]) button.primary{color:#fff}}
+:root[data-theme=light] button.primary{color:#fff}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btns button{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;white-space:nowrap}
+.btns .wide{grid-column:1/-1}
+.toggle{display:flex;align-items:center;justify-content:space-between;font-size:13px;cursor:pointer}
+.toggle input{accent-color:var(--accent);width:16px;height:16px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0;height:30px;font-size:12.5px;background:transparent}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:12.5px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stats span{display:flex;justify-content:space-between;gap:4px}
+.stats .big{grid-column:1/-1;padding-bottom:6px;border-bottom:1px solid var(--line);color:var(--ink)}
+.stats .big+.big{padding-top:0}
+.stats b{color:var(--ink);font-weight:600}
+.stats .bad,.stats .bad b{color:var(--warn)}
+.lab{font-size:13px;margin-bottom:6px;display:block}
+.hidden{display:none!important}
+main{position:relative;overflow:auto;background:var(--stage)}
+.busy{position:fixed;bottom:14px;right:16px;padding:6px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);font-size:12.5px;color:var(--muted);z-index:5;opacity:0;transition:opacity .2s;pointer-events:none}
+.busy.on{opacity:1}
+
+/* ---------- cards (1em = 1 mm) ---------- */
+.card{position:relative;width:63em;height:88em;border-radius:3em;overflow:hidden;flex:none;box-shadow:0 1px 2px rgba(0,0,0,.12),0 6px 20px rgba(0,0,0,.12)}
+.card.face{background:#fff;color:#2c2c2a}
+.half{position:absolute;left:0;width:63em;height:44em;display:flex;align-items:center;justify-content:center;padding:13em 6.5em 4em;text-align:center}
+.half.top{top:0}.half.bot{top:44em;transform:rotate(180deg)}
+.half p{margin:0;font-size:2.7em;line-height:1.35;font-style:italic;font-family:Georgia,"Iowan Old Style","Times New Roman",serif;color:#4a4945;overflow-wrap:anywhere}
+.half p:empty::before{content:"(texte vide)";color:#bbb}
+.mid{position:absolute;left:4em;right:4em;top:44em;border-top:max(1px,.25em) solid #2c2c2a;transform:translateY(-50%)}
+.card canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.card.back{background:var(--line)}
+.ov{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.ov g{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ov .ink{stroke:#2c2c2a;stroke-width:.42}.ov .ink .f{fill:#2c2c2a;stroke:none}
+.ov .halo{stroke:#fff;stroke-width:1.5;opacity:.92}.ov .halo .f{fill:#fff;stroke:#fff;stroke-width:1.1}
+.ov.dark .ink{stroke:#f3efe6}.ov.dark .ink .f{fill:#f3efe6}
+.ov.dark .halo{stroke:#1c1c1b}.ov.dark .halo .f{fill:#1c1c1b;stroke:#1c1c1b}
+
+/* ---------- grid view ---------- */
+.grid{display:flex;flex-wrap:wrap;gap:14px;padding:72px 28px 40px;justify-content:center;align-content:flex-start}
+.slot{perspective:1400px;cursor:pointer;position:relative;border:0;padding:0;background:none;height:auto;border-radius:0;font:inherit}
+.slot:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:4px}
+.flip{position:relative;transition:transform .55s cubic-bezier(.4,.1,.2,1);transform-style:preserve-3d}
+.flip .card{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.flip .card.back{position:absolute;inset:0;transform:rotateY(180deg)}
+.grid.showback .flip{transform:rotateY(180deg)}
+.slot .no{position:absolute;top:-2px;left:50%;transform:translate(-50%,-100%);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;opacity:0;transition:opacity .15s}
+.slot:hover .no,.slot:focus-visible .no{opacity:1}
+.slot.dup::after{content:"";position:absolute;inset:-5px;border:2px dashed var(--warn);border-radius:8px;pointer-events:none}
+.gbar{position:fixed;top:12px;right:20px;z-index:4;display:flex;align-items:center;gap:8px;padding:5px 6px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.gbar button{height:30px;display:flex;align-items:center;gap:6px;font-size:13px}
+.gbar input{width:110px;accent-color:var(--accent)}
+.gbar .zsep{width:1px;height:20px;background:var(--line)}
+
+/* ---------- single card view ---------- */
+.single{min-height:100%;display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start;justify-content:center;padding:28px}
+.pair{display:flex;flex-direction:column;align-items:center;gap:14px}
+.nav{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px}
+.nav button{width:32px;height:30px;padding:0;font-size:16px;border:0;background:transparent}
+.nav button:hover{background:var(--bg)}
+.nav span{font-variant-numeric:tabular-nums;font-size:13px;min-width:74px;text-align:center}
+.sides{display:flex;gap:22px;flex-wrap:wrap;justify-content:center}
+.sides figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:8px}
+.sides figcaption{font-size:11.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.editor{width:300px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:16px}
+.editor h3{font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.editor select{width:100%;padding:0 8px}
+.editor textarea{width:100%;min-height:76px;resize:vertical;font:italic 14px/1.4 Georgia,"Times New Roman",serif;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.editor textarea:focus,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.backrow{display:grid;grid-template-columns:1fr auto;gap:8px}
+.backrow button{width:34px;padding:0;display:grid;place-items:center}
+.symrow{display:grid;grid-template-columns:62px repeat(6,1fr);gap:4px;align-items:center;margin-bottom:4px}
+.symrow>span{font-size:12.5px;color:var(--muted)}
+.symrow button{height:30px;padding:0;display:grid;place-items:center;border-radius:6px}
+.symrow button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.symrow svg{width:16px;height:16px}
+.symrow svg g{fill:none;stroke:currentColor;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}.symrow svg .f{fill:currentColor;stroke:none}
+.warn{font-size:12.5px;color:var(--warn);background:var(--warn-soft);border-radius:8px;padding:8px 10px;margin-top:6px}
+.warn button{height:26px;font-size:12px;margin-top:6px;padding:0 8px}
+.del{color:var(--warn)}
+/* ---------- print / PDF ---------- */
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:18px;width:min(360px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+dialog h3{margin:0 0 4px;font-size:16px}
+dialog form{display:flex;flex-direction:column;gap:14px}
+dialog select{width:100%;padding:0 8px}
+dialog .prog{font-size:12.5px;color:var(--muted);min-height:18px}
+dialog .act{display:flex;justify-content:flex-end;gap:8px}
+#print{display:none}
+.page{position:relative;width:210mm;height:297mm;overflow:hidden;background:#fff;break-after:page;page-break-after:always}
+.page:last-child{break-after:auto;page-break-after:auto}
+.page .card{position:absolute;font-size:1mm;border-radius:0;box-shadow:none}
+.page.round .card{border-radius:3mm}
+.page img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.page .marks{position:absolute;inset:0;width:210mm;height:297mm}
+.page .foot{position:absolute;left:0;right:0;bottom:4mm;text-align:center;font:7pt system-ui,sans-serif;color:#999}
+@page{size:A4 portrait;margin:0}
+@media print{
+  html,body{height:auto;overflow:visible;background:#fff}
+  body{display:block}
+  body>*:not(#print){display:none!important}
+  #print{display:block}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media (max-width:760px){body{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto;min-height:100vh;overflow:auto}aside{border-right:0;border-bottom:1px solid var(--line)}main{min-height:80vh;overflow:visible}
+  .gbar{top:auto;bottom:12px;right:12px}.gbar input{width:70px}.grid{padding:20px 16px 80px;gap:10px}.single{padding:20px 16px}.editor{width:100%}}
+</style>
+</head>
+<body>
+<aside>
+  <div>
+    <h1><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2"/><path d="M8 12h8"/><circle cx="8" cy="6" r=".6" fill="currentColor"/><path d="M10.5 6h2M8 8.3v.01"/></svg>Légende</h1>
+    <p class="sub">Cartes 63 × 88 mm : une face blanche à deux moitiés et un dos topographique (Arpent ou Sonde). 3 symboles par coin parmi 6 : 56 combinaisons.</p>
+  </div>
+
+  <section>
+    <h2>Vue</h2>
+    <div class="seg" id="view"><button data-v="card">Carte</button><button data-v="grid">Grille</button></div>
+    <div id="gridOpts" class="btns"><button id="flipAll" class="wide primary"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.7L4 15.5M4 20v-4.5h4.5"/></svg><span>Retourner toutes les cartes</span></button></div>
+  </section>
+
+  <section>
+    <h2>Jeu</h2>
+    <div class="stats" id="stats"></div>
+    <div class="btns">
+      <button id="add" title="Ajouter une carte avec une combinaison libre">+ Carte</button>
+      <button id="rebacks" title="Tirer de nouveaux dos pour toutes les cartes, sans toucher aux textes ni aux symboles">Nouveaux dos</button>
+      <button id="reset" class="wide" title="Recréer le jeu de 56 cartes par défaut">Nouveau jeu de 56</button>
+      <button id="pdf" class="wide primary" title="Planches A4 de 9 cartes à taille réelle, à enregistrer en PDF"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 9V3h10v6M7 18H4v-8h16v8h-3M7 14h10v7H7z"/></svg>Imprimer / PDF</button>
+      <button id="export">Exporter</button>
+      <button id="import">Importer</button>
+    </div>
+    <input type="file" id="file" accept="application/json,.json" hidden>
+  </section>
+
+  <section>
+    <h2>Dos</h2>
+    <div><span class="lab">Papier</span><div class="seg" id="paper"><button data-v="light">Clair</button><button data-v="dark">Sombre</button></div></div>
+    <label class="toggle">Nom du terrain sur le dos<input id="labels" type="checkbox"></label>
+    <p class="sub" style="margin:0">Les dos se raccordent entre eux quand on pose les cartes côte à côte, comme dans Arpent et Sonde.</p>
+  </section>
+</aside>
+
+<main id="main">
+  <div class="gbar" id="gbar">
+    <button id="flip2" title="Retourner toutes les cartes (F)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.7L4 15.5M4 20v-4.5h4.5"/></svg><span id="flipLab">Dos</span></button>
+    <span class="zsep"></span>
+    <input id="gk" type="range" min="1.2" max="4" step="0.1" aria-label="Taille des cartes">
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="single" id="single">
+    <div class="pair">
+      <div class="nav"><button id="prev" aria-label="Carte précédente" title="Précédente (←)">‹</button><span id="pos"></span><button id="next" aria-label="Carte suivante" title="Suivante (→)">›</button></div>
+      <div class="sides"><figure><div id="sFace"></div><figcaption>Face</figcaption></figure><figure><div id="sBack"></div><figcaption>Dos</figcaption></figure></div>
+    </div>
+    <div class="editor">
+      <div><h3>Dos</h3>
+        <div class="backrow"><select id="eBack" aria-label="Type de dos"></select><button id="eSeed" title="Autre tirage du même type" aria-label="Autre tirage"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg></button></div>
+        <span class="lab" style="margin:10px 0 6px">Élément remarquable</span><select id="eEl" aria-label="Élément remarquable"></select>
+      </div>
+      <div><h3>Face</h3><textarea id="eText" aria-label="Texte descriptif" placeholder="Décris l'illustration…"></textarea></div>
+      <div><h3>Symboles des coins</h3><div id="eSym"></div><div id="eWarn"></div></div>
+      <button id="eDel" class="del">Supprimer cette carte</button>
+    </div>
+  </div>
+  <div class="busy" id="busy"></div>
+</main>
+
+<dialog id="pdlg">
+  <form method="dialog" id="pform">
+    <div><h3>Imprimer / PDF</h3><p class="sub" style="margin:0">Planches A4, 9 cartes à taille réelle (63 × 88 mm). Dans la fenêtre d'impression, choisis « Enregistrer en PDF », échelle 100 %, sans marges.</p></div>
+    <div><span class="lab">Contenu</span><select id="pMode">
+      <option value="duplex">Recto-verso (faces et dos alternés)</option>
+      <option value="face">Faces seulement</option>
+      <option value="back">Dos seulement</option></select></div>
+    <div id="pFlipRow"><span class="lab">Retournement de la feuille</span><select id="pFlip">
+      <option value="long">Bord long (le plus courant)</option>
+      <option value="short">Bord court</option></select></div>
+    <label class="toggle">Traits de coupe<input id="pMarks" type="checkbox" checked></label>
+    <label class="toggle">Coins arrondis<input id="pRound" type="checkbox"></label>
+    <div class="prog" id="pProg"></div>
+    <div class="act"><button value="cancel" id="pCancel">Annuler</button><button id="pGo" class="primary" value="go">Générer</button></div>
+  </form>
+</dialog>
+<div id="print"></div>
+
+<script src="engines/arpent.js?v=1"></script>
+<script src="engines/sonde.js?v=1"></script>
+<script src="data.js?v=1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const W=63,H=88,dpr=()=>devicePixelRatio||1;
+
+// ---------- back types: the 4 terrains of Arpent + the 4 sea floors of Sonde ----------
+const BACKS={};
+for(const[eng,grp,pre]of[[ARPENT,'Arpent — terre','a'],[SONDE,'Sonde — mer','s']])
+  for(const k of eng.KINDS)BACKS[pre+':'+k]={eng,kind:k,name:eng.T[k],grp};
+const BK=Object.keys(BACKS);
+
+// ---------- symbols ----------
+const SYMN=['Point','Trait','Croix','Triangle','Carré','Cercle'];
+function sym(t,x,y,s){const h=s/2,r=v=>+v.toFixed(2);
+  switch(t){
+    case 0:return `<circle class="f" cx="${x}" cy="${y}" r="${r(s*.19)}"/>`;
+    case 1:return `<path d="M${r(x-h)} ${y}H${r(x+h)}"/>`;
+    case 2:{const d=r(h*.78);return `<path d="M${x-d} ${y-d}L${x+d} ${y+d}M${x+d} ${y-d}L${x-d} ${y+d}"/>`;}
+    case 3:return `<path d="M${x} ${r(y-h*.92)}L${r(x+h*.98)} ${r(y+h*.78)}H${r(x-h*.98)}Z"/>`;
+    case 4:{const d=r(h*.78);return `<rect x="${x-d}" y="${y-d}" width="${2*d}" height="${2*d}"/>`;}
+    case 5:return `<circle cx="${x}" cy="${y}" r="${r(h*.88)}"/>`;}}
+// corner, to its right, below it — top-left, then the same turned 180° in the bottom-right
+const SP=[[4.9,4.9],[9.9,4.9],[4.9,9.9]],SS=3.3;
+function corners(s){const g=s.map((t,i)=>sym(t,SP[i][0],SP[i][1],SS)).join('');return g+`<g transform="rotate(180 31.5 44)">${g}</g>`;}
+function overlay(c,halo,dark){return `<svg class="ov${dark?' dark':''}" viewBox="0 0 63 88" aria-hidden="true">${halo?`<g class="halo">${corners(c.sym)}</g>`:''}<g class="ink">${corners(c.sym)}</g></svg>`;}
+const combo=c=>[...c.sym].sort((a,b)=>a-b).join('');
+const comboName=c=>c.sym.map(t=>SYMN[t].toLowerCase()).join(', ');
+
+// ---------- state ----------
+const S={view:'grid',idx:0,side:'face',gk:2,paper:'light',labels:false};
+let cards=[];
+const esc=s=>s.replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const rint=()=>1+Math.floor(Math.random()*2**30);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+function randEl(back,p=.4){const b=BACKS[back],al=b.eng.AL[b.kind]||[];return al.length&&Math.random()<p?al[Math.floor(Math.random()*al.length)]:'';}
+function newDeck(){const out=[],backs=shuffle(BK.flatMap(k=>Array(7).fill(k)));let n=0;
+  for(let a=0;a<6;a++)for(let b=a;b<6;b++)for(let c=b;c<6;c++){const back=backs[n];out.push({sym:[a,b,c],text:TEXTES[n]||'',back,seed:rint(),el:randEl(back)});n++;}
+  return out;}
+function save(){try{localStorage.setItem('legende',JSON.stringify({S,cards}));}catch(e){}}
+function valid(c){return c&&Array.isArray(c.sym)&&c.sym.length===3&&c.sym.every(t=>Number.isInteger(t)&&t>=0&&t<6)&&BACKS[c.back]&&typeof c.text==='string';}
+function clean(c){return{sym:c.sym.slice(),text:c.text,back:c.back,seed:Number.isFinite(c.seed)?c.seed:rint(),el:(BACKS[c.back].eng.AL[BACKS[c.back].kind]||[]).includes(c.el)?c.el:''};}
+try{const sv=JSON.parse(localStorage.getItem('legende')||'null');if(sv){Object.assign(S,sv.S||{});if(Array.isArray(sv.cards))cards=sv.cards.filter(valid).map(clean);}}catch(e){}
+if(!cards.length)cards=newDeck();
+S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
+
+// ---------- back rendering: async queue + caches ----------
+const models=new Map(),imgs=new Map();let queue=[],qt=0;
+const mkey=c=>c.back+'|'+c.seed+'|'+c.el;
+const ikey=(c,k)=>[mkey(c),k,S.paper,S.labels,dpr()].join('|');
+function model(c){const key=mkey(c);let m=models.get(key);if(!m){const b=BACKS[c.back];m=b.eng.make(b.kind,c.seed,c.el);models.set(key,m);
+  if(models.size>160)models.delete(models.keys().next().value);}return m;}
+function paint(cv,im){cv.width=im.width;cv.height=im.height;cv.getContext('2d').drawImage(im,0,0);}
+function want(c,k,cv){const key=ikey(c,k),im=imgs.get(key);if(im){paint(cv,im);return;}queue.push({c:{...c},k,cv,key});pump();}
+function pump(){busy();if(qt||!queue.length)return;
+  qt=setTimeout(()=>{qt=0;const t0=performance.now();
+    while(queue.length&&performance.now()-t0<40){const j=queue.shift();if(!j.cv.isConnected)continue;let im=imgs.get(j.key);
+      if(!im){const b=BACKS[j.c.back];im=b.eng.render(model(j.c),j.k,S.paper,S.labels);imgs.set(j.key,im);if(imgs.size>240)imgs.delete(imgs.keys().next().value);}
+      paint(j.cv,im);}
+    pump();},0);}
+function busy(){const n=queue.length;$('busy').classList.toggle('on',n>0);if(n)$('busy').textContent=`Dessin des dos… ${n}`;}
+
+// ---------- card DOM ----------
+function faceEl(c,k){const d=document.createElement('div');d.className='card face';d.style.fontSize=typeof k==='number'?k+'px':k;
+  const t=esc(c.text);d.innerHTML=`<div class="half top"><p>${t}</p></div><div class="mid"></div><div class="half bot"><p>${t}</p></div>${overlay(c,false,false)}`;return d;}
+function backEl(c,k){const d=document.createElement('div');d.className='card back';d.style.fontSize=k+'px';
+  const cv=document.createElement('canvas');d.appendChild(cv);d.insertAdjacentHTML('beforeend',overlay(c,true,S.paper==='dark'));want(c,k,cv);return d;}
+
+// ---------- grid ----------
+function dupSet(){const m={};cards.forEach(c=>{const k=combo(c);m[k]=(m[k]||0)+1;});return m;}
+function drawGrid(){const g=$('grid'),dm=dupSet();g.innerHTML='';g.classList.toggle('showback',S.side==='back');
+  cards.forEach((c,i)=>{const s=document.createElement('button');s.className='slot'+(dm[combo(c)]>1?' dup':'');s.title=`Carte ${i+1} — ${BACKS[c.back].name} — ${comboName(c)}`;
+    s.setAttribute('aria-label',`Carte ${i+1} : ${c.text||'sans texte'}. Ouvrir pour modifier`);
+    const f=document.createElement('div');f.className='flip';f.style.transitionDelay=Math.min(i*8,400)+'ms';f.append(faceEl(c,S.gk),backEl(c,S.gk));
+    s.innerHTML=`<span class="no">${i+1}</span>`;s.appendChild(f);s.onclick=()=>{S.idx=i;setView('card');};g.appendChild(s);});}
+
+// ---------- single card ----------
+function singleK(){const m=$('main'),narrow=innerWidth<=760,aw=(narrow?innerWidth-32:m.clientWidth-56-300-28),ah=narrow?560:m.clientHeight-56-70;
+  return Math.max(2.4,Math.min(6.5,Math.floor(Math.min((aw-22)/(2*W),ah/H)*10)/10));}
+let sk=0;
+function drawSingleFace(){const c=cards[S.idx];$('sFace').replaceChildren(faceEl(c,sk));}
+function drawSingleBack(){const c=cards[S.idx];$('sBack').replaceChildren(backEl(c,sk));}
+function drawSingle(){if(!cards.length)return;sk=singleK();const c=cards[S.idx];$('pos').textContent=`${S.idx+1} / ${cards.length}`;
+  drawSingleFace();drawSingleBack();
+  $('eBack').value=c.back;fillEls();$('eEl').value=c.el;
+  if(document.activeElement!==$('eText'))$('eText').value=c.text;
+  document.querySelectorAll('#eSym button').forEach(b=>b.classList.toggle('on',c.sym[+b.dataset.r]===+b.dataset.t));
+  warn();}
+function fillEls(){const c=cards[S.idx],b=BACKS[c.back],al=b.eng.AL[b.kind]||[];
+  $('eEl').innerHTML='<option value="">Aucun</option>'+al.map(e=>`<option value="${e}">${b.eng.EL[e]}</option>`).join('');}
+function warn(){const c=cards[S.idx],k=combo(c),o=cards.map((d,i)=>i).filter(i=>i!==S.idx&&combo(cards[i])===k);
+  if(!o.length){$('eWarn').innerHTML='';return;}
+  const used=new Set(cards.map(combo)),free=[];for(let a=0;a<6;a++)for(let b=a;b<6;b++)for(let d=b;d<6;d++)if(!used.has(''+a+b+d))free.push([a,b,d]);
+  $('eWarn').innerHTML=`<div class="warn">Même combinaison que la carte ${o.map(i=>`n° ${i+1}`).join(', ')}.${free.length?`<br><button id="freeBtn">Prendre une combinaison libre (${free.length} restante${free.length>1?'s':''})</button>`:''}</div>`;
+  if(free.length)$('freeBtn').onclick=()=>{c.sym=free[0];changed('sym');};}
+
+// ---------- stats ----------
+function stats(){const n=cards.length,dm=dupSet(),uniq=Object.keys(dm).length,dup=n-uniq,cnt={};cards.forEach(c=>cnt[c.back]=(cnt[c.back]||0)+1);
+  $('stats').innerHTML=`<span class="big"><span><b>${n}</b> carte${n>1?'s':''}</span><span>${(n*.035).toFixed(1).replace('.',',')} cm d'épaisseur</span></span>`+
+    `<span class="big${dup?' bad':''}"><span>Combinaisons <b>${uniq}</b>/56</span><span>${dup?`<b>${dup}</b> doublon${dup>1?'s':''}`:'sans doublon'}</span></span>`+
+    BK.filter(k=>cnt[k]).map(k=>`<span>${BACKS[k].name} <b>${cnt[k]}</b></span>`).join('');}
+
+// ---------- view / sync ----------
+function setView(v){S.view=v;render();}
+function render(){const g=S.view==='grid';$('grid').classList.toggle('hidden',!g);$('gbar').classList.toggle('hidden',!g);$('gridOpts').classList.toggle('hidden',!g);
+  $('single').classList.toggle('hidden',g);
+  document.querySelectorAll('#view button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
+  document.querySelectorAll('#paper button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.paper));
+  $('labels').checked=S.labels;$('gk').value=S.gk;$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
+  queue=[];if(g)drawGrid();else drawSingle();stats();save();}
+// a card changed: what: 'text' | 'sym' | 'back'
+function changed(what){const c=cards[S.idx];
+  if(what==='text'){drawSingleFace();save();return;}
+  if(what==='sym'){drawSingleFace();drawSingleBack();document.querySelectorAll('#eSym button').forEach(b=>b.classList.toggle('on',c.sym[+b.dataset.r]===+b.dataset.t));warn();stats();save();return;}
+  drawSingle();stats();save();}
+
+// ---------- editor wiring ----------
+{const grp={};for(const k of BK)(grp[BACKS[k].grp]=grp[BACKS[k].grp]||[]).push(k);
+  $('eBack').innerHTML=Object.entries(grp).map(([g,ks])=>`<optgroup label="${g}">${ks.map(k=>`<option value="${k}">${BACKS[k].name}</option>`).join('')}</optgroup>`).join('');}
+$('eSym').innerHTML=['Coin','À droite','Dessous'].map((l,r)=>`<div class="symrow" role="group" aria-label="${l}"><span>${l}</span>${SYMN.map((n,t)=>
+  `<button data-r="${r}" data-t="${t}" title="${n}" aria-label="${l} : ${n}"><svg viewBox="0 0 10 10" aria-hidden="true"><g>${sym(t,5,5,7.4)}</g></svg></button>`).join('')}</div>`).join('');
+document.querySelectorAll('#eSym button').forEach(b=>b.onclick=()=>{cards[S.idx].sym[+b.dataset.r]=+b.dataset.t;changed('sym');});
+$('eBack').onchange=e=>{const c=cards[S.idx];c.back=e.target.value;const b=BACKS[c.back];if(!(b.eng.AL[b.kind]||[]).includes(c.el))c.el='';changed('back');};
+$('eSeed').onclick=()=>{cards[S.idx].seed=rint();changed('back');};
+$('eEl').onchange=e=>{cards[S.idx].el=e.target.value;changed('back');};
+$('eText').oninput=e=>{cards[S.idx].text=e.target.value;changed('text');};
+$('eDel').onclick=()=>{if(cards.length<=1)return;if(!confirm(`Supprimer la carte ${S.idx+1} ?`))return;cards.splice(S.idx,1);S.idx=Math.min(S.idx,cards.length-1);render();};
+const go=d=>{S.idx=(S.idx+d+cards.length)%cards.length;$('eText').blur();drawSingle();save();};
+$('prev').onclick=()=>go(-1);$('next').onclick=()=>go(1);
+
+// ---------- sidebar wiring ----------
+document.querySelectorAll('#view button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+const flipAll=()=>{S.side=S.side==='face'?'back':'face';$('grid').classList.toggle('showback',S.side==='back');$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';save();};
+$('flipAll').onclick=$('flip2').onclick=flipAll;
+let gt;$('gk').oninput=e=>{S.gk=+e.target.value;document.querySelectorAll('#grid .card').forEach(d=>d.style.fontSize=S.gk+'px');clearTimeout(gt);gt=setTimeout(render,250);};
+document.querySelectorAll('#paper button').forEach(b=>b.onclick=()=>{S.paper=b.dataset.v;render();});
+$('labels').onchange=e=>{S.labels=e.target.checked;render();};
+$('add').onclick=()=>{const used=new Set(cards.map(combo));let s=null;for(let a=0;a<6&&!s;a++)for(let b=a;b<6&&!s;b++)for(let d=b;d<6&&!s;d++)if(!used.has(''+a+b+d))s=[a,b,d];
+  const back=BK[Math.floor(Math.random()*BK.length)];cards.push({sym:s||[0,0,0],text:'',back,seed:rint(),el:randEl(back)});S.idx=cards.length-1;setView('card');$('eText').focus();};
+$('rebacks').onclick=()=>{if(!confirm('Tirer de nouveaux dos pour toutes les cartes ? Les types de dos sont redistribués ; textes et symboles restent.'))return;
+  const backs=shuffle(cards.map((_,i)=>BK[i%BK.length]));cards.forEach((c,i)=>{c.back=backs[i];c.seed=rint();c.el=randEl(c.back);});render();};
+$('reset').onclick=()=>{if(!confirm('Recréer le jeu de 56 cartes par défaut ? Toutes tes modifications seront perdues (pense à exporter avant).'))return;cards=newDeck();S.idx=0;render();};
+$('export').onclick=()=>{const blob=new Blob([JSON.stringify({version:1,cards},null,1)],{type:'application/json'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=`legende-${cards.length}-cartes.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
+$('import').onclick=()=>$('file').click();
+$('file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{const d=JSON.parse(await f.text()),arr=(Array.isArray(d)?d:d.cards||[]).filter(valid).map(clean);if(!arr.length)throw 0;
+    if(!confirm(`Remplacer le jeu actuel par les ${arr.length} cartes du fichier ?`))return;cards=arr;S.idx=0;render();}
+  catch(err){alert('Fichier non reconnu : il faut un export de Légende.');}};
+addEventListener('keydown',e=>{const t=e.target;if(t.tagName==='TEXTAREA'||t.tagName==='INPUT'&&t.type!=='range'||t.tagName==='SELECT'||e.metaKey||e.ctrlKey||e.altKey)return;
+  if(S.view==='card'&&e.key==='ArrowLeft'){go(-1);e.preventDefault();}
+  else if(S.view==='card'&&e.key==='ArrowRight'){go(1);e.preventDefault();}
+  else if(S.view==='grid'&&e.key.toLowerCase()==='f')flipAll();
+  else if(e.key==='Escape'&&S.view==='card')setView('grid');});
+// ---------- print / PDF: A4 sheets of 3 × 3 cards at real size ----------
+const PC=3,PR=3,MX=(210-PC*W)/2,MY=(297-PR*H)/2,PK=10; // PK: back resolution in px per mm (≈ 254 dpi)
+function cropMarks(){const L=[],xs=[...Array(PC+1).keys()].map(i=>MX+i*W),ys=[...Array(PR+1).keys()].map(j=>MY+j*H),g=1.5,len=MY-g-2;
+  for(const x of xs)L.push(`M${x} ${MY-g}v${-len}M${x} ${297-MY+g}v${len}`);
+  for(const y of ys)L.push(`M${MX-g} ${y}h${-(MX-g-2)}M${210-MX+g} ${y}h${MX-g-2}`);
+  return `<svg class="marks" viewBox="0 0 210 297" aria-hidden="true"><path d="${L.join('')}" stroke="#000" stroke-width=".15" fill="none"/></svg>`;}
+function sheet(label,opt){const p=document.createElement('div');p.className='page'+(opt.round?' round':'');p.innerHTML=(opt.marks?cropMarks():'')+`<div class="foot">${label}</div>`;return p;}
+function place(el,slot){el.style.left=(MX+(slot%PC)*W)+'mm';el.style.top=(MY+Math.floor(slot/PC)*H)+'mm';return el;}
+const tick=()=>new Promise(r=>setTimeout(r,0));
+async function buildPrint(opt,prog){const box=$('print');box.innerHTML='';
+  const per=PC*PR,np=Math.ceil(cards.length/per),faces=opt.mode!=='back',backs=opt.mode!=='face';let done=0;
+  for(let p=0;p<np;p++){const set=cards.slice(p*per,p*per+per);
+    if(faces){const pg=sheet(`Planche ${p+1}/${np} — faces`,opt);set.forEach((c,i)=>pg.appendChild(place(faceEl(c,'1mm'),i)));box.appendChild(pg);}
+    if(backs){const pg=sheet(`Planche ${p+1}/${np} — dos`,opt);box.appendChild(pg);
+      for(let i=0;i<set.length;i++){const c=set[i],col=i%PC,row=Math.floor(i/PC);
+        // the back of the card in slot (row, col) lands mirrored once the sheet is turned over
+        const slot=opt.flip==='long'||!faces?(faces?row*PC+(PC-1-col):i):(PR-1-row)*PC+col;
+        const d=document.createElement('div');d.className='card back';
+        const b=BACKS[c.back],im=b.eng.render(model(c),PK/dpr(),S.paper,S.labels),img=new Image();img.alt='';img.src=im.toDataURL('image/jpeg',.9);
+        d.appendChild(img);d.insertAdjacentHTML('beforeend',overlay(c,true,S.paper==='dark'));pg.appendChild(place(d,slot));
+        prog(`Dessin des dos… ${++done} / ${cards.length}`);await tick();}}}
+  await Promise.all([...box.querySelectorAll('img')].map(i=>i.decode().catch(()=>{})));}
+$('pdf').onclick=()=>{$('pProg').textContent=`${Math.ceil(cards.length/9)} planche(s) de faces et autant de dos.`;$('pGo').disabled=false;$('pdlg').showModal();};
+$('pMode').onchange=e=>$('pFlipRow').classList.toggle('off',e.target.value!=='duplex');
+$('pform').onsubmit=async e=>{if(e.submitter&&e.submitter.value!=='go')return;e.preventDefault();$('pGo').disabled=true;
+  const opt={mode:$('pMode').value,flip:$('pFlip').value,marks:$('pMarks').checked,round:$('pRound').checked};
+  await buildPrint(opt,t=>$('pProg').textContent=t);$('pProg').textContent='Prêt.';$('pdlg').close();await tick();window.print();};
+addEventListener('afterprint',()=>{$('print').innerHTML='';});
+let rt;addEventListener('resize',()=>{if(S.view!=='card')return;clearTimeout(rt);rt=setTimeout(()=>{if(singleK()!==sk)drawSingle();},200);});
+render();
+</script>
+</body>
+</html>
