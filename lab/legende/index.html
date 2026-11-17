@@ -79,6 +79,15 @@ main{position:relative;overflow:auto;background:var(--stage)}
 .flip .card{backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .flip .card.back{position:absolute;inset:0;transform:rotateY(180deg)}
 .grid.showback .flip{transform:rotateY(180deg)}
+.grid.dealt{display:grid;grid-template-columns:repeat(var(--cols),max-content);justify-content:center}
+.turn{transform:rotate(180deg)}
+.seam{position:absolute;z-index:2;pointer-events:none;background:repeating-linear-gradient(45deg,var(--warn) 0 4px,transparent 4px 8px)}
+.seam.r{top:12%;bottom:12%;right:calc(-3px - var(--gap,0px)/2);width:6px}.seam.b{left:12%;right:12%;bottom:calc(-3px - var(--gap,0px)/2);height:6px}
+.dealbox{display:flex;flex-direction:column;gap:10px}
+.dealrow{display:flex;align-items:center;justify-content:space-between;font-size:13px}
+.step{display:flex;align-items:center;gap:6px}.step button{width:28px;height:28px;padding:0;font-size:16px;line-height:1}
+.step output{min-width:22px;text-align:center;font-variant-numeric:tabular-nums}
+.dealmsg{font-size:12.5px;color:var(--muted)}.dealmsg.bad{color:var(--warn)}
 .slot .no{position:absolute;top:-2px;left:50%;transform:translate(-50%,-100%);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;opacity:0;transition:opacity .15s}
 .slot:hover .no,.slot:focus-visible .no{opacity:1}
 .slot.dup::after{content:"";position:absolute;inset:-5px;border:2px dashed var(--warn);border-radius:8px;pointer-events:none}
@@ -167,6 +176,14 @@ dialog .act{display:flex;justify-content:flex-end;gap:8px}
     <h2>Vue</h2>
     <div class="seg" id="view"><button data-v="card">Carte</button><button data-v="grid">Grille</button></div>
     <div id="gridOpts" class="btns"><button id="flipAll" class="wide primary"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.7L4 15.5M4 20v-4.5h4.5"/></svg><span>Retourner toutes les cartes</span></button></div>
+    <div id="dealOpts" class="dealbox">
+      <div><span class="lab">Ordre de la grille</span><div class="seg" id="order"><button data-v="deck">Ordre du jeu</button><button data-v="deal">Raccordée</button></div></div>
+      <div id="dealCtl" class="dealbox">
+        <div class="dealrow"><span>Colonnes</span><div class="step"><button id="cMinus" aria-label="Moins de colonnes">−</button><output id="cOut"></output><button id="cPlus" aria-label="Plus de colonnes">+</button></div></div>
+        <button id="redeal">Nouvelle donne</button>
+        <div class="dealmsg" id="dealMsg"></div>
+      </div>
+    </div>
   </section>
 
   <section>
@@ -268,7 +285,7 @@ const combo=c=>[...c.sym].sort((a,b)=>a-b).join('');
 const comboName=c=>c.sym.map(t=>SYMN[t].toLowerCase()).join(', ');
 
 // ---------- state ----------
-const S={view:'grid',idx:0,side:'face',gk:2,gap:7,paper:'light',panel:true,coast:true};
+const S={view:'grid',idx:0,side:'face',gk:2,gap:7,paper:'light',panel:true,coast:true,order:'deck',dcols:8,deal:null};
 let cards=[];
 const esc=s=>s.replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 const rint=()=>1+Math.floor(Math.random()*2**30);
@@ -293,7 +310,7 @@ function clean(c){return{sym:c.sym.slice(),text:c.text,back:c.back,seed:Number.i
 try{const sv=JSON.parse(localStorage.getItem('legende')||'null');if(sv){Object.assign(S,sv.S||{});if(Array.isArray(sv.cards))cards=sv.cards.filter(valid).map(clean);}}catch(e){}
 if(!cards.length)cards=newDeck();
 if(cards.some(c=>!c.edges)){const miss=cards.filter(c=>!c.edges);dealEdges(miss);}
-delete S.labels;delete S.isles;if(typeof S.coast!=='boolean')S.coast=true;if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
+if(S.order!=='deal')S.order='deck';if(!(S.dcols>=2&&S.dcols<=14))S.dcols=8;delete S.labels;delete S.isles;if(typeof S.coast!=='boolean')S.coast=true;if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
 
 // ---------- back rendering: async queue + caches ----------
 const models=new Map(),imgs=new Map();let queue=[],qt=0;
@@ -336,11 +353,39 @@ function backEl(c,k){const d=document.createElement('div');d.className='card bac
 
 // ---------- grid ----------
 function dupSet(){const m={};cards.forEach(c=>{const k=combo(c);m[k]=(m[k]||0)+1;});return m;}
+// ---------- deal: lay the cards out so that every shared edge is land against land or sea against sea ----------
+// A card may be turned 180° (top↔bottom, left↔right). Depth-first search over the cells in reading order, with cards of
+// identical edges tried once per cell; if no perfect layout turns up, a greedy fill keeps the fewest mismatches.
+const turnE=e=>e[2]+e[3]+e[0]+e[1];
+function edgeAt(d,i){const c=cards[d.order[i]];return d.rot[i]?turnE(c.edges):c.edges;}
+function mismatches(d){const n=d.order.length,cols=d.cols,bad=[];
+  for(let i=0;i<n;i++){const e=edgeAt(d,i);if(i%cols<cols-1&&i+1<n&&edgeAt(d,i+1)[3]!==e[1])bad.push([i,'r']);if(i+cols<n&&edgeAt(d,i+cols)[0]!==e[2])bad.push([i,'b']);}
+  return bad;}
+function deal(cols){const n=cards.length,E=cards.map(c=>[c.edges,turnE(c.edges)]);
+  const fits=(pl,ro,i,e)=>{let m=0;if(i%cols>0&&E[pl[i-1]][ro[i-1]][1]!==e[3])m++;if(i>=cols&&E[pl[i-cols]][ro[i-cols]][2]!==e[0])m++;return m;};
+  for(let att=0;att<40;att++){const pl=[],ro=[],used=new Uint8Array(n),order=shuffle([...Array(n).keys()]);let steps=0;
+    const rec=i=>{if(i===n)return true;if(++steps>6000)return false;const seen=new Set();
+      for(const ci of order){if(used[ci])continue;for(const o of Math.random()<.5?[0,1]:[1,0]){const e=E[ci][o];if(seen.has(e)||fits(pl,ro,i,e))continue;seen.add(e);
+        pl[i]=ci;ro[i]=o;used[ci]=1;if(rec(i+1))return true;used[ci]=0;}}
+      return false;};
+    if(rec(0))return{cols,order:pl,rot:ro};}
+  const pl=[],ro=[],used=new Uint8Array(n);
+  for(let i=0;i<n;i++){let best=null,bm=9;for(const ci of shuffle([...Array(n).keys()])){if(used[ci])continue;for(const o of[0,1]){const m=fits(pl,ro,i,E[ci][o]);if(m<bm){bm=m;best=[ci,o];}}if(!bm)break;}
+    pl[i]=best[0];ro[i]=best[1];used[best[0]]=1;}
+  return{cols,order:pl,rot:ro};}
+function dealOk(d){return d&&d.cols===S.dcols&&Array.isArray(d.order)&&d.order.length===cards.length&&new Set(d.order).size===cards.length&&d.order.every(v=>v>=0&&v<cards.length)&&Array.isArray(d.rot);}
 function drawGrid(){const g=$('grid'),dm=dupSet();g.innerHTML='';g.classList.toggle('showback',S.side==='back');
-  cards.forEach((c,i)=>{const s=document.createElement('button');s.className='slot'+(dm[combo(c)]>1?' dup':'');s.title=`Carte ${i+1} — ${BACKS[c.back].name} — ${comboName(c)}`;
+  const dealt=S.order==='deal';if(dealt&&!dealOk(S.deal))S.deal=deal(S.dcols);
+  g.classList.toggle('dealt',dealt);g.style.setProperty('--cols',S.dcols);
+  const bad=dealt?mismatches(S.deal):[],seams={};bad.forEach(([i,s])=>(seams[i]=seams[i]||[]).push(s));
+  $('dealMsg').textContent=!dealt?'':bad.length?`${bad.length} jointure${bad.length>1?'s':''} sans raccord (en rouge). Essaie une autre donne ou un autre nombre de colonnes.`:`Toutes les jointures se raccordent (${Math.ceil(cards.length/S.dcols)} rangées).`;
+  $('dealMsg').classList.toggle('bad',bad.length>0);
+  (dealt?S.deal.order:cards.map((_,i)=>i)).forEach((i,pos)=>{const c=cards[i];const s=document.createElement('button');s.className='slot'+(dm[combo(c)]>1?' dup':'');s.title=`Carte ${i+1} — ${BACKS[c.back].name} — ${comboName(c)}`;
     s.setAttribute('aria-label',`Carte ${i+1} : ${c.text||'sans texte'}. Ouvrir pour modifier`);
     const f=document.createElement('div');f.className='flip';f.style.transitionDelay=Math.min(i*8,400)+'ms';f.append(faceEl(c,S.gk),backEl(c,S.gk));
-    s.innerHTML=`<span class="no">${i+1}</span>`;s.appendChild(f);s.onclick=()=>{S.idx=i;setView('card');};g.appendChild(s);});}
+    s.innerHTML=`<span class="no">${i+1}</span>`;if(dealt&&S.deal.rot[pos]){const t=document.createElement('div');t.className='turn';t.appendChild(f);s.appendChild(t);s.title+=' — tournée à 180°';}else s.appendChild(f);
+    for(const sd of seams[pos]||[])s.insertAdjacentHTML('beforeend',`<span class="seam ${sd}"></span>`);
+    s.onclick=()=>{S.idx=i;setView('card');};g.appendChild(s);});}
 
 // ---------- single card ----------
 function singleK(){const m=$('main'),narrow=innerWidth<=760,aw=(narrow?innerWidth-32:m.clientWidth-56-300-28),ah=narrow?560:m.clientHeight-56-70;
@@ -384,7 +429,7 @@ function render(){const g=S.view==='grid';$('grid').classList.toggle('hidden',!g
   $('single').classList.toggle('hidden',g);
   document.querySelectorAll('#view button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
   document.querySelectorAll('#paper button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.paper));
-  $('gk').value=S.gk;$('coast').checked=S.coast;$('gap').value=S.gap;setGap();$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
+  $('gk').value=S.gk;$('coast').checked=S.coast;document.querySelectorAll('#order button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.order));$('dealCtl').classList.toggle('hidden',S.order!=='deal');$('cOut').textContent=S.dcols;$('gap').value=S.gap;setGap();$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
   queue=[];if(g)drawGrid();else drawSingle();stats();save();}
 // a card changed: what: 'text' | 'sym' | 'back'
 function changed(what){const c=cards[S.idx];
@@ -413,6 +458,10 @@ $('flipAll').onclick=$('flip2').onclick=flipAll;
 function setGap(){const g=$('grid');g.style.setProperty('--gap',S.gap*S.gk+'px');g.classList.toggle('tight',S.gap<4);}
 $('gap').oninput=e=>{S.gap=+e.target.value;setGap();save();};
 let gt;$('gk').oninput=e=>{S.gk=+e.target.value;setGap();document.querySelectorAll('#grid .card').forEach(d=>d.style.fontSize=S.gk+'px');clearTimeout(gt);gt=setTimeout(render,250);};
+document.querySelectorAll('#order button').forEach(b=>b.onclick=()=>{S.order=b.dataset.v;render();});
+const setCols=v=>{S.dcols=Math.max(2,Math.min(14,v));S.deal=null;render();};
+$('cMinus').onclick=()=>setCols(S.dcols-1);$('cPlus').onclick=()=>setCols(S.dcols+1);
+$('redeal').onclick=()=>{S.deal=null;render();};
 $('coast').onchange=e=>{S.coast=e.target.checked;render();};
 document.querySelectorAll('#paper button').forEach(b=>b.onclick=()=>{S.paper=b.dataset.v;render();});
 $('add').onclick=()=>{const used=new Set(cards.map(combo));let s=null;for(let a=0;a<6&&!s;a++)for(let b=a;b<6&&!s;b++)for(let d=b;d<6&&!s;d++)if(!used.has(''+a+b+d))s=[a,b,d];
