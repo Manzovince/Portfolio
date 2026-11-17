@@ -176,7 +176,6 @@ dialog .act{display:flex;justify-content:flex-end;gap:8px}
   <section>
     <h2>Dos</h2>
     <div><span class="lab">Papier</span><div class="seg" id="paper"><button data-v="light">Clair</button><button data-v="dark">Sombre</button></div></div>
-    <label class="toggle">Nom du terrain sur le dos<input id="labels" type="checkbox"></label>
     <p class="sub" style="margin:0">Les dos se raccordent entre eux quand on pose les cartes côte à côte, comme dans Arpent et Sonde.</p>
   </section>
 </aside>
@@ -256,7 +255,7 @@ const combo=c=>[...c.sym].sort((a,b)=>a-b).join('');
 const comboName=c=>c.sym.map(t=>SYMN[t].toLowerCase()).join(', ');
 
 // ---------- state ----------
-const S={view:'grid',idx:0,side:'face',gk:2,paper:'light',labels:false,panel:true};
+const S={view:'grid',idx:0,side:'face',gk:2,paper:'light',panel:true};
 let cards=[];
 const esc=s=>s.replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 const rint=()=>1+Math.floor(Math.random()*2**30);
@@ -270,12 +269,12 @@ function valid(c){return c&&Array.isArray(c.sym)&&c.sym.length===3&&c.sym.every(
 function clean(c){return{sym:c.sym.slice(),text:c.text,back:c.back,seed:Number.isFinite(c.seed)?c.seed:rint(),el:(BACKS[c.back].eng.AL[BACKS[c.back].kind]||[]).includes(c.el)?c.el:''};}
 try{const sv=JSON.parse(localStorage.getItem('legende')||'null');if(sv){Object.assign(S,sv.S||{});if(Array.isArray(sv.cards))cards=sv.cards.filter(valid).map(clean);}}catch(e){}
 if(!cards.length)cards=newDeck();
-S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
+delete S.labels;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
 
 // ---------- back rendering: async queue + caches ----------
 const models=new Map(),imgs=new Map();let queue=[],qt=0;
 const mkey=c=>c.back+'|'+c.seed+'|'+c.el;
-const ikey=(c,k)=>[mkey(c),k,S.paper,S.labels,dpr()].join('|');
+const ikey=(c,k)=>[mkey(c),k,S.paper,dpr()].join('|');
 function model(c){const key=mkey(c);let m=models.get(key);if(!m){const b=BACKS[c.back];m=b.eng.make(b.kind,c.seed,c.el);models.set(key,m);
   if(models.size>160)models.delete(models.keys().next().value);}return m;}
 function paint(cv,im){cv.width=im.width;cv.height=im.height;cv.getContext('2d').drawImage(im,0,0);}
@@ -283,7 +282,7 @@ function want(c,k,cv){const key=ikey(c,k),im=imgs.get(key);if(im){paint(cv,im);r
 function pump(){busy();if(qt||!queue.length)return;
   qt=setTimeout(()=>{qt=0;const t0=performance.now();
     while(queue.length&&performance.now()-t0<40){const j=queue.shift();if(!j.cv.isConnected)continue;let im=imgs.get(j.key);
-      if(!im){const b=BACKS[j.c.back];im=b.eng.render(model(j.c),j.k,S.paper,S.labels);imgs.set(j.key,im);if(imgs.size>240)imgs.delete(imgs.keys().next().value);}
+      if(!im){const b=BACKS[j.c.back];im=b.eng.render(model(j.c),j.k,S.paper,false);imgs.set(j.key,im);if(imgs.size>240)imgs.delete(imgs.keys().next().value);}
       paint(j.cv,im);}
     pump();},0);}
 function busy(){const n=queue.length;$('busy').classList.toggle('on',n>0);if(n)$('busy').textContent=`Dessin des dos… ${n}`;}
@@ -334,7 +333,7 @@ function render(){const g=S.view==='grid';$('grid').classList.toggle('hidden',!g
   $('single').classList.toggle('hidden',g);
   document.querySelectorAll('#view button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
   document.querySelectorAll('#paper button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.paper));
-  $('labels').checked=S.labels;$('gk').value=S.gk;$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
+  $('gk').value=S.gk;$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
   queue=[];if(g)drawGrid();else drawSingle();stats();save();}
 // a card changed: what: 'text' | 'sym' | 'back'
 function changed(what){const c=cards[S.idx];
@@ -362,7 +361,6 @@ const flipAll=()=>{S.side=S.side==='face'?'back':'face';$('grid').classList.togg
 $('flipAll').onclick=$('flip2').onclick=flipAll;
 let gt;$('gk').oninput=e=>{S.gk=+e.target.value;document.querySelectorAll('#grid .card').forEach(d=>d.style.fontSize=S.gk+'px');clearTimeout(gt);gt=setTimeout(render,250);};
 document.querySelectorAll('#paper button').forEach(b=>b.onclick=()=>{S.paper=b.dataset.v;render();});
-$('labels').onchange=e=>{S.labels=e.target.checked;render();};
 $('add').onclick=()=>{const used=new Set(cards.map(combo));let s=null;for(let a=0;a<6&&!s;a++)for(let b=a;b<6&&!s;b++)for(let d=b;d<6&&!s;d++)if(!used.has(''+a+b+d))s=[a,b,d];
   const back=BK[Math.floor(Math.random()*BK.length)];cards.push({sym:s||[0,0,0],text:'',back,seed:rint(),el:randEl(back)});S.idx=cards.length-1;setView('card');$('eText').focus();};
 $('rebacks').onclick=()=>{if(!confirm('Tirer de nouveaux dos pour toutes les cartes ? Les types de dos sont redistribués ; textes et symboles restent.'))return;
@@ -398,7 +396,7 @@ async function buildPrint(opt,prog){const box=$('print');box.innerHTML='';
         // the back of the card in slot (row, col) lands mirrored once the sheet is turned over
         const slot=opt.flip==='long'||!faces?(faces?row*PC+(PC-1-col):i):(PR-1-row)*PC+col;
         const d=document.createElement('div');d.className='card back';
-        const b=BACKS[c.back],im=b.eng.render(model(c),PK/dpr(),S.paper,S.labels),img=new Image();img.alt='';img.src=im.toDataURL('image/jpeg',.9);
+        const b=BACKS[c.back],im=b.eng.render(model(c),PK/dpr(),S.paper,false),img=new Image();img.alt='';img.src=im.toDataURL('image/jpeg',.9);
         d.appendChild(img);d.insertAdjacentHTML('beforeend',overlay(c,true,S.paper==='dark'));pg.appendChild(place(d,slot));
         prog(`Dessin des dos… ${++done} / ${cards.length}`);await tick();}}}
   await Promise.all([...box.querySelectorAll('img')].map(i=>i.decode().catch(()=>{})));}
