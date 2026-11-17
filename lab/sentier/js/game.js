@@ -188,9 +188,47 @@ const RACES={
     rav:[8,15,24],fee:180,goal:4*3600+45*60,med:5*3600,nb:800,prize:700,d:'La première vraie montagne : forêts, alpages, crête, et la longue descente.',req:['trail','eau1','veste']},
   ultra:{n:'Ultra-Trail des Cimes',ic:'🏔',e0:820,legs:[['prairie',3,900],['hetraie',4,1250],['foret',6,1800],['alpage',5,2150],['crete',3,2450],['glacier',3,2600],['sommet',4,2500,{shape:'peak',ep:2920,top:'Dôme des Neiges'}],
     ['crete',3,2250],['foretneige',4,1900],['alpage',4,1800],['lac',3,1850],['alpage',5,2100],['crete',4,2350],['sommet',4,2300,{shape:'peak',ep:2760,top:'Tête Blanche'}],['foretneige',5,1800],['foret',9,1200],['hetraie',4,900],['prairie',4,830]],
-    rav:[10,20,30,40,50,60,70],fee:400,goal:11*3600,med:13*3600,nb:600,prize:2000,d:'Deux sommets, un glacier, une nuit dehors. Le grand voyage.',req:['trail','eau2','veste','frontale','chaud']}
+    rav:[10,20,30,40,50,60,70],fee:400,goal:11*3600,med:13*3600,nb:600,prize:2000,d:'Deux sommets, un glacier, une nuit dehors. Le grand voyage.',req:['trail','eau2','veste','frontale','chaud'],night:1},
+  /* --- route, version vallonnée : chacune s'ouvre quand on a battu l'objectif de sa version plate --- */
+  v5c:{n:'5 km de la Grimpette',ic:'🐌',after:'v5',e0:830,legs:[['prairie',2.4,965],['prairie',2.6,835]],rav:[2.5],fee:20,goal:34*60,med:35*60,nb:240,prize:80,
+    d:'Le même village, mais par la côte du moulin : 2,4 km qui montent, 2,6 km qui descendent.'},
+  v10c:{n:'10 km des Lacets',ic:'🍷',after:'v10',e0:580,legs:[['vieilleville',2,650],['vignes',3,820],['vignes',3,560],['vieilleville',2,585]],rav:[5],fee:40,goal:67*60,med:69*60,nb:700,prize:160,
+    d:'Des ruelles pavées aux lacets du coteau : un 10 km avec une vraie bosse au milieu.'},
+  semic:{n:'Semi des Gorges',ic:'🏞',after:'semi',e0:400,legs:[['garrigue',4,520],['gorges',5,330],['gorges',4,640],['lavande',4,720],['garrigue',4.1,410]],rav:[5,10,15,20],fee:70,goal:2*3600+34*60,med:2*3600+38*60,nb:1200,prize:300,
+    d:'On plonge au fond des gorges, on remonte jusqu’au plateau. Les cuisses s’en souviendront.',long:1},
+  marac:{n:'Marathon des Cols',ic:'🚵',after:'mara',e0:820,legs:[['prairie',6,900],['foret',8,1450],['alpage',5,1760],['foret',8,1080],['hetraie',5,1320],['prairie',10.2,815]],rav:[5,10,15,20,25,30,35,40],fee:120,goal:4*3600+52*60,med:5*3600,nb:1800,prize:550,
+    d:'42,195 km sur la route des cols, deux grimpées et une descente qui n’en finit pas.',req:['eau1'],long:1},
+  /* --- montagne : la suite de l'ultra --- */
+  tgm:{n:'Tour du Grand Massif',ic:'🗻',after:'ultra',e0:1035,legs:[
+      ['prairie',3,1100],['hetraie',4,1500],['foret',4,2000],['alpage',3,2350],['foret',6,1450],['hetraie',4,1150],
+      ['foret',5,1750],['alpage',4,2250],['crete',2,2450],['alpage',4,2000],['lac',3,2050],['foret',7,1200],
+      ['hetraie',4,1600],['foret',4,2050],['alpage',4,2400],['crete',3,2560],['sommet',5,2500,{shape:'peak',ep:2920,top:'Tête des Trois Pays'}],['alpage',5,1950],['foret',7,1150],['prairie',4,1000],
+      ['hetraie',4,1450],['foret',5,2000],['alpage',4,2400],['glacier',3,2650],['sommet',5,2450,{shape:'peak',ep:3050,top:'Dôme du Grand Massif'}],['crete',3,2250],['foretneige',4,1800],['foret',6,1150],
+      ['hetraie',4,1550],['foret',4,2000],['alpage',4,2300],['lac',3,2250],['foret',7,1300],['prairie',3,1150],
+      ['hetraie',4,1500],['foret',4,1950],['alpage',4,2250],['crete',2,2400],['alpage',3,1900],['foret',6,1250],['hetraie',4,1035]],
+    rav:[12,24,35,47,58,69,80,92,104,116,128,140,150,160],fee:900,goal:24*3600,med:26*3600,nb:2500,prize:6000,
+    d:'La grande boucle du massif : 171 km, près de 9 000 m de D+, au moins une nuit dehors. Le rêve de tous les traileurs.',req:['trail','eau2','veste','frontale','chaud'],night:1},
+  /* --- insolites --- */
+  kv:{n:'Kilomètre vertical du Rocher',ic:'🧗',after:'trail',e0:1000,legs:[['foret',1.2,1330],['alpage',1.3,1690],['crete',1.1,2000]],rav:[1.8],fee:50,goal:64*60,med:68*60,nb:300,prize:400,
+    d:'1 000 m de dénivelé en 3,6 km, tout droit dans la pente. Arrivée au sommet, pas de descente.',req:['trail'],mtn:1},
+  desc:{n:'La Folle Descente',ic:'🎢',after:'kv',e0:2600,legs:[['crete',1.6,2250],['alpage',2,1750],['foret',2.4,1180]],rav:[3],fee:50,goal:39*60,med:41*60,nb:300,prize:400,
+    d:'L’inverse du KV : 1 400 m à descendre en 6 km. Ça tape dans les quadriceps.',req:['trail'],mtn:1},
+  urban:{n:'Urban Trail des Escaliers',ic:'🪜',after:'v10c',e0:575,legs:[['vieilleville',2.5,700],['ville',3,455],['vieilleville',2,690],['vieilleville',1.5,560],['ville',3,470],['vieilleville',2.5,580]],rav:[5,10],fee:45,goal:99*60,med:102*60,nb:1500,prize:300,
+    d:'Ruelles, escaliers, passages couverts et toits du marché : la ville en mode trail.',mtn:1},
+  sable:{n:'Les Sables Rouges',ic:'🐪',after:'mara',e0:320,legs:[['desert',8,340],['canyon',8,620],['desert',8,300],['savane',6,520],['desert',4,320]],rav:[8,16,24,30],fee:150,goal:4*3600+20*60,med:4*3600+30*60,nb:400,prize:600,
+    d:'34 km entre dunes et canyon, sous un soleil de plomb. Il faut porter beaucoup d’eau.',req:['eau2'],long:1},
+  // backyard : une boucle de 6,706 km toutes les heures ; on court tant qu'on boucle dans l'heure, le dernier debout gagne
+  backyard:{n:'Backyard des Irréductibles',ic:'🔁',after:'semi',e0:830,legs:Array.from({length:40},()=>[['hetraie',3.353,872],['prairie',3.353,830]]).flat(),
+    rav:Array.from({length:40},(_,i)=>+((i+1)*6.706).toFixed(3)),by:6706,goalL:12,medL:9,fee:80,goal:0,med:0,nb:80,prize:800,
+    d:'6,706 km à boucler en moins d’une heure, départ toutes les heures pile. Tant que tu tiens, tu repars. Le dernier debout gagne.',req:['frontale'],long:1}
 };
 const CAMP=Object.keys(RACES);
+const SERIES=[['route','Sur route',['v5','v5c','v10','v10c','semi','semic','mara','marac']],['mont','Montagne',['trail','ultra','tgm']],['fun','Insolites',['kv','desc','urban','sable','backyard']]];
+// chaque course s'ouvre quand on a battu l'objectif de celle qui la précède (after, ou la précédente de la liste d'origine)
+const prevOf=id=>RACES[id].after!==undefined?RACES[id].after:CAMP[CAMP.indexOf(id)-1]||null;
+const nextOf=id=>CAMP.filter(k=>prevOf(k)===id);
+// backyard : boucles encore à faire, place et chrono de chaque boucle
+const BYH=3600;
 const REQ={
   trail:{n:'Chaussures de trail',ok:()=>GEAR[G.gear.shoes].rock>0,slot:'shoes'},
   eau1:{n:'Réserve d’eau d’au moins 1 L',ok:()=>capL()>=1,slot:'bag'},
@@ -199,15 +237,20 @@ const REQ={
   frontale:{n:'Frontale',ok:()=>!!G.gear.lamp,slot:'lamp'},
   chaud:{n:'Couche chaude (bonnet ou haut chaud)',ok:()=>!!(GEAR[G.gear.top].cold||(G.gear.head&&GEAR[G.gear.head].cold)),slot:'head'}
 };
-const raceOpen=id=>{const i=CAMP.indexOf(id);return i===0||G.camp.ok.includes(CAMP[i-1])};
+const raceOpen=id=>{const p=prevOf(id);return !p||G.camp.ok.includes(p)};
 const racing=()=>!!(G.race&&G.race.st==='run');
 const onRace=()=>!!(G.race&&(G.race.st==='run'||G.race.st==='fin'));
 const reqMissing=id=>(RACES[id].req||[]).filter(k=>!REQ[k].ok());
 // peloton fictif : temps d'arrivée répartis autour de la médiane
 const FIELD={};
 function field(id){if(FIELD[id])return FIELD[id];const C=RACES[id],r=rng(CAMP.indexOf(id)*7919+11),a=[];
-  for(let i=0;i<C.nb;i++){const z=Math.sqrt(-2*Math.log(r()+1e-9))*Math.cos(2*Math.PI*r());a.push(C.med*Math.exp(.17*z))}return FIELD[id]=a.sort((x,y)=>x-y)}
-const placeOf=(id,t)=>{const f=field(id);let i=0;while(i<f.length&&f[i]<t)i++;return i+1};
+  for(let i=0;i<C.nb;i++){const z=Math.sqrt(-2*Math.log(r()+1e-9))*Math.cos(2*Math.PI*r());a.push(C.by?Math.max(1,Math.round(C.medL*Math.exp(.42*z))):C.med*Math.exp(.17*z))}
+  return FIELD[id]=C.by?a.sort((x,y)=>y-x):a.sort((x,y)=>x-y)}
+const placeOf=(id,t)=>{const f=field(id);let i=0;if(RACES[id].by){while(i<f.length&&f[i]>t)i++;return i+1}while(i<f.length&&f[i]<t)i++;return i+1};
+// backyard : où est un concurrent (il boucle en p.lt secondes, puis attend le départ suivant ; dehors après p.T boucles)
+const byLoop=R=>Math.floor(R.t/BYH);
+function byPos(id,p,t){const C=RACES[id],k=Math.floor(t/BYH);if(k>=p.T)return null;const u=(t-k*BYH)/p.lt;return u<1?C.by*(k+u):C.by*(k+1)-2-p.ph*22}   // au corral, chacun se pose un peu avant la ligne
+const byAlive=(id,n)=>field(id).filter(L=>L>=n).length;   // concurrents qui ont bouclé n tours
 /* ---------- le peloton visible : chaque concurrent du peloton fictif court vraiment sur le parcours ---------- */
 // « effort » cumulé le long du parcours : 1 m de D+ coûte comme 7 m de plat. Un concurrent avance à effort régulier,
 // avec un départ plus ou moins prudent (a > 0 : part vite et ralentit ; a < 0 : finit fort). Il arrive pile à son chrono.
@@ -222,35 +265,48 @@ function effInv(T,e){if(e<=0)return 0;if(e>=T.tot)return T.len;let lo=0,hi=T.n-1
 const SKINS=['#f0cca8','#e8b48c','#d49a70','#b07a52','#8a5a3a','#5e3c28'],HAIRS=['#3a2a22','#1e1a18','#7a4a22','#d8b860','#a83a1a','#c8c4bc'],
   SHORTS=['#2c3a52','#1e2228','#3a3a44','#6a2a2a','#2a5a4a','#d8d4cc','#3a5ab0','#e86a8a'],
   TOPS=['#e8483a','#3a8ae0','#f0c030','#3ab86a','#f4f2ec','#1e2228','#8a5ac8','#f08a2a','#2ac0b0','#f04ab0','#9ab0c8','#c8d840'];
-function pack(id){if(PACK[id])return PACK[id];const f=field(id),C=RACES[id],r=rng(CAMP.indexOf(id)*131+7),pick=a=>a[Math.floor(r()*a.length)],mtn=!!(C.req&&C.req.includes('trail'));
-  return PACK[id]=f.map((T,i)=>({T,i,a:(r()-.4)*.22,ph:r(),grid:Math.floor(r()*60)*.7,lane:r()<.5?0:1,
+function pack(id){if(PACK[id])return PACK[id];const f=field(id),C=RACES[id],r=rng(CAMP.indexOf(id)*131+7),pick=a=>a[Math.floor(r()*a.length)],mtn=!!(C.mtn||C.req&&C.req.includes('trail'));
+  return PACK[id]=f.map((T,i)=>({T,i,a:(r()-.4)*.22,ph:r(),grid:Math.floor(r()*60)*.7,lane:r()<.5?0:1,lt:(43+r()*14)*60,
     gear:{shoes:pick(mtn?['trail','boue','montagne','trail']:['route','trail','carbone','route']),top:'tshirt',shirt:pick(TOPS),skin:pick(SKINS),hair:pick(HAIRS),shorts:pick(SHORTS),
       head:r()<.35?pick(['casquette','bandeau','casquette',mtn?'bonnet':'bandeau']):null,eyes:r()<.3?pick(['solaires','lunettes','aviateur','solaires']):null,
-      bag:mtn||id==='mara'?pick(['gilet5','gilet12','ceinture']):'gourde',poles:mtn&&r()<.45?'alu':null,lamp:id==='ultra'?'frontale':null,style:'classique',bib:1}}))}
+      bag:mtn||C.long||id==='mara'?pick(['gilet5','gilet12','ceinture']):'gourde',poles:mtn&&C.req&&r()<.45?'alu':null,lamp:C.night||C.by?'frontale':null,style:'classique',bib:1}}))}
 // part de l'effort total accomplie par un concurrent après t secondes de course
 const rivalU=(R,t)=>{const x=clamp(t/R.T,0,1);return x*(1+R.a*(1-x))};
 const rivalD=(id,R,t)=>{const T=effTab(id);return effInv(T,rivalU(R,t)*T.tot)};
 // place en direct : les concurrents qui ont accompli plus d'effort que toi
-function livePlace(){const R=G.race;if(!R||R.st!=='run')return 0;const T=effTab(R.id),me=effAt(T,G.d)/T.tot;if(me<=0)return 0;let n=1;for(const p of pack(R.id))if(rivalU(p,R.t)>me)n++;return n}
+function livePlace(){const R=G.race;if(!R||R.st!=='run')return 0;if(RACES[R.id].by)return 0;const T=effTab(R.id),me=effAt(T,G.d)/T.tot;if(me<=0)return 0;let n=1;for(const p of pack(R.id))if(rivalU(p,R.t)>me)n++;return n}
 function takeBib(id){const C=RACES[id];if(G.race||!raceOpen(id)||G.coins<C.fee)return false;G.coins-=C.fee;G.race={id,st:'bib',bib:100+Math.floor(Math.random()*C.nb*1.2)};
   emit('Dossard n° '+G.race.bib,C.n+' · prépare ton matériel, puis prends le départ','🎽');return true}
 function dropBib(){if(G.race&&G.race.st==='bib')G.race=null}
 function startRace(){
   const R=G.race;if(!R||R.st!=='bib'||reqMissing(R.id).length)return false;
   if(ROUTE.id==='train')G.trainPos=G.d;G.train=null;G.home=0;
-  Object.assign(R,{st:'run',t:0,dp0:G.dp});G.rest=null;LIVE.mode='run';
+  Object.assign(R,{st:'run',t:0,dp0:G.dp,wait:0,loops:0});G.rest=null;LIVE.mode='run';
   useRoute(R.id);G.d=0;G.water=capL();G.energy=100;
   emit('Partez !',RACES[R.id].n+' · '+fmt(raceInfo(R.id).len/1000,1)+' km','🏁');if(typeof onRoute==='function')onRoute();return true;
 }
 function finishRace(dnf,why){
   const R=G.race,C=RACES[R.id],t=R.t,res={id:R.id,t,dnf:!!dnf,why,km:G.d/1000};
+  if(C.by)return byFinish(why);
   if(!dnf){res.place=placeOf(R.id,t);res.n=C.nb+1;res.ok=t<=C.goal;const b=G.camp.best[R.id];res.pb=!b||t<b;if(res.pb)G.camp.best[R.id]=t;
     if(!G.camp.place[R.id]||res.place<G.camp.place[R.id])G.camp.place[R.id]=res.place;
-    if(res.ok&&!G.camp.ok.includes(R.id)){G.camp.ok.push(R.id);res.first=1;addCoins(C.prize);const nx=CAMP[CAMP.indexOf(R.id)+1];res.next=nx}
+    if(res.ok&&!G.camp.ok.includes(R.id)){G.camp.ok.push(R.id);res.first=1;addCoins(C.prize);res.next=nextOf(R.id)}
     G.camp.fin[R.id]=(G.camp.fin[R.id]||0)+1;
     emit('Arrivée · '+C.n,tm(t)+' · '+res.place+'e sur '+res.n+(res.ok?' · objectif atteint !':''),'🏅')}
   else{G.camp.dnf=(G.camp.dnf||0)+1;emit('Abandon · '+C.n,why||'Tu rends ton dossard.','🚩')}
   G.lastRes=res;R.st='fin';if(dnf)backToTrain();
+}
+// backyard : on est classé au nombre de boucles bouclées dans l'heure (why = pourquoi on s'arrête ; vide = dernier debout)
+function byFinish(why){
+  const R=G.race,C=RACES[R.id],L=R.loops||0,res={id:R.id,t:R.t,loops:L,why,km:L*C.by/1000,dnf:!L};
+  if(L){res.place=why?placeOf(R.id,L):1;res.n=C.nb+1;res.win=!why;res.ok=L>=C.goalL;const b=G.camp.best[R.id];res.pb=!b||L>b;if(res.pb)G.camp.best[R.id]=L;
+    if(!G.camp.place[R.id]||res.place<G.camp.place[R.id])G.camp.place[R.id]=res.place;
+    if(res.ok&&!G.camp.ok.includes(R.id)){G.camp.ok.push(R.id);res.first=1;addCoins(C.prize);res.next=nextOf(R.id)}
+    if(res.win)addCoins(C.prize);
+    G.camp.fin[R.id]=(G.camp.fin[R.id]||0)+1;
+    emit((res.win?'Dernier debout ! · ':'Fin de course · ')+C.n,L+' boucle'+(L>1?'s':'')+' · '+fmt(res.km,1)+' km · '+res.place+'e sur '+res.n,res.win?'👑':'🏅')}
+  else{G.camp.dnf=(G.camp.dnf||0)+1;emit('Abandon · '+C.n,why||'Tu rends ton dossard.','🚩')}
+  G.lastRes=res;R.st='fin';backToTrain();
 }
 function backToTrain(){if(!G.race)return;G.race=null;goHome()}
 /* ---------- la maison et les entraînements programmés ---------- */
@@ -325,6 +381,9 @@ function step(dt,date){
   if(G.home||G.rest){LIVE.sprint=0;LIVE.red=0;LIVE.redW=0}
   if(G.home){G.water=capL();G.energy=100;LIVE.hr=lerp(LIVE.hr,58,1-Math.exp(-dt/30));Object.assign(LIVE,{v:0,mode:'home',grade:0,why:[],c:condAt(date,G.d),cad:0});return}
   if(G.rest)return restStep(dt,date);
+  if(racing()&&G.race.wait){const R=G.race;R.t+=dt;G.water=capL();G.energy=Math.min(100,G.energy+dt*.2);LIVE.hr=lerp(LIVE.hr,70,1-Math.exp(-dt/30));
+    Object.assign(LIVE,{v:0,mode:'rest',grade:gradeAt(G.d),why:['au corral'],c:condAt(date,G.d),cad:0});
+    if(R.t>=R.wait*BYH){R.t=R.wait*BYH;R.wait=0;emit('Boucle '+(R.loops+1),byAlive(R.id,R.loops)+' coureurs repartent avec toi','🔔')}return}
   const s0=G.d,L=leg(s0),B=BI[L.b],c=condAt(date,s0),gr=gradeAt(s0);
   const sh=GEAR[G.gear.shoes],top=GEAR[G.gear.top],hd=G.gear.head&&GEAR[G.gear.head],why=[];
   let v0=9.2*(1+.04*lvl('vma'))*sh.spd*(GEAR[G.gear.bag].spd||1)*(G.wear>sh.life?.88:1);
@@ -332,7 +391,7 @@ function step(dt,date){
   let mode='run',v;
   if(gr>.14){mode='hike';v=4.6*(G.gear.poles?GEAR[G.gear.poles].hike:1)*(1+.05*lvl('grimpe'))*(1+.06*lvl('marche'))/(1+(gr-.14)*3)}
   else if(gr>0)v=v0*(1+.05*lvl('grimpe')*Math.min(1,gr*8))/(1+gr*8);
-  else{const d=-gr;v=v0*(1+Math.min(d,.1)*2.5-Math.max(0,d-.16)*3)*(1+.05*lvl('descente')*Math.min(1,d*8))}
+  else{const d=-gr;v=v0*Math.max(.4,1+Math.min(d,.1)*2.5-Math.max(0,d-.16)*3)*(1+.05*lvl('descente')*Math.min(1,d*8))}
   let k=1;
   const snowy=L.b==='sommet'||L.b==='glacier',tech0=lerp(lerp(B.tech,1,sh.rock*.85),1,snowy&&G.gear.style==='pingouin'?.6:0),tech=lerp(lerp(tech0,1,(G.comp&&COMP[G.comp].tech)||0),1,Math.min(1,.2*lvl('techn')));if(tech<.99)why.push(L.b==='sommet'?'neige':'terrain technique');k*=tech;
   const E0=(G.gear.eyes&&GEAR[G.gear.eyes])||{};
@@ -343,6 +402,8 @@ function step(dt,date){
   const ey=G.gear.eyes&&GEAR[G.gear.eyes];
   if(ey){if(ey.snow&&(L.b==='sommet'||L.b==='glacier'))k*=ey.snow;if(ey.sun&&c.sun)k*=ey.sun;if(ey.hot&&['desert','canyon','savane'].includes(L.b))k*=ey.hot}
   if(G.boost&&G.boost.t>Date.now())k*=G.boost.k;
+  // backyard : chaque boucle pèse un peu plus (l'endurance et le mental amortissent)
+  if(racing()&&RACES[G.race.id].by&&G.race.loops){const f=.035*G.race.loops*Math.max(0,1-.08*lvl('endu')-.06*lvl('mental'));k/=1+f;if(f>.08)why.push('fatigue')}
   // boost manuel : plus vite, mais le cardio grimpe et les réserves fondent
   const SP=LIVE.sprint?1:0;if(SP)k*=SPRINT.v;
   const CP=comp();if(CP.spd)k*=CP.spd;if(CP.up&&gr>.02)k*=CP.up;
@@ -362,7 +423,13 @@ function step(dt,date){
   // déplacement
   const s1=s0+v*dt,de=elevMacro(s1)-elevMacro(s0);
   G.d=s1;G.t+=dt;G.odo+=v*dt;if(G.train){const T=G.train;T.t+=dt;if(T.k==='dist'&&G.d-T.d0>=T.goal||T.k==='time'&&T.t>=T.goal){endTraining('done');return}}
-  if(racing())G.race.t+=dt;else if(G.race&&G.race.st==='fin'&&G.d>raceInfo(G.race.id).len+220)backToTrain();G.wear+=v*dt/1000*(1-.12*lvl('semelle'));G.sess.d+=v*dt;
+  if(racing()){const R=G.race,C=RACES[R.id];R.t+=dt;
+    if(C.by){const k=R.loops;
+      if(s1>=(k+1)*C.by){G.d=(k+1)*C.by;R.loops=k+1;G.water=capL();G.energy=Math.min(100,G.energy+25);
+        if(!byAlive(R.id,k+1)&&R.loops>=1){byFinish('');return}
+        R.wait=k+1;emit('Boucle '+(k+1)+' bouclée en '+tm(R.t-k*BYH),'Repos au corral jusqu’au prochain coup de cloche · '+byAlive(R.id,k+1)+' encore en lice','🔁');return}
+      if(R.t>(k+1)*BYH){byFinish('Hors délai : boucle '+(k+1)+' pas finie dans l’heure');return}}}
+  else if(G.race&&G.race.st==='fin'&&G.d>raceInfo(G.race.id).len+220)backToTrain();G.wear+=v*dt/1000*(1-.12*lvl('semelle'));G.sess.d+=v*dt;
   // semelle usée : on enfile une paire de rechange du même modèle s'il en reste
   if(G.wear>sh.life&&(G.spare[G.gear.shoes]||0)>0){G.spare[G.gear.shoes]--;G.wear=0;emit('Nouvelle paire enfilée',`${sh.n} · encore ${G.spare[G.gear.shoes]} en réserve`,'👟')}
   if(de>0){G.dp+=de;G.sess.dp+=de}else G.dn-=de;

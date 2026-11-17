@@ -144,7 +144,7 @@ function raceGen(id){
     const C=RACES[id];built=1;endE=C.e0;
     for(const[b,km,e1,o]of C.legs){const L=pushLeg(b,km,e1,Object.assign({fix:1},o||{}));if(L.shape==='peak')poi(L.d0+L.len*.5,'sommet',o.top,{alt:Math.round(o.ep)})}
     poi(12,'depart','Départ');
-    const fin=endD;for(const k of C.rav)poi(k*1000,'ravito','Ravito du km '+k,{race:1});
+    const fin=endD;C.rav.forEach((k,i)=>poi(k*1000,'ravito',C.by?'Corral · tour '+(i+1):'Ravito du km '+k,{race:1}));
     poi(fin,'arrivee','Arrivée',{race:1});
     for(const L of LEGS)if(!L.sign){L.sign=1;poi(L.d0+25,'panneau',BI[L.b].n,{leg:L})}
     POIS.sort((a,b)=>a.d-b.d);
@@ -161,9 +161,9 @@ function useRoute(id){
 const RINFO={};
 function raceInfo(id){
   if(RINFO[id])return RINFO[id];const cur=ROUTE.id;useRoute(id);
-  const len=POIS.find(p=>p.k==='arrivee').d;let dp=0,e=elevMacro(0);for(let d=50;d<=len;d+=50){const e2=elevMacro(d);if(e2>e)dp+=e2-e;e=e2}
+  const len=POIS.find(p=>p.k==='arrivee').d;let dp=0,dn=0,e=elevMacro(0);for(let d=50;d<=len;d+=50){const e2=elevMacro(d);if(e2>e)dp+=e2-e;else dn+=e-e2;e=e2}
   const bs=[...new Set(LEGS.filter(L=>L.d0<len).map(L=>L.b))];useRoute(cur);
-  return RINFO[id]={len,dp:Math.round(dp/10)*10,bs};
+  return RINFO[id]={len,dp:Math.round(dp/10)*10,dn:Math.round(dn/10)*10,bs};
 }
 function ensure(dm){while(endD<dm+40000)ROUTE.gen()}
 ensure(0);

@@ -62,15 +62,17 @@ function loop(t){
 function footY(x0,w,dm,s){let y=-1e9;const n=Math.max(1,Math.ceil(w/2));for(let i=0;i<=n;i++){const xx=x0+w*i/n,d=s+(xx-RX)*MPX;y=Math.max(y,groundY(d,s,cam))}return y}
 // concurrents visibles à l'écran, espacés pour rester lisibles (on peut croiser et doubler notre coureur) ; ils marchent dans les pentes raides des trails
 function rivalsIn(dm0,dm1,s,t){
-  const R=G.race,id=R.id,T=effTab(id),e0=effAt(T,dm0-4),e1=effAt(T,dm1+4),rt=R.t,bunch=clamp(1-rt/240,0,1),out=[];
-  for(const p of pack(id)){const u=rivalU(p,rt);if(u>=1&&rt>p.T+40)continue;const e=u*T.tot;if(e<e0||e>e1)continue;
-    const d=effInv(T,e)-p.grid*bunch;out.push({p,d})}
+  const R=G.race,id=R.id,C=RACES[id],T=effTab(id),e0=effAt(T,dm0-4),e1=effAt(T,dm1+4),rt=R.t,bunch=clamp(1-(C.by?rt%BYH:rt)/240,0,1),out=[];
+  for(const p of pack(id)){let d;
+    if(C.by){d=byPos(id,p,rt);if(d==null||d<dm0-4||d>dm1+4)continue}
+    else{const u=rivalU(p,rt);if(u>=1&&rt>p.T+40)continue;const e=u*T.tot;if(e<e0||e>e1)continue;d=effInv(T,e)}
+    out.push({p,d:d-p.grid*bunch})}
   out.sort((a,b)=>a.p.i-b.p.i);   // priorité fixe par concurrent : personne ne clignote quand l'ordre des distances change
-  const res=[],steep=!!(RACES[id].req&&RACES[id].req.includes('trail'));
+  const res=[],steep=1;
   const gap=Math.round(9*ZOOMS[ZOOM].k),cap=Math.min(36,W/22);
   for(const{p,d}of out){const x=Math.round(RX+(d-s)/MPX);if(x<-20||x>W+20)continue;
     if(res.some(o=>o.lane===p.lane&&Math.abs(o.x-x)<gap))continue;if(res.length>=cap)break;
-    const done=d>=T.len-.5,gr=(elevMacro(d+12)-elevMacro(d-12))/24,mode=done?'walk':steep&&gr>.13?'walk':'run',N=mode==='run'?10:12;
+    const done=C.by?rt-Math.floor(rt/BYH)*BYH>=p.lt:d>=T.len-.5,gr=(elevMacro(d+12)-elevMacro(d-12))/24,mode=done?'walk':steep&&gr>.13?'walk':'run',N=mode==='run'?10:12;
     const f=done?0:Math.floor(t/1000*(mode==='run'?1.42:.9)*(.9+p.ph*.2)*N+p.ph*N)%N;
     res.push({x,y:Math.round(groundY(d,s,cam)),rf:runnerFrame(mode,f,p.gear),lane:p.lane,lamp:!!p.gear.lamp})}
   return res.sort((a,b)=>a.y-b.y);
@@ -173,7 +175,7 @@ function draw(date,t){
   // le coureur
   if(G.home){const hs0=bigHouse(0,SK.dark>.35),y=footY(RX-hs0.ox,hs0.cv.width,HOME_D,s)-hs0.porch,o=homeSit(Math.floor(t/1700)%3===0?1:0);g.drawImage(o.cv,RX-o.ox,Math.round(y-o.oy+1))}
   else if(G.rest){const bv=bivSprite(G.gear.biv,Math.floor(t/220)%2),y=footY(RX-bv.ox,bv.cv.width,G.d,s);g.drawImage(bv.cv,RX-bv.ox,Math.round(y-bv.oy+1))}
-  else{const N=LIVE.mode==='run'?10:12,rf=runnerFrame(LIVE.mode,Math.floor(phase*N)%N,onRace()?Object.assign({},G.gear,{bib:1}):G.gear);
+  else{const N=LIVE.mode==='run'?10:12,rf=runnerFrame(LIVE.mode==='rest'?'walk':LIVE.mode,LIVE.mode==='rest'?0:Math.floor(phase*N)%N,onRace()?Object.assign({},G.gear,{bib:1}):G.gear);
   g.drawImage(rf.cv,RX-rf.ox,fy-rf.oy+1);
   // en course : une petite flèche au-dessus de notre coureur pour le retrouver dans le peloton
   if(onRace()){const K=ZOOMS[ZOOM].k,n=K>1.4?3:2,ax=RX+Math.round(K),ay=fy-Math.round(8.5*K)-3-(Math.floor(t/600)%2);g.globalAlpha=.85;
@@ -358,7 +360,7 @@ function hud(){const SS=sessStats();
     const a=(150+pc*240)*Math.PI/180;$('#fMark').setAttribute('cx',(50+46.5*Math.cos(a)).toFixed(2));$('#fMark').setAttribute('cy',(50+46.5*Math.sin(a)).toFixed(2));
     $('.face .h').style.animationDuration=(60/hr).toFixed(2)+'s';
     $('#fDist').textContent=fmt(SS.d/1000,2);$('#fPace').textContent=pace(LIVE.v);$('#fDp').textContent=fmt(SS.dp);
-  }$('#wCad').textContent=LIVE.cad+' spm';$('#wMode').textContent=LIVE.mode==='run'?'course':LIVE.mode==='rest'?'bivouac':'marche';restUI();if(UIREADY){raceUI();homeUI()}
+  }$('#wCad').textContent=LIVE.cad+' spm';$('#wMode').textContent=LIVE.mode==='run'?'course':LIVE.mode==='rest'?(G.rest?'bivouac':'corral'):'marche';restUI();if(UIREADY){raceUI();homeUI()}
   const cap=capL(),sh=GEAR[G.gear.shoes];
   $('#bW').style.height=G.water/cap*100+'%';$('#tW').textContent=fmt(G.water,1)+' L';
   $('#bE').style.height=G.energy+'%';$('#tE').textContent=Math.round(G.energy)+' %';
@@ -591,9 +593,19 @@ function raceUI(){
   if(R&&R.st==='bib'){const C=RACES[R.id],I=raceInfo(R.id),miss=reqMissing(R.id);el.className='hud bib';
     $('#raN').textContent='🎽 '+C.n;$('#raB').textContent='n° '+R.bib;
     $('#raS').innerHTML=(C.req&&C.req.length?C.req.map(k=>`<span class="${REQ[k].ok()?'ok':'no'}">${REQ[k].ok()?'✓':'✗'} ${REQ[k].n}</span>`).join(''):'<span class="ok">✓ Pas de matériel obligatoire</span>');
-    bar.parentNode.hidden=true;$('#raT').textContent=`${fmt(I.len/1000,1)} km · ${fmt(I.dp)} m D+ · objectif ${tm(C.goal)}`;
+    bar.parentNode.hidden=true;$('#raT').textContent=C.by?`boucles de ${fmt(C.by/1000,3)} km · départ toutes les heures · objectif ${C.goalL} boucles`:`${fmt(I.len/1000,1)} km · ${fmt(I.dp)} m D+ · objectif ${tm(C.goal)}`;
     go.hidden=false;go.disabled=false;go.textContent=miss.length?'Compléter le matériel':'Prendre le départ';go.onclick=()=>{if(miss.length)return toShop(REQ[miss[0]].slot);startRace();save();hud()};
     x.hidden=false;x.textContent='Rendre le dossard';x.onclick=()=>{dropBib();save();hud()};return}
+  if(R&&R.st==='run'&&RACES[R.id].by){const C=RACES[R.id],k=R.loops,al=byAlive(R.id,k);el.className='hud run';
+    $('#raN').textContent=C.ic+' '+C.n;$('#raB').textContent='n° '+R.bib;
+    const lt=R.t-(R.wait?R.wait-1:k)*BYH,km=G.d/1000-k*C.by/1000;
+    $('#raS').innerHTML=R.wait?`<b class="big">${tm(R.wait*BYH-R.t)}</b><span>avant la cloche · ${k} boucle${k>1?'s':''} · <b>${al}</b> encore en lice</span>`
+      :`<b class="big">${tm(lt)}</b><span>boucle ${k+1} · ${fmt(Math.max(0,km),2)} / ${fmt(C.by/1000,2)} km · <b>${al}</b> encore en lice</span>`;
+    bar.parentNode.hidden=false;bar.style.width=(R.wait?100:clamp(km*1000/C.by,0,1)*100)+'%';
+    const est=!R.wait&&km>.3?lt/(km*1000/C.by):0;
+    $('#raT').innerHTML=R.wait?`au corral : bidons pleins, on souffle · objectif ${C.goalL} boucles`:est?`boucle estimée <b class="${est<=BYH*.92?'good':'bad'}">${tm(est)}</b> · à boucler en moins d’une heure`:'à boucler en moins d’une heure';
+    go.hidden=true;x.hidden=false;x.textContent=raArm?'Sûr ? S’arrêter là':'S’arrêter là';x.classList.toggle('danger',!!raArm);
+    x.onclick=()=>{if(!raArm){raArm=1;setTimeout(()=>{raArm=0},4000);hud();return}raArm=0;byFinish('Tu as rendu ton dossard');save();hud()};return}
   if(R&&R.st==='run'){const C=RACES[R.id],I=raceInfo(R.id),f=clamp(G.d/I.len,0,1),est=f>.02?R.t/f:0;el.className='hud run';
     $('#raN').textContent=C.ic+' '+C.n;$('#raB').textContent='n° '+R.bib;
     const pl=livePlace();$('#raS').innerHTML=`<b class="big">${tm(R.t)}</b><span>${fmt(G.d/1000,2)} / ${fmt(I.len/1000,1)} km${pl?` · <b>${pl}<sup>e</sup></b>/${C.nb+1}`:''}</span>`;
@@ -605,8 +617,11 @@ function raceUI(){
   const C=RACES[res.id];el.className='hud res'+(res.dnf?' dnf':res.ok?' good':'');bar.parentNode.hidden=true;
   $('#raN').textContent=(res.dnf?'🚩 Abandon · ':'🏅 Arrivée · ')+C.n;$('#raB').textContent='';
   if(res.dnf){$('#raS').innerHTML=`<span>${res.why||''} au km ${fmt(res.km,1)}.</span>`;$('#raT').textContent='Entraîne-toi, prépare mieux ton sac, et reprends un dossard.'}
-  else{$('#raS').innerHTML=`<b class="big">${tm(res.t)}</b><span>${res.place}<sup>e</sup> sur ${fmt(res.n)}${res.pb?' · record perso':''}</span>`;
-    $('#raT').innerHTML=res.ok?(res.first?`Objectif atteint ! +${fmt(C.prize)} ◉`+(res.next?` · <b>${RACES[res.next].n}</b> débloqué`:' · campagne terminée !'):'Objectif atteint.'):`Objectif ${tm(C.goal)} manqué de ${tm(res.t-C.goal)}. Entraîne-toi et retente.`}
+  else{const nx=[].concat(res.next||[]),unl=nx.length?` · <b>${nx.map(k=>RACES[k].n).join('</b>, <b>')}</b> débloqué${nx.length>1?'s':''}`:'';
+    if(C.by){$('#raS').innerHTML=`<b class="big">${res.loops} boucle${res.loops>1?'s':''}</b><span>${fmt(res.km,1)} km · ${res.place}<sup>e</sup> sur ${fmt(res.n)}${res.pb?' · record perso':''}</span>`;
+      $('#raT').innerHTML=(res.win?`👑 Dernier debout, tu gagnes la backyard ! +${fmt(C.prize)} ◉ · `:res.why?res.why+'. ':'')+(res.ok?(res.first?`Objectif atteint ! +${fmt(C.prize)} ◉`+unl:'Objectif atteint.'):`Objectif : ${C.goalL} boucles. Entraîne-toi et retente.`)}
+    else{$('#raS').innerHTML=`<b class="big">${tm(res.t)}</b><span>${res.place}<sup>e</sup> sur ${fmt(res.n)}${res.pb?' · record perso':''}</span>`;
+    $('#raT').innerHTML=res.ok?(res.first?`Objectif atteint ! +${fmt(C.prize)} ◉`+unl:'Objectif atteint.'):`Objectif ${tm(C.goal)} manqué de ${tm(res.t-C.goal)}. Entraîne-toi et retente.`}}
   go.hidden=false;go.disabled=false;go.textContent='Les courses';go.onclick=()=>openModal('courses');
   x.hidden=false;x.classList.remove('danger');x.textContent=R?'Rentrer à la maison':'Fermer';x.onclick=()=>{if(R)backToTrain();G.lastRes=null;save();hud()};
 }
@@ -614,20 +629,21 @@ function renderRaces(){
   const pb=$('#pb'),keep=pb.scrollTop;pb.innerHTML='';requestAnimationFrame(()=>pb.scrollTop=keep);
   const done=G.camp.ok.length;
   const top=document.createElement('div');top.className='qtop';
-  top.innerHTML=`<b>${done} / ${CAMP.length}</b> objectifs atteints<div class="qbar"><i style="width:${done/CAMP.length*100}%"></i></div><small>Entraîne-toi seul pour gagner de l’expérience, puis prends un dossard. Bats le chrono objectif pour débloquer la course suivante.</small>`;pb.appendChild(top);
-  CAMP.forEach((id,i)=>{const C=RACES[id],I=raceInfo(id),op=raceOpen(id),ok=G.camp.ok.includes(id),mine=G.race&&G.race.id===id,best=G.camp.best[id];
+  top.innerHTML=`<b>${done} / ${CAMP.length}</b> objectifs atteints<div class="qbar"><i style="width:${done/CAMP.length*100}%"></i></div><small>Entraîne-toi seul pour gagner de l’expérience, puis prends un dossard. Bats le chrono objectif pour débloquer les courses suivantes.</small>`;pb.appendChild(top);
+  for(const[,sn,ids]of SERIES){const h=document.createElement('div');h.className='rcg';h.innerHTML=`<b>${sn}</b><span>${ids.filter(k=>G.camp.ok.includes(k)).length} / ${ids.length}</span>`;pb.appendChild(h);
+  ids.forEach(id=>{const C=RACES[id],I=raceInfo(id),op=raceOpen(id),ok=G.camp.ok.includes(id),mine=G.race&&G.race.id===id,best=G.camp.best[id];
     const d=document.createElement('div');d.className='rc'+(op?'':' lock')+(ok?' ok':'')+(mine?' mine':'');
     d.innerHTML=`<div class="rci">${op?C.ic:'🔒'}</div><div class="rcb"><div class="rch"><b></b><span class="rcm">${ok?'🏅':''}</span></div>
-      <div class="rck">${fmt(I.len/1000,1)} km · ${fmt(I.dp)} m D+ · ${I.bs.map(b=>BI[b].n.toLowerCase()).slice(0,3).join(', ')}${I.bs.length>3?'…':''}</div>
-      <p></p><div class="rcs"><span>Objectif <b>${tm(C.goal)}</b></span>${best?`<span>Record <b>${tm(best)}</b> · ${G.camp.place[id]}<sup>e</sup></span>`:''}<span>${fmt(C.nb)} coureurs</span></div>
+      <div class="rck">${C.by?`boucles de ${fmt(C.by/1000,3)} km · ${fmt(I.dp/40)} m D+ par boucle`:`${fmt(I.len/1000,1)} km · ${I.dp<100&&I.dn>500?fmt(I.dn)+' m D−':fmt(I.dp)+' m D+'}`} · ${I.bs.map(b=>BI[b].n.toLowerCase()).slice(0,3).join(', ')}${I.bs.length>3?'…':''}</div>
+      <p></p><div class="rcs"><span>Objectif <b>${C.by?C.goalL+' boucles':tm(C.goal)}</b></span>${best?`<span>Record <b>${C.by?best+' boucles':tm(best)}</b> · ${G.camp.place[id]}<sup>e</sup></span>`:''}<span>${fmt(C.nb)} coureurs</span></div>
       ${C.req&&C.req.length?`<div class="rcr">${C.req.map(k=>`<span class="${REQ[k].ok()?'ok':'no'}">${REQ[k].ok()?'✓':'✗'} ${REQ[k].n}</span>`).join('')}</div>`:''}<button></button></div>`;
-    d.querySelector('b').textContent=C.n;d.querySelector('p').textContent=op?C.d:`Bats l’objectif de « ${RACES[CAMP[i-1]].n} » pour t’inscrire.`;
+    d.querySelector('b').textContent=C.n;d.querySelector('p').textContent=op?C.d:`Bats l’objectif de « ${RACES[prevOf(id)].n} » pour t’inscrire.`;
     const b=d.querySelector('button');
     if(mine){b.textContent=G.race.st==='bib'?'Dossard pris · prépare-toi':'En course';b.disabled=true}
     else if(!op){b.textContent='Verrouillée';b.disabled=true}
     else{b.className='buy';b.textContent=(ok?'Recourir':'Prendre le dossard')+' · '+coinTxt(C.fee);b.disabled=!!G.race||G.coins<C.fee;if(G.race)b.title='Tu as déjà un dossard';
       b.onclick=()=>{if(takeBib(id)){save();hud();closeModal()}}}
-    pb.appendChild(d)});
+    pb.appendChild(d)})}
 }
 /* ---------- entraînement : arbre de compétences ---------- */
 let trSel=store.get('trSel','vma');if(!UPG[trSel])trSel='vma';
