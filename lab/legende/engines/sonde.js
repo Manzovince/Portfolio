@@ -251,14 +251,22 @@ function prng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
 return{T:typeof LAB!=='undefined'?LAB:T,KINDS:Object.keys(T),AL,EL,PAL,
   make(kind,seed,el){const old=Math.random;Math.random=prng(seed);try{const c=mk(kind);placeEls(c,el?el+'+1':'');return c;}finally{Math.random=old;}},
   render(c,k,paper,labels){S.paper=paper;S.labels=labels;c.img=null;render(c,k);return c.img;},
-  island(seed,k,paper){const old=Math.random;Math.random=prng((seed^0x5bd1e995)>>>0);let c;
-    try{c={k:'fond',g:[],seed:R(0,1000),ox:0,oy:0,ms:0,feat:[],fsig:'',lu:1,lp:0,lp2:0,els:[],esig:null,sp:spurs(),na:.55,flip:false,img:null};c.ms=c.seed;
-      // rounded-rectangle inset (corners cut on a 22 mm radius) pushed in by low and mid noise: bays, capes, round corners
+  coast(seed,edges,kind,el,k,paper){const old=Math.random;Math.random=prng((seed^0x2c1b3c6d)>>>0);let c;
+    try{const sea=!!kind;
+      c=sea?mk(kind):{k:'fond',g:[],seed:R(0,1000),ox:0,oy:0,ms:0,feat:[],fsig:'',lu:1,lp:0,lp2:0,els:[],esig:null,sp:spurs(),na:.55,flip:false,img:null};
+      c.ms=c.seed;const E={T:edges[0],R:edges[1],B:edges[2],L:edges[3]},VL=.8,val=t=>t==='t'?VL:CL;
+      c.sp=c.sp.filter(s=>E[s.dy===1?'T':s.dy===-1?'B':s.dx===1?'L':'R']==='m');
+      const v=[val(E.T),val(E.R),val(E.B),val(E.L)],uni=v.every(q=>q===v[0]);
+      const base=(x,y)=>{if(uni)return v[0];const d=[y,W-x,H-y,x];let a=0,b=0;for(let i=0;i<4;i++){if(d[i]<1e-6)return v[i];const q=1/(d[i]*d[i]);a+=v[i]*q;b+=q;}return a/b;};
       const rs=R(0,1000),RR=22,rim=(x,y)=>5+6.5*Math.max(-.35,vn(x/16,y/16,rs))+2.6*vn(x/6,y/6,rs+1)+.8*vn(x/2.2,y/2.2,rs+2);
       const inset=(x,y)=>{const ex=Math.min(x,W-x),ey=Math.min(y,H-y);return ex<RR&&ey<RR?RR-Math.hypot(RR-ex,RR-ey):Math.min(ex,ey);};
-      c.h=(x,y)=>{const e=Math.min(x,W-x,y,H-y),w=ss(e/BL);
-        const b=CL+spurV(c,x,y)+w*(c.na*fbm(x,y,c.seed)+2.2*ss((inset(x,y)-rim(x,y))/4.5));
+      const field=(x,y,isl)=>{const e=Math.min(x,W-x,y,H-y),w=ss(e/BL),bs=base(x,y),t=ss((inset(x,y)-rim(x,y))/4.5);
+        // land cards rise inland (an island when every edge is sea); sea cards sink back to open water
+        const inner=sea?(isl?M(x,y)*bump(c.g,x,y):0)-Math.max(0,bs-CL)*t:Math.max(0,1.4-bs)*t;
+        const b=bs+spurV(c,x,y)+w*(c.na*fbm(x,y,c.seed)+inner);
         return b+(.24*vn(x/3,y/3,c.seed+5)+.11*vn(x/1.4,y/1.4,c.seed+6))*Math.exp(-b*b/.4)*ss(e/5);};
-      deco(c);}finally{Math.random=old;}
-    S.paper=paper;S.labels=false;render(c,k);return{img:c.img,h:c.h};}};
+      c.h=(x,y)=>field(x,y,true);c.he=(x,y)=>field(x,y,false);
+      deco(c);placeEls(c,el?el+'+1':'');}finally{Math.random=old;}
+    const els=c.els;c.els=[];S.paper=paper;S.labels=false;render(c,k);c.els=els;
+    return{img:c.img,h:c.h,he:c.he,drawEls:g=>drawEls(g,c,PAL[paper])};}};
 })();

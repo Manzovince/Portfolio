@@ -120,6 +120,14 @@ body.nopanel .single{padding-top:60px}
 .warn{font-size:12.5px;color:var(--warn);background:var(--warn-soft);border-radius:8px;padding:8px 10px;margin-top:6px}
 .warn button{height:26px;font-size:12px;margin-top:6px;padding:0 8px}
 .del{color:var(--warn)}
+.edges{display:grid;grid-template-columns:1fr 46px 1fr;grid-template-rows:auto 64px auto;gap:6px;align-items:center;justify-items:center}
+.edges button{height:28px;padding:0 10px;font-size:12.5px;min-width:64px}
+.edges button.t{background:#FAEEDA;border-color:#BA7517;color:#633806}
+.edges button.m{background:#D6ECF3;border-color:#185FA5;color:#0C447C}
+.edges .mini{width:46px;height:64px;border-radius:5px;border:5px solid;background:var(--bg);box-sizing:border-box}
+.edges .e0{grid-area:1/2}.edges .e1{grid-area:2/3;justify-self:start}.edges .e2{grid-area:3/2}.edges .e3{grid-area:2/1;justify-self:end}.edges .mini{grid-area:2/2}
+.edges.off{opacity:.45;pointer-events:none}
+.ehint{font-size:12px;color:var(--muted);margin:8px 0 0}
 /* ---------- print / PDF ---------- */
 dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:18px;width:min(360px,calc(100vw - 32px))}
 dialog::backdrop{background:rgba(0,0,0,.4)}
@@ -178,8 +186,8 @@ dialog .act{display:flex;justify-content:flex-end;gap:8px}
   <section>
     <h2>Dos</h2>
     <div><span class="lab">Papier</span><div class="seg" id="paper"><button data-v="light">Clair</button><button data-v="dark">Sombre</button></div></div>
-    <label class="toggle">Terres en îles<input id="isles" type="checkbox"></label>
-    <p class="sub" style="margin:0">Les dos se raccordent dans n’importe quel ordre. Avec « Terres en îles », chaque carte terre est entourée de la même mer que les cartes Sonde : terre et mer s’assemblent sans coupure.</p>
+    <label class="toggle">Raccords terre / mer<input id="coast" type="checkbox"></label>
+    <p class="sub" style="margin:0">Les dos se raccordent dans n’importe quel ordre. Avec « Raccords terre / mer », chaque bord est terre ou mer : deux cartes s’assemblent quand leurs bords communs sont du même type.</p>
   </section>
 </aside>
 <button id="show" title="Afficher le panneau (P)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M13 10l2 2-2 2"/></svg>Panneau</button>
@@ -203,6 +211,7 @@ dialog .act{display:flex;justify-content:flex-end;gap:8px}
         <span class="lab" style="margin:10px 0 6px">Élément remarquable</span><select id="eEl" aria-label="Élément remarquable"></select>
       </div>
       <div><h3>Face</h3><textarea id="eText" aria-label="Texte descriptif" placeholder="Décris l'illustration…"></textarea></div>
+      <div><h3>Bords du dos</h3><div class="edges" id="eEdges"></div><p class="ehint" id="eHint"></p></div>
       <div><h3>Symboles des coins</h3><div id="eSym"></div><div id="eWarn"></div></div>
       <button id="eDel" class="del">Supprimer cette carte</button>
     </div>
@@ -228,8 +237,8 @@ dialog .act{display:flex;justify-content:flex-end;gap:8px}
 </dialog>
 <div id="print"></div>
 
-<script src="engines/arpent.js?v=2"></script>
-<script src="engines/sonde.js?v=2"></script>
+<script src="engines/arpent.js?v=3"></script>
+<script src="engines/sonde.js?v=3"></script>
 <script src="data.js?v=1"></script>
 <script>
 const $=id=>document.getElementById(id);
@@ -259,36 +268,54 @@ const combo=c=>[...c.sym].sort((a,b)=>a-b).join('');
 const comboName=c=>c.sym.map(t=>SYMN[t].toLowerCase()).join(', ');
 
 // ---------- state ----------
-const S={view:'grid',idx:0,side:'face',gk:2,gap:7,paper:'light',panel:true,isles:true};
+const S={view:'grid',idx:0,side:'face',gk:2,gap:7,paper:'light',panel:true,coast:true};
 let cards=[];
 const esc=s=>s.replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 const rint=()=>1+Math.floor(Math.random()*2**30);
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 function randEl(back,p=.4){const b=BACKS[back],al=b.eng.AL[b.kind]||[];return al.length&&Math.random()<p?al[Math.floor(Math.random()*al.length)]:'';}
+// edges of a back, top, right, bottom, left: 't' land, 'm' sea. Per family of 28: 10 plain, 8 with one other edge,
+// 4 with two adjacent (corner), 2 with two opposite (isthmus / strait), 2 with three, 2 with all four (island / lagoon)
+const fam=back=>back[0]==='a'?'t':'m',other=t=>t==='t'?'m':'t';
+function edgeSet(f,n){const o=f,x=other(f),r4=()=>Math.floor(Math.random()*4),mk=pos=>[0,1,2,3].map(i=>pos.includes(i)?x:o).join(''),one=[];
+  for(let i=0;i<10;i++)one.push(mk([]));for(let i=0;i<8;i++)one.push(mk([r4()]));
+  for(let i=0;i<4;i++){const a=r4();one.push(mk([a,(a+1)%4]));}for(let i=0;i<2;i++){const a=r4()%2;one.push(mk([a,a+2]));}
+  for(let i=0;i<2;i++){const a=r4();one.push(mk([0,1,2,3].filter(j=>j!==a)));}for(let i=0;i<2;i++)one.push(mk([0,1,2,3]));
+  shuffle(one);const out=[];for(let i=0;i<n;i++)out.push(one[i%one.length]);return out;}
+function dealEdges(list){const pools={t:edgeSet('t',list.filter(c=>fam(c.back)==='t').length),m:edgeSet('m',list.filter(c=>fam(c.back)==='m').length)};
+  list.forEach(c=>c.edges=pools[fam(c.back)].pop());}
 function newDeck(){const out=[],backs=shuffle(BK.flatMap(k=>Array(7).fill(k)));let n=0;
   for(let a=0;a<6;a++)for(let b=a;b<6;b++)for(let c=b;c<6;c++){const back=backs[n];out.push({sym:[a,b,c],text:TEXTES[n]||'',back,seed:rint(),el:randEl(back)});n++;}
-  return out;}
+  dealEdges(out);return out;}
 function save(){try{localStorage.setItem('legende',JSON.stringify({S,cards}));}catch(e){}}
 function valid(c){return c&&Array.isArray(c.sym)&&c.sym.length===3&&c.sym.every(t=>Number.isInteger(t)&&t>=0&&t<6)&&BACKS[c.back]&&typeof c.text==='string';}
-function clean(c){return{sym:c.sym.slice(),text:c.text,back:c.back,seed:Number.isFinite(c.seed)?c.seed:rint(),el:(BACKS[c.back].eng.AL[BACKS[c.back].kind]||[]).includes(c.el)?c.el:''};}
+function clean(c){return{sym:c.sym.slice(),text:c.text,back:c.back,seed:Number.isFinite(c.seed)?c.seed:rint(),el:(BACKS[c.back].eng.AL[BACKS[c.back].kind]||[]).includes(c.el)?c.el:'',edges:/^[tm]{4}$/.test(c.edges)?c.edges:null};}
 try{const sv=JSON.parse(localStorage.getItem('legende')||'null');if(sv){Object.assign(S,sv.S||{});if(Array.isArray(sv.cards))cards=sv.cards.filter(valid).map(clean);}}catch(e){}
 if(!cards.length)cards=newDeck();
-delete S.labels;if(typeof S.isles!=='boolean')S.isles=true;if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
+if(cards.some(c=>!c.edges)){const miss=cards.filter(c=>!c.edges);dealEdges(miss);}
+delete S.labels;delete S.isles;if(typeof S.coast!=='boolean')S.coast=true;if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
 
 // ---------- back rendering: async queue + caches ----------
 const models=new Map(),imgs=new Map();let queue=[],qt=0;
 const mkey=c=>c.back+'|'+c.seed+'|'+c.el;
-const ikey=(c,k)=>[mkey(c),k,S.paper,S.isles&&c.back[0]==='a',dpr()].join('|');
-// land backs (Arpent) become islands: the sea around them comes from the Sonde engine with the same edge as every sea back
-function backImage(c,k){const b=BACKS[c.back],land=b.eng.render(model(c),k,S.paper,false);
-  if(!S.isles||c.back[0]!=='a')return land;
-  const sea=SONDE.island(c.seed,k,S.paper),ow=land.width,oh=land.height,st=.5,nx=Math.round(W/st),ny=Math.round(H/st);
+const ikey=(c,k)=>[mkey(c),k,S.paper,S.coast&&c.edges,dpr()].join('|');
+// One relief per card (Sonde engine) decides land and sea from the card's edges: land is drawn by Arpent, sea by Sonde.
+// Sea cards keep their own Sonde islands where that land does not touch a land edge (field he).
+function backImage(c,k){const b=BACKS[c.back],f=c.back[0];
+  if(!S.coast)return b.eng.render(model(c),k,S.paper,false);
+  const sea=SONDE.coast(c.seed,c.edges,f==='s'?b.kind:null,f==='s'?c.el:'',k,S.paper);
+  let lm;if(f==='a'){lm=model(c);if(lm.els.some(e=>sea.h(e.x,e.y)<.3))lm=model({...c,el:''});}
+  else lm=model({back:b.kind==='ile'?'a:foret':'a:plaine',seed:c.seed,el:''});
+  const land=ARPENT.render(lm,k,S.paper,false),ow=land.width,oh=land.height,st=.5,nx=Math.round(W/st),ny=Math.round(H/st);
   const mc=document.createElement('canvas');mc.width=nx+1;mc.height=ny+1;const mg=mc.getContext('2d'),im=mg.createImageData(nx+1,ny+1);
-  for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++){const v=sea.h(i*st,j*st),a=v<.06?1:v>.16?0:1-(v-.06)/.1;im.data[(j*(nx+1)+i)*4+3]=a*255;}
+  const A=v=>v<.06?1:v>.16?0:1-(v-.06)/.1;
+  for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++){const x=i*st,y=j*st;let a=A(sea.h(x,y));if(f==='s'&&a<1)a=Math.max(a,A(sea.he(x,y)));im.data[(j*(nx+1)+i)*4+3]=a*255;}
   mg.putImageData(im,0,0);
   const out=document.createElement('canvas');out.width=ow;out.height=oh;const g=out.getContext('2d');
   g.drawImage(sea.img,0,0);g.globalCompositeOperation='destination-in';g.imageSmoothingEnabled=true;
-  g.drawImage(mc,-ow/nx/2,-oh/ny/2,ow+ow/nx,oh+oh/ny);g.globalCompositeOperation='destination-over';g.drawImage(land,0,0);return out;}
+  g.drawImage(mc,-ow/nx/2,-oh/ny/2,ow+ow/nx,oh+oh/ny);g.globalCompositeOperation='destination-over';g.drawImage(land,0,0);
+  if(f==='s'){g.globalCompositeOperation='source-over';g.save();g.scale(ow/W,oh/H);sea.drawEls(g);g.restore();}
+  return out;}
 function model(c){const key=mkey(c);let m=models.get(key);if(!m){const b=BACKS[c.back];m=b.eng.make(b.kind,c.seed,c.el);models.set(key,m);
   if(models.size>160)models.delete(models.keys().next().value);}return m;}
 function paint(cv,im){cv.width=im.width;cv.height=im.height;cv.getContext('2d').drawImage(im,0,0);}
@@ -325,8 +352,18 @@ function drawSingle(){if(!cards.length)return;sk=singleK();const c=cards[S.idx];
   drawSingleFace();drawSingleBack();
   $('eBack').value=c.back;fillEls();$('eEl').value=c.el;
   if(document.activeElement!==$('eText'))$('eText').value=c.text;
+  drawEdges();
   document.querySelectorAll('#eSym button').forEach(b=>b.classList.toggle('on',c.sym[+b.dataset.r]===+b.dataset.t));
   warn();}
+const SIDE=['Haut','Droite','Bas','Gauche'],TN={t:'Terre',m:'Mer'},EC={t:'#BA7517',m:'#185FA5'};
+function drawEdges(){const c=cards[S.idx],e=c.edges,el=$('eEdges');el.classList.toggle('off',!S.coast);
+  el.innerHTML=[0,1,2,3].map(i=>`<button class="e${i} ${e[i]}" data-i="${i}" title="${SIDE[i]} : ${TN[e[i]]} (cliquer pour changer)" aria-label="Bord ${SIDE[i].toLowerCase()} : ${TN[e[i]]}">${TN[e[i]]}</button>`).join('')+
+    `<div class="mini" aria-hidden="true" style="border-color:${[0,1,2,3].map(i=>EC[e[i]]).join(' ')}"></div>`;
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;c.edges=c.edges.slice(0,i)+other(c.edges[i])+c.edges.slice(i+1);changed('back');});
+  const n=[...e].filter(t=>t!==fam(c.back)).length;
+  $('eHint').textContent=!S.coast?'Active « Raccords terre / mer » pour utiliser les bords.':
+    fam(c.back)==='t'?['Terre de bord à bord.','Une côte.','Deux côtes.','Deux côtes.','Une presqu’île.','Une île.'][n===2&&e[0]===e[2]?3:n===3?4:n===4?5:n]:
+    ['Pleine mer de bord à bord.','Un rivage.','Deux rivages.','Un détroit.','Une baie.','Un lagon.'][n===2&&e[0]===e[2]?3:n===3?4:n===4?5:n];}
 function fillEls(){const c=cards[S.idx],b=BACKS[c.back],al=b.eng.AL[b.kind]||[];
   $('eEl').innerHTML='<option value="">Aucun</option>'+al.map(e=>`<option value="${e}">${b.eng.EL[e]}</option>`).join('');}
 function warn(){const c=cards[S.idx],k=combo(c),o=cards.map((d,i)=>i).filter(i=>i!==S.idx&&combo(cards[i])===k);
@@ -347,7 +384,7 @@ function render(){const g=S.view==='grid';$('grid').classList.toggle('hidden',!g
   $('single').classList.toggle('hidden',g);
   document.querySelectorAll('#view button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
   document.querySelectorAll('#paper button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.paper));
-  $('gk').value=S.gk;$('isles').checked=S.isles;$('gap').value=S.gap;setGap();$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
+  $('gk').value=S.gk;$('coast').checked=S.coast;$('gap').value=S.gap;setGap();$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
   queue=[];if(g)drawGrid();else drawSingle();stats();save();}
 // a card changed: what: 'text' | 'sym' | 'back'
 function changed(what){const c=cards[S.idx];
@@ -361,7 +398,7 @@ function changed(what){const c=cards[S.idx];
 $('eSym').innerHTML=['Coin','À droite','Dessous'].map((l,r)=>`<div class="symrow" role="group" aria-label="${l}"><span>${l}</span>${SYMN.map((n,t)=>
   `<button data-r="${r}" data-t="${t}" title="${n}" aria-label="${l} : ${n}"><svg viewBox="0 0 10 10" aria-hidden="true"><g>${sym(t,5,5,7.4)}</g></svg></button>`).join('')}</div>`).join('');
 document.querySelectorAll('#eSym button').forEach(b=>b.onclick=()=>{cards[S.idx].sym[+b.dataset.r]=+b.dataset.t;changed('sym');});
-$('eBack').onchange=e=>{const c=cards[S.idx];c.back=e.target.value;const b=BACKS[c.back];if(!(b.eng.AL[b.kind]||[]).includes(c.el))c.el='';changed('back');};
+$('eBack').onchange=e=>{const c=cards[S.idx],was=fam(c.back);c.back=e.target.value;if(fam(c.back)!==was)c.edges=[...c.edges].map(other).join('');const b=BACKS[c.back];if(!(b.eng.AL[b.kind]||[]).includes(c.el))c.el='';changed('back');};
 $('eSeed').onclick=()=>{cards[S.idx].seed=rint();changed('back');};
 $('eEl').onchange=e=>{cards[S.idx].el=e.target.value;changed('back');};
 $('eText').oninput=e=>{cards[S.idx].text=e.target.value;changed('text');};
@@ -376,19 +413,19 @@ $('flipAll').onclick=$('flip2').onclick=flipAll;
 function setGap(){const g=$('grid');g.style.setProperty('--gap',S.gap*S.gk+'px');g.classList.toggle('tight',S.gap<4);}
 $('gap').oninput=e=>{S.gap=+e.target.value;setGap();save();};
 let gt;$('gk').oninput=e=>{S.gk=+e.target.value;setGap();document.querySelectorAll('#grid .card').forEach(d=>d.style.fontSize=S.gk+'px');clearTimeout(gt);gt=setTimeout(render,250);};
-$('isles').onchange=e=>{S.isles=e.target.checked;render();};
+$('coast').onchange=e=>{S.coast=e.target.checked;render();};
 document.querySelectorAll('#paper button').forEach(b=>b.onclick=()=>{S.paper=b.dataset.v;render();});
 $('add').onclick=()=>{const used=new Set(cards.map(combo));let s=null;for(let a=0;a<6&&!s;a++)for(let b=a;b<6&&!s;b++)for(let d=b;d<6&&!s;d++)if(!used.has(''+a+b+d))s=[a,b,d];
-  const back=BK[Math.floor(Math.random()*BK.length)];cards.push({sym:s||[0,0,0],text:'',back,seed:rint(),el:randEl(back)});S.idx=cards.length-1;setView('card');$('eText').focus();};
-$('rebacks').onclick=()=>{if(!confirm('Tirer de nouveaux dos pour toutes les cartes ? Les types de dos sont redistribués ; textes et symboles restent.'))return;
-  const backs=shuffle(cards.map((_,i)=>BK[i%BK.length]));cards.forEach((c,i)=>{c.back=backs[i];c.seed=rint();c.el=randEl(c.back);});render();};
+  const back=BK[Math.floor(Math.random()*BK.length)];cards.push({sym:s||[0,0,0],text:'',back,seed:rint(),el:randEl(back),edges:fam(back).repeat(4)});S.idx=cards.length-1;setView('card');$('eText').focus();};
+$('rebacks').onclick=()=>{if(!confirm('Tirer de nouveaux dos pour toutes les cartes ? Les types de dos sont redistribués ; bords redistribués ; textes et symboles restent.'))return;
+  const backs=shuffle(cards.map((_,i)=>BK[i%BK.length]));cards.forEach((c,i)=>{c.back=backs[i];c.seed=rint();c.el=randEl(c.back);});dealEdges(cards);render();};
 $('reset').onclick=()=>{if(!confirm('Recréer le jeu de 56 cartes par défaut ? Toutes tes modifications seront perdues (pense à exporter avant).'))return;cards=newDeck();S.idx=0;render();};
 $('export').onclick=()=>{const blob=new Blob([JSON.stringify({version:1,cards},null,1)],{type:'application/json'}),a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=`legende-${cards.length}-cartes.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
 $('import').onclick=()=>$('file').click();
 $('file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
   try{const d=JSON.parse(await f.text()),arr=(Array.isArray(d)?d:d.cards||[]).filter(valid).map(clean);if(!arr.length)throw 0;
-    if(!confirm(`Remplacer le jeu actuel par les ${arr.length} cartes du fichier ?`))return;cards=arr;S.idx=0;render();}
+    if(!confirm(`Remplacer le jeu actuel par les ${arr.length} cartes du fichier ?`))return;cards=arr;dealEdges(cards.filter(c=>!c.edges));S.idx=0;render();}
   catch(err){alert('Fichier non reconnu : il faut un export de Légende.');}};
 addEventListener('keydown',e=>{const t=e.target;if(t.tagName==='TEXTAREA'||t.tagName==='INPUT'&&t.type!=='range'||t.tagName==='SELECT'||e.metaKey||e.ctrlKey||e.altKey)return;
   if(S.view==='card'&&e.key==='ArrowLeft'){go(-1);e.preventDefault();}
