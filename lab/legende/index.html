@@ -221,6 +221,11 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
   </section>
 
   <section>
+    <h2>Faces</h2>
+    <div><span class="lab">Illustration</span><div class="seg" id="illM"><button data-v="mirror" title="Le même dessin en haut et, en reflet, en bas">Miroir</button><button data-v="single" title="Un seul dessin, dans la moitié haute">Unique</button></div></div>
+  </section>
+
+  <section>
     <h2>Dos</h2>
     <div><span class="lab">Papier</span><div class="seg" id="paper"><button data-v="light">Clair</button><button data-v="dark">Sombre</button></div></div>
     <label class="toggle">Raccords terre / mer<input id="coast" type="checkbox"></label>
@@ -312,7 +317,7 @@ const combo=c=>[...c.sym].sort((a,b)=>a-b).join('');
 const comboName=c=>c.sym.map(t=>SYMN[t].toLowerCase()).join(', ');
 
 // ---------- state ----------
-const S={view:'grid',idx:0,side:'face',gk:2,gap:7,paper:'light',panel:true,coast:true,order:'deck',dcols:8,deal:null};
+const S={view:'grid',idx:0,side:'face',gk:2,gap:7,paper:'light',panel:true,coast:true,order:'deck',dcols:8,deal:null,ill:'mirror'};
 let cards=[];
 const esc=s=>s.replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 const rint=()=>1+Math.floor(Math.random()*2**30);
@@ -369,7 +374,7 @@ function matchTexts(list){let ch=0;
   return ch;}
 if(S.acc!==1){if(matchTexts(cards))S.deal=null;S.acc=1;}
 if(cards.some(c=>!c.edges)){const miss=cards.filter(c=>!c.edges);dealEdges(miss);}
-if(S.order!=='deal')S.order='deck';if(!(S.dcols>=2&&S.dcols<=14))S.dcols=8;delete S.labels;delete S.isles;if(typeof S.coast!=='boolean')S.coast=true;if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
+if(S.order!=='deal')S.order='deck';if(!(S.dcols>=2&&S.dcols<=14))S.dcols=8;delete S.labels;delete S.isles;if(typeof S.coast!=='boolean')S.coast=true;if(S.ill!=='single')S.ill='mirror';if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
 
 // ---------- back rendering: async queue + caches ----------
 const models=new Map(),imgs=new Map();let queue=[],qt=0;
@@ -429,7 +434,7 @@ function illus(c){const il=window.ILLUS&&ILLUS[(c.text||'').trim()];if(!il)retur
     `<linearGradient id="h${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".14" stop-color="#fff"/><stop offset=".86" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>`+
     `<mask id="m${u}" maskUnits="userSpaceOnUse" x="-2" y="-2" width="52" height="26"><rect x="-1" y="-1" width="50" height="24" fill="url(#h${u})"/></mask></defs>`;
   const g=`<g transform="translate(7.5 12)">${wash(c,col,u)}${tint(il,col)}</g>`;
-  return `<svg class="ill" viewBox="0 0 63 88" aria-hidden="true">${defs}${g}<g transform="matrix(1 0 0 -1 0 88)">${g}</g></svg>`;}
+  return `<svg class="ill" viewBox="0 0 63 88" aria-hidden="true">${defs}${g}${S.ill==='single'?'':`<g transform="matrix(1 0 0 -1 0 88)">${g}</g>`}</svg>`;}
 function backEl(c,k){const d=document.createElement('div');d.className='card back';d.style.fontSize=k+'px';
   const cv=document.createElement('canvas');d.appendChild(cv);d.insertAdjacentHTML('beforeend',overlay(c,true,S.paper==='dark'));want(c,k,cv);return d;}
 
@@ -542,7 +547,7 @@ function setView(v){S.view=v;render();}
 function render(){const g=S.view==='grid';document.querySelector('main').classList.toggle('pan',g);$('grid').classList.toggle('hidden',!g);$('gbar').classList.toggle('hidden',!g);$('gridOpts').classList.toggle('hidden',!g);
   $('single').classList.toggle('hidden',g);
   document.querySelectorAll('#view button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
-  document.querySelectorAll('#paper button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.paper));
+  document.querySelectorAll('#paper button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.paper));document.querySelectorAll('#illM button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.ill));
   $('gk').value=S.gk;$('coast').checked=S.coast;document.querySelectorAll('#order button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.order));$('dealCtl').classList.toggle('hidden',S.order!=='deal');$('cOut').textContent=S.dcols;$('gap').value=S.gap;setGap();$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
   queue=[];if(g)drawGrid();else drawSingle();stats();save();}
 // a card changed: what: 'text' | 'sym' | 'back'
@@ -598,6 +603,7 @@ $('cMinus').onclick=()=>setCols(S.dcols-1);$('cPlus').onclick=()=>setCols(S.dcol
 $('redeal').onclick=()=>{S.deal=null;render();};
 $('coast').onchange=e=>{S.coast=e.target.checked;render();};
 document.querySelectorAll('#paper button').forEach(b=>b.onclick=()=>{S.paper=b.dataset.v;render();});
+document.querySelectorAll('#illM button').forEach(b=>b.onclick=()=>{S.ill=b.dataset.v;render();});
 $('add').onclick=()=>{const used=new Set(cards.map(combo));let s=null;for(let a=0;a<6&&!s;a++)for(let b=a;b<6&&!s;b++)for(let d=b;d<6&&!s;d++)if(!used.has(''+a+b+d))s=[a,b,d];
   const back=BK[Math.floor(Math.random()*BK.length)];cards.push({sym:s||[0,0,0],text:'',back,seed:rint(),el:randEl(back),edges:fam(back).repeat(4)});S.idx=cards.length-1;setView('card');$('eText').focus();};
 $('rebacks').onclick=async()=>{if(!await ask('Tirer de nouveaux dos ?','Chaque carte reçoit le dos qui va avec son texte (les textes inconnus reçoivent un type au hasard), un nouveau relief et de nouveaux bords. Les textes et les symboles restent.','Nouveaux dos',false))return;S.deal=null;
