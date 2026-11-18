@@ -260,16 +260,21 @@ return{T:typeof LAB!=='undefined'?LAB:T,KINDS:Object.keys(T),AL,EL,PAL,
       const base=(x,y)=>{if(uni)return v[0];const d=[y,W-x,H-y,x];let a=0,b=0;for(let i=0;i<4;i++){if(d[i]<1e-6)return v[i];const q=1/(d[i]*d[i]);a+=v[i]*q;b+=q;}return a/b;};
       const rs=R(0,1000),RR=22,rim=(x,y)=>5+6.5*Math.max(-.35,vn(x/16,y/16,rs))+2.6*vn(x/6,y/6,rs+1)+.8*vn(x/2.2,y/2.2,rs+2);
       const inset=(x,y)=>{const ex=Math.min(x,W-x),ey=Math.min(y,H-y);return ex<RR&&ey<RR?RR-Math.hypot(RR-ex,RR-ey):Math.min(ex,ey);};
-      // sometimes a land edge of a sea card pushes a tongue of land into the card (kept off the edges, so matching is unchanged)
+      // sometimes an edge of the other type pushes into the card: a headland of land on sea cards, an inlet of water on land cards (blended by w, so edge values and matching are unchanged)
       const tr=prng((seed^0x51ed27b3)>>>0),tg=[];
-      if(sea)['T','R','B','L'].forEach((s,i)=>{if(E[s]!=='t'||tr()>.5)return;const len=i%2?H:W,dep=i%2?W:H;tg.push({i,p:len*(.3+.4*tr()),wd:5+4*tr(),ln:dep*(.22+.2*tr()),ns:tr()*1000});});
-      const tongue=(x,y)=>{let m=0;for(const g of tg){const d=[y,W-x,H-y,x][g.i],a=g.i%2?y:x,f=d/g.ln,wid=g.wd*(1.35-.75*f)+1.6*vn(x/5,y/5,g.ns),
-        q=Math.hypot((a-g.p)/Math.max(.5,wid),f)+.2*vn(x/7,y/7,g.ns+1);m=Math.max(m,ss((1-q)/.3));}return m;};
+      // shapes: 0 cap arrondi, 1 bout carré, 2 tête renflée, 3 large dôme, 4 deux lobes; each may bend
+      const bmp=(f,c0,s)=>Math.exp(-(((f-c0)/s)**2)),PRO=[f=>1.35-.75*f,f=>1.15-.2*f,f=>1-.5*bmp(f,.35,.16)+.75*bmp(f,.78,.2),f=>1.9-.5*f,f=>1.1-.6*f];
+      const opp=sea?'t':'m';['T','R','B','L'].forEach((s,i)=>{if(E[s]!==opp||tr()>.5)return;const len=i%2?H:W,dep=i%2?W:H,sh=Math.floor(tr()*5),p=len*(.32+.36*tr()),wd=4.5+3.5*tr(),
+        ln=dep*(sh===3?.13+.08*tr():sh===1?.16+.12*tr():.22+.2*tr()),bend=(tr()-.5)*(sh===0||sh===2?18:8),n=[2,4.5,2.4,2.2,2][sh],ns=tr()*1000;
+        if(sh===4){const o=wd*(.9+.5*tr());tg.push({i,p:p-o,wd:wd*.75,ln,bend:bend-3,n,pr:PRO[4],ns},{i,p:p+o,wd:wd*.7,ln:ln*(.55+.35*tr()),bend:bend+3,n,pr:PRO[4],ns:ns+7},{i,p,wd:wd*1.4,ln:ln*.3,bend:0,n:2,pr:PRO[3],ns:ns+9});}
+        else tg.push({i,p,wd,ln,bend,n,pr:PRO[sh],ns});});
+      const tongue=(x,y)=>{let m=0;for(const g of tg){const d=[y,W-x,H-y,x][g.i],a=g.i%2?y:x,f=d/g.ln;if(f>1.6)continue;const wid=g.wd*Math.max(.15,g.pr(f))+1.6*vn(x/5,y/5,g.ns),
+        u=Math.abs(a-g.p-g.bend*f*f)/Math.max(.5,wid),q=Math.pow(u**g.n+f**g.n,1/g.n)+.2*vn(x/7,y/7,g.ns+1);m=Math.max(m,ss((1-q)/.3));}return m;};
       const field=(x,y,isl)=>{const e=Math.min(x,W-x,y,H-y),w=ss(e/BL),bs=base(x,y),t=ss((inset(x,y)-rim(x,y))/4.5);
         // land cards rise inland (an island when every edge is sea); sea cards sink back to open water
         const inner=sea?(isl?M(x,y)*bump(c.g,x,y):0)-Math.max(0,bs-CL)*t:Math.max(0,1.4-bs)*t;
         let b=bs+spurV(c,x,y)+w*(c.na*fbm(x,y,c.seed)+inner);
-        if(tg.length){const m=tongue(x,y);if(m>0)b=b*(1-m)+m*(VL+spurV(c,x,y)+w*(c.na*fbm(x,y,c.seed)+.35));}
+        if(tg.length){const m=tongue(x,y);if(m>0)b=b*(1-m)+m*(sea?VL+spurV(c,x,y)+w*(c.na*fbm(x,y,c.seed)+.35):CL+spurV(c,x,y)+w*(.3*c.na*fbm(x,y,c.seed)-.3));}
         return b+(.24*vn(x/3,y/3,c.seed+5)+.11*vn(x/1.4,y/1.4,c.seed+6))*Math.exp(-b*b/.4)*ss(e/5);};
       c.h=(x,y)=>field(x,y,true);c.he=(x,y)=>field(x,y,false);
       deco(c);placeEls(c,el?el+'+1':'');}finally{Math.random=old;}
