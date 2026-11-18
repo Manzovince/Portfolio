@@ -355,6 +355,15 @@ function valid(c){return c&&Array.isArray(c.sym)&&c.sym.length===3&&c.sym.every(
 function clean(c){return{sym:c.sym.slice(),text:c.text,back:c.back,seed:Number.isFinite(c.seed)?c.seed:rint(),el:(BACKS[c.back].eng.AL[BACKS[c.back].kind]||[]).includes(c.el)?c.el:'',edges:/^[tm]{4}$/.test(c.edges)?c.edges:null};}
 try{const sv=JSON.parse(localStorage.getItem('legende')||'null');if(sv){Object.assign(S,sv.S||{});if(Array.isArray(sv.cards))cards=sv.cards.filter(valid).map(clean);}}catch(e){}
 if(!cards.length)cards=newDeck();
+// Give every card whose text is known the back its text calls for (seed kept when already right), then meet the edge rules
+// by swapping edges with a card of the same family that has no rule. Run once on decks made before texts had backs.
+function matchTexts(list){let ch=0;
+  list.forEach(c=>{const a=accord(c);if(!a||!BACKS[a.back]||c.back===a.back)return;const was=fam(c.back);c.back=a.back;c.el=a.el;c.seed=rint();
+    if(c.edges&&fam(a.back)!==was)c.edges=[...c.edges].map(other).join('');ch++;});
+  list.forEach(c=>{const a=accord(c),r=a&&a.back===c.back&&RULES[a.rule];if(!r||!c.edges||r(c.edges))return;
+    const d=list.find(d=>d!==c&&fam(d.back)===fam(c.back)&&d.edges&&r(d.edges)&&!(accord(d)||{}).rule);if(d){[c.edges,d.edges]=[d.edges,c.edges];ch++;}});
+  return ch;}
+if(S.acc!==1){if(matchTexts(cards))S.deal=null;S.acc=1;}
 if(cards.some(c=>!c.edges)){const miss=cards.filter(c=>!c.edges);dealEdges(miss);}
 if(S.order!=='deal')S.order='deck';if(!(S.dcols>=2&&S.dcols<=14))S.dcols=8;delete S.labels;delete S.isles;if(typeof S.coast!=='boolean')S.coast=true;if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
 
