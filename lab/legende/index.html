@@ -47,6 +47,9 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .stats .big{grid-column:1/-1;padding-bottom:6px;border-bottom:1px solid var(--line);color:var(--ink)}
 .stats .big+.big{padding-top:0}
 .stats b{color:var(--ink);font-weight:600}
+.stats .big.sep{margin-top:4px;padding-top:8px;border-top:1px solid var(--line)}
+.stats .big.sub{border-bottom:0;padding:4px 0 0;color:var(--muted);flex-wrap:wrap}
+.stats small{font-size:11px;color:var(--muted);font-weight:400}
 .stats .bad,.stats .bad b{color:var(--warn)}
 .lab{font-size:13px;margin-bottom:6px;display:block}
 .hidden{display:none!important}
@@ -428,7 +431,18 @@ function warn(){const c=cards[S.idx],k=combo(c),o=cards.map((d,i)=>i).filter(i=>
 function stats(){const n=cards.length,dm=dupSet(),uniq=Object.keys(dm).length,dup=n-uniq,cnt={};cards.forEach(c=>cnt[c.back]=(cnt[c.back]||0)+1);
   $('stats').innerHTML=`<span class="big"><span><b>${n}</b> carte${n>1?'s':''}</span><span>${(n*.035).toFixed(1).replace('.',',')} cm d'épaisseur</span></span>`+
     `<span class="big${dup?' bad':''}"><span>Combinaisons <b>${uniq}</b>/56</span><span>${dup?`<b>${dup}</b> doublon${dup>1?'s':''}`:'sans doublon'}</span></span>`+
-    BK.filter(k=>cnt[k]).map(k=>`<span>${BACKS[k].name} <b>${cnt[k]}</b></span>`).join('');}
+    BK.filter(k=>cnt[k]).map(k=>`<span>${BACKS[k].name} <b>${cnt[k]}</b></span>`).join('')+edgeStats();}
+// Edges: land/sea totals, then cards by edge configuration (count of land edges, adjacent vs opposite for 2+2).
+function edgeStats(){let T=0,M=0;const cf={t4:0,t3:0,adj:0,opp:0,t1:0,t0:0,isl:0,lag:0};
+  cards.forEach(c=>{const e=c.edges||fam(c.back).repeat(4),t=[...e].filter(x=>x==='t').length;T+=t;M+=4-t;
+    if(t===4)cf.t4++;else if(t===0)cf.t0++;else if(t===3)cf.t3++;else if(t===1)cf.t1++;else if(e[0]===e[2])cf.opp++;else cf.adj++;
+    if(fam(c.back)==='t'&&t===0)cf.isl++;if(fam(c.back)==='m'&&t===4)cf.lag++;});
+  const pc=x=>T+M?Math.round(100*x/(T+M)):0,row=(l,v,tip)=>v?`<span title="${tip}">${l} <b>${v}</b></span>`:'';
+  return `<span class="big sep"><span>Bords terre <b>${T}</b> <small>${pc(T)} %</small></span><span>eau <b>${M}</b> <small>${pc(M)} %</small></span></span>`+
+    row('4 terre',cf.t4,'Quatre bords de terre')+row('4 eau',cf.t0,'Quatre bords d\'eau')+
+    row('3 terre',cf.t3,'3 bords de terre, 1 bord d\'eau')+row('3 eau',cf.t1,'3 bords d\'eau, 1 bord de terre')+
+    row('En coin',cf.adj,'2 bords de terre voisins, 2 bords d\'eau voisins')+row('Face à face',cf.opp,'2 bords de terre opposés, 2 bords d\'eau opposés (détroit ou isthme)')+
+    (cf.isl||cf.lag?`<span class="big sub">${cf.isl?`<span>Îles (terre cernée d'eau) <b>${cf.isl}</b></span>`:''}${cf.lag?`<span>Lagons (eau cernée de terre) <b>${cf.lag}</b></span>`:''}</span>`:'');}
 
 // ---------- view / sync ----------
 function setView(v){S.view=v;render();}
