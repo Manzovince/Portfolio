@@ -423,16 +423,16 @@ let UID=0;
 function wash(c,col,u,big){const T=big?-12:-1,B=big?27:23;let h=0;for(const ch of c.text)h=(h*31+ch.charCodeAt(0))>>>0;const rnd=()=>(h=(h*1103515245+12345)>>>0)/4294967296,f=v=>v.toFixed(2);
   const band=(y0,amp)=>{const k=9,pts=[];for(let i=0;i<=k;i++)pts.push([-1+50*i/k,y0+rnd()*amp]);let d=`M-1 ${B}L${f(pts[0][0])} ${f(pts[0][1])}`;
     for(let i=1;i<=k;i++){const[a,b]=[pts[i-1],pts[i]];d+=`Q${f(a[0]+2.8)} ${f(a[1]+(rnd()-.5)*2)} ${f(b[0])} ${f(b[1])}`;}return d+`L49 ${B}Z`;};
-  return `<g mask="url(#m${u})"><rect x="-1" y="${T}" width="50" height="${16-T-1}" fill="url(#s${u})"/>`+
+  return `<g mask="url(#m${u})"><g${big?` mask="url(#n${u})"`:''}><rect x="-1" y="${T}" width="50" height="${16-T-1}" fill="url(#s${u})"/>`+
     `<path class="w" fill="${col[0]}" opacity=".55" d="${band(7.5,3)}"/><path class="w" fill="${col[0]}" d="${band(11.5,2.5)}"/>`+
-    `<path class="w" fill="${col[1]}" opacity=".35" d="${band(17.5,1.6)}"/></g>`;}
+    `<path class="w" fill="${col[1]}" opacity=".35" d="${band(17.5,1.6)}"/></g></g>`;}
 // drawing tinted: closed paths get the shape colour, open circles and ellipses the round colour
 function tint(il,col){return il.replace(/<path d="([^"]*[zZ])"(?! class)/g,`<path d="$1" class="z" style="fill:${col[1]}"`)
   .replace(/<(circle|ellipse)([^>]*?)(?<!class="f")\/>/g,(m,t,a)=>/class=/.test(a)?m:`<${t}${a} class="o" style="fill:${col[2]}"/>`);}
 function illus(c){const il=window.ILLUS&&ILLUS[(c.text||'').trim()];if(!il)return '';const col=PASTEL[c.back]||['#eee','#ddd','#f3e3c8'],u=++UID;
   const defs=`<defs><linearGradient id="s${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col[2]}" stop-opacity="0"/><stop offset=".6" stop-color="${col[2]}" stop-opacity=".55"/><stop offset="1" stop-color="${col[2]}" stop-opacity=".2"/></linearGradient>`+
     `<linearGradient id="h${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="${S.ill==='single'?.06:.14}" stop-color="#fff"/><stop offset="${S.ill==='single'?.94:.86}" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>`+
-    `<mask id="m${u}" maskUnits="userSpaceOnUse" x="-2" y="-14" width="52" height="44"><rect x="-1" y="-13" width="50" height="42" fill="url(#h${u})"/></mask></defs>`;
+    `<mask id="m${u}" maskUnits="userSpaceOnUse" x="-2" y="-14" width="52" height="44"><rect x="-1" y="-13" width="50" height="42" fill="url(#h${u})"/></mask>`+(S.ill==='single'?`<linearGradient id="v${u}" gradientUnits="userSpaceOnUse" x1="0" y1="18" x2="0" y2="27"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="n${u}" maskUnits="userSpaceOnUse" x="-2" y="-14" width="52" height="44"><rect x="-1" y="-13" width="50" height="42" fill="url(#v${u})"/></mask>`:'')+`</defs>`;
   const g=`<g transform="${S.ill==='single'?'translate(-.9 29) scale(1.35)':'translate(7.5 12)'}">${wash(c,col,u,S.ill==='single')}${tint(il,col)}</g>`;
   return `<svg class="ill" viewBox="0 0 63 88" aria-hidden="true">${defs}${g}${S.ill==='single'?'':`<g transform="matrix(1 0 0 -1 0 88)">${g}</g>`}</svg>`;}
 function backEl(c,k){const d=document.createElement('div');d.className='card back';d.style.fontSize=k+'px';
