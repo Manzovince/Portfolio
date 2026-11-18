@@ -76,6 +76,8 @@ main{position:relative;overflow:auto;background:var(--stage)}
 .half{position:absolute;left:0;width:63em;height:44em;display:flex;align-items:flex-end;justify-content:center;padding:13em 6.5em 1.8em;text-align:center}
 .half.top{top:0}.half.bot{top:44em;transform:rotate(180deg)}
 .half p{margin:0;font-size:2.7em;line-height:1.35;font-style:italic;font-family:Georgia,"Iowan Old Style","Times New Roman",serif;color:#4a4945;overflow-wrap:anywhere}
+.ill{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;fill:none;stroke:#4a4945;stroke-width:.3;stroke-linecap:round;stroke-linejoin:round}
+.ill .thin{stroke-width:.2}.ill .dash{stroke-width:.22;stroke-dasharray:.7 .6}.ill .f{fill:#4a4945;stroke:none}
 .half p:empty::before{content:"(texte vide)";color:#bbb}
 .mid{position:absolute;left:4em;right:4em;top:44em;border-top:max(.5px,.1em) solid #2c2c2a;transform:translateY(-50%)}
 .card canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -280,6 +282,7 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
 <script src="engines/arpent.js?v=3"></script>
 <script src="engines/sonde.js?v=3"></script>
 <script src="data.js?v=2"></script>
+<script src="illus.js?v=1"></script>
 <script>
 const $=id=>document.getElementById(id);
 const W=63,H=88,dpr=()=>devicePixelRatio||1;
@@ -402,7 +405,10 @@ function busy(){const n=queue.length;$('busy').classList.toggle('on',n>0);if(n)$
 
 // ---------- card DOM ----------
 function faceEl(c,k){const d=document.createElement('div');d.className='card face';d.style.fontSize=typeof k==='number'?k+'px':k;
-  const t=esc(c.text);d.innerHTML=`<div class="half top"><p>${t}</p></div><div class="mid"></div><div class="half bot"><p>${t}</p></div>${overlay(c,false,false)}`;return d;}
+  const t=esc(c.text);d.innerHTML=`<div class="half top"><p>${t}</p></div><div class="mid"></div><div class="half bot"><p>${t}</p></div>${illus(c)}${overlay(c,false,false)}`;return d;}
+// line drawing of the text (illus.js), in the top half; the bottom half is its mirror image across the middle line
+function illus(c){const il=window.ILLUS&&ILLUS[(c.text||'').trim()];if(!il)return '';const g=`<g transform="translate(7.5 12)">${il}</g>`;
+  return `<svg class="ill" viewBox="0 0 63 88" aria-hidden="true">${g}<g transform="matrix(1 0 0 -1 0 88)">${g}</g></svg>`;}
 function backEl(c,k){const d=document.createElement('div');d.className='card back';d.style.fontSize=k+'px';
   const cv=document.createElement('canvas');d.appendChild(cv);d.insertAdjacentHTML('beforeend',overlay(c,true,S.paper==='dark'));want(c,k,cv);return d;}
 
