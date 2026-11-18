@@ -77,7 +77,7 @@ main{position:relative;overflow:auto;background:var(--stage)}
 .half.top{top:0}.half.bot{top:44em;transform:rotate(180deg)}
 .half p{margin:0;font-size:2.7em;line-height:1.35;font-style:italic;font-family:Georgia,"Iowan Old Style","Times New Roman",serif;color:#4a4945;overflow-wrap:anywhere}
 .ill{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;fill:none;stroke:#4a4945;stroke-width:.3;stroke-linecap:round;stroke-linejoin:round}
-.ill .w{stroke:none;opacity:.9;mix-blend-mode:multiply}
+.ill .w{stroke:none;opacity:.75}.ill .n{fill:#fff}
 .ill .thin{stroke-width:.2}.ill .dash{stroke-width:.22;stroke-dasharray:.7 .6}.ill .f{fill:#4a4945;stroke:none}
 .half p:empty::before{content:"(texte vide)";color:#bbb}
 .mid{position:absolute;left:0;right:0;top:44em;border-top:max(.5px,.1em) solid #2c2c2a;transform:translateY(-50%)}
@@ -283,7 +283,7 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
 <script src="engines/arpent.js?v=3"></script>
 <script src="engines/sonde.js?v=3"></script>
 <script src="data.js?v=2"></script>
-<script src="illus.js?v=2"></script>
+<script src="illus.js?v=3"></script>
 <script>
 const $=id=>document.getElementById(id);
 const W=63,H=88,dpr=()=>devicePixelRatio||1;
@@ -409,15 +409,19 @@ function faceEl(c,k){const d=document.createElement('div');d.className='card fac
   const t=esc(c.text);d.innerHTML=`<div class="half top"><p>${t}</p></div><div class="mid"></div><div class="half bot"><p>${t}</p></div>${illus(c)}${overlay(c,false,false)}`;return d;}
 // line drawing of the text (illus.js), in the top half; the bottom half is its mirror image across the middle line
 // pastel washes behind the drawing, coloured by back type: a wide ground wash and a small accent (sky, sun)
-const PASTEL={'a:montagne':['#ddd6ee','#f7e2c6'],'a:foret':['#d3e8cf','#f4e7b9'],'a:plaine':['#f6e7b4','#cfe4f0'],'a:eau':['#cce6e8','#dcedcf'],
-  's:ile':['#f4e1c6','#cde3f3'],'s:archipel':['#cdeae2','#f7d9cd'],'s:hautfond':['#d2ebee','#f6e0c8'],'s:large':['#cfdff4','#ecdcf1']};
-function wash(c){const col=PASTEL[c.back]||['#eee','#f5f0e6'];let h=0;for(const ch of c.text)h=(h*31+ch.charCodeAt(0))>>>0;
-  const rnd=()=>(h=(h*1103515245+12345)>>>0)/4294967296,blob=(cx,cy,rx,ry,k)=>{const p=[];for(let i=0;i<k;i++){const a=i/k*2*Math.PI,r=1+(rnd()-.5)*.24;p.push([cx+Math.cos(a)*rx*r,cy+Math.sin(a)*ry*r]);}
-    const f=v=>v.toFixed(2),m=i=>{const[a,b]=[p[i%k],p[(i+1)%k]];return[(a[0]+b[0])/2,(a[1]+b[1])/2];};
-    let d=`M${f(m(0)[0])} ${f(m(0)[1])}`;for(let i=1;i<=k;i++){const q=p[i%k],e=m(i);d+=`Q${f(q[0])} ${f(q[1])} ${f(e[0])} ${f(e[1])}`;}return d+'Z';};
-  const side=rnd()<.5?14:34;
-  return `<path class="w" fill="${col[0]}" d="${blob(24,15,21,6.4,22)}"/><path class="w" fill="${col[1]}" d="${blob(side,6,7,4.6,16)}"/>`;}
-function illus(c){const il=window.ILLUS&&ILLUS[(c.text||'').trim()];if(!il)return '';const g=`<g transform="translate(7.5 12)">${wash(c)}${il}</g>`;
+// Pastel colours by back type: [wash under the scene, closed shapes of the drawing, round things (sun, moon, fruit…)]
+const PASTEL={'a:montagne':['#e6e0f2','#cfc5e8','#f6d9b4'],'a:foret':['#dcecd6','#b9dbb1','#f3dc9c'],'a:plaine':['#f7ecc6','#ecd48f','#f2b9a6'],'a:eau':['#d6ecee','#a9d7dc','#f3d49d'],
+  's:ile':['#f6e8d2','#ecd0a6','#f2b49f'],'s:archipel':['#d5eee8','#a8dccf','#f5c0ab'],'s:hautfond':['#d9eff1','#a9dde3','#f3cf9f'],'s:large':['#d9e5f6','#b4cbec','#e9c6e8']};
+// A soft wash under the scene (a low band with an irregular top), stable per text.
+function wash(c,col){let h=0;for(const ch of c.text)h=(h*31+ch.charCodeAt(0))>>>0;const rnd=()=>(h=(h*1103515245+12345)>>>0)/4294967296,f=v=>v.toFixed(2);
+  const k=9,pts=[];for(let i=0;i<=k;i++)pts.push([-1+50*i/k,9.5+rnd()*3]);let d=`M-1 23L${f(pts[0][0])} ${f(pts[0][1])}`;
+  for(let i=1;i<=k;i++){const[a,b]=[pts[i-1],pts[i]];d+=`Q${f(a[0]+2.8)} ${f(a[1]+(rnd()-.5)*2)} ${f(b[0])} ${f(b[1])}`;}
+  return `<path class="w" fill="${col[0]}" d="${d}L49 23Z"/>`;}
+// drawing tinted: closed paths get the shape colour, open circles and ellipses the round colour
+function tint(il,col){return il.replace(/<path d="([^"]*[zZ])"(?! class)/g,`<path d="$1" class="z" style="fill:${col[1]}"`)
+  .replace(/<(circle|ellipse)([^>]*?)(?<!class="f")\/>/g,(m,t,a)=>/class=/.test(a)?m:`<${t}${a} class="o" style="fill:${col[2]}"/>`);}
+function illus(c){const il=window.ILLUS&&ILLUS[(c.text||'').trim()];if(!il)return '';const col=PASTEL[c.back]||['#eee','#ddd','#f3e3c8'];
+  const g=`<g transform="translate(7.5 12)">${wash(c,col)}${tint(il,col)}</g>`;
   return `<svg class="ill" viewBox="0 0 63 88" aria-hidden="true">${g}<g transform="matrix(1 0 0 -1 0 88)">${g}</g></svg>`;}
 function backEl(c,k){const d=document.createElement('div');d.className='card back';d.style.fontSize=k+'px';
   const cv=document.createElement('canvas');d.appendChild(cv);d.insertAdjacentHTML('beforeend',overlay(c,true,S.paper==='dark'));want(c,k,cv);return d;}
