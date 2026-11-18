@@ -74,7 +74,7 @@ main{position:relative;overflow:auto;background:var(--stage)}
 .card{position:relative;width:63em;height:88em;border-radius:3em;overflow:hidden;flex:none;box-shadow:0 1px 2px rgba(0,0,0,.12),0 6px 20px rgba(0,0,0,.12)}
 .card.face{background:#fff;color:#2c2c2a}
 .half{position:absolute;left:0;width:63em;height:44em;display:flex;align-items:flex-end;justify-content:center;padding:13em 6.5em 1.8em;text-align:center}
-.half.top{top:0}.half.bot{top:44em;transform:rotate(180deg)}
+.half.top{top:0}.half.one{top:58em;height:22em;align-items:center;padding:0 7em}.half.bot{top:44em;transform:rotate(180deg)}
 .half p{margin:0;font-size:2.7em;line-height:1.35;font-style:italic;font-family:Georgia,"Iowan Old Style","Times New Roman",serif;color:#4a4945;overflow-wrap:anywhere}
 .ill{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;fill:none;stroke:#4a4945;stroke-width:.3;stroke-linecap:round;stroke-linejoin:round}
 .ill .w,.ill rect{stroke:none}.ill .n{fill:#fff}
@@ -222,7 +222,7 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
 
   <section>
     <h2>Faces</h2>
-    <div><span class="lab">Illustration</span><div class="seg" id="illM"><button data-v="mirror" title="Le même dessin en haut et, en reflet, en bas">Miroir</button><button data-v="single" title="Un seul dessin, dans la moitié haute">Unique</button></div></div>
+    <div><span class="lab">Illustration</span><div class="seg" id="illM"><button data-v="mirror" title="Le même dessin en haut et, en reflet, en bas">Miroir</button><button data-v="single" title="Un seul dessin au centre, la phrase en bas, sans trait">Unique</button></div></div>
   </section>
 
   <section>
@@ -411,7 +411,7 @@ function busy(){const n=queue.length;$('busy').classList.toggle('on',n>0);if(n)$
 
 // ---------- card DOM ----------
 function faceEl(c,k){const d=document.createElement('div');d.className='card face';d.style.fontSize=typeof k==='number'?k+'px':k;
-  const t=esc(c.text);d.innerHTML=`<div class="half top"><p>${t}</p></div><div class="mid"></div><div class="half bot"><p>${t}</p></div>${illus(c)}${overlay(c,false,false)}`;return d;}
+  const t=esc(c.text);d.innerHTML=(S.ill==='single'?`<div class="half one"><p>${t}</p></div>`:`<div class="half top"><p>${t}</p></div><div class="mid"></div><div class="half bot"><p>${t}</p></div>`)+`${illus(c)}${overlay(c,false,false)}`;return d;}
 // line drawing of the text (illus.js), in the top half; the bottom half is its mirror image across the middle line
 // pastel washes behind the drawing, coloured by back type: a wide ground wash and a small accent (sky, sun)
 // Pastel colours by back type: [wash under the scene, closed shapes of the drawing, round things (sun, moon, fruit…)]
@@ -433,7 +433,7 @@ function illus(c){const il=window.ILLUS&&ILLUS[(c.text||'').trim()];if(!il)retur
   const defs=`<defs><linearGradient id="s${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col[2]}" stop-opacity="0"/><stop offset=".6" stop-color="${col[2]}" stop-opacity=".55"/><stop offset="1" stop-color="${col[2]}" stop-opacity=".2"/></linearGradient>`+
     `<linearGradient id="h${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".14" stop-color="#fff"/><stop offset=".86" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>`+
     `<mask id="m${u}" maskUnits="userSpaceOnUse" x="-2" y="-2" width="52" height="26"><rect x="-1" y="-1" width="50" height="24" fill="url(#h${u})"/></mask></defs>`;
-  const g=`<g transform="translate(7.5 12)">${wash(c,col,u)}${tint(il,col)}</g>`;
+  const g=`<g transform="${S.ill==='single'?'translate(4.5 23) scale(1.125)':'translate(7.5 12)'}">${wash(c,col,u)}${tint(il,col)}</g>`;
   return `<svg class="ill" viewBox="0 0 63 88" aria-hidden="true">${defs}${g}${S.ill==='single'?'':`<g transform="matrix(1 0 0 -1 0 88)">${g}</g>`}</svg>`;}
 function backEl(c,k){const d=document.createElement('div');d.className='card back';d.style.fontSize=k+'px';
   const cv=document.createElement('canvas');d.appendChild(cv);d.insertAdjacentHTML('beforeend',overlay(c,true,S.paper==='dark'));want(c,k,cv);return d;}
