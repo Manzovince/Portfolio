@@ -16,7 +16,7 @@
 :root[data-theme=dark]{--bg:#1c1c1b;--panel:#262624;--ink:#ecebe6;--muted:#a3a19a;--line:#3a3936;--accent:#EF9F27;--accent-soft:#3a2c14;--stage:#141413;--warn:#F09595;--warn-soft:#3b1d1d}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;grid-template-columns:272px 1fr;height:100vh;overflow:hidden}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;grid-template-columns:272px minmax(0,1fr);height:100vh;overflow:hidden}
 aside{background:var(--panel);border-right:1px solid var(--line);padding:18px 18px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
 h1{font-size:17px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px}
 h1 svg{color:var(--accent)}
@@ -113,7 +113,7 @@ main.pan{cursor:grab}main.pan.drag{cursor:grabbing;user-select:none}main.pan.dra
 .hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .icon{width:30px;height:30px;padding:0;display:grid;place-items:center;flex:none}
 #show{position:fixed;top:12px;left:12px;z-index:4;display:none;align-items:center;gap:6px;background:var(--panel);box-shadow:0 2px 10px rgba(0,0,0,.15)}
-body.nopanel{grid-template-columns:1fr}body.nopanel aside{display:none}body.nopanel #show{display:flex}
+body.nopanel{grid-template-columns:minmax(0,1fr)}body.nopanel aside{display:none}body.nopanel #show{display:flex}
 body.nopanel .single{padding-top:60px}
 .gbar{position:fixed;top:12px;right:20px;z-index:4;display:flex;align-items:center;gap:8px;padding:5px 6px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
 .gbar button{height:30px;display:flex;align-items:center;gap:6px;font-size:13px}
@@ -181,7 +181,7 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
   #print{display:block}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
-@media (max-width:760px){body{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto;min-height:100vh;overflow:auto}aside{border-right:0;border-bottom:1px solid var(--line)}main{min-height:80vh;overflow:visible}
+@media (max-width:760px){body{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr;height:auto;min-height:100vh;overflow:auto}aside{border-right:0;border-bottom:1px solid var(--line)}main{height:80vh;min-height:0;overflow:auto}aside{min-width:0}
   .gbar{top:auto;bottom:12px;right:12px}.gbar input{width:70px}.grid{padding:20px 16px 80px}.gbar label span{display:none}.single{padding:20px 16px}.editor{width:100%}}
 </style>
 </head>
@@ -585,6 +585,8 @@ let gt;
 // size the grid cards now, redraw them (backs at the new resolution) once the user pauses
 function setK(k){S.gk=Math.round(Math.min(6,Math.max(.6,k))*100)/100;$('gk').value=S.gk;setGap();document.querySelectorAll('#grid .card').forEach(d=>d.style.fontSize=S.gk+'px');clearTimeout(gt);gt=setTimeout(render,300);}
 $('gk').oninput=e=>setK(+e.target.value);
+// A pinch outside the grid must not zoom the whole page (it would resize the panel).
+document.addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault();},{passive:false});['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
 // Grid navigation: wheel or pinch zooms around the pointer, click-and-drag pans; a drag does not open the card under it.
 {const m=document.querySelector('main'),grid=$('grid'),on=()=>S.view==='grid';
   m.addEventListener('wheel',e=>{if(!on()||e.target.closest('.gbar'))return;e.preventDefault();
