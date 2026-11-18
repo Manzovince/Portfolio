@@ -91,14 +91,14 @@ main{position:relative;overflow:auto;background:var(--stage)}
 .ov.dark .halo{stroke:#1c1c1b}.ov.dark .halo .f{fill:#1c1c1b;stroke:#1c1c1b}
 
 /* ---------- grid view ---------- */
-.grid{display:flex;flex-wrap:wrap;gap:var(--gap,14px);padding:72px 28px 40px;justify-content:center;align-content:flex-start}
+.grid{display:grid;grid-template-columns:repeat(var(--cols,8),max-content);gap:var(--gap,14px);padding:72px 28px 40px;justify-content:center;align-content:start;width:max-content;min-width:100%;box-sizing:border-box}
+main.pan{cursor:grab}main.pan.drag{cursor:grabbing;user-select:none}main.pan.drag .slot{pointer-events:none}
 .slot{perspective:1400px;cursor:pointer;position:relative;border:0;padding:0;background:none;height:auto;border-radius:0;font:inherit}
 .slot:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:4px}
 .flip{position:relative;transition:transform .55s cubic-bezier(.4,.1,.2,1);transform-style:preserve-3d}
 .flip .card{backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .flip .card.back{position:absolute;inset:0;transform:rotateY(180deg)}
 .grid.showback .flip{transform:rotateY(180deg)}
-.grid.dealt{display:grid;grid-template-columns:repeat(var(--cols),max-content);justify-content:center}
 .turn{transform:rotate(180deg)}
 .seam{position:absolute;z-index:2;pointer-events:none;background:repeating-linear-gradient(45deg,var(--warn) 0 4px,transparent 4px 8px)}
 .seam.r{top:12%;bottom:12%;right:calc(-3px - var(--gap,0px)/2);width:6px}.seam.b{left:12%;right:12%;bottom:calc(-3px - var(--gap,0px)/2);height:6px}
@@ -198,8 +198,8 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
     <div id="gridOpts" class="btns"><button id="flipAll" class="wide primary"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.7L4 15.5M4 20v-4.5h4.5"/></svg><span>Retourner toutes les cartes</span></button></div>
     <div id="dealOpts" class="dealbox">
       <div><span class="lab">Ordre de la grille</span><div class="seg" id="order"><button data-v="deck">Ordre du jeu</button><button data-v="deal">Raccordée</button></div></div>
+      <div class="dealrow"><span>Colonnes</span><div class="step"><button id="cMinus" aria-label="Moins de colonnes">−</button><output id="cOut"></output><button id="cPlus" aria-label="Plus de colonnes">+</button></div></div>
       <div id="dealCtl" class="dealbox">
-        <div class="dealrow"><span>Colonnes</span><div class="step"><button id="cMinus" aria-label="Moins de colonnes">−</button><output id="cOut"></output><button id="cPlus" aria-label="Plus de colonnes">+</button></div></div>
         <button id="redeal">Nouvelle donne</button>
         <div class="dealmsg" id="dealMsg"></div>
       </div>
@@ -233,7 +233,7 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
   <div class="gbar" id="gbar">
     <button id="flip2" title="Retourner toutes les cartes (F)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.7L4 15.5M4 20v-4.5h4.5"/></svg><span id="flipLab">Dos</span></button>
     <span class="zsep"></span>
-    <label title="Taille des cartes"><span>Taille</span><input id="gk" type="range" min="1.2" max="4" step="0.1" aria-label="Taille des cartes"></label>
+    <label title="Taille des cartes"><span>Taille</span><input id="gk" type="range" min="0.6" max="6" step="0.1" aria-label="Taille des cartes"></label>
     <label title="Espace entre les cartes, en mm"><span>Espace</span><input id="gap" type="range" min="0" max="15" step="0.5" aria-label="Espace entre les cartes"></label>
   </div>
   <div class="grid" id="grid"></div>
@@ -532,7 +532,7 @@ function mixStatus(){const n=cards.length,sb=BK.reduce((a,k)=>a+dB[k],0),cur={};
 
 // ---------- view / sync ----------
 function setView(v){S.view=v;render();}
-function render(){const g=S.view==='grid';$('grid').classList.toggle('hidden',!g);$('gbar').classList.toggle('hidden',!g);$('gridOpts').classList.toggle('hidden',!g);
+function render(){const g=S.view==='grid';document.querySelector('main').classList.toggle('pan',g);$('grid').classList.toggle('hidden',!g);$('gbar').classList.toggle('hidden',!g);$('gridOpts').classList.toggle('hidden',!g);
   $('single').classList.toggle('hidden',g);
   document.querySelectorAll('#view button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
   document.querySelectorAll('#paper button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.paper));
@@ -569,7 +569,22 @@ const flipAll=()=>{S.side=S.side==='face'?'back':'face';$('grid').classList.togg
 $('flipAll').onclick=$('flip2').onclick=flipAll;
 function setGap(){const g=$('grid');g.style.setProperty('--gap',S.gap*S.gk+'px');g.classList.toggle('tight',S.gap<4);}
 $('gap').oninput=e=>{S.gap=+e.target.value;setGap();save();};
-let gt;$('gk').oninput=e=>{S.gk=+e.target.value;setGap();document.querySelectorAll('#grid .card').forEach(d=>d.style.fontSize=S.gk+'px');clearTimeout(gt);gt=setTimeout(render,250);};
+let gt;
+// size the grid cards now, redraw them (backs at the new resolution) once the user pauses
+function setK(k){S.gk=Math.round(Math.min(6,Math.max(.6,k))*100)/100;$('gk').value=S.gk;setGap();document.querySelectorAll('#grid .card').forEach(d=>d.style.fontSize=S.gk+'px');clearTimeout(gt);gt=setTimeout(render,300);}
+$('gk').oninput=e=>setK(+e.target.value);
+// Grid navigation: wheel or pinch zooms around the pointer, click-and-drag pans; a drag does not open the card under it.
+{const m=document.querySelector('main'),grid=$('grid'),on=()=>S.view==='grid';
+  m.addEventListener('wheel',e=>{if(!on()||e.target.closest('.gbar'))return;e.preventDefault();
+    const old=S.gk;setK(old*Math.exp(-e.deltaY*(e.ctrlKey?.01:.0018)));const r=S.gk/old;if(r===1)return;
+    const b=m.getBoundingClientRect(),g=grid.getBoundingClientRect(),px=e.clientX-g.left,py=e.clientY-g.top,pl=28,pt=72;
+    m.scrollLeft=grid.offsetLeft+pl+(px-pl)*r-(e.clientX-b.left);m.scrollTop=grid.offsetTop+pt+(py-pt)*r-(e.clientY-b.top);},{passive:false});
+  let d=null;
+  m.addEventListener('pointerdown',e=>{if(!on()||e.button!==0||e.pointerType==='touch'||e.target.closest('.gbar'))return;d={x:e.clientX,y:e.clientY,l:m.scrollLeft,t:m.scrollTop,moved:false};});
+  addEventListener('pointermove',e=>{if(!d)return;const dx=e.clientX-d.x,dy=e.clientY-d.y;if(!d.moved&&Math.hypot(dx,dy)<5)return;
+    if(!d.moved){d.moved=true;m.classList.add('drag');}m.scrollLeft=d.l-dx;m.scrollTop=d.t-dy;});
+  addEventListener('pointerup',()=>{if(d&&d.moved)setTimeout(()=>m.classList.remove('drag'),0);d=null;});
+  m.addEventListener('click',e=>{if(m.classList.contains('drag')){e.stopPropagation();e.preventDefault();}},true);}
 document.querySelectorAll('#order button').forEach(b=>b.onclick=()=>{S.order=b.dataset.v;render();});
 const setCols=v=>{S.dcols=Math.max(2,Math.min(14,v));S.deal=null;render();};
 $('cMinus').onclick=()=>setCols(S.dcols-1);$('cPlus').onclick=()=>setCols(S.dcols+1);
