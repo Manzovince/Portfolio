@@ -227,11 +227,13 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
   <section>
     <h2>Faces</h2>
     <div><span class="lab">Illustration</span><div class="seg" id="illM"><button data-v="mirror" title="Le même dessin en haut et, en reflet, en bas">Miroir</button><button data-v="single" title="Un seul dessin au centre, la phrase en bas, sans trait">Unique</button></div></div>
+    <label class="toggle">Symboles dans les coins<input id="symF" type="checkbox"></label>
   </section>
 
   <section>
     <h2>Dos</h2>
     <div><span class="lab">Papier</span><div class="seg" id="paper"><button data-v="light">Clair</button><button data-v="dark">Sombre</button></div></div>
+    <label class="toggle">Symboles dans les coins<input id="symB" type="checkbox"></label>
     <label class="toggle">Raccords terre / mer<input id="coast" type="checkbox"></label>
     <p class="sub" style="margin:0">Les dos se raccordent dans n’importe quel ordre. Avec « Raccords terre / mer », chaque bord est terre ou mer : deux cartes s’assemblent quand leurs bords communs sont du même type.</p>
     <div><span class="lab">Couleurs des dos <span class="sub" id="colFor" style="font-size:11.5px"></span></span>
@@ -298,7 +300,7 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
 </dialog>
 <div id="print"></div>
 
-<script src="engines/arpent.js?v=8"></script>
+<script src="engines/arpent.js?v=9"></script>
 <script src="engines/sonde.js?v=10"></script>
 <script src="data.js?v=2"></script>
 <script src="illus.js?v=3"></script>
@@ -325,7 +327,8 @@ function sym(t,x,y,s){const h=s/2,r=v=>+v.toFixed(2);
 // corner, to its right, below it — top-left, then the same turned 180° in the bottom-right
 const SP=[[4.9,4.9],[9.9,4.9],[4.9,9.9]],SS=3.3;
 function corners(s){const g=s.map((t,i)=>sym(t,SP[i][0],SP[i][1],SS)).join('');return g+`<g transform="rotate(180 31.5 44)">${g}</g>`;}
-function overlay(c,halo,dark){return `<svg class="ov${dark?' dark':''}" viewBox="0 0 63 88" aria-hidden="true">${halo?`<g class="halo">${corners(c.sym)}</g>`:''}<g class="ink">${corners(c.sym)}</g></svg>`;}
+// corner symbols: halo = back side; each side can hide them (S.symF faces, S.symB backs)
+function overlay(c,halo,dark){if(halo?!S.symB:!S.symF)return '';return `<svg class="ov${dark?' dark':''}" viewBox="0 0 63 88" aria-hidden="true">${halo?`<g class="halo">${corners(c.sym)}</g>`:''}<g class="ink">${corners(c.sym)}</g></svg>`;}
 const combo=c=>[...c.sym].sort((a,b)=>a-b).join('');
 const comboName=c=>c.sym.map(t=>SYMN[t].toLowerCase()).join(', ');
 
@@ -387,7 +390,7 @@ function matchTexts(list){let ch=0;
   return ch;}
 if(S.acc!==1){if(matchTexts(cards))S.deal=null;S.acc=1;}
 if(cards.some(c=>!c.edges)){const miss=cards.filter(c=>!c.edges);dealEdges(miss);}
-if(S.order!=='deal')S.order='deck';if(!(S.dcols>=2&&S.dcols<=14))S.dcols=8;delete S.labels;delete S.isles;if(typeof S.coast!=='boolean')S.coast=true;if(!S.col||typeof S.col!=='object')S.col={};if(!(S.tint>=0&&S.tint<=150))S.tint=100;if(!S.illv){S.ill='single';S.illv=1;}if(S.ill!=='mirror')S.ill='single';if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
+if(S.order!=='deal')S.order='deck';if(!(S.dcols>=2&&S.dcols<=14))S.dcols=8;delete S.labels;delete S.isles;if(typeof S.coast!=='boolean')S.coast=true;if(!S.col||typeof S.col!=='object')S.col={};if(typeof S.symF!=='boolean')S.symF=true;if(typeof S.symB!=='boolean')S.symB=true;if(!(S.tint>=0&&S.tint<=150))S.tint=100;if(!S.illv){S.ill='single';S.illv=1;}if(S.ill!=='mirror')S.ill='single';if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
 
 // ---------- back rendering: async queue + caches ----------
 const models=new Map(),imgs=new Map();let queue=[],qt=0;
@@ -395,7 +398,7 @@ const mkey=c=>c.back+'|'+c.seed+'|'+c.el;
 const ikey=(c,k)=>[mkey(c),k,S.paper,S.coast&&c.edges,dpr(),colKey()].join('|');
 // ---------- colours (per paper): land shore / heights, sea shallow / deep; Sonde's 5 depth stops and Arpent's lakes follow the sea pair ----------
 const ORIG={a:JSON.parse(JSON.stringify(ARPENT.PAL)),s:JSON.parse(JSON.stringify(SONDE.PAL))};
-const DEFC={light:{lo:'#FAEEDA',hi:'#E3BC84',s0:ORIG.s.light.s0,s4:ORIG.s.light.s4},dark:{lo:'#2C2C2A',hi:'#54402A',s0:ORIG.s.dark.s0,s4:ORIG.s.dark.s4}};
+const DEFC={light:{lo:'#FAEEDA',hi:'#DDB277',s0:ORIG.s.light.s0,s4:ORIG.s.light.s4},dark:{lo:'#2C2C2A',hi:'#54402A',s0:ORIG.s.dark.s0,s4:ORIG.s.dark.s4}};
 const hx=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),xh=a=>'#'+a.map(v=>Math.round(v).toString(16).padStart(2,'0')).join(''),mixc=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
 const colOf=(p,k)=>(S.col[p]&&S.col[p][k])||DEFC[p][k],colKey=()=>JSON.stringify([S.col[S.paper]||{},S.tint]);
 function applyCols(){for(const p of['light','dark']){const A=ARPENT.PAL[p],SP=SONDE.PAL[p],o=S.col[p]||{};A.lo=colOf(p,'lo');A.hi=colOf(p,'hi');
@@ -573,7 +576,7 @@ function render(){const g=S.view==='grid';document.querySelector('main').classLi
   $('single').classList.toggle('hidden',g);
   document.querySelectorAll('#view button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
   document.querySelectorAll('#paper button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.paper));document.querySelectorAll('#illM button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.ill));
-  $('gk').value=S.gk;$('coast').checked=S.coast;document.querySelectorAll('.cpick input').forEach(i=>i.value=colOf(S.paper,i.dataset.k));$('tint').value=S.tint;$('tintO').textContent=S.tint+' %';$('colFor').textContent='· papier '+(S.paper==='dark'?'sombre':'clair');$('colReset').disabled=!Object.keys(S.col[S.paper]||{}).length&&S.tint===100;document.querySelectorAll('#order button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.order));$('dealCtl').classList.toggle('hidden',S.order!=='deal');$('cOut').textContent=S.dcols;$('gap').value=S.gap;setGap();$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
+  $('gk').value=S.gk;$('coast').checked=S.coast;$('symF').checked=S.symF;$('symB').checked=S.symB;document.querySelectorAll('.cpick input').forEach(i=>i.value=colOf(S.paper,i.dataset.k));$('tint').value=S.tint;$('tintO').textContent=S.tint+' %';$('colFor').textContent='· papier '+(S.paper==='dark'?'sombre':'clair');$('colReset').disabled=!Object.keys(S.col[S.paper]||{}).length&&S.tint===100;document.querySelectorAll('#order button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.order));$('dealCtl').classList.toggle('hidden',S.order!=='deal');$('cOut').textContent=S.dcols;$('gap').value=S.gap;setGap();$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
   queue=[];if(g)drawGrid();else drawSingle();stats();save();}
 // a card changed: what: 'text' | 'sym' | 'back'
 function changed(what){const c=cards[S.idx];
@@ -629,6 +632,7 @@ const setCols=v=>{S.dcols=Math.max(2,Math.min(14,v));S.deal=null;render();};
 $('cMinus').onclick=()=>setCols(S.dcols-1);$('cPlus').onclick=()=>setCols(S.dcols+1);
 $('redeal').onclick=()=>{S.deal=null;render();};
 $('coast').onchange=e=>{S.coast=e.target.checked;render();};
+$('symF').onchange=e=>{S.symF=e.target.checked;render();};$('symB').onchange=e=>{S.symB=e.target.checked;render();};
 document.querySelectorAll('.cpick input').forEach(i=>i.onchange=()=>{(S.col[S.paper]??={})[i.dataset.k]=i.value;applyCols();render();});
 $('tint').oninput=e=>{$('tintO').textContent=e.target.value+' %';};$('tint').onchange=e=>{S.tint=+e.target.value;render();};
 $('colReset').onclick=()=>{delete S.col[S.paper];S.tint=100;applyCols();render();};

@@ -214,12 +214,17 @@ function render(c,k){
     for(let e=0;e<4;e++){const[a1,b1]=p[e],[a2,b2]=p[(e+1)%4],v1=f[b1][a1]-lv,v2=f[b2][a2]-lv;if((v1<0)!==(v2<0)){const t=v1/(v1-v2);pts.push([(a1+(a2-a1)*t)*dx,(b1+(b2-b1)*t)*dy]);}}
     for(let q=0;q+1<pts.length;q+=2){g.moveTo(pts[q][0],pts[q][1]);g.lineTo(pts[q+1][0],pts[q+1][1]);}}};
   g.fillStyle=C.paper;g.fillRect(0,0,W,H);
+  if(c.Z){const lo=rgb(C.lo||C.paper),hi2=rgb(C.hi||C.line),tk=c.tk??1,band=[];for(let b=0;b<40;b++)band.push(mix(lo,hi2,Math.min(1,b/12)*tk).map(Math.round));
+    const ow=oc.width,oh=oc.height,im=g.createImageData(ow,oh),P=im.data;
+    for(let py=0;py<oh;py++){const gy=(py+.5)/oh*NY,j=Math.min(NY-1,gy|0),fy=gy-j,r0=h[j],r1=h[j+1];
+      for(let q=0;q<ow;q++){const gx=(q+.5)/ow*NX,i=Math.min(NX-1,gx|0),fq=gx-i,v=(r0[i]*(1-fq)+r0[i+1]*fq)*(1-fy)+(r1[i]*(1-fq)+r1[i+1]*fq)*fy,col=band[Math.max(0,Math.min(39,Math.floor(v/.25)))],o=(py*ow+q)*4;
+        P[o]=col[0];P[o+1]=col[1];P[o+2]=col[2];P[o+3]=255;}}
+    g.putImageData(im,0,0);}
   {const tc=document.createElement('canvas');tc.width=NX+1;tc.height=NY+1;const tg=tc.getContext('2d'),im=tg.createImageData(NX+1,NY+1),P=im.data;
-    const lo=rgb(C.lo||C.paper),hi2=rgb(C.hi||C.line),fa=rgb(C.ftint),fb=rgb(C.ftint2),wa=rgb(C.water),wb=rgb(C.deep);
+    const fa=rgb(C.ftint),fb=rgb(C.ftint2),wa=rgb(C.water),wb=rgb(C.deep);
     for(let j=0;j<=NY;j++)for(let i=0;i<=NX;i++){const o=(j*(NX+1)+i)*4,w=d[j][i],v=fo[j][i];let col=null,al=0;
       if(w<THR+.04){const t=ss((THR-w)/1.5);col=mix(wa,wb,t);al=ss((THR+.04-w)/.08);}
-      else{if(c.Z){const z=h[j][i],t=Math.max(0,Math.min(1,ss((z-.12)/3.4)+.07*vn(i*dx/9,j*dy/9,c.seed+40))),lc=mix(lo,hi2,t*(c.tk??1));if(v>.38){const fa2=ss((v-.38)/.08);col=mix(lc,mix(fa,fb,ss((v-.6)/.6)),fa2);}else col=lc;al=1;}
-        else if(v>.38){col=mix(fa,fb,ss((v-.6)/.6));al=ss((v-.38)/.08);}}
+      else if(v>.38){col=mix(fa,fb,ss((v-.6)/.6));al=ss((v-.38)/.08);}
       if(col){P[o]=col[0];P[o+1]=col[1];P[o+2]=col[2];P[o+3]=al*255;}}
     tg.putImageData(im,0,0);g.imageSmoothingEnabled=true;g.drawImage(tc,-dx/2,-dy/2,W+dx,H+dy);}
   for(let L=Math.ceil(lo/.25);L<=Math.floor(hi/.25);L++){g.strokeStyle=C.line;g.lineWidth=.25;g.globalAlpha=S.lop/100;g.beginPath();march(h,L*.25,wet);g.stroke();}g.globalAlpha=1;
