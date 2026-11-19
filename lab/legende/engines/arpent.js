@@ -240,8 +240,12 @@ function render(c,k){
   if(S.labels){g.fillStyle=C.lab;g.font='600 4px system-ui,sans-serif';g.fillText(T[c.k],4,7);if(c.no){g.textAlign='right';g.fillText(c.no,W-4,7);g.textAlign='left';}if(c.els.length){g.font='500 2.8px system-ui,sans-serif';g.fillText(c.els.map(e=>e.big?'Bourg':EL[e.t]).join(' · '),4,10.6);}}
   c.img=oc;c.imgKey=key();}
 const key=()=>"";
+// Légende: domain-warp a model's relief and forest (faded to nothing at the card edges) so lakes and woods are not round blobs, then redo the decoration
+function warpC(c,seed){const D=c.D,F=c.F,s=(seed%997)+31,a=4+3*Math.random(),
+  wp=(x,y)=>{const f=ss((Math.min(x,W-x,y,H-y)-2)/10);return f<=0?[x,y]:[x+f*a*(vn(x/13,y/13,s)+.4*vn(x/5,y/5,s+1)),y+f*a*(vn(x/13,y/13,s+2)+.4*vn(x/5,y/5,s+3))];};
+  c.D=(x,y)=>D(...wp(x,y));if(F)c.F=(x,y)=>F(...wp(x,y));deco(c);}
 function prng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 return{T:typeof LAB!=='undefined'?LAB:T,KINDS:Object.keys(T),AL,EL,PAL,
-  make(kind,seed,el){const old=Math.random;Math.random=prng(seed);try{const c=mk(kind);placeEls(c,el?el+'+1':'');return c;}finally{Math.random=old;}},
+  make(kind,seed,el,warp){const old=Math.random;Math.random=prng(seed);try{const c=mk(kind);if(warp)warpC(c,seed);placeEls(c,el?el+'+1':'');return c;}finally{Math.random=old;}},
   render(c,k,paper,labels){S.paper=paper;S.labels=labels;c.img=null;render(c,k);return c.img;}};
 })();

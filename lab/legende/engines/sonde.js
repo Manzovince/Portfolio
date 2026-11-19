@@ -247,9 +247,13 @@ function render(c,k){
     g.font='600 4px system-ui,sans-serif';tx(LAB[c.k],4,7);if(c.no){g.textAlign='right';tx(c.no,W-4,7);g.textAlign='left';}if(c.els.length){g.font='500 2.8px system-ui,sans-serif';g.lineWidth=.7;tx(c.els.map(e=>EL[e.t]).join(' · '),4,10.6);}}
   c.img=oc;c.imgKey=key();}
 const key=()=>"";
+// Légende: domain-warp a model's relief and forest (faded to nothing at the card edges) so lakes and woods are not round blobs, then redo the decoration
+function warpC(c,seed){const D=c.D,F=c.F,s=(seed%997)+31,a=4+3*Math.random(),
+  wp=(x,y)=>{const f=ss((Math.min(x,W-x,y,H-y)-2)/10);return f<=0?[x,y]:[x+f*a*(vn(x/13,y/13,s)+.4*vn(x/5,y/5,s+1)),y+f*a*(vn(x/13,y/13,s+2)+.4*vn(x/5,y/5,s+3))];};
+  c.D=(x,y)=>D(...wp(x,y));if(F)c.F=(x,y)=>F(...wp(x,y));deco(c);}
 function prng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 return{T:typeof LAB!=='undefined'?LAB:T,KINDS:Object.keys(T),AL,EL,PAL,
-  make(kind,seed,el){const old=Math.random;Math.random=prng(seed);try{const c=mk(kind);placeEls(c,el?el+'+1':'');return c;}finally{Math.random=old;}},
+  make(kind,seed,el,warp){const old=Math.random;Math.random=prng(seed);try{const c=mk(kind);if(warp)warpC(c,seed);placeEls(c,el?el+'+1':'');return c;}finally{Math.random=old;}},
   render(c,k,paper,labels){S.paper=paper;S.labels=labels;c.img=null;render(c,k);return c.img;},
   coast(seed,edges,kind,el,k,paper){const old=Math.random;Math.random=prng((seed^0x2c1b3c6d)>>>0);let c;
     try{const sea=!!kind;
@@ -257,9 +261,17 @@ return{T:typeof LAB!=='undefined'?LAB:T,KINDS:Object.keys(T),AL,EL,PAL,
       c.ms=c.seed;const E={T:edges[0],R:edges[1],B:edges[2],L:edges[3]},VL=.8,val=t=>t==='t'?VL:CL;
       c.sp=c.sp.filter(s=>E[s.dy===1?'T':s.dy===-1?'B':s.dx===1?'L':'R']==='m');
       const v=[val(E.T),val(E.R),val(E.B),val(E.L)],uni=v.every(q=>q===v[0]);
-      const base=(x,y)=>{if(uni)return v[0];const d=[y,W-x,H-y,x];let a=0,b=0;for(let i=0;i<4;i++){if(d[i]<1e-6)return v[i];const q=1/(d[i]*d[i]);a+=v[i]*q;b+=q;}return a/b;};
-      const rs=R(0,1000),RR=22,rim=(x,y)=>5+6.5*Math.max(-.35,vn(x/16,y/16,rs))+2.6*vn(x/6,y/6,rs+1)+.8*vn(x/2.2,y/2.2,rs+2);
-      const inset=(x,y)=>{const ex=Math.min(x,W-x),ey=Math.min(y,H-y);return ex<RR&&ey<RR?RR-Math.hypot(RR-ex,RR-ey):Math.min(ex,ey);};
+      // coastline shape: the rounded-rectangle inset is domain-warped (faded to 0 at the edges, so edge values stay exact) and its rim varies a lot, per card
+      const rs=R(0,1000),wr=prng((seed^0x7f4a7c15)>>>0),RR=12+18*wr(),k0=3+7*wr(),wa=6+7*wr(),ra=5+5*wr(),
+        wp=(x,y)=>{const f=ss((Math.min(x,W-x,y,H-y)-1.5)/11);if(f<=0)return[x,y];
+          return[x+f*(wa*vn(x/19,y/19,rs+4)+.4*wa*vn(x/7.5,y/7.5,rs+5)+.12*wa*vn(x/3,y/3,rs+8)),y+f*(wa*vn(x/19,y/19,rs+6)+.4*wa*vn(x/7.5,y/7.5,rs+7)+.12*wa*vn(x/3,y/3,rs+9))];};
+      // Sonde's own islands are round gaussian bumps: warp them at a small scale so they get bays and points
+      const ia=2.5+2.5*wr(),iw=(x,y)=>[x+ia*(vn(x/8,y/8,rs+11)+.45*vn(x/3.5,y/3.5,rs+12)),y+ia*(vn(x/8,y/8,rs+13)+.45*vn(x/3.5,y/3.5,rs+14))];
+      const base0=(x,y)=>{if(uni)return v[0];const d=[y,W-x,H-y,x];let a=0,b=0;for(let i=0;i<4;i++){if(d[i]<1e-6)return v[i];const q=1/(d[i]*d[i]);a+=v[i]*q;b+=q;}return a/b;};
+      const base=(x,y)=>{const[u,z]=wp(x,y);return base0(Math.max(0,Math.min(W,u)),Math.max(0,Math.min(H,z)));};
+      const rim0=(x,y)=>Math.max(2.5,k0+ra*vn(x/17,y/17,rs)+.45*ra*vn(x/7,y/7,rs+1)+1.2*vn(x/3,y/3,rs+2)+.5*vn(x/1.4,y/1.4,rs+3));
+      const inset0=(x,y)=>{const ex=Math.min(x,W-x),ey=Math.min(y,H-y);return ex<RR&&ey<RR?RR-Math.hypot(RR-ex,RR-ey):Math.min(ex,ey);};
+      const inset=(x,y)=>{const[u,z]=wp(x,y);return inset0(u,z);},rim=(x,y)=>rim0(x,y);
       // sometimes an edge of the other type pushes into the card: a headland of land on sea cards, an inlet of water on land cards (blended by w, so edge values and matching are unchanged)
       const tr=prng((seed^0x51ed27b3)>>>0),tg=[];
       // shapes: 0 cap arrondi, 1 bout carré, 2 tête renflée, 3 large dôme, 4 deux lobes; each may bend
@@ -268,11 +280,11 @@ return{T:typeof LAB!=='undefined'?LAB:T,KINDS:Object.keys(T),AL,EL,PAL,
         ln=dep*(sh===3?.13+.08*tr():sh===1?.16+.12*tr():.22+.2*tr()),bend=(tr()-.5)*(sh===0||sh===2?18:8),n=[2,4.5,2.4,2.2,2][sh],ns=tr()*1000;
         if(sh===4){const o=wd*(.9+.5*tr());tg.push({i,p:p-o,wd:wd*.75,ln,bend:bend-3,n,pr:PRO[4],ns},{i,p:p+o,wd:wd*.7,ln:ln*(.55+.35*tr()),bend:bend+3,n,pr:PRO[4],ns:ns+7},{i,p,wd:wd*1.4,ln:ln*.3,bend:0,n:2,pr:PRO[3],ns:ns+9});}
         else tg.push({i,p,wd,ln,bend,n,pr:PRO[sh],ns});});
-      const tongue=(x,y)=>{let m=0;for(const g of tg){const d=[y,W-x,H-y,x][g.i],a=g.i%2?y:x,f=d/g.ln;if(f>1.6)continue;const wid=g.wd*Math.max(.15,g.pr(f))+1.6*vn(x/5,y/5,g.ns),
-        u=Math.abs(a-g.p-g.bend*f*f)/Math.max(.5,wid),q=Math.pow(u**g.n+f**g.n,1/g.n)+.2*vn(x/7,y/7,g.ns+1);m=Math.max(m,ss((1-q)/.3));}return m;};
+      const tongue=(x,y)=>{let m=0;for(const g of tg){const d=[y,W-x,H-y,x][g.i],a=g.i%2?y:x,f=d/g.ln;if(f>1.6)continue;const wid=g.wd*Math.max(.15,g.pr(f))+2.4*vn(x/5,y/5,g.ns)+.9*vn(x/2,y/2,g.ns+3),
+        u=Math.abs(a-g.p-g.bend*f*f)/Math.max(.5,wid),q=Math.pow(u**g.n+f**g.n,1/g.n)+.3*vn(x/7,y/7,g.ns+1)+.1*vn(x/2.5,y/2.5,g.ns+2);m=Math.max(m,ss((1-q)/.3));}return m;};
       const field=(x,y,isl)=>{const e=Math.min(x,W-x,y,H-y),w=ss(e/BL),bs=base(x,y),t=ss((inset(x,y)-rim(x,y))/4.5);
         // land cards rise inland (an island when every edge is sea); sea cards sink back to open water
-        const inner=sea?(isl?M(x,y)*bump(c.g,x,y):0)-Math.max(0,bs-CL)*t:Math.max(0,1.4-bs)*t;
+        const inner=sea?(isl?M(x,y)*bump(c.g,...iw(x,y)):0)-Math.max(0,bs-CL)*t:Math.max(0,1.4-bs)*t;
         let b=bs+spurV(c,x,y)+w*(c.na*fbm(x,y,c.seed)+inner);
         if(tg.length){const m=tongue(x,y);if(m>0)b=b*(1-m)+m*(sea?VL+spurV(c,x,y)+w*(c.na*fbm(x,y,c.seed)+.35):CL+spurV(c,x,y)+w*(.3*c.na*fbm(x,y,c.seed)-.3));}
         return b+(.24*vn(x/3,y/3,c.seed+5)+.11*vn(x/1.4,y/1.4,c.seed+6))*Math.exp(-b*b/.4)*ss(e/5);};

@@ -285,8 +285,8 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
 </dialog>
 <div id="print"></div>
 
-<script src="engines/arpent.js?v=3"></script>
-<script src="engines/sonde.js?v=8"></script>
+<script src="engines/arpent.js?v=4"></script>
+<script src="engines/sonde.js?v=10"></script>
 <script src="data.js?v=2"></script>
 <script src="illus.js?v=3"></script>
 <script>
@@ -397,7 +397,7 @@ function backImage(c,k){const b=BACKS[c.back],f=c.back[0];
   g.drawImage(mc,-ow/nx/2,-oh/ny/2,ow+ow/nx,oh+oh/ny);g.globalCompositeOperation='destination-over';g.drawImage(land,0,0);
   if(f==='s'){g.globalCompositeOperation='source-over';g.save();g.scale(ow/W,oh/H);sea.drawEls(g);g.restore();}
   return out;}
-function model(c){const key=mkey(c);let m=models.get(key);if(!m){const b=BACKS[c.back];m=b.eng.make(b.kind,c.seed,c.el);models.set(key,m);
+function model(c){const key=mkey(c);let m=models.get(key);if(!m){const b=BACKS[c.back];m=b.eng.make(b.kind,c.seed,c.el,b.eng===ARPENT);models.set(key,m);
   if(models.size>160)models.delete(models.keys().next().value);}return m;}
 function paint(cv,im){cv.width=im.width;cv.height=im.height;cv.getContext('2d').drawImage(im,0,0);}
 function want(c,k,cv){const key=ikey(c,k),im=imgs.get(key);if(im){paint(cv,im);return;}queue.push({c:{...c},k,cv,key});pump();}
