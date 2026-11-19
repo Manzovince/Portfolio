@@ -854,13 +854,13 @@ let admTab=store.get('admTab','monde');
 function renderAdmin(){
   const pb=$('#pb'),keep=pb.scrollTop;pb.innerHTML='';requestAnimationFrame(()=>pb.scrollTop=keep);
   const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
-  const sec=(t,note)=>{const d=el('div','ads');d.appendChild(el('h4',null,t));if(note)d.appendChild(el('p','adn',note));pb.appendChild(d);return d};
+  const sec=(t,note)=>{const d=el('div','axs');d.appendChild(el('h4',null,t));if(note)d.appendChild(el('p','axn',note));pb.appendChild(d);return d};
   const btn=(t,fn,cur,cls='')=>{const b=el('button','btn '+cls+(cur?' cur':''),t);b.onclick=()=>{fn();if(curTab==='admin')renderAdmin();hud()};return b};
-  const grid=(par,...bs)=>{const d=el('div','adg');d.append(...bs);par.appendChild(d);return d};
+  const grid=(par,...bs)=>{const d=el('div','axg');d.append(...bs);par.appendChild(d);return d};
   const L=leg(G.d);
   // en-tête collant : état en direct + onglets
-  const head=el('div','shead adhead');pb.appendChild(head);
-  const info=el('div','adi');head.appendChild(info);
+  const head=el('div','shead axhead');pb.appendChild(head);
+  const info=el('div','axi');head.appendChild(info);
   const chip=(k,v)=>`<span><i>${k}</i>${v}</span>`;
   const upd=()=>{if(!info.isConnected)return clearInterval(iv);const m=biomeMix(G.d),Lg=leg(G.d);
     info.innerHTML=chip('km',fmt(G.d/1000,2))+chip('monde',`<em style="background:${BCOL[Lg.b]}"></em>${BI[Lg.b].n}`)+chip('alt',fmt(elevMacro(G.d))+' m')+chip('pente',Math.round(gradeAt(G.d)*100)+' %')
@@ -874,14 +874,14 @@ function renderAdmin(){
   if(admTab==='monde'){
     // position : saisie + pas
     const ps=sec('Position');
-    const r=el('div','adr'),i=el('input');i.type='number';i.step='.1';i.value=(G.d/1000).toFixed(2);i.style.width='84px';
+    const r=el('div','axr'),i=el('input');i.type='number';i.step='.1';i.value=(G.d/1000).toFixed(2);i.style.width='84px';
     const go=()=>jumpTo(parseFloat(i.value)*1000||0);i.onkeydown=e=>{if(e.key==='Enter'){go();renderAdmin()}};
-    r.append(el('span','adk','km'),i,btn('Aller',go,0,'pri'),btn('Départ',()=>jumpTo(0)));ps.appendChild(r);
+    r.append(el('span','axk','km'),i,btn('Aller',go,0,'pri'),btn('Départ',()=>jumpTo(0)));ps.appendChild(r);
     grid(ps,...[[-10000,'−10 km'],[-1000,'−1 km'],[-100,'−100 m'],[100,'+100 m'],[1000,'+1 km'],[10000,'+10 km']].map(([d,t])=>btn(t,()=>jumpTo(G.d+d))));
     // mondes regroupés par boucle
     const ws=sec('Aller dans un monde','Le prochain passage de ce paysage sur ton parcours.');
     for(const[reg,n]of[['alpes','Alpes'],['med','Sud'],['exo','Grand voyage']]){
-      const g=el('div','adw');g.appendChild(el('span','adk',n));const gg=el('div','adg');g.appendChild(gg);
+      const g=el('div','axw');g.appendChild(el('span','axk',n));const gg=el('div','axg');g.appendChild(gg);
       for(const b of Object.keys(BI).filter(b=>BI[b].reg===reg)){const x=btn('',()=>{let i=legAt(G.d)+1;ensure(G.d+150000);while(LEGS[i]&&LEGS[i].b!==b)i++;if(LEGS[i])jumpTo(LEGS[i].d0+80)},b===L.b,'wb');
         x.innerHTML=`<em style="background:${BCOL[b]}"></em>`;x.append(BI[b].n);gg.appendChild(x)}
       ws.appendChild(g)}
@@ -890,15 +890,15 @@ function renderAdmin(){
     const pp=sec('Points d’intérêt');
     grid(pp,...[['ravito','⛺ Ravito'],['refuge','🏔 Refuge'],['fontaine','💧 Fontaine'],['ruisseau','🏞 Ruisseau'],['buvette','🏠☕ Buvette / café'],['sommet','⛰ Sommet']].map(([k,t])=>btn(t+' suivant',()=>{
       const p=k==='refuge'?poisIn(G.d+30,G.d+150000).find(q=>q.refuge):nextPoi(G.d+30,k==='buvette'?['buvette','cafe']:[k]);if(p)jumpTo(p.d-(k==='sommet'?60:35))})));
-    const list=el('div','adlist');pp.appendChild(list);
+    const list=el('div','axlist');pp.appendChild(list);
     for(const p of poisIn(G.d,G.d+60000).filter(p=>NM[p.k]).slice(0,12)){
-      const r=el('div','adl'),ic=p.refuge?'🏔':NM[p.k][0];
+      const r=el('div','axl'),ic=p.refuge?'🏔':NM[p.k][0];
       const s=el('span');s.innerHTML=`<b>${fmt((p.d-G.d)/1000,1)} km</b> ${ic} `;s.append(`${p.n}${p.alt?' · '+p.alt+' m':''}`,el('small',null,' '+BI[leg(p.d).b].n.toLowerCase()));
       r.append(s,btn('Aller',()=>jumpTo(p.d-35)));list.appendChild(r)}
   }else if(admTab==='ciel'){
     const hs_=sec('Heure');
-    {const cur=now(),d=el('div','adr'),i=el('input');i.type='range';i.min=0;i.max=24;i.step=.25;i.value=cur.getHours()+cur.getMinutes()/60;
-     const o=el('b','adv',hm(cur));i.oninput=()=>{setClock(+i.value,null);o.textContent=hm(now());tick()};d.append(i,o);hs_.appendChild(d)}
+    {const cur=now(),d=el('div','axr'),i=el('input');i.type='range';i.min=0;i.max=24;i.step=.25;i.value=cur.getHours()+cur.getMinutes()/60;
+     const o=el('b','axv',hm(cur));i.oninput=()=>{setClock(+i.value,null);o.textContent=hm(now());tick()};d.append(i,o);hs_.appendChild(d)}
     grid(hs_,...[[6,'🌅 Aube'],[12,'☀ Midi'],[18.5,'🌇 Soir'],[22,'🌙 Nuit']].map(([h2,t])=>btn(t,()=>{setClock(h2,null);tick()})),btn('Heure réelle',()=>{setClock(null,1);tick()},FH==null&&SPEED===1));
     const sp=sec('Vitesse du temps','Accélère la course, la consommation et le ciel.');
     grid(sp,...[1,10,60,600].map(v=>btn('×'+v,()=>setClock(undefined,v),SPEED===v)));
@@ -910,7 +910,7 @@ function renderAdmin(){
   }else if(admTab==='coureur'){
     // jauges : état + boutons
     const jg=sec('Jauges');
-    const gauge=(ic,label,val,acts)=>{const r=el('div','adl');const s=el('span');s.innerHTML=`${ic} <b>${label}</b> `;s.append(el('small',null,val));const g=el('div','adg');g.append(...acts);r.append(s,g);jg.appendChild(r)};
+    const gauge=(ic,label,val,acts)=>{const r=el('div','axl');const s=el('span');s.innerHTML=`${ic} <b>${label}</b> `;s.append(el('small',null,val));const g=el('div','axg');g.append(...acts);r.append(s,g);jg.appendChild(r)};
     gauge('💧','Eau',fmt(G.water,2)+' / '+fmt(capL(),2)+' L',[btn('Vide',()=>{G.water=0;G.flask=0}),btn('Pleine',()=>G.water=capL())]);
     gauge('⚡','Énergie',Math.round(G.energy)+' %',[btn('Vide',()=>{G.energy=0;G.stock={}}),btn('Pleine',()=>G.energy=100)]);
     gauge('👟','Chaussures',fmt(Math.max(0,GEAR[G.gear.shoes].life-G.wear))+' km',[btn('Usées',()=>{G.wear=GEAR[G.gear.shoes].life+1;G.spare[G.gear.shoes]=0}),btn('Neuves',()=>G.wear=0)]);
