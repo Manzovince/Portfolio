@@ -73,7 +73,7 @@
   </div>
   <button id="bInv" class="tog on" role="switch" aria-checked="true"><i></i>Dressing au fond</button>
   <button id="bEcran" class="tog on" role="switch" aria-checked="true"><i></i>Écran projecteur</button>
-  <button id="bMurs" class="tog" role="switch" aria-checked="false" title="Touche M" aria-keyshortcuts="M"><i></i>Murs pleine hauteur</button>
+  <button id="bMurs" class="tog on" role="switch" aria-checked="true" title="Touche M" aria-keyshortcuts="M"><i></i>Murs pleine hauteur</button>
 </div>
 <div id="vues">
   <div id="gVues" class="groupe" role="group" aria-label="Point de vue">
@@ -146,22 +146,51 @@ function texture(px, dessin, py = px) {
   return t;
 }
 // Parquet : lames de 14 cm, longueurs variées, joints décalés (1 m de côté)
-const parquet = texture(1024, (g, n) => {
-  const lame = n / 7;
-  for (let i = 0; i < 7; i++) {
-    for (let y = -alea() * n; y < n; ) {
-      const l = n * (0.55 + alea() * 0.6), ton = 0.9 + alea() * 0.16;
-      const coul = `rgb(${217 * ton | 0},${185 * ton | 0},${140 * ton | 0})`;
-      g.fillStyle = coul;                  // dessiné aussi décalé d'un tour pour boucler
-      g.fillRect(i * lame, y, lame, l); g.fillRect(i * lame, y + n, lame, l); g.fillRect(i * lame, y - n, lame, l);
-      g.strokeStyle = 'rgba(90,60,30,.10)'; g.lineWidth = 1;
-      for (let k = 0; k < 5; k++) { const x = i * lame + 8 + alea() * (lame - 16); g.beginPath(); g.moveTo(x, y); g.lineTo(x + (alea() - .5) * 6, y + l); g.stroke(); }
-      g.fillStyle = 'rgba(70,45,20,.45)'; g.fillRect(i * lame, (y + l) % n, lame, 2);
-      y += l;
+// Veinage de bois dans un rectangle : lignes ondulées dans le sens du fil + nœuds occasionnels
+function veinage(g, x, y, w, h, vertical, fonce = 'rgba(85,55,25,', clair = 'rgba(255,240,210,') {
+  const L = vertical ? h : w, E = vertical ? w : h;
+  g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+  const nb = Math.max(6, E / 5 | 0);
+  for (let k = 0; k < nb; k++) {
+    const o = alea() * E, amp = 0.5 + alea() * 2, per = 180 + alea() * 420, ph = alea() * 6, a = 0.06 + alea() * 0.14;
+    g.strokeStyle = (alea() < .75 ? fonce : clair) + a + ')'; g.lineWidth = 0.6 + alea() * 1.6;
+    g.beginPath();
+    for (let t = 0; t <= L; t += 6) {
+      const d = o + Math.sin(t / per * 6.28 + ph) * amp;
+      vertical ? g[t ? 'lineTo' : 'moveTo'](x + d, y + t) : g[t ? 'lineTo' : 'moveTo'](x + t, y + d);
     }
-    g.fillStyle = 'rgba(70,45,20,.4)'; g.fillRect(i * lame, 0, 2, n);
+    g.stroke();
   }
+  if (alea() < 0.3) {                                                    // nœud
+    const cx = x + (vertical ? alea() * w : alea() * w), cy = y + (vertical ? alea() * h : alea() * h), r = 3 + alea() * 5;
+    for (let k = 4; k >= 1; k--) { g.strokeStyle = fonce + (0.12 + 0.06 * k) + ')'; g.lineWidth = 1;
+      g.beginPath(); g.ellipse(cx, cy, vertical ? r * k * 0.5 : r * k * 1.6, vertical ? r * k * 1.6 : r * k * 0.5, 0, 0, 7); g.stroke(); }
+    g.fillStyle = fonce + '.45)'; g.beginPath(); g.ellipse(cx, cy, vertical ? r * 0.5 : r, vertical ? r : r * 0.5, 0, 0, 7); g.fill();
+  }
+  g.restore();
+}
+// Parquet : lames de 14 cm, longueurs variées, joints décalés, veinage et nœuds (1 m de côté) + carte de relief des joints
+const lamesParquet = [];
+{ const n = 1024, lame = n / 7;
+  for (let i = 0; i < 7; i++) for (let y = -alea() * n; y < n; ) { const l = n * (0.5 + alea() * 0.65); lamesParquet.push([i * lame, y, lame, l, 0.86 + alea() * 0.22]); y += l; } }
+const parquet = texture(1024, (g, n) => {
+  for (const [x, y, w, l, ton] of lamesParquet) for (const dy of [-n, 0, n]) {     // copies décalées pour boucler
+    g.fillStyle = `rgb(${214 * ton | 0},${180 * ton | 0},${134 * ton | 0})`; g.fillRect(x, y + dy, w, l);
+  }
+  for (const [x, y, w, l] of lamesParquet) for (const dy of [-n, 0, n]) if (y + dy < n && y + dy + l > 0) veinage(g, x + 2, y + dy, w - 3, l, true);
+  g.fillStyle = 'rgba(60,38,18,.55)';
+  for (const [x, y, w, l] of lamesParquet) { g.fillRect(x, (y + l + n) % n, w, 2); g.fillRect(x, 0, 2, n); }   // joints
 });
+const parquetRelief = texture(1024, (g, n) => {
+  g.fillStyle = '#fff'; g.fillRect(0, 0, n, n); g.fillStyle = '#555';
+  for (const [x, y, w, l] of lamesParquet) { g.fillRect(x, (y + l + n) % n, w, 3); g.fillRect(x, 0, 3, n); }
+});
+// Bois des meubles : texture veinée générique (le fil suit la grande dimension de la face)
+const texBois = (base, fonce) => { const t = texture(512, (g, n) => {
+  g.fillStyle = base; g.fillRect(0, 0, n, n);
+  for (let k = 0; k < 6; k++) { g.fillStyle = `rgba(${alea() < .5 ? '255,245,225' : '90,60,30'},${0.04 + alea() * 0.05})`; g.fillRect(0, alea() * n, n, 20 + alea() * 60); }   // bandes de teinte
+  veinage(g, 0, 0, n, n, false, fonce); veinage(g, 0, 0, n, n, false, fonce);
+}); return t; };
 // Carrelage 30 × 30 cm, joints gris clair (texture = 60 cm)
 const carreaux = texture(512, (g, n) => {
   g.fillStyle = '#c3cbd0'; g.fillRect(0, 0, n, n);
@@ -237,6 +266,12 @@ const tissuCanapeTex = texture(256, (g, n) => {
   }
 });
 tissuCanapeTex.repeat.set(3, 3);
+// Image affichée sur l'écran 32" (capture fournie par l'utilisateur)
+const ecranTex = new THREE.TextureLoader().load('ecran-lofi.jpg');
+ecranTex.colorSpace = THREE.SRGBColorSpace;
+// Affiche encadrée au-dessus du canapé (image fournie par l'utilisateur)
+const afficheTex = new THREE.TextureLoader().load('affiche-port-cros.jpg');
+afficheTex.colorSpace = THREE.SRGBColorSpace; afficheTex.anisotropy = 8;
 // Carrelage gris des WC (30 × 30, joints plus clairs)
 const carreauxGris = texture(512, (g, n) => {
   g.fillStyle = '#a3a3a0'; g.fillRect(0, 0, n, n);
@@ -322,7 +357,8 @@ const tapisPianoTex = texture(512, (g, w, h) => {
   }
 }, 1024);
 const tapisPiano = new THREE.MeshStandardMaterial({ map: tapisPianoTex, bumpMap: tapisPianoTex, bumpScale: 4, roughness: 1 });
-const sol = new THREE.MeshStandardMaterial({ map: parquet, color: 0xd6c8b8, roughness: 0.55 });   // teinte : parquet légèrement plus foncé
+parquetRelief.repeat.copy(parquet.repeat);
+const sol = new THREE.MeshStandardMaterial({ map: parquet, bumpMap: parquetRelief, bumpScale: 1.2, color: 0xd6c8b8, roughness: 0.5 });   // teinte : parquet légèrement plus foncé
 const carrelage = new THREE.MeshStandardMaterial({ map: carreaux, roughness: 0.3 });
 const mat = {
   mur: M(0xebe6dd), coupe: M(0x2a2a2a), sol, carrelage, tomette: new THREE.MeshStandardMaterial({ map: tomettes, roughness: 0.45 }), oreiller: M(0xeeeae3, { roughness: 0.95 }),
@@ -336,12 +372,32 @@ const mat = {
   gris: M(0xc4c4c4), menthe: M(0xb5e0cf, { roughness: 0.4 }), bleu: M(0xa9c9de), chene: M(0xd8b98a),
   depoli: M(0xffffff, { transparent: true, opacity: 0.55, roughness: 0.6 }), metal: M(0x555a60, { roughness: 0.4, metalness: 0.5 }),
 };
+// Bois veinés (définis ici pour que les « mat.x ??= … » plus bas réutilisent ces versions texturées)
+const matBois = (base, fonce, o = {}) => new THREE.MeshStandardMaterial({ map: texBois(base, fonce), roughness: 0.6, ...o });
+Object.assign(mat, {
+  chene: matBois('#d6b583', 'rgba(110,75,35,'),                  // chêne clair (estrade, bar, bibliothèque…)
+  bois: matBois('#c49a62', 'rgba(100,65,30,'),
+  boisF: matBois('#7a5a3c', 'rgba(50,30,15,'),
+  boisFonce: matBois('#4d3423', 'rgba(25,14,6,', { roughness: 0.5 }),   // noyer (table basse, bar, meuble imprimante)
+  pin: matBois('#dcbc8c', 'rgba(120,85,40,', { roughness: 0.7 }),
+  teck: matBois('#a8794c', 'rgba(70,45,20,', { roughness: 0.7 }),
+  plan: matBois('#946a3f', 'rgba(70,42,16,', { roughness: 0.45 }), // plan de travail de la cuisine : bois moyen
+});
+mat.plan.map.center.set(0.5, 0.5); mat.plan.map.rotation = Math.PI / 2;   // fil dans la longueur du plan de travail
+// Murs : blanc mat, grain d'enduit très léger (la texture est presque blanche, la couleur vient du matériau)
+{ const enduit = texture(256, (g, n) => {
+    g.fillStyle = '#f4f4f4'; g.fillRect(0, 0, n, n);
+    for (let i = 0; i < 7000; i++) { g.fillStyle = alea() < .5 ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.05)'; g.fillRect(alea() * n, alea() * n, 1 + alea() * 2, 1 + alea() * 2); }
+  });
+  enduit.repeat.set(5, 5);
+  mat.mur = new THREE.MeshStandardMaterial({ color: 0xede9e2, map: enduit, bumpMap: enduit, bumpScale: 0.6, roughness: 0.95 });
+}
 
 const root = new THREE.Group();   // tout ce qui est exporté
 scene.add(root);
 let archi, mobilier;
 let cur;                          // groupe courant pour B()
-let mode = 'projet', coupe = true, inverse = true, ecran = true;
+let mode = 'projet', coupe = false, inverse = true, ecran = true;   // murs pleine hauteur par défaut
 let visite = false, obst = [];    // mode visite : boîtes de collision   // mode : 'vide' | 'actuel' | 'projet'
 
 // Arêtes adoucies pour le mobilier (0 = arêtes vives, pour l'architecture)
@@ -531,7 +587,7 @@ function bureauArtiste(cx, cy, rot, W, D, nom) {
   plat(e, 24, 18, 1, ex, 0, -D / 2 + 14, blancE);
   L(e, 6, 22, 3, ex, 11, -D / 2 + 9, blancE);
   L(e, 72.5, 42.5, 2.5, ex, 34, -D / 2 + 12, blancE);
-  L(e, 71, 40, 0.3, ex, 34.5, -D / 2 + 13.4, dalle);
+  L(e, 71, 40, 0.3, ex, 34.5, -D / 2 + 13.4, mat.ecranLofi ??= new THREE.MeshStandardMaterial({ map: ecranTex, emissive: 0xffffff, emissiveMap: ecranTex, emissiveIntensity: 0.55, roughness: 0.3 }));   // image affichée
   // Ordinateur portable (type MacBook) ouvert sur le côté droit
   const pc = sous('Ordinateur portable (Mac)'), alu = mat.alu ??= M(0xc9ccd0, { roughness: 0.35, metalness: 0.6 });
   const lp = new THREE.Group(); lp.position.set((W / 2 - 21) / 100, 0, (-D / 2 + 22) / 100); lp.rotation.y = -0.35; pc.add(lp);
@@ -581,6 +637,45 @@ function guirlande(traces, nom) {
     }
   }
   return gl;
+}
+// Chaise de bureau (modèle en photo) : assise rembourrée beige, dossier haut en résille dans un cadre arrondi,
+// accoudoirs en T, vérin, piètement 5 branches à roulettes ; dossier côté +z local, l'utilisateur regarde vers -z
+const resilleTex = texture(128, (g, n) => {
+  g.clearRect(0, 0, n, n); g.fillStyle = 'rgba(214,200,186,1)';
+  for (let k = 0; k < n; k += 4) { g.fillRect(k, 0, 1.4, n); g.fillRect(0, k, n, 1.4); }
+});
+resilleTex.repeat.set(10, 12);
+function chaiseDesign(cxp, cyp, rot, nom) {
+  const g = new THREE.Group(); g.userData.nom = nom; g.name = nom;
+  const beige = mat.beigeChaise ??= M(0xe3d6c8, { roughness: 0.9 }), cadre = mat.cadreChaise ??= M(0xddd2c6, { roughness: 0.45 });
+  const pieds = mat.piedChaise ??= M(0xcfc8bf, { roughness: 0.4, metalness: 0.2 }), roue = mat.roueChaise ??= M(0x4c5866, { roughness: 0.5 });
+  mou.add(beige);
+  // piètement étoile à 5 branches et roulettes
+  for (let k = 0; k < 5; k++) {
+    const a = k / 5 * Math.PI * 2, br = mesh(new RoundedBoxGeometry(0.31, 0.03, 0.04, 2, 0.01), pieds);
+    br.position.set(Math.cos(a) * 0.155, 0.075, Math.sin(a) * 0.155); br.rotation.y = -a; g.add(br);
+    const r = mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.022, 16), roue); r.rotation.x = Math.PI / 2; r.rotation.y = -a;
+    r.position.set(Math.cos(a) * 0.3, 0.027, Math.sin(a) * 0.3); g.add(r);
+  }
+  const v1 = mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.2, 20), pieds); v1.position.y = 0.17; g.add(v1);    // vérin
+  const v2 = mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.16, 20), pieds); v2.position.y = 0.33; g.add(v2);
+  L(g, 30, 3, 26, 0, 41, 0, pieds);                                                           // mécanisme
+  L(g, 48, 8, 46, 0, 46.5, -1, beige);                                                        // assise rembourrée
+  // dossier : cadre arrondi + résille, légèrement incliné
+  const dos = new THREE.Group(); dos.position.set(0, 0.56, 0.21); dos.rotation.x = 0.13; g.add(dos);
+  const w = 0.44, h = 0.52, rr = 0.1, sh = new THREE.Shape(), ep = 0.025;
+  const rect = (o, W, Hh, R) => { o.moveTo(-W / 2 + R, 0); o.lineTo(W / 2 - R, 0); o.quadraticCurveTo(W / 2, 0, W / 2, R); o.lineTo(W / 2, Hh - R); o.quadraticCurveTo(W / 2, Hh, W / 2 - R, Hh);
+    o.lineTo(-W / 2 + R, Hh); o.quadraticCurveTo(-W / 2, Hh, -W / 2, Hh - R); o.lineTo(-W / 2, R); o.quadraticCurveTo(-W / 2, 0, -W / 2 + R, 0); };
+  rect(sh, w, h, rr);
+  const trou = new THREE.Path(); rect(trou, w - 2 * ep, h - 2 * ep, rr - ep);
+  sh.holes.push(new THREE.Path(trou.getPoints().map(p => new THREE.Vector2(p.x, p.y + ep))));   // ouverture décalée de l'épaisseur du cadre
+  const cad = mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.025, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.006, bevelSegments: 2 }), cadre); cad.position.z = -0.0125; dos.add(cad);
+  const resille = mesh(new THREE.PlaneGeometry(w - 2 * ep, h - 2 * ep), mat.resille ??= new THREE.MeshStandardMaterial({ map: resilleTex, transparent: true, side: THREE.DoubleSide, roughness: 0.9, alphaTest: 0.05 }));
+  resille.position.set(0, h / 2, 0); resille.castShadow = false; dos.add(resille);
+  L(g, 6, 16, 3, 0, 46, 21, pieds);                                                           // support du dossier
+  // accoudoirs en T
+  for (const sx of [-1, 1]) { L(g, 3, 20, 3, sx * 23, 57, 4, cadre); L(g, 6, 3, 25, sx * 23, 68, 2, cadre); }
+  g.position.set(X(cxp), 0, Z(cyp)); g.rotation.y = rot; cur.add(g);
 }
 function construire() {
   root.clear();
@@ -1016,6 +1111,13 @@ function construire() {
       B(292, y0, 430, y1, 30, 46, tc, null, can);                                    // coussins d'assise
     }
   }
+  { // Cadre au-dessus du canapé : affiche « Port-Cros » 50 × 70, baguette noire fine
+    const cd = new THREE.Group(); cd.userData.nom = 'Affiche Port-Cros 50 × 70'; cd.name = 'Cadre'; cur.add(cd);
+    const ym = (478 + cy1) / 2, noirC = mat.cadreNoir ??= M(0x1d1d1f, { roughness: 0.5 });
+    B(248, ym - 52, 252, ym + 52, 110, 182, noirC, null, cd);                          // baguette (52 × 72)
+    const af = mesh(new THREE.PlaneGeometry(0.5, 0.7), mat.affiche ??= new THREE.MeshStandardMaterial({ map: afficheTex, roughness: 0.35 }));
+    af.rotation.y = Math.PI / 2; af.position.set(X(252) + 0.001, 1.46, Z(ym)); cd.add(af);
+  }
   // Tapis blanc texturé, du canapé jusqu'à la TV (actuel) ou au meuble bas (projet)
   B(440, 445, projet ? 754 : 800, 845, 0, 1.5, tapis, projet ? 'Tapis 200 × 157' : 'Tapis 200 × 180');
   // Table basse
@@ -1091,7 +1193,7 @@ function construire() {
   // Bureau 70 × 120
   bureauAssisDebout(368, 1551, 0);                                        // côté gauche contre le mur de gauche
   bureauArtiste(368, 1551, 0, 120, 69, 'Bureau : écran, PC, dessin');
-  chaise(378, 1650, 0.28, 'Chaise de bureau', mat.tissuF);
+  chaiseDesign(368, 1606, 0, 'Chaise de bureau');                   // rangée sous le bureau
   // Meuble imprimante 45 × 90
   { // Meuble imprimante en bois foncé, deux portes côté entrée
     const nom = 'Meuble imprimante 45 × 90', fonce = mat.boisFonce ??= M(0x4a3222, { roughness: 0.55 });
@@ -1100,7 +1202,18 @@ function construire() {
     B(576.5, 1568, 578.5, 1570, 1, 69, mat.joint ??= M(0x6d6a66), nom);                               // jour entre les portes
   }
   B(290, 1488, 770, 1788, 0, 1.5, tapis, 'Grand tapis entrée 240 × 150');   // même tapis à feuillages que le salon ; passe sous le bureau et le meuble imprimante
-  B(535, 1492, 625, 1560, 70, 90, mat.metal, 'Imprimante');
+  { // Imprimante Canon 310 : multifonction jet d'encre compacte noire (env. 43 × 32 × 15), façade côté entrée
+    const im = new THREE.Group(); im.userData.nom = 'Imprimante Canon 310'; im.name = 'Imprimante'; cur.add(im);
+    const corps = mat.imprCorps ??= M(0x1f2023, { roughness: 0.4 }), capot = mat.imprCapot ??= M(0x2a2b2f, { roughness: 0.22 });
+    B(534, 1497, 621, 1556, 70, 82, corps, null, im);                              // corps
+    B(535, 1498, 620, 1555, 82, 84.5, capot, null, im);                            // capot du scanner
+    B(546, 1555.5, 609, 1557, 73, 77.5, mat.noir, null, im);                       // fente de sortie papier
+    B(593, 1544, 618, 1555, 84.5, 85, capot, null, im);                            // panneau de commande, à droite
+    B(596, 1547, 606, 1553, 85, 85.3, mat.ecranVoyant ??= M(0x6fd0ff, { emissive: 0x2a8fd0, emissiveIntensity: 0.6 }), null, im);   // petit écran
+    for (const x of [609, 613]) B(x, 1549, x + 2.5, 1551, 85, 85.4, mat.metal, null, im);   // boutons
+    const guide = mesh(new THREE.BoxGeometry(0.38, 0.003, 0.17), corps);           // support papier relevé à l'arrière
+    guide.position.set(X(577.5), 0.92, Z(1497) - 0.03); guide.rotation.x = 1.2; im.add(guide);   // incliné vers l'arrière
+  }
   // Entrée
   B(450, 1806, 610, 1876, 0, 50, mat.bois, 'Meuble bas entrée 35 × 80');
   B(643, 1796, 807, 1876, 0, 80, mat.gris, 'Meuble 82 × 40');
@@ -1152,7 +1265,7 @@ function construire() {
     // Bureau côté séjour, adossé à l'allège le long du lit
     bureauAssisDebout(776, 1090, -Math.PI / 2);                            // même bureau qu'aujourd'hui, dos à l'allège
     bureauArtiste(776, 1090, -Math.PI / 2, 120, 69, 'Bureau : écran, PC, dessin');
-    chaise(660, 1090, -Math.PI / 2 + 0.15, 'Chaise de bureau', mat.tissuF);
+    chaiseDesign(718, 1090, -Math.PI / 2, 'Chaise de bureau');       // rangée sous le bureau
     // Lit 140 × 190 sur l'estrade, tête contre le mur de la salle de bain
     const lit2 = new THREE.Group(); lit2.userData.nom = 'Lit 140 × 190'; lit2.name = 'Lit'; cur.add(lit2);
     lit2.position.x = -15 * S;                                     // centré dans l'ouverture de la niche
@@ -1209,7 +1322,7 @@ $('aide').textContent = $('aide').dataset.orbite;
 
 /* ---------- Mode visite : marche à hauteur d'yeux ---------- */
 const YEUX = 1.6, RAYON = 0.2;
-let yaw = Math.PI, pitch = 0, coupeAvant = true;
+let yaw = Math.PI, pitch = 0, coupeAvant = false;
 const pos = new THREE.Vector3(), touches = new Set(), joy = { x: 0, y: 0 };
 function obstacles() {
   obst = [];
