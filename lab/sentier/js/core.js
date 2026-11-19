@@ -21,6 +21,8 @@ function fbm(x,s=0,o=4){let v=0,a=.5,f=1,n=0;for(let i=0;i<o;i++){v+=vn(x*f,s+i*
 const B4=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
 const bay=(x,y)=>(B4[y&3][x&3]+.5)/16;
 function canvasOf(w,h){const c=document.createElement('canvas');c.width=Math.max(1,w|0);c.height=Math.max(1,h|0);const g=c.getContext('2d');g.imageSmoothingEnabled=false;return[c,g]}
+// durée h:mm:ss — déclarée ici (hoistée) : le rattrapage au démarrage peut finir une course avant que main.js soit évalué
+function tm(s){s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s/60)%60,x=s%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')}
 const fmt=(n,d=0)=>n.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
 
 const store={

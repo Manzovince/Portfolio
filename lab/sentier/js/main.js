@@ -665,7 +665,6 @@ function homeUI(){
 /* ---------- campagne : courses, dossard, panneau de course ---------- */
 function onRoute(){if(!UIREADY){onRoute.late=1;return}   // pendant le rattrapage au chargement : rejoué une fois tout initialisé
   if(resize.home!==!!G.home)resize();ensure(G.d);cam=elev(G.d);camMacro=elevMacro(G.d);ANIM=[];SUP_USED.clear();clearTiles();tileBudget=999;save();hud();if($('#modal').classList.contains('on')&&curTab==='courses')renderRaces()}
-const tm=s=>{s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s/60)%60,x=s%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
 const toShop=slot=>{shopCat='equip';shopSlot=slot;store.set('shopCat','equip');store.set('shopSlot',slot);openModal('boutique')};
 function raceUI(){
   const el=$('#race'),R=G.race,res=!R||R.st==='fin'?G.lastRes:null;
