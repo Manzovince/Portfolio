@@ -442,10 +442,17 @@ function mur(x0, y0, x1, y1, h = H, z0 = 0, name = 'Mur') {
   B(x0, y0, x1, y1, z0, top, mat.mur, name);
   if (coupe && h > CUT) B(x0, y0, x1, y1, top, top + 1, mat.coupe);
 }
-function porte(x0, y0, x1, y1, name) {       // ouverture 204 cm + linteau
+// Portes intérieures cliquables : ouvertes au départ, un clic les ouvre / ferme
+const etatPortes = { 'Porte salle de bain': true, 'Porte WC': true };
+// ouverte = { sens: +1 (vers +x) | -1, gond: 'debut' (côté y0) | 'fin' (côté y1) } : vantail ouvert à 90° (portes verticales)
+function porte(x0, y0, x1, y1, name, ouverte) {       // ouverture 204 cm + linteau
   const vertical = (y1 - y0) > (x1 - x0);
   const top = coupe ? Math.min(204, CUT) : 204;
-  if (visite && name !== "Porte d'entrée") { mur(x0, y0, x1, y1, H, 204); return; }   // portes intérieures ouvertes en visite
+  if (vertical && ouverte && etatPortes[name]) {
+    const face = ouverte.sens > 0 ? x1 : x0, l = (y1 - y0) - 2, yg = ouverte.gond === 'debut' ? y0 + 1 : y1 - 9;
+    B(Math.min(face, face + ouverte.sens * l), yg, Math.max(face, face + ouverte.sens * l), yg + 8, 0, top, mat.porte, name);
+    mur(x0, y0, x1, y1, H, 204); return;
+  }
   if (vertical) { const c = (x0 + x1) / 2; B(c - 4, y0, c + 4, y1, 0, top, mat.porte, name); }
   else { const c = (y0 + y1) / 2; B(x0, c - 4, x1, c + 4, 0, top, mat.porte, name); }
   mur(x0, y0, x1, y1, H, 204);
@@ -573,6 +580,19 @@ function bureauAssisDebout(cx, cy, rot) {
     L(g, 6, 4, 61, x, 2, 0, cadre);                              // pied
   }
 }
+// Petite enceinte portable (env. 16 × 7 × 7 cm) : coque gainée arrondie, grille tressée en façade (+z local), bouton doré sur le dessus
+const grilleTex = (fond, fil) => texture(128, (g, n) => {
+  g.fillStyle = fond; g.fillRect(0, 0, n, n); g.strokeStyle = fil; g.lineWidth = 3;
+  for (let k = -n; k < 2 * n; k += 10) { g.beginPath(); g.moveTo(k, 0); g.lineTo(k + n, n); g.stroke(); g.beginPath(); g.moveTo(k, n); g.lineTo(k + n, 0); g.stroke(); }
+});
+function enceinte(parent, x, y, z, rot, coque, grille) {
+  const g = new THREE.Group(); g.userData.nom = 'Enceinte'; g.name = 'Enceinte'; g.position.set(x, y, z); g.rotation.y = rot; parent.add(g);
+  const corps = mesh(new RoundedBoxGeometry(0.16, 0.068, 0.07, 3, 0.014), coque); corps.position.y = 0.034; g.add(corps);
+  const gr = mesh(new THREE.BoxGeometry(0.135, 0.054, 0.002), grille); gr.position.set(0, 0.034, 0.035); g.add(gr);
+  const bt = mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.003, 24), mat.dore ??= M(0xc9a85c, { roughness: 0.25, metalness: 0.8 })); bt.position.set(0, 0.069, 0); g.add(bt);
+  const led = mesh(new THREE.BoxGeometry(0.014, 0.001, 0.005), mat.ledRouge ??= M(0xff3b2f, { emissive: 0xff2010, emissiveIntensity: 0.8 })); led.position.set(0.055, 0.0685, -0.012); g.add(led);
+  return g;
+}
 function bureauArtiste(cx, cy, rot, W, D, nom) {
   const g = new THREE.Group(); g.userData.nom = nom; g.name = nom;
   g.position.set(X(cx), 0.75, Z(cy)); g.rotation.y = rot; cur.add(g);
@@ -614,6 +634,8 @@ function bureauArtiste(cx, cy, rot, W, D, nom) {
   // Un pinceau posé sur la planche
   const bp = new THREE.Group(); bp.position.set(0.10, 0.006, fz / 100 + 0.08); bp.rotation.set(0, 0.5, Math.PI / 2); pi.add(bp);
   cylL(bp, 0.35, 18, 0, 0, 0, bois); cylL(bp, 0.4, 3, 0, 10, 0, virole);
+  enceinte(g, (W / 2 - 9) / 100, 0, (D / 2 - 17) / 100, -0.45,                       // enceinte beige, coin avant droit
+    mat.coqueBeige ??= M(0xd9cbb3, { roughness: 0.8 }), mat.grilleBeige ??= new THREE.MeshStandardMaterial({ map: grilleTex('#cbbb9f', '#e9dfcc'), roughness: 0.9 }));
   // Palette d'aquarelle (godets de couleur) et deux tubes
   const ax = W / 2 - 36, az = D / 2 - 14;            // à gauche du PC
   plat(pi, 20, 9, 1.2, ax, 0, az, mat.blanc);
@@ -777,8 +799,8 @@ function construire() {
     }
   }
   // Cloison SdB / WC côté couloir, avec portes
-  mur(848, 1328, 858, 1488); porte(848, 1488, 858, 1605, 'Porte salle de bain');
-  mur(848, 1605, 858, 1737); porte(848, 1737, 858, 1855, 'Porte WC');
+  mur(848, 1328, 858, 1488); porte(848, 1488, 858, 1605, 'Porte salle de bain', { sens: -1, gond: 'fin' });     // ouverte vers l'extérieur, gonds côté WC
+  mur(848, 1605, 858, 1737); porte(848, 1737, 858, 1855, 'Porte WC', { sens: +1, gond: 'fin' });                 // ouverte vers l'intérieur, gonds côté entrée
   mur(848, 1855, 858, 1880);
   mur(858, 1700, 1173, 1712);                               // SdB / WC
   mur(1045, 1605, 1173, 1700, H, 0, 'Gaine');
@@ -918,9 +940,27 @@ function construire() {
     for (let z = 12; z < haut - 4; z += 39) B(868, 1630, 1034, 1698, z, z + 2, pin, null, iv);   // tablettes
   }
   // WC
-  cyl(1068, 1797, 20, 0.6, 40, mat.blanc, 'WC', 1.1, 0.85);
-  cyl(1068, 1797, 20.5, 40, 43, mat.blanc, null, 1.1, 0.85);
-  B(1100, 1757, 1133, 1838, 0.6, 78, mat.blanc, 'WC');
+  { // Toilettes : pied galbé, cuvette ovale, abattant fermé, réservoir arrondi avec double bouton chromé (face vers la porte, -x)
+    const wc = new THREE.Group(); wc.userData.nom = 'WC'; wc.name = 'WC'; wc.position.set(X(1075), 0.006, Z(1797)); cur.add(wc);
+    const cer = mat.ceramiqueSdb ??= M(0xf5f3ef, { roughness: 0.18 });
+    const tour = (pts, sx, sz, x, y) => { const o = mesh(new THREE.LatheGeometry(pts.map(([r, h]) => new THREE.Vector2(r, h)), 40), cer);
+      o.scale.set(sx, 1, sz); o.position.set(x, y, 0); wc.add(o); return o; };
+    tour([[0, 0], [0.12, 0], [0.11, 0.06], [0.1, 0.2], [0.115, 0.3], [0, 0.3]], 1.35, 1, 0.01, 0);                                   // pied galbé
+    tour([[0, 0], [0.13, 0], [0.165, 0.04], [0.185, 0.085], [0.19, 0.105], [0, 0.105]], 1.28, 1, -0.06, 0.3);                       // cuvette
+    const abattant = mesh(new THREE.CylinderGeometry(0.188, 0.19, 0.022, 40), mat.blanc); abattant.scale.set(1.28, 1, 1);
+    abattant.position.set(-0.06, 0.418, 0); wc.add(abattant);                                                                         // abattant fermé
+    for (const z of [-0.07, 0.07]) { const ch = mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.03, 12), mat.inox); ch.rotation.x = Math.PI / 2; ch.position.set(0.15, 0.42, z); wc.add(ch); }   // charnières
+    const res = mesh(new RoundedBoxGeometry(0.165, 0.38, 0.4, 3, 0.03), cer); res.position.set(0.21, 0.6, 0); wc.add(res);           // réservoir
+    const bouton = mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.006, 24), mat.inox); bouton.scale.set(1, 1, 1.4); bouton.position.set(0.21, 0.792, 0); wc.add(bouton);
+    const sep = mesh(new THREE.BoxGeometry(0.002, 0.003, 0.096), mat.noir); sep.position.set(0.21, 0.796, 0); wc.add(sep);           // double chasse
+    // Dérouleur de papier sur le mur côté entrée, balayette dans l'angle côté salle de bain
+    B(1022, 1877, 1046, 1880, 68, 71, mat.inox, 'Dérouleur papier');
+    const rouleau = mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.1, 24), M(0xfaf9f6, { roughness: 1 }), 'Dérouleur papier');
+    rouleau.rotation.z = Math.PI / 2; rouleau.position.set(X(1034), 0.64, Z(1880) - 0.07); cur.add(rouleau);
+    const bal = new THREE.Group(); bal.userData.nom = 'Balayette'; bal.position.set(X(1115), 0.006, Z(1736)); cur.add(bal);
+    const pot = mesh(new THREE.CylinderGeometry(0.055, 0.05, 0.3, 24), cer); pot.position.y = 0.15; bal.add(pot);
+    const manche = mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.16, 12), mat.inox); manche.position.y = 0.38; bal.add(manche);
+  }
   B(1135, 1722, 1170, 1868, 0.6, coupe ? CUT : 180, mat.blanc, 'Étagère WC');
   { // Unité extérieure de la clim sur le balcon (grille du ventilateur côté garde-corps)
     const ue = new THREE.Group(); ue.userData.nom = 'Unité extérieure de la clim'; ue.name = 'Clim extérieure'; cur.add(ue);
@@ -1136,6 +1176,8 @@ function construire() {
   if (mode === 'actuel') {
   // Meuble TV + TV
   B(808, 468, 861, 727, 0, 50, mat.boisF, 'Meuble TV 27 × 130');
+  enceinte(cur, X(820), 0.5, Z(706), -Math.PI / 2,                                     // enceinte noire, façade vers le canapé
+    mat.coqueNoire ??= M(0x1c1c1d, { roughness: 0.75 }), mat.grilleNoire ??= new THREE.MeshStandardMaterial({ map: grilleTex('#0e0e0e', '#2c2c2c'), roughness: 0.8 }));
   B(828, 560, 844, 640, 50, 56, mat.noir);
   B(832, 490, 838, 710, 55, 118, mat.noir, 'TV');
   // Séparation à lattes de bois 100 cm, du sol au plafond, entre la TV et le lit
@@ -1425,9 +1467,9 @@ $('bGlb').onclick = () => {
   }, err => alert('Export impossible : ' + err), { binary: true, onlyVisible: true });
 };
 
-// Infobulle : nom de l'élément survolé
+// Infobulle : nom de l'élément survolé ; clic sur une porte intérieure pour l'ouvrir / la fermer
 const ray = new THREE.Raycaster(), souris = new THREE.Vector2(), tip = $('tip');
-renderer.domElement.addEventListener('pointermove', e => {
+function nomSous(e) {
   souris.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
   ray.setFromCamera(souris, camera);
   let nom = null;
@@ -1438,8 +1480,21 @@ renderer.domElement.addEventListener('pointermove', e => {
     for (; o && !nom; o = o.parent) nom = o.userData.nom;
     break;
   }
+  return nom;
+}
+{ let appui = null;
+  renderer.domElement.addEventListener('pointerdown', e => { appui = [e.clientX, e.clientY]; });
+  renderer.domElement.addEventListener('pointerup', e => {
+    if (!appui || Math.hypot(e.clientX - appui[0], e.clientY - appui[1]) > 5) return;   // un glisser n'est pas un clic
+    const nom = nomSous(e);
+    if (nom in etatPortes) { etatPortes[nom] = !etatPortes[nom]; construire(); }
+  });
+}
+renderer.domElement.addEventListener('pointermove', e => {
+  const nom = nomSous(e);
+  renderer.domElement.style.cursor = nom in etatPortes ? 'pointer' : '';
   if (nom && nom !== 'Sol' && nom !== 'Mur') {
-    tip.textContent = nom; tip.style.display = 'block';
+    tip.textContent = nom in etatPortes ? `${nom} · clic pour ${etatPortes[nom] ? 'fermer' : 'ouvrir'}` : nom; tip.style.display = 'block';
     tip.style.left = e.clientX + 14 + 'px'; tip.style.top = e.clientY + 14 + 'px';
   } else tip.style.display = 'none';
 });
