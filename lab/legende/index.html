@@ -172,6 +172,7 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
 #print{display:none}
 .page{position:relative;width:210mm;height:297mm;overflow:hidden;background:#fff;break-after:page;page-break-after:always}
 .page:last-child{break-after:auto;page-break-after:auto}
+body.square .card:not(.page .card){border-radius:0}
 .page .card{position:absolute;font-size:1mm;border-radius:0;box-shadow:none}
 .page.round .card{border-radius:3mm}
 .page img{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -199,6 +200,7 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
   <section>
     <h2>Vue</h2>
     <div class="seg" id="view"><button data-v="card">Carte</button><button data-v="grid">Grille</button></div>
+    <label class="toggle">Coins arrondis<input id="round" type="checkbox"></label>
     <div id="gridOpts" class="btns"><button id="flipAll" class="wide primary"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.7L4 15.5M4 20v-4.5h4.5"/></svg><span>Retourner toutes les cartes</span></button></div>
     <div id="dealOpts" class="dealbox">
       <div><span class="lab">Ordre de la grille</span><div class="seg" id="order"><button data-v="deck">Ordre du jeu</button><button data-v="deal">Raccordée</button></div></div>
@@ -390,7 +392,7 @@ function matchTexts(list){let ch=0;
   return ch;}
 if(S.acc!==1){if(matchTexts(cards))S.deal=null;S.acc=1;}
 if(cards.some(c=>!c.edges)){const miss=cards.filter(c=>!c.edges);dealEdges(miss);}
-if(S.order!=='deal')S.order='deck';if(!(S.dcols>=2&&S.dcols<=14))S.dcols=8;delete S.labels;delete S.isles;if(typeof S.coast!=='boolean')S.coast=true;if(!S.col||typeof S.col!=='object')S.col={};if(typeof S.symF!=='boolean')S.symF=true;if(typeof S.symB!=='boolean')S.symB=true;if(!(S.tint>=0&&S.tint<=150))S.tint=100;if(!S.illv){S.ill='single';S.illv=1;}if(S.ill!=='mirror')S.ill='single';if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
+if(S.order!=='deal')S.order='deck';if(!(S.dcols>=2&&S.dcols<=14))S.dcols=8;delete S.labels;delete S.isles;if(typeof S.coast!=='boolean')S.coast=true;if(!S.col||typeof S.col!=='object')S.col={};if(typeof S.symF!=='boolean')S.symF=true;if(typeof S.symB!=='boolean')S.symB=true;if(typeof S.round!=='boolean')S.round=true;if(!(S.tint>=0&&S.tint<=150))S.tint=100;if(!S.illv){S.ill='single';S.illv=1;}if(S.ill!=='mirror')S.ill='single';if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
 
 // ---------- back rendering: async queue + caches ----------
 const models=new Map(),imgs=new Map();let queue=[],qt=0;
@@ -576,7 +578,7 @@ function render(){const g=S.view==='grid';document.querySelector('main').classLi
   $('single').classList.toggle('hidden',g);
   document.querySelectorAll('#view button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
   document.querySelectorAll('#paper button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.paper));document.querySelectorAll('#illM button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.ill));
-  $('gk').value=S.gk;$('coast').checked=S.coast;$('symF').checked=S.symF;$('symB').checked=S.symB;document.querySelectorAll('.cpick input').forEach(i=>i.value=colOf(S.paper,i.dataset.k));$('tint').value=S.tint;$('tintO').textContent=S.tint+' %';$('colFor').textContent='· papier '+(S.paper==='dark'?'sombre':'clair');$('colReset').disabled=!Object.keys(S.col[S.paper]||{}).length&&S.tint===100;document.querySelectorAll('#order button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.order));$('dealCtl').classList.toggle('hidden',S.order!=='deal');$('cOut').textContent=S.dcols;$('gap').value=S.gap;setGap();$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
+  $('gk').value=S.gk;$('coast').checked=S.coast;$('symF').checked=S.symF;$('symB').checked=S.symB;$('round').checked=S.round;document.body.classList.toggle('square',!S.round);document.querySelectorAll('.cpick input').forEach(i=>i.value=colOf(S.paper,i.dataset.k));$('tint').value=S.tint;$('tintO').textContent=S.tint+' %';$('colFor').textContent='· papier '+(S.paper==='dark'?'sombre':'clair');$('colReset').disabled=!Object.keys(S.col[S.paper]||{}).length&&S.tint===100;document.querySelectorAll('#order button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.order));$('dealCtl').classList.toggle('hidden',S.order!=='deal');$('cOut').textContent=S.dcols;$('gap').value=S.gap;setGap();$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
   queue=[];if(g)drawGrid();else drawSingle();stats();save();}
 // a card changed: what: 'text' | 'sym' | 'back'
 function changed(what){const c=cards[S.idx];
@@ -632,7 +634,7 @@ const setCols=v=>{S.dcols=Math.max(2,Math.min(14,v));S.deal=null;render();};
 $('cMinus').onclick=()=>setCols(S.dcols-1);$('cPlus').onclick=()=>setCols(S.dcols+1);
 $('redeal').onclick=()=>{S.deal=null;render();};
 $('coast').onchange=e=>{S.coast=e.target.checked;render();};
-$('symF').onchange=e=>{S.symF=e.target.checked;render();};$('symB').onchange=e=>{S.symB=e.target.checked;render();};
+$('symF').onchange=e=>{S.symF=e.target.checked;render();};$('symB').onchange=e=>{S.symB=e.target.checked;render();};$('round').onchange=e=>{S.round=e.target.checked;render();};
 document.querySelectorAll('.cpick input').forEach(i=>i.onchange=()=>{(S.col[S.paper]??={})[i.dataset.k]=i.value;applyCols();render();});
 $('tint').oninput=e=>{$('tintO').textContent=e.target.value+' %';};$('tint').onchange=e=>{S.tint=+e.target.value;render();};
 $('colReset').onclick=()=>{delete S.col[S.paper];S.tint=100;applyCols();render();};
