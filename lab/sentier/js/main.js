@@ -422,8 +422,26 @@ function pumpToast(){
 }
 setInterval(()=>{checkQuests();pumpToast()},1000);
 if(away&&away.km>.05)emit(away.capped?'Pause bivouac':'Pendant ton absence',`${fmt(away.km,2)} km · ${fmt(away.dp)} m D+ · +${fmt(away.coins)} pièces${away.capped?' (plafond '+(4+lvl('bivouac'))+' h)':''}`,'🏃');
-setInterval(save,5000);addEventListener('pagehide',save);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
+// sauvegarde : toutes les 5 s quand l'onglet est visible, et à chaque fois qu'on le quitte
+setInterval(()=>{if(document.hidden)return;
+  if(!STALE)return save();
+  // onglet visible mais effacé : si plus personne n'écrit depuis 15 s, on reprend la main
+  let o=null;try{o=JSON.parse(localStorage.getItem('sentier.save'))}catch(e){}if(!o||Date.now()-(o.last||0)>15000)location.reload()},5000);
+const leave=()=>{if(!STALE&&otherTabSaved())STALE=1;save(1)};
+addEventListener('pagehide',leave);addEventListener('beforeunload',leave);document.addEventListener('freeze',leave);
+const comeBack=()=>{if(STALE||otherTabSaved()){STALE=1;location.reload()}};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)leave();else comeBack()});
+addEventListener('pageshow',e=>{if(e.persisted)comeBack()});addEventListener('focus',()=>{if(STALE&&!document.hidden)location.reload()});
+// un autre onglet vient d'écrire :
+//  · il vient de se cacher (dernière écriture, hid) et on est visible → on reprend sa progression ;
+//  · on est caché ou pas au premier plan → on s'efface (rechargement au retour) ;
+//  · on est l'onglet actif face à une autre fenêtre visible → on réaffirme notre état.
+addEventListener('storage',e=>{if(e.key!=='sentier.save'||RESET)return;let o=null;try{o=JSON.parse(e.newValue)}catch(_){}
+  if(!o){STALE=1;if(!document.hidden)location.reload();return}
+  if(o.tab===TAB)return;
+  if(document.hidden){STALE=1;return}
+  if(o.hid){STALE=1;location.reload();return}
+  if(!document.hasFocus())STALE=1;else save()});
 
 /* ---------- recherche ---------- */
 const ENG={google:['Google','https://www.google.com/search?q='],ddg:['DuckDuckGo','https://duckduckgo.com/?q='],ecosia:['Ecosia','https://www.ecosia.org/search?q='],qwant:['Qwant','https://www.qwant.com/?q='],bing:['Bing','https://www.bing.com/search?q=']};
@@ -755,6 +773,13 @@ setInterval(()=>{if($('#modal').classList.contains('on')&&curTab==='boutique')re
 function stripParam(...ks){let ch=0;for(const k of ks)if(Q.has(k)){Q.delete(k);ch=1}if(ch)history.replaceState(null,'',location.pathname+(Q.toString()?'?'+Q:''))}
 function setWeather(k){stripParam('meteo');store.set('meteoForce',k);skyKey='';drops.length=0;flakes.length=0;tick()}
 $('#tAdmin').hidden=!ADMIN();
+function unlockAll(){
+  for(const id in GEAR)if(!G.own.includes(id))G.own.push(id);if(!G.own.includes('filtre'))G.own.push('filtre');
+  for(const id in COMP){if(!G.comps.includes(id))G.comps.push(id);G.st.bio[COMP[id].b]=Math.max(1,G.st.bio[COMP[id].b]||0)}G.comp=G.comp||'chien';
+  for(const k in FAUNA)G.seen[k]=G.seen[k]||1;
+  for(const k in UPG)G.up[k]=Math.max(G.up[k]||0,UPG[k].max);
+  for(const id of CAMP)if(!G.camp.ok.includes(id))G.camp.ok.push(id);
+  save();emit('Admin','Tout est débloqué','🔓')}
 function jumpTo(dm){G.d=Math.max(0,dm);ensure(G.d);cam=elev(G.d);camMacro=elevMacro(G.d);ANIM=[];save();hud()}
 let admTab=store.get('admTab','monde');
 function renderAdmin(){
@@ -831,7 +856,8 @@ function renderAdmin(){
       btn('Matériel obligatoire',()=>{for(const id of['montagne','gilet12','doudoune','frontalePro','bonnet'])if(!G.own.includes(id))G.own.push(id);G.gear.shoes='montagne';G.gear.bag='gilet12';G.gear.top='doudoune';G.gear.lamp='frontalePro';G.gear.head='bonnet'}),
       btn('Aller à 200 m de l’arrivée',()=>{if(racing())jumpTo(raceInfo(G.race.id).len-200)}),btn('Abandonner',()=>{if(racing())finishRace(1,'Abandon (admin)')}),
       btn('Campagne à zéro',()=>{if(G.race&&G.race.st!=='bib')backToTrain();G.race=null;G.lastRes=null;G.camp=NEW().camp},0,'danger'));
-    const un=sec('Débloquer');
+    const un=sec('Débloquer','« Tout débloquer » : équipement, compagnons, espèces, entraînement au max et toutes les courses.');
+    grid(un,btn('🔓 Tout débloquer',unlockAll,0,'pri'));
     grid(un,btn('Tout l’équipement',()=>{for(const id in GEAR)if(!G.own.includes(id))G.own.push(id);if(!G.own.includes('filtre'))G.own.push('filtre')}),
       btn('Tous les compagnons',()=>{for(const id in COMP){if(!G.comps.includes(id))G.comps.push(id);G.st.bio[COMP[id].b]=1}G.comp=G.comp||'chien'}),
       btn('Toutes les espèces',()=>{for(const k in FAUNA)G.seen[k]=G.seen[k]||1}),btn('Entraînement au max',()=>{for(const k in UPG)G.up[k]=UPG[k].max}),btn('Entraînement à zéro',()=>{G.up={}},0,'danger'),btn('Valider les défis',()=>{for(const q of QUESTS)if(!G.q.includes(q.id))G.q.push(q.id)}),btn('Défis à zéro',()=>{G.q=[];G.qSeen=0}));

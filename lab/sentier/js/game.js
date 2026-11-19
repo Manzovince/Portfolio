@@ -162,16 +162,39 @@ const QUESTS=[
 ];
 
 /* ---------- état sauvegardé ---------- */
+const SAVE_V=2;   // 1 → 2 : sous-objets complétés, signature d'onglet (tab/rev)
 const NEW=()=>({v:1,d:0,dp:0,dn:0,t:0,coins:30,tot:0,water:.5,energy:100,wear:0,
   stock:{gel:2,banane:1},gear:{shoes:'route',top:'tshirt',head:null,eyes:null,bag:'gourde',poles:null,lamp:null,biv:'sac'},own:['route','tshirt','gourde','sac'],
   up:{},xp:0,odo:0,camp:{ok:[],best:{},place:{},fin:{}},race:null,lastRes:null,home:1,train:null,lastTrain:null,trainPos:0,dog:0,seen:{},q:[],st:{tops:0,mer:0,nuit:0,pluie:0,rav:0,alpage:0,photos:0,maxAlt:0,eaten:0,wx:{},bio:{},froid:0,neige:0,fon:0,worn:0},
   auto:{eat:40,restock:{gel:3,barre:2}},last:Date.now(),sess:{d:0,dp:0}});
-const SV0=store.get('save',{});let G=Object.assign(NEW(),SV0);
-G.st=Object.assign(NEW().st,G.st);if(!G.spare)G.spare={};if(G.flask==null)G.flask=0;if(G.xp==null)G.xp=0;if(SV0.v&&SV0.odo==null)G.odo=SV0.d||0;if(!G.camp)G.camp=NEW().camp;if(SV0.v&&SV0.home==null){G.trainPos=SV0.d||0;G.home=G.race&&G.race.st!=='bib'?0:1;if(G.home)G.d=HOME_D}if(!G.comps){G.comps=G.dog?['chien']:[];G.comp=G.dog?'chien':null}if(!G.gear.style)G.gear.style='classique';if(!G.gear.biv)G.gear.biv='sac';if(!G.own.includes('sac'))G.own.push('sac');if(!G.own.includes('classique'))G.own.push('classique');if(G.qSeen==null)G.qSeen=G.q.length;G.auto=Object.assign(NEW().auto,G.auto);
+// lecture prudente : une sauvegarde illisible est mise de côté (sentier.save.casse) au lieu d'être écrasée par une partie neuve
+const SV0=(()=>{let raw=null;try{raw=localStorage.getItem('sentier.save')}catch(e){}
+  if(raw==null)return{};try{const o=JSON.parse(raw);if(o&&typeof o==='object'&&!Array.isArray(o))return o}catch(e){}
+  try{localStorage.setItem('sentier.save.casse',raw)}catch(e){}return{}})();
+if(SV0.v&&SV0.v<SAVE_V)store.set('save.v'+SV0.v,SV0);   // copie de secours avant migration
+let G=Object.assign(NEW(),SV0);
+{const N=NEW();   // migration : on complète les sous-objets sans écraser ce qui existe
+  for(const k of['camp','gear','sess'])G[k]=Object.assign(N[k],G[k]&&typeof G[k]==='object'?G[k]:{});
+  for(const k of['own','q','comps'])if(G[k]!=null&&!Array.isArray(G[k]))G[k]=Object.values(G[k]);
+  for(const k of['ok'])if(!Array.isArray(G.camp[k]))G.camp[k]=[];
+  for(const k of['stock','seen','up','spare'])if(!G[k]||typeof G[k]!=='object')G[k]=N[k]||{};
+  for(const k of['d','dp','dn','t','coins','tot','water','energy','wear','xp','odo','trainPos'])if(!Number.isFinite(G[k]))G[k]=N[k]||0;
+  if(!Number.isFinite(G.last))G.last=Date.now()}
+G.st=Object.assign(NEW().st,G.st);G.st.wx=G.st.wx||{};G.st.bio=G.st.bio||{};if(!G.spare)G.spare={};if(G.flask==null)G.flask=0;if(G.xp==null)G.xp=0;if(SV0.v&&SV0.odo==null)G.odo=SV0.d||0;if(!G.camp)G.camp=NEW().camp;if(SV0.v&&SV0.home==null){G.trainPos=SV0.d||0;G.home=G.race&&G.race.st!=='bib'?0:1;if(G.home)G.d=HOME_D}if(!G.comps){G.comps=G.dog?['chien']:[];G.comp=G.dog?'chien':null}if(!G.gear.style)G.gear.style='classique';if(!G.gear.biv)G.gear.biv='sac';if(!G.own.includes('sac'))G.own.push('sac');if(!G.own.includes('classique'))G.own.push('classique');if(G.qSeen==null)G.qSeen=G.q.length;G.auto=Object.assign(NEW().auto,G.auto);
 if(Q.has('km')){G.d=parseFloat(Q.get('km'))*1000;G.last=Date.now();Q.delete('km');history.replaceState(null,'',location.pathname+(Q.toString()?'?'+Q:''))}
 if(Q.has('tout')){G.coins+=99999;history.replaceState(null,'',location.pathname)}
 let RESET=0;   // « Tout recommencer » : plus aucune sauvegarde avant le rechargement
-const save=()=>{if(RESET)return;G.last=Date.now();store.set('save',G)};
+/* Sauvegarde. Sentier vit dans des nouveaux onglets : plusieurs copies tournent souvent en même temps.
+   Chaque onglet signe ses écritures (G.tab) ; un onglet en arrière-plan ne sauve plus après s'être caché,
+   et s'il voit qu'un autre onglet a sauvé depuis, il devient « périmé » (STALE) : il n'écrit plus jamais
+   et se recharge dès qu'on revient dessus, pour reprendre la progression la plus récente. */
+const TAB=Math.random().toString(36).slice(2,10);let STALE=0,SAVED_AT=SV0.last||0;
+G.v=SAVE_V;
+function save(hid){if(RESET||STALE)return;G.last=Date.now();G.tab=TAB;G.hid=hid===1?1:0;G.rev=(G.rev||0)+1;
+  try{localStorage.setItem('sentier.save',JSON.stringify(G));SAVED_AT=G.last}catch(e){console.warn('Sentier : sauvegarde impossible',e)}}
+function otherTabSaved(){let o=null;try{o=JSON.parse(localStorage.getItem('sentier.save'))}catch(e){}
+  if(!o)return !!SAVED_AT;               // effacée ailleurs (Tout recommencer)
+  return o.tab!==TAB&&(o.rev||0)>=(G.rev||0)&&(o.last||0)>SAVED_AT}
 /* ---------- campagne : courses officielles ---------- */
 // legs = [biome, km, altitude d'arrivée de l'étape, options] ; rav = ravitos officiels (km) ;
 // fee = dossard ; goal = chrono à battre pour débloquer la suivante ; med/n = peloton fictif ; req = matériel obligatoire
