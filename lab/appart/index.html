@@ -2,7 +2,6 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#e9edf0">
 <meta name="apple-mobile-web-app-title" content="Appart">
@@ -13,9 +12,44 @@
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden; background: #e9edf0; font: 14px/1.3 -apple-system, system-ui, sans-serif; color: #222; }
   canvas { display: block; touch-action: none; }
-  #ui { position: fixed; top: 12px; left: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
-  #ui button { pointer-events: auto; border: 0; border-radius: 8px; padding: 8px 12px; background: #fff; color: #222; font: inherit; box-shadow: 0 1px 4px rgba(0,0,0,.18); cursor: pointer; }
-  #ui button.on { background: #222; color: #fff; }
+  :root { --panneau: rgba(255,255,255,.88); --encre: #222; --doux: #6a6f76; --accent: #2f7d5b; --ombre: 0 1px 2px rgba(0,0,0,.08), 0 4px 14px rgba(0,0,0,.10); }
+  #barre { position: fixed; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; pointer-events: none; z-index: 2; }
+  #ui, #vues { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  #ui { flex: 1 1 auto; min-width: 0; }
+  #vues { flex: none; }
+  #ui > *, #vues > * { pointer-events: auto; }
+  button { font: inherit; color: var(--encre); border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* Version : contrôle segmenté */
+  .seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 11px; background: var(--panneau); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: var(--ombre); }
+  .seg button { padding: 7px 13px; border-radius: 8px; background: transparent; transition: background .15s, color .15s; }
+  .seg button:hover:not(.on) { background: rgba(0,0,0,.06); }
+  .seg button.on { background: var(--encre); color: #fff; }
+  /* Options : interrupteurs */
+  .tog { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; border-radius: 999px; background: var(--panneau); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: var(--ombre); color: var(--doux); transition: color .15s; }
+  .tog:hover { color: var(--encre); }
+  .tog i { position: relative; flex: none; width: 28px; height: 16px; border-radius: 999px; background: #c8ccd1; transition: background .18s; }
+  .tog i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .18s; }
+  .tog.on { color: var(--encre); }
+  .tog.on i { background: var(--accent); }
+  .tog.on i::after { transform: translateX(12px); }
+  /* Vues et actions */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px; background: var(--panneau); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: var(--ombre); transition: background .15s, transform .1s; }
+  .btn:hover { background: #fff; }
+  .btn:active, .seg button:active, .tog:active { transform: scale(.97); }
+  .btn svg { width: 16px; height: 16px; flex: none; }
+  .groupe { display: inline-flex; gap: 2px; padding: 3px; border-radius: 11px; background: var(--panneau); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: var(--ombre); }
+  .groupe .btn { box-shadow: none; background: transparent; padding: 6px 10px; border-radius: 8px; }
+  .groupe .btn:hover { background: rgba(0,0,0,.06); }
+  #bVisite { background: var(--accent); color: #fff; font-weight: 600; }
+  #bVisite:hover { background: #276b4d; }
+  #bVisite.on { background: var(--encre); }
+  @media (max-width: 760px) {
+    #vues { position: fixed; right: 12px; bottom: 12px; }
+    #aide { display: none; }
+    .seg button { padding: 7px 10px; }
+    .tog { padding: 5px 10px 5px 7px; font-size: 13px; }
+  }
   #tip { position: fixed; pointer-events: none; background: rgba(20,20,20,.85); color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 12px; display: none; white-space: nowrap; }
   #joy { position: fixed; left: 24px; bottom: 44px; width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,.55); box-shadow: 0 1px 6px rgba(0,0,0,.25); display: none; touch-action: none; }
   #joy i { position: absolute; left: 35px; top: 35px; width: 40px; height: 40px; border-radius: 50%; background: #222; opacity: .8; pointer-events: none; }
@@ -29,25 +63,37 @@
 </script>
 </head>
 <body>
+<div id="barre">
 <div id="ui">
-  <button id="bVide">Vide</button>
-  <button id="bActuel">Actuel</button>
-  <button id="bProjet" class="on">Projet travaux</button>
-  <button id="bInv" class="on">Dressing au fond</button>
-  <button id="bMurs">Murs pleine hauteur</button>
-  <button id="bDessus">Vue de dessus</button>
-  <button id="b3d">Vue 3D</button>
-  <button id="bVisite">Visite</button>
-  <button id="bGlb">Exporter .glb</button>
+  <div class="seg" role="group" aria-label="Version de l'appartement">
+    <button id="bVide" aria-pressed="false" title="L'appartement actuel, sans meubles · touche 1 (&)" aria-keyshortcuts="1">Vide avant</button>
+    <button id="bActuel" aria-pressed="false" title="L'appartement aujourd'hui, meublé · touche 2 (é)" aria-keyshortcuts="2">Actuel</button>
+    <button id="bProjet" class="on" aria-pressed="true" title="Après les travaux, meublé · touche 3 (&quot;)" aria-keyshortcuts="3">Projet travaux</button>
+    <button id="bVideP" aria-pressed="false" title="Après les travaux, sans meubles · touche 4 (')" aria-keyshortcuts="4">Vide après</button>
+  </div>
+  <button id="bInv" class="tog on" role="switch" aria-checked="true"><i></i>Dressing au fond</button>
+  <button id="bEcran" class="tog on" role="switch" aria-checked="true"><i></i>Écran projecteur</button>
+  <button id="bMurs" class="tog" role="switch" aria-checked="false" title="Touche M" aria-keyshortcuts="M"><i></i>Murs pleine hauteur</button>
+</div>
+<div id="vues">
+  <div id="gVues" class="groupe" role="group" aria-label="Point de vue">
+    <button id="bDessus" class="btn" title="Vue de dessus · touche D" aria-keyshortcuts="D"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M2.5 8h6V2.5M8.5 8v5.5"/></svg>Dessus</button>
+    <button id="b3d" class="btn" title="Vue 3D · touche R" aria-keyshortcuts="R"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 1.8 13.5 5v6L8 14.2 2.5 11V5z"/><path d="M2.5 5 8 8.2 13.5 5M8 8.2v6"/></svg>3D</button>
+  </div>
+  <button id="bVisite" class="btn" title="Se promener à hauteur d'yeux · touche V, Échap pour sortir" aria-keyshortcuts="V"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="2.8" r="1.4"/><path d="M8.5 5.5 6.8 9l2.4 1.6.6 3.6M6.8 9l-1.4 4.8M8.5 5.5l2.3 2.2 2 .3M8.5 5.5 6 6.6 5 8.6"/></svg><span>Visite</span></button>
+  <button id="bGlb" class="btn" title="Exporter le modèle en .glb"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M4.8 7 8 10.2 11.2 7M3 13.5h10"/></svg>.glb</button>
+</div>
 </div>
 <div id="tip"></div>
 <div id="joy"><i></i></div>
-<div id="aide" data-orbite="Glisser : tourner · molette / pincer : zoom · clic droit / 2 doigts : déplacer" data-visite="Flèches ou ZQSD : avancer / tourner · glisser : regarder · rond en bas à gauche : se déplacer au doigt"></div>
+<div id="aide" data-orbite="Glisser : tourner · molette / pincer : zoom · clic droit / 2 doigts : déplacer · touches : 1–4 (&amp; é &quot; ') versions · D dessus · R 3D · V visite · M murs" data-visite="Flèches ou ZQSD : avancer / tourner · glisser : regarder · rond en bas à gauche : se déplacer au doigt · Échap : quitter la visite"></div>
 
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 /* ---------- Repère ----------
    Les coordonnées viennent du plan 2D : 2 px = 1 cm.
@@ -63,6 +109,8 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.AgXToneMapping;      // hautes lumières adoucies, blancs moins brûlés
+renderer.toneMappingExposure = 1.15;
 document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
@@ -73,8 +121,10 @@ controls.enableDamping = true;
 controls.maxPolarAngle = Math.PI / 2 - 0.02;
 controls.target.set(0, 0.5, 0);
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0xb8b0a0, 1.5));
-const sun = new THREE.DirectionalLight(0xfff4e0, 2.2);
+// Reflets doux d'une pièce neutre (bois verni, inox, écran)
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.add(new THREE.HemisphereLight(0xfff8ee, 0xa89c88, 0.75));
+const sun = new THREE.DirectionalLight(0xffeedb, 1.7);
 sun.position.set(-4, 9, -7);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
@@ -83,9 +133,202 @@ sun.shadow.bias = -0.0005;
 scene.add(sun);
 
 const M = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.85, ...o });
+// Petit générateur pseudo-aléatoire stable (mêmes lattes à chaque rechargement)
+let graine = 7;
+const alea = () => (graine = (graine * 16807) % 2147483647) / 2147483647;
+// Texture dessinée sur canevas, répétée tous les `metres` mètres
+function texture(px, dessin, py = px) {
+  const c = document.createElement('canvas'); c.width = px; c.height = py;
+  dessin(c.getContext('2d'), px, py);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  return t;
+}
+// Parquet : lames de 14 cm, longueurs variées, joints décalés (1 m de côté)
+const parquet = texture(1024, (g, n) => {
+  const lame = n / 7;
+  for (let i = 0; i < 7; i++) {
+    for (let y = -alea() * n; y < n; ) {
+      const l = n * (0.55 + alea() * 0.6), ton = 0.9 + alea() * 0.16;
+      const coul = `rgb(${217 * ton | 0},${185 * ton | 0},${140 * ton | 0})`;
+      g.fillStyle = coul;                  // dessiné aussi décalé d'un tour pour boucler
+      g.fillRect(i * lame, y, lame, l); g.fillRect(i * lame, y + n, lame, l); g.fillRect(i * lame, y - n, lame, l);
+      g.strokeStyle = 'rgba(90,60,30,.10)'; g.lineWidth = 1;
+      for (let k = 0; k < 5; k++) { const x = i * lame + 8 + alea() * (lame - 16); g.beginPath(); g.moveTo(x, y); g.lineTo(x + (alea() - .5) * 6, y + l); g.stroke(); }
+      g.fillStyle = 'rgba(70,45,20,.45)'; g.fillRect(i * lame, (y + l) % n, lame, 2);
+      y += l;
+    }
+    g.fillStyle = 'rgba(70,45,20,.4)'; g.fillRect(i * lame, 0, 2, n);
+  }
+});
+// Carrelage 30 × 30 cm, joints gris clair (texture = 60 cm)
+const carreaux = texture(512, (g, n) => {
+  g.fillStyle = '#c3cbd0'; g.fillRect(0, 0, n, n);
+  for (const x of [0, n / 2]) for (const y of [0, n / 2]) {
+    const t = 0.97 + alea() * 0.05;
+    g.fillStyle = `rgb(${211 * t | 0},${218 * t | 0},${222 * t | 0})`; g.fillRect(x + 3, y + 3, n / 2 - 6, n / 2 - 6);
+  }
+});
+// Panneau OSB : copeaux de bois orientés, tons miel et brun (1 motif = 60 cm)
+const osbTex = texture(512, (g, n) => {
+  g.fillStyle = '#c8a467'; g.fillRect(0, 0, n, n);
+  for (let i = 0; i < 900; i++) {
+    const x = alea() * n, y = alea() * n, w = 12 + alea() * 40, h = 5 + alea() * 14, a = (alea() - .5) * 1.2, t = alea();
+    g.fillStyle = t < .45 ? 'rgba(225,190,125,.55)' : t < .8 ? 'rgba(150,108,55,.45)' : 'rgba(110,75,35,.5)';
+    for (const [dx, dy] of [[0, 0], [-n, 0], [n, 0], [0, -n], [0, n]]) {   // copies décalées pour raccorder les bords
+      g.save(); g.translate(x + dx, y + dy); g.rotate(a); g.fillRect(-w / 2, -h / 2, w, h); g.restore();
+    }
+  }
+});
+osbTex.repeat.set(1.6, 1.6);
+// Canisse en roseaux (brise-vue du garde-corps) : tiges verticales de tons variés, 1 motif = 30 cm
+const canisseTex = texture(256, (g, n) => {
+  g.fillStyle = '#7a5a36'; g.fillRect(0, 0, n, n);
+  for (let x = 0; x < n; ) {
+    const w = 4 + alea() * 4, t = 0.75 + alea() * 0.45;
+    g.fillStyle = `rgb(${190 * t | 0},${150 * t | 0},${98 * t | 0})`; g.fillRect(x, 0, w - 1, n);
+    g.fillStyle = 'rgba(255,240,210,.18)'; g.fillRect(x + 1, 0, 1, n);                     // reflet
+    for (let k = 0; k < 2; k++) { g.fillStyle = 'rgba(70,45,20,.35)'; g.fillRect(x, alea() * n, w - 1, 2); }   // nœuds
+    x += w;
+  }
+  g.fillStyle = 'rgba(60,40,20,.55)'; for (const y of [n * 0.2, n * 0.8]) g.fillRect(0, y, n, 2);   // fils de liage
+});
+canisseTex.repeat.set(925 * S / 0.3, 1);
+// Faux gazon du balcon : brins serrés de verts variés (1 motif = 50 cm)
+const gazonTex = texture(512, (g, n) => {
+  g.fillStyle = '#4f8a3a'; g.fillRect(0, 0, n, n);
+  for (let i = 0; i < 26000; i++) {
+    const x = alea() * n, y = alea() * n, t = alea();
+    g.strokeStyle = t < .3 ? 'rgba(120,175,80,.8)' : t < .6 ? 'rgba(70,130,50,.8)' : t < .85 ? 'rgba(95,155,60,.8)' : 'rgba(160,190,90,.7)';
+    g.lineWidth = 1.2; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (alea() - .5) * 5, y + (alea() - .5) * 5); g.stroke();
+  }
+});
+gazonTex.repeat.set(949 * S / 0.5, 300 * S / 0.5);
+// Dalles de bois clipsables 30 × 30 (4 lattes, sens alterné en damier) ; 1 motif = 60 cm
+const dallesTex = texture(512, (g, n) => {
+  g.fillStyle = '#2a2018'; g.fillRect(0, 0, n, n);                       // fond sombre entre les lattes
+  const d = n / 2, l = d / 4;
+  for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) for (let k = 0; k < 4; k++) {
+    const vert = (i + j) % 2 === 0, t = 0.82 + alea() * 0.3;
+    const [x, y, w, h] = vert ? [i * d + k * l + 2, j * d + 3, l - 4, d - 6] : [i * d + 3, j * d + k * l + 2, d - 6, l - 4];
+    g.fillStyle = `rgb(${150 * t | 0},${104 * t | 0},${58 * t | 0})`; g.fillRect(x, y, w, h);
+    g.strokeStyle = 'rgba(70,40,15,.25)'; g.lineWidth = 1;
+    for (let f = 0; f < 5; f++) {                                         // veinage dans le sens de la latte
+      const o = alea(); g.beginPath();
+      if (vert) { g.moveTo(x + o * w, y); g.lineTo(x + o * w + (alea() - .5) * 4, y + h); } else { g.moveTo(x, y + o * h); g.lineTo(x + w, y + o * h + (alea() - .5) * 4); }
+      g.stroke();
+    }
+  }
+});
+dallesTex.repeat.set(420 * S / 0.6, 276 * S / 0.6);
+// Crépi légèrement orangé des murs du balcon (grain fin, servant aussi de relief)
+const crepiImg = (rep) => { const t = texture(256, (g, n) => {
+  g.fillStyle = '#efbf73'; g.fillRect(0, 0, n, n);
+  for (let i = 0; i < 9000; i++) { const v = alea(); g.fillStyle = v < .5 ? 'rgba(255,240,225,.35)' : 'rgba(150,95,55,.18)'; g.fillRect(alea() * n, alea() * n, 1 + alea() * 2, 1 + alea() * 2); }
+}); t.repeat.set(rep, rep); return t; };
+const crepiBoite = crepiImg(4), crepiArche = crepiImg(2.5);
+// Tissu chiné du canapé : bleu marine tirant vers le vert (pétrole), fils clairs et sombres mêlés
+const tissuCanapeTex = texture(256, (g, n) => {
+  g.fillStyle = '#233c4f'; g.fillRect(0, 0, n, n);
+  for (let i = 0; i < 14000; i++) {
+    const v = alea(); g.fillStyle = v < .35 ? 'rgba(150,200,165,.32)' : v < .7 ? 'rgba(12,25,45,.45)' : 'rgba(80,135,120,.35)';
+    g.fillRect(alea() * n, alea() * n, 1 + alea() * 2, 1);
+  }
+});
+tissuCanapeTex.repeat.set(3, 3);
+// Carrelage gris des WC (30 × 30, joints plus clairs)
+const carreauxGris = texture(512, (g, n) => {
+  g.fillStyle = '#a3a3a0'; g.fillRect(0, 0, n, n);
+  for (const x of [0, n / 2]) for (const y of [0, n / 2]) {
+    const t = 0.96 + alea() * 0.06;
+    g.fillStyle = `rgb(${128 * t | 0},${128 * t | 0},${126 * t | 0})`; g.fillRect(x + 3, y + 3, n / 2 - 6, n / 2 - 6);
+  }
+});
+carreauxGris.repeat.set(315 * S / 0.6, 168 * S / 0.6);
+// Tomettes hexagonales rouge foncé (sol actuel) : 16 cm entre côtés, 8 colonnes × 4 rangs par motif
+const HEX = 16 / Math.sqrt(3), PXCM = 8;                // rayon (cm), pixels par cm
+const TW = 12 * HEX, TH = 4 * Math.sqrt(3) * HEX;       // motif : ≈ 111 × 64 cm
+const tomettes = texture(Math.round(TW * PXCM), (g, w, h) => {
+  g.fillStyle = '#6e5244'; g.fillRect(0, 0, w, h);      // joints
+  const s = HEX * PXCM, dy = Math.sqrt(3) * s;
+  for (let c = 0; c < 8; c++) for (let r = 0; r < 4; r++) {
+    const t = 0.8 + alea() * 0.3, cx = c * 1.5 * s, cy = r * dy + (c % 2) * dy / 2;
+    const coul = `rgb(${128 * t | 0},${44 * t | 0},${30 * t | 0})`;
+    const taches = Array.from({ length: 14 }, () => [(alea() - .5) * 1.4 * s, (alea() - .5) * 1.4 * s, 6 + alea() * s * .5, alea() < .5 ? 'rgba(40,10,5,.06)' : 'rgba(180,85,55,.06)']);
+    for (const ox of [-w, 0, w]) for (const oy of [-h, 0, h]) {   // copies décalées pour boucler
+      const x = cx + ox, y = cy + oy;
+      if (x < -s || x > w + s || y < -s || y > h + s) continue;
+      g.save(); g.beginPath();
+      for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3, rr = s - 3; g[k ? 'lineTo' : 'moveTo'](x + rr * Math.cos(a), y + rr * Math.sin(a)); }
+      g.closePath(); g.fillStyle = coul; g.fill(); g.clip();
+      for (const [tx, ty, tr, tc] of taches) { g.fillStyle = tc; g.beginPath(); g.arc(x + tx, y + ty, tr, 0, 7); g.fill(); }
+      g.restore();
+    }
+  }
+}, Math.round(TH * PXCM));
+tomettes.repeat.set(949 * S * 100 / TW, 1492 * S * 100 / TH);
+parquet.repeat.set(949 * S, 1492 * S);                // 1 motif = 1 m sur le sol du séjour
+carreaux.repeat.set(315 * S / 0.6, 384 * S / 0.6);     // 1 motif = 60 cm
+// Tapis blanc en laine, feuillages en relief (une seule image pour tout le tapis)
+const tapisTex = texture(1024, (g, n) => {
+  g.fillStyle = '#e6dfd3'; g.fillRect(0, 0, n, n);
+  for (let i = 0; i < 26000; i++) {                       // grain de la laine
+    g.fillStyle = alea() < .5 ? 'rgba(255,255,255,.35)' : 'rgba(150,130,100,.10)';
+    g.fillRect(alea() * n, alea() * n, 2, 2);
+  }
+  g.lineCap = 'round';
+  for (let f = 0; f < 20; f++) {                          // grandes feuilles de palmier, ton sur ton
+    const x0 = alea() * n, y0 = alea() * n, a = alea() * Math.PI * 2, L = n * (0.4 + alea() * 0.35), courbe = (alea() - .5) * 0.9;
+    const pt = t => { const b = a + courbe * t; return [x0 + Math.cos(b) * L * t, y0 + Math.sin(b) * L * t, b]; };
+    g.strokeStyle = 'rgba(175,155,120,.38)'; g.lineWidth = 7;
+    g.beginPath(); for (let t = 0; t <= 1; t += .02) g[t ? 'lineTo' : 'moveTo'](...pt(t)); g.stroke();
+    for (let t = 0.04; t < 0.98; t += 0.03) for (const s of [-1, 1]) {   // nervures latérales
+      const [x, y, b] = pt(t), l = L * 0.36 * Math.sin(Math.PI * Math.min(1, t * 1.15)) * (0.8 + alea() * .4), c = b + s * 0.75;
+      g.lineWidth = 4 + alea() * 4;
+      g.beginPath(); g.moveTo(x, y);
+      g.quadraticCurveTo(x + Math.cos(c) * l * .5, y + Math.sin(c) * l * .5, x + Math.cos(c + s * .35 - .2 * s) * l + Math.cos(b) * l * .35, y + Math.sin(c + s * .15) * l + Math.sin(b) * l * .35);
+      g.stroke();
+    }
+  }
+});
+const tapis = new THREE.MeshStandardMaterial({ map: tapisTex, bumpMap: tapisTex, bumpScale: 3, roughness: 1 });
+// Tapis du piano : crème à poils, sillons en relief (rayures et arches concentriques par panneaux de 40 cm)
+const tapisPianoTex = texture(512, (g, w, h) => {
+  g.fillStyle = '#e9e1d2'; g.fillRect(0, 0, w, h);
+  const p = w / 2, pas = 24;
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 2; c++) {
+    const x0 = c * p, y0 = r * p, motif = (r * 2 + c * 3 + (alea() < .4 ? 1 : 0)) % 4;
+    g.save(); g.beginPath(); g.rect(x0 + 6, y0 + 6, p - 12, p - 12); g.clip();
+    g.lineWidth = 7; g.strokeStyle = 'rgba(150,128,96,.42)'; g.lineCap = 'round';
+    if (motif < 2) {                                   // rayures horizontales ou verticales
+      for (let k = pas / 2; k < p; k += pas) {
+        g.beginPath();
+        if (motif === 0) { g.moveTo(x0 + 14, y0 + k); g.lineTo(x0 + p - 14, y0 + k); }
+        else { g.moveTo(x0 + k, y0 + 14); g.lineTo(x0 + k, y0 + p - 14); }
+        g.stroke();
+      }
+    } else {                                           // arches concentriques posées sur un bord
+      const bas = motif === 2, cx = x0 + p / 2, cy = bas ? y0 + p : y0;
+      for (let rr = pas; rr < p * 0.95; rr += pas) {
+        g.beginPath(); g.arc(cx, cy, rr, bas ? Math.PI : 0, bas ? 2 * Math.PI : Math.PI); g.stroke();
+      }
+    }
+    g.restore();
+  }
+  for (let i = 0; i < 40000; i++) {                    // mèches de laine
+    g.fillStyle = alea() < .55 ? 'rgba(255,253,248,.35)' : 'rgba(140,118,88,.12)';
+    g.fillRect(alea() * w, alea() * h, 2, 2);
+  }
+}, 1024);
+const tapisPiano = new THREE.MeshStandardMaterial({ map: tapisPianoTex, bumpMap: tapisPianoTex, bumpScale: 4, roughness: 1 });
+const sol = new THREE.MeshStandardMaterial({ map: parquet, color: 0xd6c8b8, roughness: 0.55 });   // teinte : parquet légèrement plus foncé
+const carrelage = new THREE.MeshStandardMaterial({ map: carreaux, roughness: 0.3 });
 const mat = {
-  mur: M(0xf5f2ec), coupe: M(0x2a2a2a), sol: M(0xd9b98c), carrelage: M(0xcfd6da),
-  balcon: M(0xa8dba0), blanc: M(0xfafafa, { roughness: 0.5 }), plan: M(0x8b6b4a),
+  mur: M(0xebe6dd), coupe: M(0x2a2a2a), sol, carrelage, tomette: new THREE.MeshStandardMaterial({ map: tomettes, roughness: 0.45 }), oreiller: M(0xeeeae3, { roughness: 0.95 }),
+  balcon: new THREE.MeshStandardMaterial({ map: gazonTex, roughness: 1 }),
+  crepi: new THREE.MeshStandardMaterial({ map: crepiBoite, bumpMap: crepiBoite, bumpScale: 2, roughness: 0.95 }),
+  crepiArche: new THREE.MeshStandardMaterial({ map: crepiArche, bumpMap: crepiArche, bumpScale: 2, roughness: 0.95 }), blanc: M(0xecebe7, { roughness: 0.5 }), plan: M(0x8b6b4a),
   noir: M(0x1c1c1c, { roughness: 0.4 }), inox: M(0xb8bcc0, { roughness: 0.3, metalness: 0.6 }),
   verre: M(0xbfe3f0, { transparent: true, opacity: 0.3, roughness: 0.1 }),
   porte: M(0xc9a57a), bois: M(0xc8a06a), boisF: M(0x7a5a3c),
@@ -98,9 +341,17 @@ const root = new THREE.Group();   // tout ce qui est exporté
 scene.add(root);
 let archi, mobilier;
 let cur;                          // groupe courant pour B()
-let mode = 'projet', coupe = true, inverse = true;
+let mode = 'projet', coupe = true, inverse = true, ecran = true;
 let visite = false, obst = [];    // mode visite : boîtes de collision   // mode : 'vide' | 'actuel' | 'projet'
 
+// Arêtes adoucies pour le mobilier (0 = arêtes vives, pour l'architecture)
+let rond = 0;
+const mou = new Set([mat.tissu, mat.tissuF, mat.drap, mat.couette, mat.bleu, mat.oreiller]);
+function boite(w, h, d, m) {
+  const r = Math.min(mou.has(m) ? 0.04 : rond, Math.min(w, h, d) / 2 - 0.0005);
+  if (!rond || r < 0.002) return new THREE.BoxGeometry(w, h, d);
+  return new RoundedBoxGeometry(w, h, d, mou.has(m) ? 4 : 2, r);
+}
 function mesh(geo, m, name) {
   const o = new THREE.Mesh(geo, m);
   o.castShadow = !m.transparent; o.receiveShadow = true;
@@ -109,14 +360,14 @@ function mesh(geo, m, name) {
 }
 // Boîte en coordonnées plan (px) + hauteurs (cm)
 function B(x0, y0, x1, y1, z0, z1, m, name, parent = cur) {
-  const o = mesh(new THREE.BoxGeometry((x1 - x0) * S, (z1 - z0) / 100, (y1 - y0) * S), m, name);
+  const o = mesh(boite((x1 - x0) * S, (z1 - z0) / 100, (y1 - y0) * S, m), m, name);
   o.position.set(X((x0 + x1) / 2), (z0 + z1) / 200, Z((y0 + y1) / 2));
   parent.add(o);
   return o;
 }
 // Boîte locale (cm) dans un groupe
 function L(g, w, h, d, x, y, z, m) {
-  const o = mesh(new THREE.BoxGeometry(w / 100, h / 100, d / 100), m);
+  const o = mesh(boite(w / 100, h / 100, d / 100, m), m);
   o.position.set(x / 100, y / 100, z / 100);
   g.add(o);
   return o;
@@ -158,18 +409,183 @@ function tabouret(cxp, cyp, name) {
   for (const b of [-22, 22]) B(cxp - 22, cyp + b - 2, cxp + 22, cyp + b + 2, 28, 31, mat.noir);
   cur = prev;
 }
-function chaise(cxp, cyp, rot, name, m = mat.tissu) {   // dossier côté +Z local
+function chaise(cxp, cyp, rot, name, m = mat.tissu, pieds = mat.boisF) {   // dossier côté +Z local
   const g = new THREE.Group(); g.userData.nom = name; g.name = name;
   L(g, 44, 6, 44, 0, 43, 0, m);
   L(g, 44, 42, 5, 0, 66, 21, m);
-  for (const [a, b] of [[-19, -19], [19, -19], [-19, 19], [19, 19]]) L(g, 4, 40, 4, a, 20, b, mat.boisF);
+  for (const [a, b] of [[-19, -19], [19, -19], [-19, 19], [19, 19]]) L(g, 4, 40, 4, a, 20, b, pieds);
   g.position.set(X(cxp), 0, Z(cyp)); g.rotation.y = rot;
   cur.add(g);
 }
 
+/* ---------- Petites décorations : plantes et lapins ----------
+   Groupes posés en coordonnées plan (px) ; leur contenu est en cm locaux. */
+const vert = [M(0x4f7d3a, { roughness: 0.6 }), M(0x6b9a4a, { roughness: 0.6 }), M(0x3d6b35, { roughness: 0.6 })];
+const deco_m = {
+  terre: M(0x4a3426), terracotta: M(0xc0673f), ceramique: M(0xece7de, { roughness: 0.3 }),
+  rose: M(0xe9b9b2, { roughness: 0.35 }), gris: M(0x9a9c9e, { roughness: 0.3 }), sauge: M(0xa9b9a0, { roughness: 0.35 }), sanse: M(0x557a3c, { roughness: 0.5 }),
+  succulente: M(0x8fb08a, { roughness: 0.5 }),
+};
+const hasard = k => (Math.sin(k * 127.1) * 43758.5453) % 1 + (Math.sin(k * 127.1) < 0 ? 1 : 0);   // stable d'une reconstruction à l'autre
+function deco(cx, cy, z0, nom) {
+  const g = new THREE.Group(); g.userData.nom = nom; g.name = nom;
+  g.position.set(X(cx), z0 / 100, Z(cy)); cur.add(g); return g;
+}
+function boule(g, r, x, y, z, m, sx = 1, sy = 1, sz = 1) {
+  const o = mesh(new THREE.SphereGeometry(r / 100, 18, 12), m);
+  o.position.set(x / 100, y / 100, z / 100); o.scale.set(sx, sy, sz); g.add(o); return o;
+}
+function pot(g, r, h, m) {
+  const o = mesh(new THREE.CylinderGeometry(r / 100, r * 0.78 / 100, h / 100, 28), m); o.position.y = h / 200; g.add(o);
+  const t = mesh(new THREE.CylinderGeometry(r * 0.9 / 100, r * 0.9 / 100, 0.004, 28), deco_m.terre); t.position.y = (h - 1) / 100; g.add(t);
+}
+function lapin(cx, cy, z0, k, m, nom, rot = 0, m2 = m) {   // lapin assis, museau vers -x ; m2 = arrière du corps, cuisses, oreilles
+  const g = deco(cx, cy, z0, nom); g.scale.setScalar(k); g.rotation.y = rot;
+  for (const [ph, mm] of [[-Math.PI / 2, m], [Math.PI / 2, m2]]) {   // corps en deux moitiés : avant / arrière
+    const o = mesh(new THREE.SphereGeometry(0.07, 24, 14, ph, Math.PI), mm);
+    o.position.set(0.01, 0.07, 0); o.scale.set(1.15, 1, 0.9); g.add(o);
+  }
+  boule(g, 3.2, 3, 3, 4.5, m2, 1.3, 0.8, 0.7); boule(g, 3.2, 3, 3, -4.5, m2, 1.3, 0.8, 0.7);   // cuisses
+  boule(g, 4.5, -5, 14, 0, m);                           // tête
+  for (const s of [-1, 1]) {
+    const o = boule(g, 1.7, -3.5, 21, s * 1.9, m2, 1, 3.1, 0.6); o.rotation.z = -0.3; o.rotation.x = s * 0.18;   // oreilles
+    boule(g, 0.6, -8.9, 15.5, s * 1.8, mat.noir);        // yeux
+  }
+  boule(g, 0.7, -9.4, 13.4, 0, deco_m.rose);             // nez
+  boule(g, 2.2, 8.4, 5, 0, mat.oreiller);                // queue
+  return g;
+}
+/* ---------- Bureau d'artiste : écran 32", PC, planche de découpe, dessin, pinceaux, peinture ----------
+   Repère local en cm : origine au centre du plateau (y = 0 sur le plateau), dos du bureau vers -z, utilisateur vers +z. */
+const plancheTex = texture(512, (g, w, h) => {                     // tapis de découpe vert quadrillé
+  g.fillStyle = '#2f6b52'; g.fillRect(0, 0, w, h);
+  for (let k = 0; k <= 45; k++) {
+    const x = k / 45 * w; g.fillStyle = k % 5 ? 'rgba(220,240,225,.25)' : 'rgba(230,245,235,.55)'; g.fillRect(x, 0, k % 5 ? 1 : 2, h);
+  }
+  for (let k = 0; k <= 30; k++) {
+    const y = k / 30 * h; g.fillStyle = k % 5 ? 'rgba(220,240,225,.25)' : 'rgba(230,245,235,.55)'; g.fillRect(0, y, w, k % 5 ? 1 : 2);
+  }
+  g.strokeStyle = 'rgba(240,250,240,.5)'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, h); g.lineTo(w * .66, 0); g.stroke();   // diagonale 45°
+}, 341);
+const dessinTex = texture(512, (g, w, h) => {                      // feuille A4 : lapin esquissé et lavis d'aquarelle
+  g.fillStyle = '#fbf9f4'; g.fillRect(0, 0, w, h);
+  const lavis = (x, y, rx, ry, c) => { const gr = g.createRadialGradient(x, y, 4, x, y, Math.max(rx, ry)); gr.addColorStop(0, c); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, 7); g.fill(); };
+  lavis(256, 470, 170, 120, 'rgba(150,185,160,.55)');              // herbe
+  lavis(250, 380, 95, 110, 'rgba(200,190,180,.6)');                // corps
+  lavis(330, 260, 60, 55, 'rgba(205,195,185,.6)');                 // tête
+  lavis(360, 140, 70, 60, 'rgba(240,180,150,.45)');                // soleil
+  g.strokeStyle = 'rgba(70,65,60,.75)'; g.lineWidth = 2.2; g.lineCap = 'round';
+  const trait = pts => { g.beginPath(); pts.forEach(([x, y], i) => g[i ? 'lineTo' : 'moveTo'](x, y)); g.stroke(); };
+  g.beginPath(); g.ellipse(250, 385, 92, 100, -0.2, 0, 7); g.stroke();               // corps
+  g.beginPath(); g.ellipse(330, 265, 52, 48, 0.1, 0, 7); g.stroke();                 // tête
+  g.beginPath(); g.ellipse(320, 175, 14, 52, -0.15, 0, 7); g.stroke();               // oreilles
+  g.beginPath(); g.ellipse(352, 180, 13, 48, 0.25, 0, 7); g.stroke();
+  g.beginPath(); g.ellipse(160, 420, 22, 20, 0, 0, 7); g.stroke();                   // queue
+  g.fillStyle = 'rgba(50,45,40,.9)'; g.beginPath(); g.arc(350, 258, 5, 0, 7); g.fill();   // œil
+  trait([[378, 278], [384, 276]]);                                                   // nez
+  for (let i = 0; i < 14; i++) trait([[90 + i * 25, 560], [94 + i * 25, 540 - (i % 3) * 8]]);   // brins d'herbe
+  g.font = 'italic 18px serif'; g.fillStyle = 'rgba(80,75,70,.6)'; g.fillText('Melba', 380, 680);
+}, 724);
+// Bibliothèque blanche 60 × 22, h. 183, entre les portes de la salle de bain et des WC (déjà en place)
+function bibliotheque() {
+  const bib = new THREE.Group(); bib.userData.nom = 'Bibliothèque 60 × 22'; bib.name = 'Bibliothèque'; cur.add(bib);
+  B(844, 1611, 848, 1731, 0, 183, mat.blanc, null, bib);
+  B(804, 1611, 848, 1615, 0, 183, mat.blanc, null, bib); B(804, 1727, 848, 1731, 0, 183, mat.blanc, null, bib);
+  const livres = [0x9c4a3c, 0x3f6a8a, 0xe0c36a, 0x5d8a6a, 0xd9d2c4, 0x7a5a8c];
+  for (let i = 0; i <= 5; i++) {
+    const z = i * 36;
+    B(804, 1615, 844, 1727, z, z + 3, mat.blanc, null, bib);
+    if (i < 5) for (let k = 0, y = 1618; k < 9 - (i % 3) * 2; k++) {
+      const ep = 7 + (i * 3 + k * 5) % 6, ht = 22 + (i * 7 + k * 3) % 8;
+      B(812, y, 842, y + ep, z + 3, z + 3 + ht, M(livres[(i + k * 2) % 6]), null, bib);
+      y += ep + 1;
+    }
+  }
+}
+// Bureau assis-debout blanc 70 × 120 (position assise, 75 cm) ; repère local : dos vers -z
+function bureauAssisDebout(cx, cy, rot) {
+  const g = new THREE.Group(); g.userData.nom = 'Bureau assis-debout 70 × 120'; g.name = 'Bureau';
+  g.position.set(X(cx), 0, Z(cy)); g.rotation.y = rot; cur.add(g);
+  const cadre = mat.cadreBureau ??= M(0xdcdad6, { roughness: 0.4, metalness: 0.3 });
+  L(g, 120, 2.5, 69, 0, 73.75, 0, mat.blanc);                    // plateau
+  L(g, 92, 4, 5, 0, 68, 0, cadre);                               // traverse
+  for (const x of [-43, 43]) {
+    L(g, 6, 3.5, 57, x, 70.75, 0, cadre);                        // support du plateau
+    L(g, 8, 42, 6, x, 25, 0, cadre);                             // colonne basse
+    L(g, 7, 23, 5, x, 57.5, 0, cadre);                           // colonne télescopique
+    L(g, 6, 4, 61, x, 2, 0, cadre);                              // pied
+  }
+}
+function bureauArtiste(cx, cy, rot, W, D, nom) {
+  const g = new THREE.Group(); g.userData.nom = nom; g.name = nom;
+  g.position.set(X(cx), 0.75, Z(cy)); g.rotation.y = rot; cur.add(g);
+  const sous = (n) => { const s2 = new THREE.Group(); s2.userData.nom = n; g.add(s2); return s2; };
+  const cylL = (gg, r, h, x, y, z, m, rx = 0, rz = 0) => { const o = mesh(new THREE.CylinderGeometry(r / 100, r / 100, h / 100, 16), m);
+    o.position.set(x / 100, y / 100, z / 100); o.rotation.set(rx, 0, rz); gg.add(o); return o; };
+  const plat = (gg, w, d, ep, x, y, z, m, ry = 0) => { const o = L(gg, w, ep, d, x, y + ep / 2, z, m); o.rotation.y = ry; return o; };
+  const corps = mat.ecranCorps ??= M(0x2a2b2d, { roughness: 0.45 }), dalle = mat.ecranDalle ??= M(0x0c0d10, { roughness: 0.15 });
+  // Écran 32" (dalle 71 × 40) sur pied, contre le mur
+  const e = sous('Écran 32 pouces'), ex = -W / 2 + 50;
+  const blancE = mat.ecranBlanc ??= M(0xeeece8, { roughness: 0.4 });      // écran blanc (coque et pied)
+  plat(e, 24, 18, 1, ex, 0, -D / 2 + 14, blancE);
+  L(e, 6, 22, 3, ex, 11, -D / 2 + 9, blancE);
+  L(e, 72.5, 42.5, 2.5, ex, 34, -D / 2 + 12, blancE);
+  L(e, 71, 40, 0.3, ex, 34.5, -D / 2 + 13.4, dalle);
+  // Ordinateur portable (type MacBook) ouvert sur le côté droit
+  const pc = sous('Ordinateur portable (Mac)'), alu = mat.alu ??= M(0xc9ccd0, { roughness: 0.35, metalness: 0.6 });
+  const lp = new THREE.Group(); lp.position.set((W / 2 - 21) / 100, 0, (-D / 2 + 22) / 100); lp.rotation.y = -0.35; pc.add(lp);
+  L(lp, 31, 1.4, 22, 0, 0.7, 0, alu);                                        // base
+  L(lp, 27, 0.1, 10, 0, 1.45, -3.5, mat.ecranCorps);                         // clavier
+  L(lp, 11, 0.1, 7, 0, 1.45, 6, mat.alu2 ??= M(0xb7babf, { roughness: 0.3, metalness: 0.5 }));   // pavé tactile
+  const capot = new THREE.Group(); capot.position.set(0, 0.014, -0.11); capot.rotation.x = -0.28; lp.add(capot);
+  L(capot, 31, 21, 0.6, 0, 10.5, -0.3, alu);                                 // écran (capot)
+  L(capot, 29.4, 18.6, 0.1, 0, 10.9, 0.05, mat.ecranMac ??= M(0x1b2433, { roughness: 0.15, emissive: 0x24365a, emissiveIntensity: 0.35 }));
+  // Planche de découpe, feuille dessinée, pinceaux et peinture devant
+  const pl = sous('Planche de découpe et dessin'), fz = D / 2 - 18;
+  plat(pl, 45, 30, 0.3, -10, 0, fz, mat.planche ??= new THREE.MeshStandardMaterial({ map: plancheTex, roughness: 0.7 }));
+  plat(pl, 21, 29.7, 0.1, -10, 0.3, fz, mat.dessin ??= new THREE.MeshStandardMaterial({ map: dessinTex, roughness: 0.9 }), 0.12);
+  const pi = sous('Pinceaux et peinture'), bois = mat.manche ??= M(0xc9a26b, { roughness: 0.5 }), virole = mat.inox;
+  // Pot de pinceaux
+  const jx = -W / 2 + 12, jz = D / 2 - 12;
+  const pot = mesh(new THREE.CylinderGeometry(0.04, 0.035, 0.11, 24, 1, true), mat.verre); pot.position.set(jx / 100, 0.055, jz / 100); pi.add(pot);
+  cylL(pi, 3.5, 0.4, jx, 0.2, jz, mat.verre);
+  [[-1.2, -0.8, 0.12, 0.1], [1.4, 0.3, -0.1, 0.15], [0, 1.4, 0.05, -0.12], [0.6, -1.5, -0.15, -0.05]].forEach(([dx, dz, rx, rz], i) => {
+    const b = new THREE.Group(); b.position.set((jx + dx) / 100, 0.01, (jz + dz) / 100); b.rotation.set(rx, 0, rz); pi.add(b);
+    cylL(b, 0.35, 19 + i * 2, 0, 9.5 + i, 0, bois); cylL(b, 0.4, 3, 0, 20 + i * 2, 0, virole);
+    const poils = mesh(new THREE.ConeGeometry(0.004, 0.02 + i * 0.004, 10), mat.noir); poils.position.y = (22.5 + i * 2.2) / 100; b.add(poils);
+  });
+  // Un pinceau posé sur la planche
+  const bp = new THREE.Group(); bp.position.set(0.10, 0.006, fz / 100 + 0.08); bp.rotation.set(0, 0.5, Math.PI / 2); pi.add(bp);
+  cylL(bp, 0.35, 18, 0, 0, 0, bois); cylL(bp, 0.4, 3, 0, 10, 0, virole);
+  // Palette d'aquarelle (godets de couleur) et deux tubes
+  const ax = W / 2 - 36, az = D / 2 - 14;            // à gauche du PC
+  plat(pi, 20, 9, 1.2, ax, 0, az, mat.blanc);
+  [0xc0392b, 0xe67e22, 0xf1c40f, 0x27ae60, 0x2e86c1, 0x6c3483, 0x7b4a2d, 0x222222].forEach((c, k) =>
+    plat(pi, 3.6, 3.6, 0.3, ax - 7.2 + (k % 4) * 4.8, 1.2, az - 2 + Math.floor(k / 4) * 4, M(c, { roughness: 0.6 })));
+  for (const [dx, c] of [[-4, 0x2e86c1], [4, 0xe67e22]]) {
+    const t = cylL(pi, 1.1, 9, ax + dx, 1.1, az + 9, mat.blanc, 0, Math.PI / 2); t.rotation.y = 0.3;
+    cylL(pi, 1.12, 3, ax + dx + 3.2, 1.1, az + 9 - 1, M(c), 0, Math.PI / 2).rotation.y = 0.3;
+  }
+}
+// Guirlande lumineuse : fil fin + petites ampoules chaudes tous les 10 cm le long de chaque tracé
+function guirlande(traces, nom) {
+  const gl = new THREE.Group(); gl.userData.nom = nom; gl.name = nom; cur.add(gl);
+  const fil = mat.filGuirlande ??= M(0x3a3a2e, { roughness: 0.6 });
+  const ampoule = mat.ampoule ??= M(0xffe2a0, { emissive: 0xffb347, emissiveIntensity: 1.4, roughness: 0.3 });
+  for (const pts of traces) {
+    const c = new THREE.CatmullRomCurve3(pts);
+    gl.add(mesh(new THREE.TubeGeometry(c, Math.max(40, pts.length * 12), 0.0018, 6), fil));
+    for (const p of c.getSpacedPoints(Math.round(c.getLength() / 0.1))) {
+      const b = mesh(new THREE.SphereGeometry(0.008, 10, 8), ampoule); b.castShadow = false; b.position.copy(p); gl.add(b);
+    }
+  }
+  return gl;
+}
 function construire() {
   root.clear();
-  const projet = mode === 'projet';
+  rond = 0;
+  const projet = mode === 'projet' || mode === 'videProjet';   // architecture après travaux
   const hm = h => coupe ? Math.min(h, CUT) : h;   // hauteur visible d'un élément mural
   archi = new THREE.Group(); archi.name = 'Architecture';
   mobilier = new THREE.Group(); mobilier.name = 'Mobilier';
@@ -177,12 +593,30 @@ function construire() {
 
   /* ===== Architecture ===== */
   cur = archi;
-  B(236, 400, 1185, 1892, -12, 0, mat.sol, 'Sol');
-  B(236, 100, 1185, 400, -12, 0, mat.balcon, 'Balcon 460 × 139');
-  B(858, 1328, 1173, 1880, 0, 0.6, mat.carrelage, 'Carrelage');
+  B(236, 400, 1185, 1892, -12, 0, projet ? mat.sol : mat.tomette, 'Sol');
+  B(236, 100, 1185, 400, -12, 0, mat.balcon, 'Balcon 460 × 139 (faux gazon)');
+  B(248, 114, 668, 390, 0, 2.5, mat.dalles ??= new THREE.MeshStandardMaterial({ map: dallesTex, roughness: 0.7 }), 'Dalles bois 30 × 30');   // coin canapé + table de jardin
+  B(858, 1328, 1173, 1712, 0, 0.6, mat.carrelage, 'Carrelage');                     // salle de bain
+  B(858, 1712, 1173, 1880, 0, 0.6, mat.carrelageWC ??= new THREE.MeshStandardMaterial({ map: carreauxGris, roughness: 0.35 }), 'Carrelage gris (WC)');
 
   // Enveloppe
-  mur(236, 100, 1185, 112, 105, 0, 'Garde-corps');          // façade balcon
+  // Façade du balcon : grande arche surbaissée entre les deux murs, garde-corps à barreaux classiques
+  if (!coupe) {
+    const W = (1185 - 236) * S, m = 0.12, ys = 1.15, sh = new THREE.Shape();
+    sh.moveTo(0, 0); sh.lineTo(W, 0); sh.lineTo(W, H / 100); sh.lineTo(0, H / 100); sh.closePath();
+    const trou = new THREE.Path();
+    trou.moveTo(m, 0); trou.lineTo(m, ys); trou.absellipse(W / 2, ys, W / 2 - m, 2.3 - ys, Math.PI, 0, true); trou.lineTo(W - m, 0); trou.closePath();
+    sh.holes.push(trou);
+    const arche = mesh(new THREE.ExtrudeGeometry(sh, { depth: 12 * S, bevelEnabled: false, curveSegments: 48 }), mat.crepiArche, 'Arche du balcon');
+    arche.position.set(X(236), 0, Z(100)); cur.add(arche);
+  } else for (const x of [236, 1161]) B(x, 100, x + 24, 112, 0, CUT, mat.crepi, 'Arche du balcon');
+  { const gc = new THREE.Group(); gc.userData.nom = 'Garde-corps à barreaux'; gc.name = 'Garde-corps'; cur.add(gc);
+    const fer = mat.fer ??= M(0x3b3e42, { roughness: 0.45, metalness: 0.5 });
+    B(260, 102, 1161, 110, 100, 105, fer, null, gc);                                 // main courante
+    B(260, 104, 1161, 108, 6, 9, fer, null, gc);                                     // lisse basse
+    for (let x = 268; x < 1157; x += 22) B(x - 1, 105, x + 1, 107, 9, 100, fer, null, gc);   // barreaux tous les 11 cm
+  }
+  B(248, 112, 1173, 114, 2, 104, mat.canisse ??= new THREE.MeshStandardMaterial({ map: canisseTex, roughness: 0.8 }), 'Canisse en roseaux');
   mur(236, 112, 248, 1328);                                 // gauche (haut)
   mur(236, 1478, 248, 1892);                                // gauche (entrée)
   mur(1173, 112, 1185, 1892);                               // droite
@@ -190,6 +624,14 @@ function construire() {
   porte(268, 1880, 428, 1892, "Porte d'entrée");
   // Retraits entre balcon et séjour
   mur(248, 380, 347, 462, H, 0, 'Poteau 47/50');
+  { // Crépi orangé sur les faces des murs côté balcon (fine couche posée devant)
+    const hc = coupe ? CUT : H;
+    B(248, 112, 249, 380, 0, hc, mat.crepi, 'Crépi');            // mur de gauche
+    B(1172, 112, 1173, 393, 0, hc, mat.crepi, 'Crépi');          // mur de droite
+    B(249, 379, 347, 380, 0, hc, mat.crepi, 'Crépi');            // poteau
+    B(845, 392, 1172, 393, 0, hc, mat.crepi, 'Crépi');           // retour de la clim
+    if (!coupe) B(347, 387, 845, 388, 220, H, mat.crepi, 'Crépi');   // au-dessus de la baie
+  }
   mur(845, 393, 1173, 462, H, 0, 'Retour 166 (clim)');
   // Baie vitrée 220/235
   const hv = coupe ? CUT : 215;
@@ -205,9 +647,23 @@ function construire() {
   } else {
     mur(370, 1465, 657, 1478, 127, 0, 'Muret h. 127');
     mur(645, 1190, 657, 1465, 127, 0, 'Muret h. 127');
+    // Petit bar de 30 cm posé sur tout le muret, en angle, centré sur le muret
+    B(370, 1441, 681, 1502, 127, 131, mat.boisFonce ??= M(0x4a3222, { roughness: 0.55 }), 'Bar 30 cm sur le muret');
+    B(621, 1190, 681, 1441, 127, 131, mat.boisFonce ??= M(0x4a3222, { roughness: 0.55 }), 'Bar 30 cm sur le muret');
   }
   // Placard 157 × 50
-  if (!projet) mur(848, 1173, 1173, 1328, H, 0, 'Placard 157 × 50');
+  if (!projet) {   // placard encastré, deux portes coulissantes côté piano
+    const nom = 'Placard encastré 157 × 50, portes coulissantes', hp = hm(H);
+    mur(848, 1316, 1173, 1328);                                          // mur de la salle de bain
+    mur(848, 1173, 860, 1316, H, 0, nom);                                // joue côté couloir
+    B(860, 1195, 1173, 1316, 0, hp, mat.mur, nom);                       // fond du placard
+    B(860, 1173, 1173, 1195, Math.min(240, hp), hp, mat.mur, nom);       // retombée au-dessus du rail
+    B(860, 1189, 1173, 1195, 0, 1, mat.metal, nom);                      // rail au sol
+    const porte = mat.coulissant ??= M(0xe4e0d8, { roughness: 0.45 });
+    for (const [x0, x1, y0] of [[860, 1022, 1183], [1011, 1173, 1175]]) {   // deux panneaux sur deux rails
+      B(x0, y0, x1, y0 + 6, 1, Math.min(240, hp), porte, nom);
+    }
+  }
   else {
     mur(848, 1316, 1173, 1328);                             // le placard disparaît, reste le mur de la SdB
     // Verrière fixe des deux côtés d'une ouverture de 90 cm (745–925) vers le coin chambre
@@ -222,7 +678,7 @@ function construire() {
       for (let i = 0; i <= n; i++) B(845, y0 + i * pas, 851, y0 + i * pas + 4, z0, hv2, mat.noir, 'Verrière');
       B(845, y0, 851, y1, z0, z0 + 6, mat.noir);
       if (hv2 > 100 && z0 < 98) B(845, y0, 851, y1, 98, 102, mat.noir);
-      if (!coupe) B(845, y0, 851, y1, 236, 240, mat.noir);
+      if (!coupe) { B(845, y0, 851, y1, 236, 240, mat.noir); B(845, y0, 851, y1, 240, H, mat.mur); }   // linteau jusqu'au plafond
     }
   }
   // Cloison SdB / WC côté couloir, avec portes
@@ -233,40 +689,198 @@ function construire() {
   mur(1045, 1605, 1173, 1700, H, 0, 'Gaine');
 
   // Cuisine
-  B(248, 978, 366, 1320, 0, 86, mat.blanc, 'Plan de travail 167 × 60');
+  B(248, 978, 366, 1320, 10, 86, mat.blanc, 'Plan de travail 167 × 60');
   B(248, 978, 370, 1320, 86, 90, mat.plan, 'Plan de travail 167 × 60');
-  B(263, 1064, 349, 1114, 90, 91, mat.noir, 'Plaque de cuisson');
-  cyl(286, 1089, 9, 91, 91.4, mat.metal); cyl(325, 1089, 11, 91, 91.4, mat.metal);
-  B(373, 1354, 645, 1465, 0, 86, mat.blanc, 'Plan de travail 140 × 60');
-  B(373, 1350, 645, 1465, 86, 90, mat.plan, 'Plan de travail 140 × 60');
-  B(398, 1372, 478, 1452, 90, 90.8, mat.inox, 'Évier');
-  B(408, 1380, 468, 1432, 90.8, 91.2, mat.metal);
-  cyl(438, 1444, 1.5, 91, 108, mat.inox);
+  B(263, 1005, 349, 1055, 90, 91, mat.noir, 'Plaque de cuisson');            // décalée vers la droite
+  cyl(288, 1030, 11, 91, 91.4, mat.metal); cyl(327, 1030, 9, 91, 91.4, mat.metal);   // grand foyer au fond, petit devant
+  // Plan de travail percé pour un évier encastré gris foncé (cuve 36 × 36 × 18)
+  const cadre = (x0, y0, x1, y1, hx0, hy0, hx1, hy1, z0, z1, m, nom) => {   // boîte avec un trou rectangulaire
+    B(x0, y0, hx0, y1, z0, z1, m, nom); B(hx1, y0, x1, y1, z0, z1, m, nom);
+    B(hx0, y0, hx1, hy0, z0, z1, m, nom); B(hx0, hy1, hx1, y1, z0, z1, m, nom);
+  };
+  B(373, 1354, 645, 1465, 10, 70, mat.blanc, 'Plan de travail 140 × 60');
+  cadre(373, 1354, 645, 1465, 396, 1370, 480, 1454, 70, 86, mat.blanc, 'Plan de travail 140 × 60');
+  cadre(373, 1350, 645, 1465, 396, 1370, 480, 1454, 86, 90, mat.plan, 'Plan de travail 140 × 60');
+  const granit = mat.granit ??= M(0x3a3c3e, { roughness: 0.45 });
+  cadre(394, 1368, 482, 1456, 402, 1376, 474, 1448, 90, 90.6, granit, 'Évier');          // rebord posé sur le plan
+  B(399, 1373, 477, 1451, 70, 72, granit, 'Évier');                                       // fond
+  for (const [a, b, c, d] of [[399, 1373, 402, 1451], [474, 1373, 477, 1451], [402, 1373, 474, 1376], [402, 1448, 474, 1451]])
+    B(a, b, c, d, 72, 90, granit, 'Évier');                                                // parois de la cuve
+  cyl(438, 1412, 3, 72, 72.3, mat.inox, 'Bonde');
+  // Mitigeur col de cygne en inox, fixé derrière la cuve
+  cyl(438, 1460, 2.6, 90, 95, mat.inox, 'Mitigeur');
+  cyl(438, 1460, 1.3, 95, 116, mat.inox, 'Mitigeur');
+  const col = mesh(new THREE.TorusGeometry(0.08, 0.013, 12, 32, Math.PI), mat.inox, 'Mitigeur');
+  col.position.set(X(438), 1.16, Z(1444)); col.rotation.y = Math.PI / 2; cur.add(col);
+  cyl(438, 1428, 1.4, 109, 116, mat.inox, 'Mitigeur');
+  B(442, 1456, 452, 1460, 96, 98, mat.inox, 'Mitigeur');                                   // manette
+  /* Façades sous les plans de travail : socle sombre, façades blanches, joints marqués */
+  {
+    const facade = mat.facade ??= M(0xe6e3dd, { roughness: 0.5 }), joint = mat.joint ??= M(0x6d6a66);
+    const socle = mat.socle ??= M(0x4a4a4a, { roughness: 0.7 });
+    // Plan 167 (façades vers +x, à x = 366) : 3 grands tiroirs puis le lave-linge sous le micro-ondes
+    B(250, 980, 358, 1318, 0, 10, socle);                     // socle en retrait de 4 cm
+    const fx = (y0, y1, z0, z1, m, nom) => B(366, y0, 368, y1, z0, z1, m, nom);
+    for (const [z0, z1] of [[10, 34], [35, 59], [60, 85]]) fx(980, 1198, z0, z1, facade, 'Tiroirs (3)');
+    fx(980, 1198, 34, 35, joint); fx(980, 1198, 59, 60, joint); fx(1198, 1202, 10, 85, joint);
+    fx(1202, 1318, 0.5, 85, mat.blanc, 'Lave-linge');
+    B(352, 1203, 366, 1317, 0.5, 10, mat.blanc, 'Lave-linge');           // le lave-linge descend jusqu'au sol
+    B(368, 1206, 369, 1314, 74, 82, mat.inox, 'Lave-linge');                 // bandeau de commande
+    const hublot = (r, ep, m, nom) => {
+      const o = mesh(new THREE.CylinderGeometry(r / 100, r / 100, ep / 100, 40), m, nom);
+      o.rotation.z = Math.PI / 2; o.position.set(X(368) + ep / 200, 0.44, Z(1260)); cur.add(o);
+    };
+    hublot(16, 1.6, mat.inox, 'Lave-linge'); hublot(12.5, 2.2, mat.mo_vitre ??= M(0x101214, { roughness: 0.1 }), 'Lave-linge');
+    // Plan 140 (façades vers -y, à y = 1354) : porte sous l'évier, petit lave-vaisselle, porte
+    B(375, 1362, 643, 1463, 0, 10, socle);                    // socle en retrait de 4 cm
+    const fy = (x0, x1, z0, z1, m, nom) => B(x0, 1352, x1, 1354, z0, z1, m, nom);
+    fy(374, 484, 10, 85, facade, "Porte sous l'évier");
+    fy(484, 487, 10, 85, joint);
+    fy(487, 575, 10, 80, mat.blanc, 'Petit lave-vaisselle 45 cm');
+    fy(487, 575, 80, 85, mat.inox, 'Petit lave-vaisselle 45 cm');            // bandeau
+    B(497, 1350, 565, 1352, 76, 78, mat.inox, 'Petit lave-vaisselle 45 cm');  // poignée
+    fy(575, 578, 10, 85, joint);
+    fy(578, 644, 10, 85, facade, 'Porte');
+  }
 
   // Salle de bain
-  B(1043, 1330, 1173, 1458, 0.6, 8, mat.blanc, 'Douche');
-  if (!coupe || CUT > 8) {
-    const hd = coupe ? CUT : 200;
-    B(1041, 1330, 1045, 1458, 8, hd, mat.verre, 'Paroi de douche');
-    B(1043, 1456, 1173, 1460, 8, hd, mat.verre, 'Paroi de douche');
+  if (!projet) {   // douche actuelle : receveur 65 × 64 et deux parois
+    B(1043, 1330, 1173, 1458, 0.6, 8, mat.blanc, 'Douche');
+    if (!coupe || CUT > 8) {
+      const hd = coupe ? CUT : 200;
+      B(1041, 1330, 1045, 1458, 8, hd, mat.verre, 'Paroi de douche');
+      B(1043, 1456, 1173, 1460, 8, hd, mat.verre, 'Paroi de douche');
+    }
+  } else {         // douche à l'italienne sur toute la largeur de la salle de bain (157 × 70)
+    const dg = new THREE.Group(); dg.userData.nom = "Douche à l'italienne 157 × 70"; dg.name = 'Douche'; cur.add(dg);
+    const prev = cur; cur = dg;
+    const pierre = mat.solDouche ??= M(0x8d9092, { roughness: 0.55 }), faience = mat.faience ??= M(0xdde1e1, { roughness: 0.25 });
+    B(858, 1328, 1173, 1470, 0.6, 0.9, pierre);                                     // sol de plain-pied, carreaux grand format
+    for (const x of [1015]) B(x - 0.3, 1328, x + 0.3, 1470, 0.9, 0.95, mat.joint ??= M(0x6d6a66));
+    B(872, 1334, 1160, 1340, 0.9, 1.1, mat.inox);                                   // caniveau le long du mur
+    const hf = coupe ? CUT : 210;
+    B(858, 1328, 1173, 1331, 0.9, hf, faience);                                     // faïence du mur du fond
+    B(858, 1331, 861, 1470, 0.9, hf, faience); B(1170, 1331, 1173, 1470, 0.9, hf, faience);   // et des côtés
+    B(1000, 1468, 1170, 1470, 0.9, coupe ? CUT : 200, mat.verre, 'Paroi de douche fixe');   // paroi fixe, entrée côté porte
+    B(1000, 1467, 1003, 1471, 0.9, coupe ? CUT : 200, mat.noir, 'Paroi de douche fixe');    // profilé noir
+    if (!coupe) {
+      B(1001, 1331, 1003, 1468, 198, 200, mat.noir, 'Paroi de douche fixe');        // barre de maintien au mur
+      // Colonne de douche sur le mur de droite (côté meuble vasque)
+      B(1166, 1390, 1170, 1410, 100, 118, mat.inox, 'Mitigeur de douche');          // mitigeur thermostatique
+      cyl(1164, 1400, 1.2, 118, 215, mat.inox);                                     // colonne
+      B(1114, 1399, 1164, 1401, 214, 216, mat.inox);                                // bras
+      B(1086, 1372, 1142, 1428, 211, 213, mat.inox, 'Pomme de douche pluie 28 × 28'); // pomme de tête carrée
+    }
+    cur = prev;
   }
-  B(1082, 1472, 1173, 1598, 0.6, 82, mat.blanc, 'Meuble vasque');
-  cyl(1118, 1535, 22, 82, 88, mat.blanc, 'Vasque', 0.7, 1.15);
-  cyl(1118, 1535, 18, 88, 88.4, mat.inox, null, 0.7, 1.15);
-  B(862, 1628, 1040, 1700, 0.6, coupe ? CUT : 180, mat.bois, 'Étagère 87 × 44');
+  if (!coupe || CUT > 170) { // Deux serviettes suspendues au mur de gauche, face au pommeau de douche
+    const sv = new THREE.Group(); sv.userData.nom = 'Serviettes'; sv.name = 'Serviettes'; cur.add(sv);
+    const x0 = projet ? 861 : 858;                                                   // mur de gauche (côté porte), face au pommeau
+    for (const [y, c] of [[1370, 0xe9e4da], [1430, 0x9fb3a6]]) {
+      B(x0, y - 2, x0 + 4, y + 2, 168, 172, mat.inox, null, sv);                    // patère
+      const t = mat['serviette' + c] ??= M(c, { roughness: 1 }); mou.add(t);
+      B(x0 + 0.5, y - 24, x0 + 4, y + 24, 112, 169, t, null, sv);                   // serviette pliée en deux sur la patère
+      B(x0 + 4, y - 25, x0 + 10, y + 25, 105, 170, t, null, sv);
+    }
+  }
+  { // Meuble vasque suspendu (2 tiroirs), plan en chêne, évier rectangulaire encastré, mitigeur chromé
+    const mv = new THREE.Group(); mv.userData.nom = 'Meuble vasque'; mv.name = 'Meuble vasque'; cur.add(mv);
+    const prev = cur; cur = mv;
+    const facade = mat.facade ??= M(0xe6e3dd, { roughness: 0.5 }), joint = mat.joint ??= M(0x6d6a66);
+    const trou = (x0, y0, x1, y1, hx0, hy0, hx1, hy1, z0, z1, m) => {   // boîte percée d'un trou rectangulaire
+      B(x0, y0, hx0, y1, z0, z1, m); B(hx1, y0, x1, y1, z0, z1, m); B(hx0, y0, hx1, hy0, z0, z1, m); B(hx0, hy1, hx1, y1, z0, z1, m);
+    };
+    B(1086, 1474, 1173, 1596, 26, 68, mat.blanc);                                   // caisson suspendu
+    trou(1086, 1474, 1173, 1596, 1096, 1490, 1154, 1580, 68, 80, mat.blanc);
+    B(1084, 1476, 1086, 1594, 27, 52.5, facade); B(1084, 1476, 1086, 1594, 53.5, 79, facade);   // deux tiroirs
+    B(1084, 1476, 1086, 1594, 52.5, 53.5, joint);
+    for (const z of [49, 75.5]) B(1082.8, 1520, 1084, 1550, z, z + 1.2, mat.inox);   // poignées
+    trou(1080, 1472, 1173, 1598, 1096, 1490, 1154, 1580, 80, 83, mat.chene);        // plan en chêne percé
+    // Évier rectangulaire encastré en céramique (cuve 25 × 41 × 12)
+    const cer = mat.ceramiqueSdb ??= M(0xf5f3ef, { roughness: 0.18 });
+    trou(1094, 1488, 1156, 1582, 1100, 1494, 1150, 1576, 83, 84, cer);              // rebord posé sur le plan
+    B(1096, 1490, 1154, 1580, 70, 72, cer, 'Évier');                                // fond
+    for (const [x0, y0, x1, y1] of [[1096, 1490, 1100, 1580], [1150, 1490, 1154, 1580], [1100, 1490, 1150, 1494], [1100, 1576, 1150, 1580]])
+      B(x0, y0, x1, y1, 72, 83, cer, 'Évier');                                       // parois de la cuve
+    cyl(1125, 1535, 2.2, 72, 72.3, mat.inox, 'Bonde');
+    // Mitigeur bec haut derrière l'évier
+    cyl(1160, 1535, 1.8, 83, 86, mat.inox, 'Mitigeur'); cyl(1160, 1535, 1.4, 86, 112, mat.inox, 'Mitigeur');
+    const bec = mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.16, 16), mat.inox, 'Mitigeur');
+    bec.rotation.z = Math.PI / 2; bec.position.set(X(1145), 1.11, Z(1535)); mv.add(bec);
+    B(1158, 1529, 1170, 1541, 112, 114, mat.inox, 'Mitigeur');                       // manette
+    cur = prev;
+  }
+  if (hm(185) > 100) {   // miroir au-dessus de la vasque (55 × 85, hypothèse)
+    B(1171, 1480, 1173, 1590, 100, hm(185), mat.miroir ??= M(0xd6e6ee, { roughness: 0.05, metalness: 0.6 }), 'Miroir');
+  }
+  { // Étagère ouverte en pin (type IVAR) jusqu'au plafond : deux échelles de côté et des tablettes
+    const iv = new THREE.Group(); iv.userData.nom = 'Étagère IVAR ouverte'; iv.name = 'Étagère IVAR'; cur.add(iv);
+    const pin = mat.pin ??= M(0xdcbc8c, { roughness: 0.7 }), haut = coupe ? CUT : H;
+    for (const x of [862, 1034]) {
+      for (const y of [1628, 1694]) B(x, y, x + 6, y + 6, 0.6, haut, pin, null, iv);   // montants
+      for (let z = 20; z < haut - 10; z += 45) B(x + 1, 1634, x + 5, 1694, z, z + 3, pin, null, iv);   // barreaux
+    }
+    for (let z = 12; z < haut - 4; z += 39) B(868, 1630, 1034, 1698, z, z + 2, pin, null, iv);   // tablettes
+  }
   // WC
   cyl(1068, 1797, 20, 0.6, 40, mat.blanc, 'WC', 1.1, 0.85);
   cyl(1068, 1797, 20.5, 40, 43, mat.blanc, null, 1.1, 0.85);
   B(1100, 1757, 1133, 1838, 0.6, 78, mat.blanc, 'WC');
-  B(1135, 1722, 1170, 1868, 0.6, coupe ? CUT : 180, mat.bois, 'Étagère WC');
+  B(1135, 1722, 1170, 1868, 0.6, coupe ? CUT : 180, mat.blanc, 'Étagère WC');
+  { // Unité extérieure de la clim sur le balcon (grille du ventilateur côté garde-corps)
+    const ue = new THREE.Group(); ue.userData.nom = 'Unité extérieure de la clim'; ue.name = 'Clim extérieure'; cur.add(ue);
+    const tole = mat.toleClim ??= M(0xdcdedf, { roughness: 0.45, metalness: 0.2 });
+    B(1003, 300, 1160, 384, 4, 62, tole, null, ue);
+    for (const x of [1010, 1146]) B(x, 300, x + 6, 384, 0, 4, mat.metal, null, ue);   // pieds
+    const grille = (r, ep, m) => { const o = mesh(new THREE.CylinderGeometry(r / 100, r / 100, ep / 100, 40), m); o.rotation.x = Math.PI / 2; o.position.set(X(1055), 0.33, Z(300) - ep / 200); ue.add(o); };
+    grille(23, 0.4, mat.ecranCorps ??= M(0x2a2b2d, { roughness: 0.45 }));
+    for (const r of [8, 14, 20]) { const t = mesh(new THREE.TorusGeometry(r / 100, 0.003, 6, 40), tole); t.position.set(X(1055), 0.33, Z(300) - 0.006); ue.add(t); }
+    B(1115, 298, 1150, 300, 10, 55, M(0xcfd2d3, { roughness: 0.5 }), null, ue);       // trappe de raccordement
+  }
+  // Climatisation murale au-dessus du piano, goulotte le long du mur jusqu'au retour vers le balcon
+  if (!coupe) {
+    const cl = new THREE.Group(); cl.userData.nom = 'Climatisation'; cl.name = 'Climatisation'; cur.add(cl);
+    const u = mesh(new RoundedBoxGeometry(0.20, 0.30, 0.85, 3, 0.03), mat.blanc);
+    u.position.set(X(1153), 2.13, Z(1025)); cl.add(u);                                 // unité intérieure 85 × 30 × 20, à 30 cm du placard
+    B(1132, 946, 1134, 1104, 200, 203, mat.ecranCorps ??= M(0x2a2b2d, { roughness: 0.45 }), null, cl);   // volet de soufflage
+    B(1159, 462, 1173, 983, 198, 208, mat.blanc, 'Goulotte de la clim');      // goulotte 7 × 10 vers l'extérieur, alignée sur le bas de la clim
+  }
   // Tableau électrique
-  B(248, 1730, 258, 1840, 60, coupe ? CUT : 180, mat.gris, 'Panneau électrique');
+  B(248, 1755, 256, 1835, 120, hm(180), mat.gris, 'Panneau électrique');          // 40 × 60
+  // Interphone à droite du tableau (vu de face)
+  if (hm(162) > 140) {
+    B(248, 1716, 252, 1736, 140, hm(162), mat.blanc, 'Interphone');
+    B(252, 1720, 253, 1732, 150, hm(158), mat.noir, 'Interphone');               // écran / grille
+    B(252, 1723, 253.4, 1729, 143, hm(147), mat.metal, 'Interphone');            // bouton
+  }
+  { // Chauffe-eau plat rectangulaire, dans l'angle cuisine / gaine (50 × 30 × 95, hypothèse)
+    const ce = new THREE.Group(); ce.userData.nom = 'Chauffe-eau'; ce.name = 'Chauffe-eau'; cur.add(ce);
+    const corps = mesh(new RoundedBoxGeometry(0.30, 0.95, 0.50, 3, 0.03), mat.blanc);
+    corps.position.set(X(251 + 30), 1.775, Z(1222 + 50)); ce.add(corps);
+    B(300, 1290, 312, 1310, 136, 142, mat.gris, null, ce);                       // thermostat
+    const prev = cur; cur = ce;
+    for (const y of [1250, 1295]) cyl(270, y, 1.1, 121, 130, mat.inox);          // arrivée / départ d'eau
+    cur = prev;
+  }
+  { // Micro-ondes posé sur le plan de travail, sous le chauffe-eau (45 × 35 × 26, hypothèse)
+    const mo = new THREE.Group(); mo.userData.nom = 'Micro-ondes'; mo.name = 'Micro-ondes'; cur.add(mo);
+    const corps = mesh(new RoundedBoxGeometry(0.35, 0.26, 0.45, 2, 0.012), mat.mo ??= M(0x2b2d30, { roughness: 0.4 }));
+    corps.position.set(X(252 + 35), 0.90 + 0.13, Z(1228 + 45)); mo.add(corps);
+    B(322, 1256, 323, 1312, 94, 113, mat.mo_vitre ??= M(0x101214, { roughness: 0.1 }), null, mo);   // porte vitrée
+    B(322, 1234, 323, 1250, 94, 113, mat.inox, null, mo);                          // panneau de commande (à droite vu de face)
+    for (const z of [97, 103]) B(323, 1238, 325, 1246, z, z + 4, mat.noir, null, mo);   // boutons
+  }
 
+  // Placards hauts blancs (déjà en place), qui s'arrêtent avant le chauffe-eau
+  B(248, 978, 318, 1218, 145, 215, mat.blanc, 'Placards hauts');
+  for (const y of [1058, 1138]) B(318, y - 1, 319, y + 1, 145, 215, mat.gris);
+  // Petite hotte extra-plate sous le placard, au-dessus de la plaque (50 × 30)
+  B(250, 980, 310, 1080, 138, 145, mat.inox, 'Hotte');
+  B(256, 986, 300, 1074, 137.6, 138, mat.metal, 'Hotte');                       // filtre
+  B(306, 1060, 310.6, 1075, 140, 143, mat.noir, 'Hotte');                       // interrupteur
   if (projet) {
-    // Placards hauts blancs + crédence au-dessus du plan de travail
+    // Crédence au-dessus du plan de travail
     B(248, 978, 251, 1320, 90, hm(145), mat.menthe, 'Crédence');
-    B(248, 978, 318, 1320, 145, 215, mat.blanc, 'Placards hauts');
-    for (const y of [1092, 1206]) B(318, y - 1, 319, y + 1, 145, 215, mat.gris);
     // Bar posé sur le muret, débordant côté entrée
     B(370, 1462, 660, 1478, 110, 115, mat.chene, 'Bar 60 × 145');
     B(370, 1478, 660, 1590, 110, 115, mat.chene, 'Bar 60 × 145');
@@ -274,14 +888,14 @@ function construire() {
     // Estrade + arche du coin nuit
     B(851, 925, 1173, 1316, 0, 40, mat.chene, 'Estrade');
     if (coupe) {
-      B(852, 1264, 868, 1276, 40, CUT, mat.mur, 'Arche (niche)'); B(1157, 1264, 1173, 1276, 40, CUT, mat.mur, 'Arche (niche)');
+      B(852, 1264, 868, 1316, 40, CUT, mat.mur, 'Arche (niche)'); B(1157, 1264, 1173, 1316, 40, CUT, mat.mur, 'Arche (niche)');
     } else {
       const W = (1173 - 852) * S, r = 0.725, cx = W / 2, sh = new THREE.Shape();
       sh.moveTo(0, 0); sh.lineTo(W, 0); sh.lineTo(W, H / 100); sh.lineTo(0, H / 100); sh.closePath();
       const trou = new THREE.Path();
       trou.moveTo(cx - r, 0); trou.lineTo(cx - r, 1.35); trou.absarc(cx, 1.35, r, Math.PI, 0, true); trou.lineTo(cx + r, 0); trou.closePath();
       sh.holes.push(trou);
-      const arche = mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.06, bevelEnabled: false, curveSegments: 24 }), mat.mur, 'Arche (niche)');
+      const arche = mesh(new THREE.ExtrudeGeometry(sh, { depth: (1316 - 1264) * S, bevelEnabled: false, curveSegments: 32 }), mat.mur, 'Arche (niche)');   // vraie niche : l'arche est creusée jusqu'au mur de la salle de bain
       arche.position.set(X(852), 0, Z(1264));
       cur.add(arche);
     }
@@ -289,43 +903,181 @@ function construire() {
 
   /* ===== Mobilier ===== */
   cur = mobilier;
-  mobilier.visible = mode !== 'vide';
+  rond = 0.008;
+  mobilier.visible = mode === 'actuel' || mode === 'projet';
   // Balcon
-  if (projet) {
-    B(250, 115, 343, 375, 0, 45, mat.chene, 'Banc balcon 45 × 132');
-    B(250, 115, 262, 375, 45, 85, mat.chene, 'Banc balcon 45 × 132');
-  } else B(250, 115, 343, 375, 0, 90, mat.gris, 'Rangement balcon 45 × 132');
-  B(993, 283, 1168, 388, 0, 70, mat.gris, 'Rangement balcon 88 × 54');
+  // Canapé-coffre d'extérieur : assise orange, dossier blanc cassé contre le mur
+  const ext = new THREE.Group(); ext.userData.nom = 'Canapé-coffre extérieur 45 × 132'; ext.name = 'Canapé extérieur'; cur.add(ext);
+  const teck = mat.teck ??= M(0xa8794c, { roughness: 0.7 });
+  const orange = mat.orange ??= M(0xe0702a, { roughness: 0.95 }), beige = mat.beige ??= M(0xebe3d3, { roughness: 0.95 });
+  mou.add(orange).add(beige);
+  B(250, 115, 343, 375, 0, 38, teck, null, ext);                   // coffre en bois, sans accoudoirs
+  for (let z = 4; z < 36; z += 8) B(343, 117, 344, 373, z, z + 1, mat.boisF, null, ext);   // joints des lames
+  B(250, 115, 266, 375, 38, 80, teck, null, ext);                  // dossier
+  B(266, 116, 342, 374, 38, 50, orange, null, ext);                // coussin d'assise
+  B(266, 117, 286, 244, 48, 84, beige, null, ext);                 // coussins de dos
+  B(266, 246, 286, 373, 48, 84, beige, null, ext);
+  // Petite table de jardin pliante 60 × 60 (pieds en X), blanche, et deux chaises blanches
+  const blancJ = mat.blancJ ??= M(0xe9e7e2, { roughness: 0.6 });
+  const tj = new THREE.Group(); tj.userData.nom = 'Table de jardin pliante 60 × 60'; tj.name = 'Table de jardin'; cur.add(tj);
+  L(tj, 60, 3, 60, 0, 70.5, 0, blancJ);
+  const a = Math.atan2(50, 69);
+  for (const x of [-25, 25]) for (const s of [-1, 1]) L(tj, 3, 85, 2.5, x, 34.5, s * 1.5, blancJ).rotation.x = s * a;
+  L(tj, 50, 2.5, 2.5, 0, 34.5, 0, blancJ);                          // entretoise au croisement
+  tj.position.set(X(470), 0, Z(175));                               // collée au garde-corps
+  // Deux chaises de jardin bleu turquoise très pâle, dossier plat arrondi sur le dessus (dossier côté +z local)
+  const turquoise = mat.turquoise ??= M(0xcfe7e4, { roughness: 0.5 });
+  for (const [cx, cy, rot] of [[600, 174, Math.PI / 2], [470, 300, 0]]) {
+    const g = new THREE.Group(); g.userData.nom = 'Chaise de jardin'; g.name = 'Chaise de jardin';
+    L(g, 44, 6, 44, 0, 43, 0, turquoise);                                           // assise (comme avant)
+    for (const [a2, b2] of [[-19, -19], [19, -19], [-19, 19], [19, 19]]) L(g, 4, 40, 4, a2, 20, b2, turquoise);   // pieds
+    const sh = new THREE.Shape();                                                    // dossier plat au sommet arrondi
+    sh.moveTo(-0.22, 0); sh.lineTo(0.22, 0); sh.lineTo(0.22, 0.26); sh.absellipse(0, 0.26, 0.22, 0.13, 0, Math.PI, false); sh.lineTo(-0.22, 0);
+    const dos = mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.04, bevelEnabled: true, bevelThickness: 0.005, bevelSize: 0.005, bevelSegments: 2, curveSegments: 24 }), turquoise);
+    dos.position.set(0, 0.46, 0.185); g.add(dos);
+    g.position.set(X(cx), 0, Z(cy)); g.rotation.y = rot; cur.add(g);
+  }
+  { // Bocaux en verre au fond du plan de travail, à côté du micro-ondes (pâtes, riz, café, lentilles, farine)
+    const bx = new THREE.Group(); bx.userData.nom = 'Bocaux'; bx.name = 'Bocaux'; cur.add(bx);
+    const verreB = mat.verreBocal ??= M(0xe8f2f4, { transparent: true, opacity: 0.28, roughness: 0.05 });
+    const bocal = (y, r, h, contenu, frac, couv) => {
+      const cx = X(262), cz = Z(y), z0 = 0.90;
+      const v = mesh(new THREE.CylinderGeometry(r / 100, r / 100, h / 100, 24), verreB); v.position.set(cx, z0 + h / 200, cz); bx.add(v);
+      const c = mesh(new THREE.CylinderGeometry(r / 100 - 0.004, r / 100 - 0.004, h * frac / 100, 24), M(contenu, { roughness: 0.9 })); c.position.set(cx, z0 + 0.003 + h * frac / 200, cz); bx.add(c);
+      const l = mesh(new THREE.CylinderGeometry(r / 100 + 0.003, r / 100 + 0.003, 0.018, 24), couv); l.position.set(cx, z0 + h / 100 + 0.009, cz); bx.add(l);
+    };
+    const bois = mat.chene, alu = mat.inox;
+    bocal(1212, 5.5, 22, 0xe8c27a, 0.8, bois);     // pâtes
+    bocal(1187, 5, 16, 0xf3efe4, 0.7, bois);       // riz
+    bocal(1165, 4.5, 13, 0x4a2c1c, 0.75, alu);     // café
+    bocal(1143, 5, 18, 0x8a5a3a, 0.65, bois);      // lentilles
+    bocal(1117, 6, 20, 0xfaf8f2, 0.6, alu);        // farine
+  }
+  { // Guirlandes du balcon : le long de l'arche (côté balcon) et en festons sur la rambarde
+    const tr = [];
+    if (!coupe) {
+      const W = (1185 - 236) * S, cx = X(236) + W / 2, a = W / 2 - 0.12 + 0.04, bh = 2.3 - 1.15 + 0.04, zi = Z(112) + 0.012, arc = [];
+      for (let k = 0; k <= 40; k++) { const t = Math.PI - k / 40 * Math.PI; arc.push(new THREE.Vector3(cx + a * Math.cos(t), 1.15 + bh * Math.sin(t), zi)); }
+      tr.push(arc);
+    }
+    const ram = [], zr = Z(115);                                                  // côté balcon, devant la canisse
+    for (let x = 270, k = 0; x <= 1155; x += 30, k++) ram.push(new THREE.Vector3(X(x), k % 2 ? 0.95 : 1.045, zr));   // festons de 30 cm
+    tr.push(ram);
+    guirlande(tr, 'Guirlandes du balcon');
+  }
+  { // Petite étagère basse contre le mur du balcon : plantes dessus, chaussures et rangements dessous (75 × 25 × 45)
+    const eb = new THREE.Group(); eb.userData.nom = 'Petite étagère du balcon'; eb.name = 'Étagère balcon'; cur.add(eb);
+    const prev = cur; cur = eb;
+    const pin = mat.pin ??= M(0xdcbc8c, { roughness: 0.7 });
+    B(1120, 125, 1170, 275, 43, 45.5, pin);                                             // dessus
+    B(1122, 127, 1168, 273, 8, 10, pin);                                                // tablette basse
+    for (const x of [1120, 1165]) for (const y of [125, 270]) B(x, y, x + 5, y + 5, 0, 43, pin);   // pieds
+    // Plantes en pot sur le dessus
+    for (const [y, r, h, k] of [[148, 7, 12, 0], [200, 9, 15, 1], [250, 6, 10, 2]]) {
+      const g = deco(1145, y, 45.5, 'Plante en pot'); pot(g, r, h, deco_m.terracotta);
+      for (let i = 0; i < 6 + k * 2; i++) boule(g, r * 0.55 + hasard(i + k * 9) * 3, Math.cos(i * 2.3) * r * 0.5, h + 3 + hasard(i + 40 + k) * r, Math.sin(i * 2.3) * r * 0.5, vert[(i + k) % 3], 1, 0.8, 1);
+    }
+    // Chaussures (deux paires, pointes vers le balcon) et une boîte de rangement en dessous
+    for (const [y0, c] of [[130, 0xf2f0ec], [172, 0x2b2b2b]]) {
+      const cuir = mat['chaussure' + c] ??= M(c, { roughness: 0.6 });
+      for (const dy of [0, 20]) {                                                     // deux chaussures de 9 cm
+        B(1124, y0 + dy, 1166, y0 + dy + 18, 10, 11.5, mat.ecranCorps ??= M(0x2a2b2d, { roughness: 0.45 }));   // semelle
+        const ch = mesh(new RoundedBoxGeometry(0.21, 0.08, 0.09, 2, 0.03), cuir); ch.position.set(X(1145), 0.155, Z(y0 + dy + 9)); eb.add(ch);
+      }
+    }
+    const boite = mat.panier ??= M(0xc9b48e, { roughness: 0.95 });
+    B(1126, 216, 1166, 268, 10, 30, boite, 'Boîte de rangement');
+    B(1126, 216, 1166, 268, 30, 31, M(0xb39d77, { roughness: 0.95 }));
+    cur = prev;
+  }
+  { // Petit meuble en OSB fait maison : capot au-dessus de la clim + 2 étagères sur le côté
+    const mo = new THREE.Group(); mo.userData.nom = 'Meuble en OSB (capot de clim + étagères)'; mo.name = 'Meuble OSB'; cur.add(mo);
+    const osb = mat.osb ??= new THREE.MeshStandardMaterial({ map: osbTex, roughness: 0.85 });
+    B(963, 283, 1168, 388, 70, 72.5, osb, null, mo);                                // dessus
+    B(1165, 283, 1168, 388, 0, 70, osb, null, mo);                                  // joue droite
+    B(963, 283, 993, 286, 0, 70, osb, null, mo); B(963, 385, 993, 388, 0, 70, osb, null, mo);   // joues avant et arrière
+    for (const z of [24, 47]) B(963, 286, 993, 385, z, z + 2, osb, null, mo);        // 2 étagères de 15 cm ouvertes sur le côté, sans fond
+  }
   // Canapé 170 × 95
   const cy1 = projet ? 850 : 818;   // 186 cm en projet, 170 aujourd'hui
   const can = new THREE.Group(); can.userData.nom = projet ? 'Canapé 186 × 95' : 'Canapé 170 × 95'; can.name = 'Canapé'; cur.add(can);
-  B(252, 478, 432, cy1, 8, 42, mat.tissu, null, can);
-  B(252, 478, 292, cy1, 42, 82, mat.tissuF, null, can);
-  B(292, 478, 432, 506, 42, 60, mat.tissuF, null, can);
-  B(292, cy1 - 28, 432, cy1, 42, 60, mat.tissuF, null, can);
+  { // Canapé 2 places du modèle en photo : accoudoirs droits, 2 coussins d'assise et 2 de dossier, socle tissu, pieds chromés
+    const tc = mat.tissuCanape ??= new THREE.MeshStandardMaterial({ map: tissuCanapeTex, bumpMap: tissuCanapeTex, bumpScale: 1.5, roughness: 1 });
+    mou.add(tc);
+    const ym = (478 + cy1) / 2, a0 = 478 + 30, a1 = cy1 - 30;                       // accoudoirs de 15 cm
+    for (const [x, y] of [[262, 486], [262, cy1 - 8], [424, 486], [424, cy1 - 8]]) {   // pieds chromés
+      const p = mesh(new THREE.CylinderGeometry(0.012, 0.008, 0.08, 12), mat.inox); p.position.set(X(x), 0.04, Z(y)); can.add(p);
+    }
+    B(256, a0, 428, a1, 8, 30, tc, null, can);                                       // socle
+    B(254, 478, 432, a0, 8, 62, tc, null, can); B(254, a1, 432, cy1, 8, 62, tc, null, can);   // accoudoirs
+    B(254, a0, 278, a1, 30, 60, tc, null, can);                                      // structure du dossier
+    for (const [y0, y1] of [[a0, ym - 1], [ym + 1, a1]]) {
+      B(266, y0, 298, y1, 44, 88, tc, null, can);                                    // coussins de dossier
+      B(292, y0, 430, y1, 30, 46, tc, null, can);                                    // coussins d'assise
+    }
+  }
+  // Tapis blanc texturé, du canapé jusqu'à la TV (actuel) ou au meuble bas (projet)
+  B(440, 445, projet ? 754 : 800, 845, 0, 1.5, tapis, projet ? 'Tapis 200 × 157' : 'Tapis 200 × 180');
   // Table basse
-  table(536, 546, 643, 745, 36, mat.bois, 'Table basse 54 × 100');
+  { // Table basse en bois foncé : plateau aux coins arrondis posé sur deux planches de côté
+    const tb = new THREE.Group(); tb.userData.nom = 'Table basse 54 × 100'; tb.name = 'Table basse'; cur.add(tb);
+    const fonce = mat.boisFonce ??= M(0x4a3222, { roughness: 0.55 });
+    const w = (643 - 536) * S, d = (745 - 546) * S, r = 0.08, sh = new THREE.Shape();
+    sh.moveTo(-w / 2 + r, -d / 2); sh.lineTo(w / 2 - r, -d / 2); sh.quadraticCurveTo(w / 2, -d / 2, w / 2, -d / 2 + r);
+    sh.lineTo(w / 2, d / 2 - r); sh.quadraticCurveTo(w / 2, d / 2, w / 2 - r, d / 2);
+    sh.lineTo(-w / 2 + r, d / 2); sh.quadraticCurveTo(-w / 2, d / 2, -w / 2, d / 2 - r);
+    sh.lineTo(-w / 2, -d / 2 + r); sh.quadraticCurveTo(-w / 2, -d / 2, -w / 2 + r, -d / 2);
+    const plateau = mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.024, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.003, bevelSegments: 2, curveSegments: 16 }), fonce);
+    plateau.rotation.x = -Math.PI / 2; plateau.position.set(X(589.5), 0.333, Z(645.5)); tb.add(plateau);
+    for (const y of [560, 725]) B(542, y, 637, y + 6, 0, 33.3, fonce, null, tb);   // deux planches de côté
+  }
   if (mode === 'actuel') {
   // Meuble TV + TV
   B(808, 468, 861, 727, 0, 50, mat.boisF, 'Meuble TV 27 × 130');
   B(828, 560, 844, 640, 50, 56, mat.noir);
   B(832, 490, 838, 710, 55, 118, mat.noir, 'TV');
+  // Séparation à lattes de bois 100 cm, du sol au plafond, entre la TV et le lit
+  const sep = new THREE.Group(); sep.userData.nom = 'Séparation lattes bois 100 cm'; sep.name = 'Séparation'; cur.add(sep);
+  const latte = M(0xd4b384);
+  for (const y of [500, 692]) B(868, y, 876, y + 8, 0, H, mat.bois, null, sep);   // montants
+  B(868, 508, 876, 692, H - 8, H - 2, mat.bois, null, sep);                       // traverse haute
+  B(868, 508, 876, 692, 2, 8, mat.bois, null, sep);                               // traverse basse
+  for (let z = 10; z < H - 10; z += 3) B(870, 508, 874, 692, z, z + 2, latte, null, sep);
   // Lit 140 × 190
   const lit = new THREE.Group(); lit.userData.nom = 'Lit 140 × 190'; lit.name = 'Lit'; cur.add(lit);
   B(890, 466, 1171, 845, 0, 28, mat.bois, null, lit);
   B(894, 470, 1167, 841, 28, 48, mat.drap, null, lit);
   B(892, 590, 1169, 843, 44, 52, mat.couette, null, lit);
-  B(906, 478, 1020, 560, 48, 60, mat.blanc, null, lit);
-  B(1040, 478, 1154, 560, 48, 60, mat.blanc, null, lit);
+  B(906, 478, 1020, 560, 48, 62, mat.oreiller, null, lit);
+  B(1040, 478, 1154, 560, 48, 62, mat.oreiller, null, lit);
   // Piano 27 × 130
   const pia = new THREE.Group(); pia.userData.nom = 'Piano 27 × 130'; pia.name = 'Piano'; cur.add(pia);
-  B(1119, 887, 1172, 1147, 62, 76, mat.noir, null, pia);
-  B(1121, 895, 1143, 1139, 76, 77, mat.blanc, null, pia);
-  B(1125, 887, 1172, 895, 0, 62, mat.noir, null, pia);
-  B(1125, 1139, 1172, 1147, 0, 62, mat.noir, null, pia);
-  B(1160, 895, 1168, 1139, 20, 62, mat.noir, null, pia);
-  B(1057, 975, 1102, 1050, 0, 48, mat.noir, 'Tabouret de piano');
+  B(1119, 887, 1172, 1147, 62, 76, mat.blanc, null, pia);
+  B(1121, 895, 1143, 1139, 76, 77, M(0xf6f2ea, { roughness: 0.35 }), null, pia);
+  // 52 touches blanches (de La à Do) et les 36 noires entre elles
+  const tb = 244 / 52;
+  for (let i = 0; i < 51; i++)
+    if ([0, 2, 3, 5, 6].includes(i % 7)) B(1129, 895 + (i + 1) * tb - 1.4, 1143, 895 + (i + 1) * tb + 1.4, 77, 78.2, mat.noir, null, pia);
+  B(1143, 895, 1152, 1139, 76, 84, mat.blanc, null, pia);   // pupitre / joue arrière
+  B(1125, 887, 1172, 895, 0, 62, mat.blanc, null, pia);
+  B(1125, 1139, 1172, 1147, 0, 62, mat.blanc, null, pia);
+  B(1160, 895, 1168, 1139, 20, 62, mat.blanc, null, pia);
+  { // Banquette de piano blanche 55 × 33 : assise rembourrée, ceinture, 4 pieds fuselés et entretoises
+    const tb = new THREE.Group(); tb.userData.nom = 'Banquette de piano'; tb.name = 'Banquette de piano'; cur.add(tb);
+    const prev = cur; cur = tb;
+    const assise = mat.assisePiano ??= M(0xdcd8d0, { roughness: 0.95 }); mou.add(assise);
+    B(1038, 958, 1102, 1070, 42, 50, assise, null, tb);                              // coussin
+    B(1040, 960, 1100, 1068, 36, 42, mat.blanc, null, tb);                           // ceinture
+    for (const [x, y] of [[1046, 966], [1094, 966], [1046, 1062], [1094, 1062]]) {
+      const p = mesh(new THREE.CylinderGeometry(0.016, 0.011, 0.36, 16), mat.blanc); p.position.set(X(x), 0.18, Z(y)); tb.add(p);
+    }
+    for (const x of [1046, 1094]) B(x - 2, 968, x + 2, 1060, 12, 15, mat.blanc, null, tb);   // entretoises
+    B(1048, 1012, 1092, 1016, 12, 15, mat.blanc, null, tb);
+    cur = prev;
   }
+  B(1010, 847, 1171, 1171, 0, 1, tapisPiano, 'Tapis blanc 80 × 162');   // sous le piano et le tabouret
+  }
+  bibliotheque();
   // Frigo
   B(250, 850, 370, 968, 0, 175, mat.blanc, 'Frigo');
   B(370, 856, 373, 862, 60, 150, mat.metal);
@@ -337,13 +1089,19 @@ function construire() {
   chaise(500, 1060, -Math.PI / 2 + 0.22, 'Chaise');
   chaise(692, 1058, Math.PI / 2 - 0.22, 'Chaise');
   // Bureau 70 × 120
-  table(248, 1482, 488, 1620, 75, mat.bois, 'Bureau 70 × 120');
+  bureauAssisDebout(368, 1551, 0);                                        // côté gauche contre le mur de gauche
+  bureauArtiste(368, 1551, 0, 120, 69, 'Bureau : écran, PC, dessin');
   chaise(378, 1650, 0.28, 'Chaise de bureau', mat.tissuF);
   // Meuble imprimante 45 × 90
-  B(488, 1482, 667, 1570, 0, 70, mat.blanc, 'Meuble imprimante 45 × 90');
+  { // Meuble imprimante en bois foncé, deux portes côté entrée
+    const nom = 'Meuble imprimante 45 × 90', fonce = mat.boisFonce ??= M(0x4a3222, { roughness: 0.55 });
+    B(488, 1482, 667, 1568, 0, 70, fonce, nom);
+    for (const [x0, x1] of [[489, 576.5], [578.5, 666]]) B(x0, 1568, x1, 1571, 1, 69, fonce, nom);   // portes
+    B(576.5, 1568, 578.5, 1570, 1, 69, mat.joint ??= M(0x6d6a66), nom);                               // jour entre les portes
+  }
+  B(290, 1488, 770, 1788, 0, 1.5, tapis, 'Grand tapis entrée 240 × 150');   // même tapis à feuillages que le salon ; passe sous le bureau et le meuble imprimante
   B(535, 1492, 625, 1560, 70, 90, mat.metal, 'Imprimante');
   // Entrée
-  B(250, 1622, 283, 1728, 0, 40, mat.gris, 'Rangement entrée');
   B(450, 1806, 610, 1876, 0, 50, mat.bois, 'Meuble bas entrée 35 × 80');
   B(643, 1796, 807, 1876, 0, 80, mat.gris, 'Meuble 82 × 40');
 
@@ -352,6 +1110,34 @@ function construire() {
     // Meubles bas 200 × 40 devant la verrière
     B(762, 404, 841, 744, 0, 45, mat.blanc, 'Meubles bas 170 × 40');
     for (const y of [489, 574, 659]) B(761, y - 1, 762, y + 1, 4, 43, mat.gris);
+    // Déco sur le meuble bas (dessus à 45 cm) : plantes et lapins
+    { // Sansevieria dans un pot blanc
+      const g = deco(800, 432, 45, 'Sansevieria'); pot(g, 9, 18, deco_m.ceramique);
+      for (let k = 0; k < 8; k++) {
+        const h = 32 + hasard(k + 1) * 22, a = k * 2.4;
+        const f = mesh(new THREE.BoxGeometry(0.035, h / 100, 0.006), deco_m.sanse);
+        f.position.set(Math.cos(a) * 0.035, (15 + h / 2) / 100, Math.sin(a) * 0.035);
+        f.rotation.set(Math.sin(a) * 0.12, a, -Math.cos(a) * 0.12); g.add(f);
+      }
+    }
+    lapin(796, 498, 45, 0.85, deco_m.ceramique, 'Lapin en céramique gris et blanc', 0.25, deco_m.gris);
+    { // Pile de livres
+      const pile = [[781, 821, 3, 0x9c4a3c], [784, 818, 3.5, 0xd9d2c4], [779, 823, 2.5, 0x3f6a8a]];
+      let z = 45;
+      for (const [x0, x1, ep, c] of pile) { B(x0, 545, x1, 592, z, z + ep, M(c), 'Livres'); z += ep; }
+    }
+    if (ecran) { // Écran de projection minimaliste : simple panneau 135 × 76 (16:9), fin liseré noir
+      const e = new THREE.Group(); e.userData.nom = 'Écran de projection 135 × 76'; e.name = 'Écran'; cur.add(e);
+      B(837, 466, 840, 744, 79.5, 156.5, mat.noir, null, e);                // liseré noir de 5 mm
+      B(836, 467, 837, 743, 80, 156, mat.toile ??= M(0xf4f3f0, { roughness: 1 }), null, e);   // toile
+    }
+    { // Petite succulente
+      const g = deco(806, 706, 45, 'Succulente'); pot(g, 6, 8, deco_m.sauge);
+      for (const [n, r, y, s] of [[9, 3, 8.5, 1], [6, 1.6, 9.8, 0.75]]) for (let k = 0; k < n; k++) {
+        const a = k / n * Math.PI * 2 + y;
+        const f = boule(g, 1.8 * s, Math.cos(a) * r, y, Math.sin(a) * r, deco_m.succulente, 1.6, 0.6, 0.8);
+        f.rotation.set(0, -a, 0.35);
+      }    }
     // Coin dressing : deux positions à comparer (bouton « Dressing au fond »)
     const miroirM = M(0xd6e6ee, { roughness: 0.1, metalness: 0.2 });
     if (inverse) {   // dressing contre le mur du fond
@@ -364,28 +1150,26 @@ function construire() {
       for (const y of [697, 811]) B(1050, y - 1, 1051, y + 1, 0, 240, mat.boisF);
     }
     // Bureau côté séjour, adossé à l'allège le long du lit
-    table(725, 940, 845, 1240, 75, mat.chene, 'Bureau 150 × 60');
-    chaise(675, 1090, -Math.PI / 2 + 0.15, 'Chaise de bureau', mat.tissuF);
+    bureauAssisDebout(776, 1090, -Math.PI / 2);                            // même bureau qu'aujourd'hui, dos à l'allège
+    bureauArtiste(776, 1090, -Math.PI / 2, 120, 69, 'Bureau : écran, PC, dessin');
+    chaise(660, 1090, -Math.PI / 2 + 0.15, 'Chaise de bureau', mat.tissuF);
     // Lit 140 × 190 sur l'estrade, tête contre le mur de la salle de bain
     const lit2 = new THREE.Group(); lit2.userData.nom = 'Lit 140 × 190'; lit2.name = 'Lit'; cur.add(lit2);
+    lit2.position.x = -15 * S;                                     // centré dans l'ouverture de la niche
     B(887, 938, 1168, 1314, 40, 60, mat.drap, null, lit2);
     B(885, 938, 1170, 1200, 56, 64, mat.bleu, null, lit2);
-    B(900, 1222, 1014, 1304, 60, 72, mat.blanc, null, lit2);
-    B(1040, 1222, 1154, 1304, 60, 72, mat.blanc, null, lit2);
-    // Bibliothèque entre les portes de la salle de bain et des WC
-    const bib = new THREE.Group(); bib.userData.nom = 'Bibliothèque 60 × 22'; bib.name = 'Bibliothèque'; cur.add(bib);
-    B(844, 1611, 848, 1731, 0, 220, mat.chene, null, bib);
-    B(804, 1611, 848, 1615, 0, 220, mat.chene, null, bib); B(804, 1727, 848, 1731, 0, 220, mat.chene, null, bib);
-    const livres = [0x9c4a3c, 0x3f6a8a, 0xe0c36a, 0x5d8a6a, 0xd9d2c4, 0x7a5a8c];
-    for (let i = 0; i <= 6; i++) {
-      const z = i * 36;
-      B(804, 1615, 844, 1727, z, z + 3, mat.chene, null, bib);
-      if (i < 6) for (let k = 0, y = 1618; k < 9 - (i % 3) * 2; k++) {
-        const ep = 7 + (i * 3 + k * 5) % 6, ht = 22 + (i * 7 + k * 3) % 8;
-        B(812, y, 842, y + ep, z + 3, z + 3 + ht, M(livres[(i + k * 2) % 6]), null, bib);
-        y += ep + 1;
-      }
+    B(900, 1222, 1014, 1304, 60, 74, mat.oreiller, null, lit2);
+    B(1040, 1222, 1154, 1304, 60, 74, mat.oreiller, null, lit2);
+    if (!coupe) { // Petite guirlande lumineuse : le long de l'arche puis en festons sur le mur de gauche
+      const W = (1173 - 852) * S, r = 0.725 + 0.035, cx = X(852) + W / 2, zf = Z(1264) - 0.012;
+      const arc = [new THREE.Vector3(cx - r, 1.0, zf)];
+      for (let k = 0; k <= 24; k++) { const t = Math.PI - k / 24 * Math.PI; arc.push(new THREE.Vector3(cx + r * Math.cos(t), 1.35 + r * Math.sin(t), zf)); }
+      arc.push(new THREE.Vector3(cx + r, 1.0, zf));
+      const xm = X(1173) - 0.012, mur = [new THREE.Vector3(cx + r, 1.35, zf), new THREE.Vector3(xm, 1.95, Z(1258))];
+      for (const [y, h] of [[1205, 1.8], [1150, 1.95], [1095, 1.8], [1040, 1.95], [985, 1.8], [930, 1.95]]) mur.push(new THREE.Vector3(xm, h, Z(y)));
+      guirlande([arc, mur], 'Guirlande lumineuse');
     }
+    const livres = [0x9c4a3c, 0x3f6a8a, 0xe0c36a, 0x5d8a6a, 0xd9d2c4, 0x7a5a8c];
     // Entrée : commode, étagères, chaises hautes, penderie avec banc
     B(248, 1503, 345, 1703, 0, 90, mat.chene, 'Commode 100 × 50');
     for (const z of [125, 155]) B(248, 1478, 370, 1518, z, z + 3, mat.chene, 'Étagères 61 × 20');
@@ -454,7 +1238,8 @@ function marche(dt) {
 function basculeVisite() {
   visite = !visite;
   $('bVisite').classList.toggle('on', visite);
-  for (const id of ['bMurs', 'bDessus', 'b3d']) $(id).style.display = visite ? 'none' : '';
+  $('bVisite').querySelector('span').textContent = visite ? 'Quitter la visite' : 'Visite';
+  for (const id of ['bMurs', 'gVues']) $(id).style.display = visite ? 'none' : '';
   $('joy').style.display = visite ? 'block' : 'none';
   $('aide').textContent = $('aide').dataset[visite ? 'visite' : 'orbite'];
   controls.enabled = !visite;
@@ -464,8 +1249,21 @@ function basculeVisite() {
   construire();
   if (!visite) vue(false);
 }
-$('bVisite').onclick = e => { basculeVisite(); e.target.blur(); };
+$('bVisite').onclick = e => { basculeVisite(); e.currentTarget.blur(); };
 addEventListener('keydown', e => { if (visite) { touches.add(e.code); if (e.code.startsWith('Arrow')) e.preventDefault(); } });
+// Raccourcis clavier (AZERTY comme QWERTY) : la rangée des chiffres est lue par position physique (& é " ' = 1 2 3 4),
+// les lettres par leur caractère ; en visite, Z Q S D restent pour la marche.
+addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+  const versions = { Digit1: 'bVide', Digit2: 'bActuel', Digit3: 'bProjet', Digit4: 'bVideP', Numpad1: 'bVide', Numpad2: 'bActuel', Numpad3: 'bProjet', Numpad4: 'bVideP' };
+  if (versions[e.code]) { $(versions[e.code]).click(); e.preventDefault(); return; }
+  const k = e.key.toLowerCase();
+  if (k === 'v' || (k === 'escape' && visite)) { basculeVisite(); return; }
+  if (visite) return;
+  if (k === 'd') vue(true);
+  else if (k === 'r') vue(false);
+  else if (k === 'm') $('bMurs').click();
+});
 addEventListener('keyup', e => touches.delete(e.code));
 addEventListener('blur', () => touches.clear());
 { // regarder autour de soi en glissant
@@ -493,14 +1291,16 @@ addEventListener('blur', () => touches.clear());
   j.addEventListener('pointermove', e => { if (j.hasPointerCapture(e.pointerId)) bouge(e); });
   j.addEventListener('pointerup', lache); j.addEventListener('pointercancel', lache);
 }
-for (const [id, m] of [['bVide', 'vide'], ['bActuel', 'actuel'], ['bProjet', 'projet']])
+for (const [id, m] of [['bVide', 'vide'], ['bActuel', 'actuel'], ['bProjet', 'projet'], ['bVideP', 'videProjet']])
   $(id).onclick = () => {
     mode = m; construire();
-    for (const b of ['bVide', 'bActuel', 'bProjet']) $(b).classList.toggle('on', b === id);
-    $('bInv').style.display = m === 'projet' ? '' : 'none';
+    for (const b of ['bVide', 'bActuel', 'bProjet', 'bVideP']) { $(b).classList.toggle('on', b === id); $(b).setAttribute('aria-pressed', b === id); }
+    for (const b of ['bInv', 'bEcran']) $(b).style.display = m === 'projet' ? '' : 'none';
   };
-$('bInv').onclick = e => { inverse = !inverse; e.target.classList.toggle('on', inverse); construire(); };
-$('bMurs').onclick = e => { coupe = !coupe; e.target.classList.toggle('on', !coupe); construire(); };
+const bascule = (id, val) => { $(id).classList.toggle('on', val); $(id).setAttribute('aria-checked', val); };
+$('bInv').onclick = () => { inverse = !inverse; bascule('bInv', inverse); construire(); };
+$('bEcran').onclick = () => { ecran = !ecran; bascule('bEcran', ecran); construire(); };
+$('bMurs').onclick = () => { coupe = !coupe; bascule('bMurs', !coupe); construire(); };
 $('bDessus').onclick = () => vue(true);
 $('b3d').onclick = () => vue(false);
 $('bGlb').onclick = () => {
