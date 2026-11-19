@@ -77,6 +77,71 @@ function rivalsIn(dm0,dm1,s,t){
     res.push({x,y:Math.round(groundY(d,s,cam)),rf:runnerFrame(mode,f,p.gear),lane:p.lane,lamp:!!p.gear.lamp})}
   return res.sort((a,b)=>a.y-b.y);
 }
+/* ---------- rencontres à l'entraînement : coureurs croisés ou qui doublent, randonneurs, promeneurs ----------
+   Pas sauvegardées : de simples passants qui naissent hors champ, avancent à leur allure et disparaissent. */
+let ENC=[],encNext=performance.now()+15000,encT=0;
+const ENC_DENS={ville:3,vieilleville:2.6,prairie:1.6,plage:1.8,hetraie:1.3,lac:1.5,foret:1.1,vignes:1.3,lavande:1.1,cote:1.4,garrigue:1,alpage:1.2,gorges:1,falaise:.8,
+  crete:.7,glacier:.35,sommet:.6,foretneige:.6,desert:.2,canyon:.35,savane:.3,jungle:.3,volcan:.25};
+const HELLO=['Salut !','Bonjour !','Courage !','Allez !','Hey !','Bonne course !','Ça grimpe, hein !','Belle journée !'];
+function encGear(r,kind,bi,night){const pick=a=>a[Math.floor(r()*a.length)],mtn=['alpage','crete','glacier','sommet','foretneige','lac','canyon','volcan'].includes(bi),cold=['glacier','sommet','foretneige'].includes(bi);
+  const g={shoes:kind==='rando'?'montagne':pick(mtn?['trail','boue','montagne']:['route','trail','carbone']),top:'tshirt',shirt:pick(TOPS),skin:pick(SKINS),hair:pick(HAIRS),shorts:pick(SHORTS),
+    head:cold?'bonnet':r()<.35?pick(['casquette','bandeau']):null,eyes:r()<.25?'solaires':null,bag:null,poles:null,lamp:night?'frontale':null,style:'classique'};
+  if(kind==='rando'){g.shirt=pick(['#6a7a4a','#8a5a3a','#3a5a7a','#a83a2a','#c8a050','#4a6a5a']);g.shorts=pick(['#4a4a3a','#3a3a44','#5a4a3a']);g.bag='gilet12';g.poles=r()<.7?'alu':null;g.head=cold?'bonnet':r()<.6?'casquette':null}
+  else if(kind==='prom'){g.shirt=pick(['#d8d4cc','#8a9ab0','#c87a5a','#5a7a9a','#e8c8a0']);g.shorts=pick(['#3a4a6a','#4a4a4a','#6a5a4a']);g.shoes='route';g.head=cold?'bonnet':null}
+  else g.bag=mtn?pick(['gilet5','ceinture']):r()<.5?'gourde':null;
+  return g}
+function spawnEnc(s,t,force){
+  const bi=leg(s).b,night=SK&&SK.dark>.5,wx=weatherAt(now()),r=Math.random,K=ZOOMS[ZOOM].k,vw=(W-RX)*MPX,back=RX*MPX;
+  if(ENC.length>=6&&!force)return;
+  const urban=['ville','vieilleville','plage','prairie','hetraie','lac','vignes','cote'].includes(bi),wild=['glacier','sommet','crete','desert','volcan','jungle','canyon','savane'].includes(bi);
+  // qui croise-t-on ?
+  const roll=r();let kind,dir,n=1;
+  if(night)kind='run';
+  else if(roll<.38)kind='run';
+  else if(roll<.7)kind=urban&&!wild&&r()<.35?'prom':'rando';
+  else kind='run';
+  if(force)kind=force;
+  if(kind==='rando'&&r()<.45)n=2+(r()<.3?1:0);
+  if(kind==='run'){const u=r();dir=u<.55?-1:1}else dir=r()<.6?1:-1;   // promeneurs et randonneurs : souvent dans notre sens, on les rattrape
+  const pv=Math.max(LIVE.v,.8);
+  let v=kind==='run'?2.4+r()*1.6:kind==='rando'?1+r()*.35:1.05+r()*.25;
+  // un coureur qui vient de derrière doit aller plus vite que nous, sinon il ne nous rattrape jamais
+  let d0;
+  if(dir>0&&kind==='run'&&r()<.5){v=Math.max(v,pv*1.18+.2);d0=s-back-15}
+  else d0=s+vw+15;
+  if(dir>0&&d0>s&&v>=pv*.95&&!G.rest)v=pv*.8;            // devant nous dans le même sens : plus lent, qu'on puisse les doubler
+  const seed=Math.floor(r()*1e9),rr=rng(seed),gear=encGear(rr,kind,bi,night),id=seed;
+  for(let i=0;i<n;i++){const gi=i?encGear(rng(seed+i*77),kind,bi,night):gear;
+    ENC.push({id:id+i,kind,dir,v:v*(1+(i?(r()-.5)*.04:0)),d:d0+i*(2.2+r()*1.2)*(d0>s?1:-1),gear:gi,ph:r(),lane:kind==='run'&&dir<0?1:r()<.5?0:1,dog:kind==='prom'&&i===0&&r()<.75,hi:0,said:HELLO[Math.floor(r()*HELLO.length)],born:t})}
+}
+function encIn(dm0,dm1,s,t){
+  const dt=encT?Math.min(.5,(t-encT)/1000)*SPEED:0;encT=t;
+  if(G.home||onRace()||ROUTE.id!=='train'){ENC.length=0;return[]}
+  if(dt>30)ENC.length=0;
+  const bi=leg(s).b,wx=weatherAt(now()),W0=WX[wx];
+  if(t>encNext){spawnEnc(s,t);const dens=(ENC_DENS[bi]||1)*(SK.dark>.5?.25:1)*(W0.rain?.45:1)*(W0.fog?.7:1);encNext=t+(25000+Math.random()*60000)/dens/Math.max(1,SPEED/4)}
+  const out=[],K=ZOOMS[ZOOM].k;
+  for(const e of ENC){
+    const gr=(elevMacro(e.d+12)-elevMacro(e.d-12))/24*e.dir,walk=e.kind!=='run'||gr>.13;
+    const v=e.kind==='run'&&walk?Math.min(e.v,1.15):e.v;e.d+=e.dir*v*dt;
+    const x=Math.round(RX+(e.d-s)/MPX);
+    // salut quand on se croise ou qu'on se double
+    if(!e.hi&&Math.abs(e.d-s)<1.6&&!G.home){e.hi=t;G.st.salut=(G.st.salut||0)+1}
+    if(x<-60||x>W+60){if(t-e.born>4000)e.gone=1;continue}
+    const mode=walk?'walk':'run',N=mode==='run'?10:12,f=Math.floor(t/1000*(mode==='run'?1.42:.9)*(.9+e.ph*.2)*N+e.ph*N)%N;
+    out.push({e,x,y:Math.round(groundY(e.d,s,cam)),rf:runnerFrame(mode,f,e.gear),lane:e.lane,lamp:!!e.gear.lamp,flip:e.dir<0,dog:e.dog?compFrame('chien',Math.floor(t/1000*5+e.ph*4)%3):null,
+      say:e.hi&&t-e.hi<2200?e.said:null})}
+  ENC=ENC.filter(e=>!e.gone);
+  return out.sort((a,b)=>a.y-b.y);
+}
+function drawEnc(g,o,dy){const K=ZOOMS[ZOOM].k;
+  const put=(c,x,y,flip)=>{if(!flip)return g.drawImage(c.cv,x-c.ox,y-c.oy);g.save();g.translate(x,0);g.scale(-1,1);g.drawImage(c.cv,-c.ox,y-c.oy);g.restore()};
+  if(o.dog){const dx=o.x+Math.round(5*K)*(o.flip?-1:1);put(o.dog,dx,Math.round(groundY(o.e.d+(o.flip?-1:1)*5*K*MPX,G.d,cam))+1+dy,o.flip)}
+  put(o.rf,o.x,o.y+dy,o.flip)}
+function drawSay(g,o,dy){if(!o.say)return;g.save();g.font='600 9px JetBrains Mono';g.textAlign='center';g.textBaseline='alphabetic';
+  const y=o.y+dy-o.rf.oy-3,w=Math.ceil(g.measureText(o.say).width)+6,x=Math.round(clamp(o.x,w/2+2,W-w/2-2));
+  g.fillStyle='rgba(250,248,240,.92)';g.fillRect(x-(w>>1),y-11,w,12);g.fillRect(o.x-1,y+1,3,1);g.fillRect(o.x,y+2,1,1);
+  g.fillStyle='#2a2430';g.fillText(o.say,x,y-2);g.restore()}
 function draw(date,t){
   const s=G.d,se=sunElev(date),wx=weatherAt(date),W0=WX[wx];if(draw.wx!==wx){drops.length=0;flakes.length=0;draw.wx=wx}const sp=scrollPx();
   SK=skyAt(se);
@@ -172,6 +237,8 @@ function draw(date,t){
   // les autres concurrents (course officielle) : une moitié derrière le coureur, l'autre devant
   const RIV=onRace()?rivalsIn(dm0,dm1,s,t):[];
   for(const o of RIV)if(!o.lane)g.drawImage(o.rf.cv,o.x-o.rf.ox,o.y-o.rf.oy);
+  // les passants croisés à l'entraînement
+  const ENV=encIn(dm0,dm1,s,t);for(const o of ENV)if(!o.lane)drawEnc(g,o,0);
   // le coureur
   if(G.home){const hs0=bigHouse(0,SK.dark>.35),y=footY(RX-hs0.ox,hs0.cv.width,HOME_D,s)-hs0.porch,o=homeSit(Math.floor(t/1700)%3===0?1:0);g.drawImage(o.cv,RX-o.ox,Math.round(y-o.oy+1))}
   else if(G.rest){const bv=bivSprite(G.gear.biv,Math.floor(t/220)%2),y=footY(RX-bv.ox,bv.cv.width,G.d,s);g.drawImage(bv.cv,RX-bv.ox,Math.round(y-bv.oy+1))}
@@ -181,6 +248,8 @@ function draw(date,t){
   if(onRace()){const K=ZOOMS[ZOOM].k,n=K>1.4?3:2,ax=RX+Math.round(K),ay=fy-Math.round(8.5*K)-3-(Math.floor(t/600)%2);g.globalAlpha=.85;
     g.fillStyle='#1c1820';g.fillRect(ax-n,ay-n-1,2*n+1,1);for(let i=0;i<n;i++){const j=n-1-i;g.fillStyle='#1c1820';g.fillRect(ax-j-1,ay-n+i,2*j+3,1);g.fillStyle='#f6d860';g.fillRect(ax-j,ay-n+i,2*j+1,1)}g.fillStyle='#1c1820';g.fillRect(ax,ay,1,1);g.globalAlpha=1}}
   for(const o of RIV)if(o.lane)g.drawImage(o.rf.cv,o.x-o.rf.ox,o.y-o.rf.oy+2);
+  for(const o of ENV)if(o.lane)drawEnc(g,o,2);
+  for(const o of ENV)drawSay(g,o,o.lane?2:0);
   drawFauna(g,s,t);
   drawForeground(g,s);
   // teinte de l'heure
@@ -195,7 +264,7 @@ function draw(date,t){
   if(SK.dark>.2){
     ctx.globalCompositeOperation='lighter';const a=Math.min(1,(SK.dark-.2)*1.4);
     if(G.gear.lamp)drawHeadlamp(a);
-    for(const o of RIV)if(o.lamp){const hy=o.y-o.rf.oy+3,gr=ctx.createRadialGradient(o.x+2,hy,0,o.x+2,hy,7);gr.addColorStop(0,`rgba(255,240,190,${.55*a})`);gr.addColorStop(1,'rgba(255,240,190,0)');ctx.fillStyle=gr;ctx.fillRect(o.x-5,hy-7,14,14)}
+    for(const o of RIV.concat(ENV))if(o.lamp){const hy=o.y-o.rf.oy+3,gr=ctx.createRadialGradient(o.x+2,hy,0,o.x+2,hy,7);gr.addColorStop(0,`rgba(255,240,190,${.55*a})`);gr.addColorStop(1,'rgba(255,240,190,0)');ctx.fillStyle=gr;ctx.fillRect(o.x-5,hy-7,14,14)}
     for(const p of poisIn(dm0,dm1))if(p.k==='ravito'){const x=RX+(p.d-s)/MPX,y=groundY(p.d,s,cam)-8;const gr=ctx.createRadialGradient(x,y,0,x,y,16);gr.addColorStop(0,`rgba(255,200,120,${.5*a})`);gr.addColorStop(1,'rgba(255,200,120,0)');ctx.fillStyle=gr;ctx.fillRect(x-16,y-16,32,32)}
     ctx.globalCompositeOperation='source-over';
   }
@@ -712,7 +781,7 @@ function renderCarnet(){
   const pb=$('#pb');pb.innerHTML='';const h=t=>{const e=document.createElement('h3');e.textContent=t;pb.appendChild(e)};
   h('Au compteur');
   const s=document.createElement('div');s.className='stats';
-  const S=[['Distance',fmt(G.odo/1000,1)+' km'],['D+',fmt(G.dp)+' m'],['D−',fmt(G.dn)+' m'],['Temps',dur(G.t)],['Alt. max',fmt(G.st.maxAlt)+' m'],['Sommets',G.st.tops],['Ravitos',G.st.rav],['Mangé',G.st.eaten],['Pièces gagnées',fmt(G.tot)],['Expérience',xpTxt(G.xp)]];
+  const S=[['Distance',fmt(G.odo/1000,1)+' km'],['D+',fmt(G.dp)+' m'],['D−',fmt(G.dn)+' m'],['Temps',dur(G.t)],['Alt. max',fmt(G.st.maxAlt)+' m'],['Sommets',G.st.tops],['Saluts',fmt(G.st.salut||0)],['Ravitos',G.st.rav],['Mangé',G.st.eaten],['Pièces gagnées',fmt(G.tot)],['Expérience',xpTxt(G.xp)]];
   s.innerHTML=S.map(([k,v])=>`<div><span>${k}</span><b>${v}</b></div>`).join('');pb.appendChild(s);
   h(`Espèces photographiées · ${Object.keys(G.seen).length}/${Object.keys(FAUNA).length}`);
   const gr=document.createElement('div');gr.className='sp-g';
@@ -865,6 +934,8 @@ function renderAdmin(){
     const here=Object.entries(FAUNA).filter(([,f])=>f.b.includes(L.b)),rest=Object.entries(FAUNA).filter(([,f])=>!f.b.includes(L.b));
     const one=(t,arr,note)=>{const s=sec(t,note);grid(s,...arr.map(([k,f])=>{const b=btn(f.n,()=>spawnFauna(k),0,'fb');b.title=f.b.map(x=>BI[x]?BI[x].n:x).join(', ');if(G.seen[k])b.classList.add('seen');return b}))};
     one('Ici · '+BI[L.b].n,here,here.length?'Clique pour faire apparaître l’animal.':'Aucune espèce propre à ce paysage.');
+    const ps=sec('Passants','Rencontres à l’entraînement (pas en course, pas à la maison).');
+    grid(ps,...[['run','🏃 Coureur'],['rando','🥾 Randonneurs'],['prom','🐕 Promeneur']].map(([k,n])=>btn(n,()=>{if(ROUTE.id==='train'&&!G.home)spawnEnc(G.d,performance.now(),k)})));
     one('Ailleurs',rest,'Apparaissent ici quand même, hors de leur paysage. ✓ = déjà photographiée.');
   }else{
     const af=sec('Vue');grid(af,...ZOOMS.map((z,i)=>btn(z.n,()=>setZoom(i),ZOOM===i)));

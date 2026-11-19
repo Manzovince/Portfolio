@@ -158,6 +158,8 @@ const QUESTS=[
   {c:'vie',id:'coins',n:'Gagner 5 000 pièces',t:g=>g.tot,goal:5000,r:500},
   {c:'vie',id:'dog',n:'Adopter un compagnon',t:g=>(g.comps||[]).length,goal:1,r:150},
   {c:'vie',id:'zoo',n:'Ménagerie : quatre compagnons',t:g=>(g.comps||[]).length,goal:4,r:600},
+  {c:'vie',id:'salut',n:'Saluer 50 coureurs et randonneurs',t:g=>g.st.salut||0,goal:50,r:200},
+  {c:'vie',id:'salut500',n:'Saluer 500 passants',t:g=>g.st.salut||0,goal:500,r:900},
   {c:'vie',id:'zoo7',n:'Toute la troupe (sept compagnons)',t:g=>(g.comps||[]).length,goal:7,r:1500}
 ];
 
