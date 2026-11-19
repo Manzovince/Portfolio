@@ -207,7 +207,7 @@ function render(c,k){
   const g=oc.getContext('2d');g.scale(oc.width/W,oc.height/H);
   const h=[],d=[],fo=[],isl=[];let lo=1e9,hi=-1e9;
   for(let j=0;j<=NY;j++){h[j]=new Float32Array(NX+1);d[j]=new Float32Array(NX+1);fo[j]=new Float32Array(NX+1);isl[j]=new Float32Array(NX+1);
-    for(let i=0;i<=NX;i++){const x=i*dx,y=j*dy,m=c.D(x,y),is=c.I(x,y);d[j][i]=m;isl[j][i]=is;const v=H0(c,x,y,m-is);h[j][i]=v;fo[j][i]=c.F(x,y);if(v<lo)lo=v;if(v>hi)hi=v;}}
+    for(let i=0;i<=NX;i++){const x=i*dx,y=j*dy,m=c.D(x,y),is=c.I(x,y);d[j][i]=m;isl[j][i]=is;let v=H0(c,x,y,m-is);if(c.Z)v=c.Z(x,y,v);h[j][i]=v;fo[j][i]=c.F(x,y);if(v<lo)lo=v;if(v>hi)hi=v;}}
   const wet=[];for(let j=0;j<NY;j++){wet[j]=new Uint8Array(NX);for(let i=0;i<NX;i++)wet[j][i]=Math.min(d[j][i],d[j][i+1],d[j+1][i],d[j+1][i+1])<THR||Math.max(isl[j][i],isl[j][i+1],isl[j+1][i],isl[j+1][i+1])>.2;}
   const march=(f,lv,skip)=>{for(let j=0;j<NY;j++)for(let i=0;i<NX;i++){if(skip&&skip[j][i])continue;
     const p=[[i,j],[i+1,j],[i+1,j+1],[i,j+1]],pts=[];
@@ -215,10 +215,11 @@ function render(c,k){
     for(let q=0;q+1<pts.length;q+=2){g.moveTo(pts[q][0],pts[q][1]);g.lineTo(pts[q+1][0],pts[q+1][1]);}}};
   g.fillStyle=C.paper;g.fillRect(0,0,W,H);
   {const tc=document.createElement('canvas');tc.width=NX+1;tc.height=NY+1;const tg=tc.getContext('2d'),im=tg.createImageData(NX+1,NY+1),P=im.data;
-    const fa=rgb(C.ftint),fb=rgb(C.ftint2),wa=rgb(C.water),wb=rgb(C.deep);
+    const pa=rgb(C.paper),li=rgb(C.line),fa=rgb(C.ftint),fb=rgb(C.ftint2),wa=rgb(C.water),wb=rgb(C.deep);
     for(let j=0;j<=NY;j++)for(let i=0;i<=NX;i++){const o=(j*(NX+1)+i)*4,w=d[j][i],v=fo[j][i];let col=null,al=0;
       if(w<THR+.04){const t=ss((THR-w)/1.5);col=mix(wa,wb,t);al=ss((THR+.04-w)/.08);}
-      else if(v>.38){col=mix(fa,fb,ss((v-.6)/.6));al=ss((v-.38)/.08);}
+      else{if(c.Z){const z=h[j][i],t=ss((z-.1)/2.4),lc=mix(pa,li,.015+.13*t+.035*vn(i*dx/9,j*dy/9,c.seed+40));if(v>.38){const fa2=ss((v-.38)/.08);col=mix(lc,mix(fa,fb,ss((v-.6)/.6)),fa2);}else col=lc;al=1;}
+        else if(v>.38){col=mix(fa,fb,ss((v-.6)/.6));al=ss((v-.38)/.08);}}
       if(col){P[o]=col[0];P[o+1]=col[1];P[o+2]=col[2];P[o+3]=al*255;}}
     tg.putImageData(im,0,0);g.imageSmoothingEnabled=true;g.drawImage(tc,-dx/2,-dy/2,W+dx,H+dy);}
   for(let L=Math.ceil(lo/.25);L<=Math.floor(hi/.25);L++){g.strokeStyle=C.line;g.lineWidth=.25;g.globalAlpha=S.lop/100;g.beginPath();march(h,L*.25,wet);g.stroke();}g.globalAlpha=1;

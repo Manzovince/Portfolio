@@ -285,7 +285,7 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
 </dialog>
 <div id="print"></div>
 
-<script src="engines/arpent.js?v=4"></script>
+<script src="engines/arpent.js?v=6"></script>
 <script src="engines/sonde.js?v=10"></script>
 <script src="data.js?v=2"></script>
 <script src="illus.js?v=3"></script>
@@ -387,7 +387,10 @@ function backImage(c,k){const b=BACKS[c.back],f=c.back[0];
   const sea=SONDE.coast(c.seed,c.edges,f==='s'?b.kind:null,f==='s'?c.el:'',k,S.paper);
   let lm;if(f==='a'){lm=model(c);if(lm.els.some(e=>sea.h(e.x,e.y)<.3))lm=model({...c,el:''});}
   else lm=model({back:b.kind==='ile'?'a:foret':'a:plaine',seed:c.seed,el:''});
-  const land=ARPENT.render(lm,k,S.paper,false),ow=land.width,oh=land.height,st=.5,nx=Math.round(W/st),ny=Math.round(H/st);
+  // land altitude rises from the coastline (sea.h = .1 there): contours run along the shore instead of being cut by it.
+  // On land edges sea.h is exactly .8, so the offset is the same on every card and contours still meet across cards.
+  const Z=(x,y,v)=>{const s=Math.max(0,Math.min(1,(sea.h(x,y)-.1)/.7)),r=s*s*(3-2*s);return .12+1.1*s+v*r;};
+  const land=ARPENT.render({...lm,Z},k,S.paper,false),ow=land.width,oh=land.height,st=.5,nx=Math.round(W/st),ny=Math.round(H/st);
   const mc=document.createElement('canvas');mc.width=nx+1;mc.height=ny+1;const mg=mc.getContext('2d'),im=mg.createImageData(nx+1,ny+1);
   const A=v=>v<.06?1:v>.16?0:1-(v-.06)/.1;
   for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++){const x=i*st,y=j*st;let a=A(sea.h(x,y));if(f==='s'&&a<1)a=Math.max(a,A(sea.he(x,y)));im.data[(j*(nx+1)+i)*4+3]=a*255;}
