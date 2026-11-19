@@ -215,10 +215,10 @@ function render(c,k){
     for(let q=0;q+1<pts.length;q+=2){g.moveTo(pts[q][0],pts[q][1]);g.lineTo(pts[q+1][0],pts[q+1][1]);}}};
   g.fillStyle=C.paper;g.fillRect(0,0,W,H);
   {const tc=document.createElement('canvas');tc.width=NX+1;tc.height=NY+1;const tg=tc.getContext('2d'),im=tg.createImageData(NX+1,NY+1),P=im.data;
-    const pa=rgb(C.paper),li=rgb(C.line),fa=rgb(C.ftint),fb=rgb(C.ftint2),wa=rgb(C.water),wb=rgb(C.deep);
+    const lo=rgb(C.lo||C.paper),hi2=rgb(C.hi||C.line),fa=rgb(C.ftint),fb=rgb(C.ftint2),wa=rgb(C.water),wb=rgb(C.deep);
     for(let j=0;j<=NY;j++)for(let i=0;i<=NX;i++){const o=(j*(NX+1)+i)*4,w=d[j][i],v=fo[j][i];let col=null,al=0;
       if(w<THR+.04){const t=ss((THR-w)/1.5);col=mix(wa,wb,t);al=ss((THR+.04-w)/.08);}
-      else{if(c.Z){const z=h[j][i],t=ss((z-.1)/2.4),lc=mix(pa,li,.015+.13*t+.035*vn(i*dx/9,j*dy/9,c.seed+40));if(v>.38){const fa2=ss((v-.38)/.08);col=mix(lc,mix(fa,fb,ss((v-.6)/.6)),fa2);}else col=lc;al=1;}
+      else{if(c.Z){const z=h[j][i],t=Math.max(0,Math.min(1,ss((z-.12)/3.4)+.07*vn(i*dx/9,j*dy/9,c.seed+40))),lc=mix(lo,hi2,t*(c.tk??1));if(v>.38){const fa2=ss((v-.38)/.08);col=mix(lc,mix(fa,fb,ss((v-.6)/.6)),fa2);}else col=lc;al=1;}
         else if(v>.38){col=mix(fa,fb,ss((v-.6)/.6));al=ss((v-.38)/.08);}}
       if(col){P[o]=col[0];P[o+1]=col[1];P[o+2]=col[2];P[o+3]=al*255;}}
     tg.putImageData(im,0,0);g.imageSmoothingEnabled=true;g.drawImage(tc,-dx/2,-dy/2,W+dx,H+dy);}

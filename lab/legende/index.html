@@ -38,6 +38,10 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btns .wide{grid-column:1/-1}
 .toggle{display:flex;align-items:center;justify-content:space-between;font-size:13px;cursor:pointer}
 .toggle input{accent-color:var(--accent);width:16px;height:16px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.cpick{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer}
+.cpick input{flex:none;width:30px;height:26px;border:1px solid var(--line);border-radius:6px;padding:1px;background:var(--bg);cursor:pointer}
+.cpick input::-webkit-color-swatch-wrapper{padding:0}.cpick input::-webkit-color-swatch{border:none;border-radius:4px}
 .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{border:0;border-radius:0;height:30px;font-size:12.5px;background:transparent}
 .seg button+button{border-left:1px solid var(--line)}
@@ -230,6 +234,15 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
     <div><span class="lab">Papier</span><div class="seg" id="paper"><button data-v="light">Clair</button><button data-v="dark">Sombre</button></div></div>
     <label class="toggle">Raccords terre / mer<input id="coast" type="checkbox"></label>
     <p class="sub" style="margin:0">Les dos se raccordent dans n’importe quel ordre. Avec « Raccords terre / mer », chaque bord est terre ou mer : deux cartes s’assemblent quand leurs bords communs sont du même type.</p>
+    <div><span class="lab">Couleurs des dos <span class="sub" id="colFor" style="font-size:11.5px"></span></span>
+      <div class="cols">
+        <label class="cpick" title="Terre au bord de l'eau"><input type="color" data-k="lo">Rivage</label>
+        <label class="cpick" title="Teinte de la terre sur les hauteurs"><input type="color" data-k="hi">Sommets</label>
+        <label class="cpick" title="Eau peu profonde (et lacs)"><input type="color" data-k="s0">Haut-fond</label>
+        <label class="cpick" title="Eau la plus profonde"><input type="color" data-k="s4">Profondeurs</label>
+      </div></div>
+    <div class="row"><label for="tint">Teintes du relief de la terre</label><output id="tintO"></output><input id="tint" type="range" min="0" max="150" step="5"></div>
+    <button id="colReset">Couleurs par défaut</button>
   </section>
 </aside>
 <button id="show" title="Afficher le panneau (P)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M13 10l2 2-2 2"/></svg>Panneau</button>
@@ -285,7 +298,7 @@ dialog button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
 </dialog>
 <div id="print"></div>
 
-<script src="engines/arpent.js?v=6"></script>
+<script src="engines/arpent.js?v=8"></script>
 <script src="engines/sonde.js?v=10"></script>
 <script src="data.js?v=2"></script>
 <script src="illus.js?v=3"></script>
@@ -374,12 +387,21 @@ function matchTexts(list){let ch=0;
   return ch;}
 if(S.acc!==1){if(matchTexts(cards))S.deal=null;S.acc=1;}
 if(cards.some(c=>!c.edges)){const miss=cards.filter(c=>!c.edges);dealEdges(miss);}
-if(S.order!=='deal')S.order='deck';if(!(S.dcols>=2&&S.dcols<=14))S.dcols=8;delete S.labels;delete S.isles;if(typeof S.coast!=='boolean')S.coast=true;if(!S.illv){S.ill='single';S.illv=1;}if(S.ill!=='mirror')S.ill='single';if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
+if(S.order!=='deal')S.order='deck';if(!(S.dcols>=2&&S.dcols<=14))S.dcols=8;delete S.labels;delete S.isles;if(typeof S.coast!=='boolean')S.coast=true;if(!S.col||typeof S.col!=='object')S.col={};if(!(S.tint>=0&&S.tint<=150))S.tint=100;if(!S.illv){S.ill='single';S.illv=1;}if(S.ill!=='mirror')S.ill='single';if(!(S.gap>=0&&S.gap<=15))S.gap=7;S.idx=Math.max(0,Math.min(cards.length-1,S.idx|0));
 
 // ---------- back rendering: async queue + caches ----------
 const models=new Map(),imgs=new Map();let queue=[],qt=0;
 const mkey=c=>c.back+'|'+c.seed+'|'+c.el;
-const ikey=(c,k)=>[mkey(c),k,S.paper,S.coast&&c.edges,dpr()].join('|');
+const ikey=(c,k)=>[mkey(c),k,S.paper,S.coast&&c.edges,dpr(),colKey()].join('|');
+// ---------- colours (per paper): land shore / heights, sea shallow / deep; Sonde's 5 depth stops and Arpent's lakes follow the sea pair ----------
+const ORIG={a:JSON.parse(JSON.stringify(ARPENT.PAL)),s:JSON.parse(JSON.stringify(SONDE.PAL))};
+const DEFC={light:{lo:'#FAEEDA',hi:'#E3BC84',s0:ORIG.s.light.s0,s4:ORIG.s.light.s4},dark:{lo:'#2C2C2A',hi:'#54402A',s0:ORIG.s.dark.s0,s4:ORIG.s.dark.s4}};
+const hx=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),xh=a=>'#'+a.map(v=>Math.round(v).toString(16).padStart(2,'0')).join(''),mixc=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
+const colOf=(p,k)=>(S.col[p]&&S.col[p][k])||DEFC[p][k],colKey=()=>JSON.stringify([S.col[S.paper]||{},S.tint]);
+function applyCols(){for(const p of['light','dark']){const A=ARPENT.PAL[p],SP=SONDE.PAL[p],o=S.col[p]||{};A.lo=colOf(p,'lo');A.hi=colOf(p,'hi');
+  if(o.s0||o.s4){const a=hx(colOf(p,'s0')),b=hx(colOf(p,'s4'));SP.s0=xh(a);SP.s4=xh(b);[.22,.5,.76].forEach((t,i)=>SP['s'+(i+1)]=xh(mixc(a,b,t)));A.water=xh(mixc(a,b,.18));A.deep=xh(mixc(a,b,.42));}
+  else{for(const k of['s0','s1','s2','s3','s4'])SP[k]=ORIG.s[p][k];A.water=ORIG.a[p].water;A.deep=ORIG.a[p].deep;}}}
+applyCols();
 // One relief per card (Sonde engine) decides land and sea from the card's edges: land is drawn by Arpent, sea by Sonde.
 // Sea cards keep their own Sonde islands where that land does not touch a land edge (field he).
 function backImage(c,k){const b=BACKS[c.back],f=c.back[0];
@@ -390,7 +412,7 @@ function backImage(c,k){const b=BACKS[c.back],f=c.back[0];
   // land altitude rises from the coastline (sea.h = .1 there): contours run along the shore instead of being cut by it.
   // On land edges sea.h is exactly .8, so the offset is the same on every card and contours still meet across cards.
   const Z=(x,y,v)=>{const s=Math.max(0,Math.min(1,(sea.h(x,y)-.1)/.7)),r=s*s*(3-2*s);return .12+1.1*s+v*r;};
-  const land=ARPENT.render({...lm,Z},k,S.paper,false),ow=land.width,oh=land.height,st=.5,nx=Math.round(W/st),ny=Math.round(H/st);
+  const land=ARPENT.render({...lm,Z,tk:S.tint/100},k,S.paper,false),ow=land.width,oh=land.height,st=.5,nx=Math.round(W/st),ny=Math.round(H/st);
   const mc=document.createElement('canvas');mc.width=nx+1;mc.height=ny+1;const mg=mc.getContext('2d'),im=mg.createImageData(nx+1,ny+1);
   const A=v=>v<.06?1:v>.16?0:1-(v-.06)/.1;
   for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++){const x=i*st,y=j*st;let a=A(sea.h(x,y));if(f==='s'&&a<1)a=Math.max(a,A(sea.he(x,y)));im.data[(j*(nx+1)+i)*4+3]=a*255;}
@@ -551,7 +573,7 @@ function render(){const g=S.view==='grid';document.querySelector('main').classLi
   $('single').classList.toggle('hidden',g);
   document.querySelectorAll('#view button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
   document.querySelectorAll('#paper button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.paper));document.querySelectorAll('#illM button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.ill));
-  $('gk').value=S.gk;$('coast').checked=S.coast;document.querySelectorAll('#order button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.order));$('dealCtl').classList.toggle('hidden',S.order!=='deal');$('cOut').textContent=S.dcols;$('gap').value=S.gap;setGap();$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
+  $('gk').value=S.gk;$('coast').checked=S.coast;document.querySelectorAll('.cpick input').forEach(i=>i.value=colOf(S.paper,i.dataset.k));$('tint').value=S.tint;$('tintO').textContent=S.tint+' %';$('colFor').textContent='· papier '+(S.paper==='dark'?'sombre':'clair');$('colReset').disabled=!Object.keys(S.col[S.paper]||{}).length&&S.tint===100;document.querySelectorAll('#order button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.order));$('dealCtl').classList.toggle('hidden',S.order!=='deal');$('cOut').textContent=S.dcols;$('gap').value=S.gap;setGap();$('flipLab').textContent=S.side==='face'?'Voir les dos':'Voir les faces';
   queue=[];if(g)drawGrid();else drawSingle();stats();save();}
 // a card changed: what: 'text' | 'sym' | 'back'
 function changed(what){const c=cards[S.idx];
@@ -607,6 +629,9 @@ const setCols=v=>{S.dcols=Math.max(2,Math.min(14,v));S.deal=null;render();};
 $('cMinus').onclick=()=>setCols(S.dcols-1);$('cPlus').onclick=()=>setCols(S.dcols+1);
 $('redeal').onclick=()=>{S.deal=null;render();};
 $('coast').onchange=e=>{S.coast=e.target.checked;render();};
+document.querySelectorAll('.cpick input').forEach(i=>i.onchange=()=>{(S.col[S.paper]??={})[i.dataset.k]=i.value;applyCols();render();});
+$('tint').oninput=e=>{$('tintO').textContent=e.target.value+' %';};$('tint').onchange=e=>{S.tint=+e.target.value;render();};
+$('colReset').onclick=()=>{delete S.col[S.paper];S.tint=100;applyCols();render();};
 document.querySelectorAll('#paper button').forEach(b=>b.onclick=()=>{S.paper=b.dataset.v;render();});
 document.querySelectorAll('#illM button').forEach(b=>b.onclick=()=>{S.ill=b.dataset.v;render();});
 $('add').onclick=()=>{const used=new Set(cards.map(combo));let s=null;for(let a=0;a<6&&!s;a++)for(let b=a;b<6&&!s;b++)for(let d=b;d<6&&!s;d++)if(!used.has(''+a+b+d))s=[a,b,d];
