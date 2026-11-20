@@ -361,7 +361,7 @@ parquetRelief.repeat.copy(parquet.repeat);
 const sol = new THREE.MeshStandardMaterial({ map: parquet, bumpMap: parquetRelief, bumpScale: 1.2, color: 0xd6c8b8, roughness: 0.5 });   // teinte : parquet légèrement plus foncé
 const carrelage = new THREE.MeshStandardMaterial({ map: carreaux, roughness: 0.3 });
 const mat = {
-  mur: M(0xebe6dd), coupe: M(0x2a2a2a), sol, carrelage, tomette: new THREE.MeshStandardMaterial({ map: tomettes, roughness: 0.45 }), oreiller: M(0xeeeae3, { roughness: 0.95 }),
+  mur: M(0xebe6dd), coupe: M(0x2a2a2a), sol, carrelage, tomette: new THREE.MeshStandardMaterial({ map: tomettes, roughness: 0.78, envMapIntensity: 0.35 }) /* terre cuite cirée mate : évite le voile blanc des reflets */, oreiller: M(0xeeeae3, { roughness: 0.95 }),
   balcon: new THREE.MeshStandardMaterial({ map: gazonTex, roughness: 1 }),
   crepi: new THREE.MeshStandardMaterial({ map: crepiBoite, bumpMap: crepiBoite, bumpScale: 2, roughness: 0.95 }),
   crepiArche: new THREE.MeshStandardMaterial({ map: crepiArche, bumpMap: crepiArche, bumpScale: 2, roughness: 0.95 }), blanc: M(0xecebe7, { roughness: 0.5 }), plan: M(0x8b6b4a),
@@ -444,6 +444,7 @@ function mur(x0, y0, x1, y1, h = H, z0 = 0, name = 'Mur') {
 }
 // Portes intérieures cliquables : ouvertes au départ, un clic les ouvre / ferme
 const etatPortes = { 'Porte salle de bain': true, 'Porte WC': true };
+let tableDepliee = true; const NOM_TABLE = 'Table repliable 60 × 30';   // table à abattant : clic pour plier / déplier
 // ouverte = { sens: +1 (vers +x) | -1, gond: 'debut' (côté y0) | 'fin' (côté y1) } : vantail ouvert à 90° (portes verticales)
 function porte(x0, y0, x1, y1, name, ouverte) {       // ouverture 204 cm + linteau
   const vertical = (y1 - y0) > (x1 - x0);
@@ -756,6 +757,15 @@ function lapinVivant(cx, cy, z0, rot, nom = 'Lapin') {
   boule(g, 2.7, 17.2, 8.6, 0, blanc);                                                   // queue
   return g;
 }
+// Couvert pour le bar : assiette plate en céramique, fourchette à gauche, couteau à droite (convive côté +z local)
+function couvert(parent, x, y, z) {
+  const g = new THREE.Group(); g.userData.nom = 'Assiette et couverts'; g.position.set(x, y, z); parent.add(g);
+  const prof = [[0, 0], [0.09, 0], [0.112, 0.01], [0.13, 0.017], [0.125, 0.019], [0.108, 0.013], [0.09, 0.005], [0, 0.005]].map(([r, h]) => new THREE.Vector2(r, h));
+  g.add(mesh(new THREE.LatheGeometry(prof, 40), mat.ceramiqueSdb ??= M(0xf5f3ef, { roughness: 0.18 })));
+  const fourchette = mesh(new THREE.BoxGeometry(0.022, 0.003, 0.19), mat.inox); fourchette.position.set(-0.165, 0.002, 0); g.add(fourchette);
+  const couteau = mesh(new THREE.BoxGeometry(0.017, 0.003, 0.215), mat.inox); couteau.position.set(0.165, 0.002, 0); g.add(couteau);
+  return g;
+}
 function construire() {
   root.clear();
   rond = 0;
@@ -797,22 +807,22 @@ function construire() {
   mur(236, 1880, 268, 1892); mur(428, 1880, 1173, 1892);    // bas
   porte(268, 1880, 428, 1892, "Porte d'entrée");
   // Retraits entre balcon et séjour
-  mur(248, 380, 347, 462, H, 0, 'Poteau 47/50');
+  mur(248, 388, 258, 402, H, 0, 'Montant de la baie');                    // pas de gros poteau : simple montant de 5 cm, la baie va presque jusqu'au mur
   { // Crépi orangé sur les faces des murs côté balcon (fine couche posée devant)
     const hc = coupe ? CUT : H;
-    B(248, 112, 249, 380, 0, hc, mat.crepi, 'Crépi');            // mur de gauche
+    B(248, 112, 249, 388, 0, hc, mat.crepi, 'Crépi');            // mur de gauche
     B(1172, 112, 1173, 393, 0, hc, mat.crepi, 'Crépi');          // mur de droite
-    B(249, 379, 347, 380, 0, hc, mat.crepi, 'Crépi');            // poteau
+    B(249, 387, 258, 388, 0, hc, mat.crepi, 'Crépi');            // montant de la baie
     B(845, 392, 1172, 393, 0, hc, mat.crepi, 'Crépi');           // retour de la clim
-    if (!coupe) B(347, 387, 845, 388, 220, H, mat.crepi, 'Crépi');   // au-dessus de la baie
+    if (!coupe) B(258, 387, 845, 388, 220, H, mat.crepi, 'Crépi');   // au-dessus de la baie
   }
   mur(845, 393, 1173, 462, H, 0, 'Retour 166 (clim)');
   // Baie vitrée 220/235
   const hv = coupe ? CUT : 215;
-  B(347, 393, 845, 397, 0, hv, mat.verre, 'Baie vitrée');
-  B(347, 390, 845, 400, 0, 5, mat.metal); B(591, 391, 601, 399, 0, hv, mat.metal);
-  if (!coupe) B(347, 390, 845, 400, 215, 220, mat.metal);
-  mur(347, 388, 845, 402, H, 220);
+  B(258, 393, 845, 397, 0, hv, mat.verre, 'Baie vitrée');
+  B(258, 390, 845, 400, 0, 5, mat.metal); B(546, 391, 556, 399, 0, hv, mat.metal);
+  if (!coupe) B(258, 390, 845, 400, 215, 220, mat.metal);
+  mur(258, 388, 845, 402, H, 220);
   // Gaine côté cuisine (49/56)
   mur(236, 1328, 370, 1478, H, 0, 'Gaine 49/56');
   // Muret cuisine / entrée et retour (hauteur 125/129)
@@ -1129,6 +1139,30 @@ function construire() {
     dos.position.set(0, 0.46, 0.185); g.add(dos);
     g.position.set(X(cx), 0, Z(cy)); g.rotation.y = rot; cur.add(g);
   }
+  { // Rack à sirops en fil noir (4 marches) à droite des plaques, avec 4 bouteilles de sirop 70 cl, étiquettes blanches
+    const rk = new THREE.Group(); rk.userData.nom = 'Rack à sirops'; rk.name = 'Rack à sirops'; cur.add(rk);
+    const fil = mat.filNoir ??= M(0x1b1b1b, { roughness: 0.5, metalness: 0.4 }), prev = cur; cur = rk;
+    const yA = 982, yB = 999, xs = [350, 332, 314, 296];                                  // marches de l'avant (bas) vers le mur (haut)
+    xs.forEach((xk, k) => {
+      const z = 91 + k * 5;                                                              // marches de 5 cm : le haut reste sous la hotte
+      for (const y of [yA, yB]) { B(xk - 9, y, xk + 9, y + 0.8, z - 0.6, z, fil); B(xk + 8.2, y, xk + 9, y + 0.8, z - 5, z, fil);   // longerons + contremarches
+        if (k) B(xk - 9, y, xk - 8.2, y + 0.8, 90, z, fil); }                                          // pieds jusqu'au plan de travail
+      B(xk - 9, yA, xk - 8.2, yB + 0.8, z - 0.6, z, fil); B(xk + 8.2, yA, xk + 9, yB + 0.8, z - 0.6, z, fil);   // barreaux
+      // bouteille : verre teinté par le sirop, étiquette blanche, bouchon blanc à bande rouge
+      const sirop = [0x8a1426, 0xb8641c, 0xe8dfb0, 0xc0782a][k];
+      const verre = mat['sirop' + k] ??= M(sirop, { roughness: 0.08, transparent: true, opacity: 0.88 });
+      const bt = new THREE.Group(); bt.position.set(X(xk), z / 100, Z((yA + yB) / 2 + 0.4)); rk.add(bt);
+      const prof = [[0, 0], [0.036, 0], [0.037, 0.005], [0.037, 0.18], [0.031, 0.212], [0.016, 0.236], [0.014, 0.285], [0, 0.285]].map(([r, h]) => new THREE.Vector2(r, h));
+      bt.add(mesh(new THREE.LatheGeometry(prof, 28), verre));
+      const et = mesh(new THREE.CylinderGeometry(0.0375, 0.0375, 0.1, 28, 1, true), mat.etiquette ??= M(0xf7f4ec, { roughness: 0.7, side: THREE.DoubleSide })); et.position.y = 0.11; bt.add(et);
+      const col = mesh(new THREE.CylinderGeometry(0.0145, 0.0145, 0.03, 20, 1, true), mat.etiquette); col.position.y = 0.255; bt.add(col);
+      const bouchon = mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.02, 20), mat.blanc); bouchon.position.y = 0.293; bt.add(bouchon);
+      const bande = mesh(new THREE.CylinderGeometry(0.0163, 0.0163, 0.005, 20, 1, true), mat.ledRouge2 ??= M(0xb3202a, { roughness: 0.4 })); bande.position.y = 0.297; bt.add(bande);
+    });
+    B(359, yA, 361, yB + 0.8, 90, 101, fil);                                               // plaque avant
+    for (const y of [yA, yB]) B(287, y, 359, y + 0.8, 90, 90.8, fil);                    // patins au sol du rack
+    cur = prev;
+  }
   { // Bocaux en verre au fond du plan de travail, à côté du micro-ondes (pâtes, riz, café, lentilles, farine)
     const bx = new THREE.Group(); bx.userData.nom = 'Bocaux'; bx.name = 'Bocaux'; cur.add(bx);
     const verreB = mat.verreBocal ??= M(0xe8f2f4, { transparent: true, opacity: 0.28, roughness: 0.05 });
@@ -1250,6 +1284,16 @@ function construire() {
   B(894, 470, 1167, 841, 28, 48, mat.drap, null, lit);
   B(892, 590, 1169, 843, 44, 52, mat.couette, null, lit);
   lapinVivant(1010, 700, 52, 0.5);                                         // sur la couette
+  { // Guirlande rideau au-dessus du lit : une ligne le long du mur de tête puis du mur de droite, avec des chutes qui descendent jusqu'au lit
+    const V = (x, h, z) => new THREE.Vector3(x, h, z), zN = Z(462) + 0.012, xE = X(1173) - 0.012;
+    const haut = [V(X(872), 1.95, zN), V(X(950), 1.91, zN), V(X(1030), 1.95, zN), V(X(1110), 1.92, zN), V(xE, 1.95, Z(468)),
+                  V(xE, 1.91, Z(560)), V(xE, 1.95, Z(660)), V(xE, 1.91, Z(760)), V(xE, 1.95, Z(890))];
+    const chute = (x, z, h0, h1, k) => { const p = []; for (let h = h0, i = 0; h >= h1 - 1e-6; h -= 0.1, i++) p.push(V(x + (z === zN ? Math.sin(i + k) * 0.006 : 0), h, z + (z === zN ? 0 : Math.sin(i + k) * 0.006))); return p; };
+    const tr = [haut];
+    [[885, 0.5], [945, 0.5], [1010, 0.5], [1090, 0.5]].forEach(([x, b], k) => tr.push(chute(X(x), zN, 1.93, b, k)));
+    [[520, 0.54], [600, 0.54], [680, 0.54], [760, 0.54], [850, 0.54]].forEach(([y, b], k) => tr.push(chute(xE, Z(y), 1.93, b, k + 5)));
+    guirlande(tr, 'Guirlande rideau');
+  }
   B(906, 478, 1020, 560, 48, 62, mat.oreiller, null, lit);
   B(1040, 478, 1154, 560, 48, 62, mat.oreiller, null, lit);
   // Piano 27 × 130
@@ -1285,13 +1329,34 @@ function construire() {
   B(370, 856, 373, 862, 60, 150, mat.metal);
   if (mode === 'actuel') {
   // Table repliable 60 × 30 + rallonge dépliée
-  B(536, 1130, 656, 1188, 71, 74, mat.bois, 'Table repliable 60 × 30');
-  B(536, 990, 656, 1130, 71, 74, M(0xc8a06a, { transparent: true, opacity: 0.35 }), 'Table dépliée');
-  B(590, 1150, 602, 1174, 0, 71, mat.boisF);
+  { // Table à abattant : partie fixe 60 × 30, abattant 60 × 70 relevé (dépliée) ou pendant le long du flanc (pliée) ; clic pour basculer
+    const tr = new THREE.Group(); tr.userData.nom = NOM_TABLE; tr.name = 'Table repliable'; cur.add(tr);
+    const bois = mat.bois;
+    B(536, 1131, 656, 1188, 71, 74, bois, null, tr);                                   // partie fixe
+    for (const x of [570, 622]) B(x - 4, 1129, x + 4, 1132, 70.4, 71, mat.inox, null, tr);   // charnières
+    B(541, 1136, 651, 1183, 62, 71, bois, null, tr);                                   // ceinture sous la partie fixe
+    for (const x of [541, 645]) for (const y of [1136, 1177]) B(x, y, x + 6, y + 6, 0, 62, bois, null, tr);   // pieds
+    for (const x of [541, 645]) B(x, 1142, x + 6, 1177, 14, 17, bois, null, tr);      // traverses basses
+    B(593, 1130, 599, 1136, 14, 66, bois, null, tr);                                   // montant pivot du portillon
+    if (tableDepliee) {
+      B(536, 990, 656, 1129.5, 71, 74, bois, null, tr);                                // abattant relevé
+      B(538, 1129.5, 654, 1131, 71.5, 73.5, mat.boisF, null, tr);                      // jointure
+      B(593, 1010, 599, 1016, 0, 71, bois, null, tr);                                  // pied-portillon ouvert sous l'abattant
+      B(593, 1016, 599, 1130, 62, 66, bois, null, tr); B(593, 1016, 599, 1130, 14, 17, bois, null, tr);
+    } else {
+      B(536, 1124, 656, 1129.5, 2, 72, bois, null, tr);                                // abattant rabattu, pendant le long du flanc
+      B(599, 1130, 640, 1136, 14, 17, bois, null, tr); B(599, 1130, 640, 1136, 62, 66, bois, null, tr);   // portillon replié contre la ceinture
+      B(634, 1130, 640, 1136, 0, 71, bois, null, tr);
+    }
+  }
   chaise(500, 1060, -Math.PI / 2 + 0.22, 'Chaise');
   chaise(692, 1058, Math.PI / 2 - 0.22, 'Chaise');
   // Bureau 70 × 120
   bureauAssisDebout(368, 1551, 0);                                        // côté gauche contre le mur de gauche
+  // Sur le bar du muret : deux assiettes avec couverts (convives côté entrée) et une petite plante
+  for (const x of [450, 570]) couvert(cur, X(x), 1.31, Z(1471.5));
+    { const g = deco(652, 1471, 131, 'Petite plante'); pot(g, 6, 9, deco_m.terracotta);
+      for (let i = 0; i < 7; i++) boule(g, 3 + hasard(i + 70) * 1.5, Math.cos(i * 2.3) * 2.5, 11 + hasard(i + 80) * 6, Math.sin(i * 2.3) * 2.5, vert[i % 3], 1, 0.8, 1); }
   bureauArtiste(368, 1551, 0, 120, 69, 'Bureau : écran, PC, dessin');
   chaiseDesign(368, 1606, 0, 'Chaise de bureau');                   // rangée sous le bureau
   // Meuble imprimante 45 × 90
@@ -1339,10 +1404,10 @@ function construire() {
       let z = 45;
       for (const [x0, x1, ep, c] of pile) { B(x0, 545, x1, 592, z, z + ep, M(c), 'Livres'); z += ep; }
     }
-    if (ecran) { // Écran de projection minimaliste : simple panneau 135 × 76 (16:9), fin liseré noir
-      const e = new THREE.Group(); e.userData.nom = 'Écran de projection 135 × 76'; e.name = 'Écran'; cur.add(e);
-      B(837, 466, 840, 744, 79.5, 156.5, mat.noir, null, e);                // liseré noir de 5 mm
-      B(836, 467, 837, 743, 80, 156, mat.toile ??= M(0xf4f3f0, { roughness: 1 }), null, e);   // toile
+    if (ecran) { // Écran de projection minimaliste : simple panneau 170 × 96 (16:9), fin liseré noir
+      const e = new THREE.Group(); e.userData.nom = 'Écran de projection 170 × 96'; e.name = 'Écran'; cur.add(e);
+      B(837, 403, 840, 745, 77.5, 174.5, mat.noir, null, e);                // liseré noir de 5 mm ; agrandi vers la gauche (côté baie), sans déborder sur le passage
+      B(836, 404, 837, 744, 78, 174, mat.toile ??= M(0xf4f3f0, { roughness: 1 }), null, e);   // toile
     }
     enceinte(cur, X(792), 0.45, Z(668), -Math.PI / 2,                                    // enceinte noire sous l'écran de projection
       mat.coqueNoire ??= M(0x1c1c1d, { roughness: 0.75 }), mat.grilleNoire ??= new THREE.MeshStandardMaterial({ map: grilleTex('#0e0e0e', '#2c2c2c'), roughness: 0.8 }));
@@ -1390,6 +1455,10 @@ function construire() {
     B(248, 1503, 345, 1703, 0, 90, mat.chene, 'Commode 100 × 50');
     for (const z of [125, 155]) B(248, 1478, 370, 1518, z, z + 3, mat.chene, 'Étagères 61 × 20');
     tabouret(430, 1628, 'Chaise haute'); tabouret(570, 1628, 'Chaise haute');
+    // Sur le bar : deux assiettes avec couverts face aux chaises hautes et une petite plante
+    for (const x of [430, 570]) couvert(cur, X(x), 1.15, Z(1548));
+    { const g = deco(630, 1492, 115, 'Petite plante'); pot(g, 6, 9, deco_m.terracotta);
+      for (let i = 0; i < 7; i++) boule(g, 3 + hasard(i + 70) * 1.5, Math.cos(i * 2.3) * 2.5, 11 + hasard(i + 80) * 6, Math.sin(i * 2.3) * 2.5, vert[i % 3], 1, 0.8, 1); }
     const pen = new THREE.Group(); pen.userData.nom = 'Banc et penderie 40 × 150'; pen.name = 'Banc et penderie'; cur.add(pen);
     B(440, 1800, 560, 1880, 0, H, mat.blanc, null, pen);          // colonne penderie
     B(560, 1800, 740, 1880, 200, H, mat.blanc, null, pen);        // caisson haut
@@ -1549,13 +1618,14 @@ function nomSous(e) {
     if (!appui || Math.hypot(e.clientX - appui[0], e.clientY - appui[1]) > 5) return;   // un glisser n'est pas un clic
     const nom = nomSous(e);
     if (nom in etatPortes) { etatPortes[nom] = !etatPortes[nom]; construire(); }
+    else if (nom === NOM_TABLE) { tableDepliee = !tableDepliee; construire(); }
   });
 }
 renderer.domElement.addEventListener('pointermove', e => {
   const nom = nomSous(e);
-  renderer.domElement.style.cursor = nom in etatPortes ? 'pointer' : '';
+  renderer.domElement.style.cursor = (nom in etatPortes || nom === NOM_TABLE) ? 'pointer' : '';
   if (nom && nom !== 'Sol' && nom !== 'Mur') {
-    tip.textContent = nom in etatPortes ? `${nom} · clic pour ${etatPortes[nom] ? 'fermer' : 'ouvrir'}` : nom; tip.style.display = 'block';
+    tip.textContent = nom in etatPortes ? `${nom} · clic pour ${etatPortes[nom] ? 'fermer' : 'ouvrir'}` : nom === NOM_TABLE ? `${nom} · clic pour ${tableDepliee ? 'replier' : 'déplier'}` : nom; tip.style.display = 'block';
     tip.style.left = e.clientX + 14 + 'px'; tip.style.top = e.clientY + 14 + 'px';
   } else tip.style.display = 'none';
 });
