@@ -270,6 +270,8 @@ const T = {
     chDraw: 'Dessine', chDrawHint: 'Autant de traits que tu veux. Deux doigts pour zoomer.', chUndo: 'Annuler le trait',
     chGuess: 'Qu\'est-ce que c\'est ?', chGuessHint: 'Écris ce que représente ce dessin. Le joueur suivant devra le redessiner.', chGuessPh: 'Ta réponse', chLastHint: 'Tu es le dernier : écris ce que représente ce dessin, puis on compare avec le mot de départ !',
     chStartWas: 'Mot de départ', chArrived: 'Le message est bien arrivé !', chLost: 'Le message s\'est perdu en route…',
+    chFrom: 'Mot de départ', chFromRandom: 'Au hasard', chFromOwn: 'Écrit par un joueur',
+    chFromOwnHint: 'Le premier joueur écrit le mot ou la phrase de son choix.', chFromRandomHint: 'Le téléphone tire un mot de la catégorie.', chDrawToo: 'Ensuite, dessine-le toi-même : tu commences la chaîne.',
     chAgain: 'Rejouer', chWrote: 'a écrit', chDrew: 'a dessiné', chOk: 'Valider',
     start: 'Commencer la manche', resetScores: 'Remettre les scores à zéro',
     needPlayers: n => `Il faut au moins ${n} joueurs.`,
@@ -334,6 +336,8 @@ const T = {
     chDraw: 'Draw', chDrawHint: 'As many lines as you like. Two fingers to zoom.', chUndo: 'Undo line',
     chGuess: 'What is it?', chGuessHint: 'Write what this drawing shows. The next player will have to draw it again.', chGuessPh: 'Your answer', chLastHint: 'You\'re last: write what this drawing shows, then compare with the starting word!',
     chStartWas: 'Starting word', chArrived: 'The message made it!', chLost: 'The message got lost on the way…',
+    chFrom: 'Starting word', chFromRandom: 'Random', chFromOwn: 'Written by a player',
+    chFromOwnHint: 'The first player writes any word or phrase they like.', chFromRandomHint: 'The phone picks a word from the category.', chDrawToo: 'Then draw it yourself: you start the chain.',
     chAgain: 'Play again', chWrote: 'wrote', chDrew: 'drew', chOk: 'Confirm',
     start: 'Start the round', resetScores: 'Reset scores',
     needPlayers: n => `You need at least ${n} players.`,
@@ -405,6 +409,7 @@ if (!S.r1) { S.rounds = 1; S.r1 = true; } // one-time switch of saved setups to 
 if (S.game && S.game.phase === 'reveal') S.game.phase = 'pass'; // never reopen on a secret
 if (S.game && S.game.phase === 'ballot') S.game.phase = 'votePass'; // nor on someone's ballot
 if (S.game && S.game.phase === 'chainStep') S.game.phase = 'chainPass';
+if (S.game && S.game.kind === 'chain' && !S.game.kinds) S.game = null; // chain saved before per-step kinds
 // Per-skin wording on top of T (the role reveal stays identical in every skin).
 const SKIN_T = {
   atelier: {
@@ -509,6 +514,9 @@ function renderSetup() {
       <h3>${t('game')}</h3>
       <div class="seg" id="gameSeg">${['fake', 'chain'].map(k => `<button data-v="${k}" aria-pressed="${(S.variant || 'fake') === k}">${t(k === 'fake' ? 'gameFake' : 'gameChain')}</button>`).join('')}</div>
       ${S.variant === 'chain' ? `<p class="muted" style="font-size:15px;margin:10px 2px 0">${t('gameChainHint')}</p>
+      <div class="field"><label>${t('chFrom')}</label>
+        <div class="seg" id="fromSeg">${['random', 'own'].map(k => `<button data-v="${k}" aria-pressed="${(S.chainFrom || 'random') === k}">${t(k === 'own' ? 'chFromOwn' : 'chFromRandom')}</button>`).join('')}</div>
+        <p class="muted" style="font-size:15px;margin:8px 2px 0">${S.chainFrom === 'own' ? t('chFromOwnHint') : t('chFromRandomHint')}</p></div>
       <div class="field"><label for="catSel">${t('category')}</label>
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
       <div class="field"><label>${t('skin')}</label>
@@ -558,6 +566,7 @@ function renderSetup() {
   const seg = (id, fn) => $(id)?.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); save(); renderSetup(); }));
   seg('countSeg', v => setCount(+v));
   seg('gameSeg', v => S.variant = v);
+  seg('fromSeg', v => S.chainFrom = v);
   seg('modeSeg', v => S.mode = v);
   seg('roundSeg', v => S.rounds = +v);
   seg('skinSeg', v => S.skin = v);
@@ -1006,20 +1015,24 @@ function renderTally() {
 // ---------- Telephone: word → drawing → word → … around the table, ending on a word ----------
 // Every player plays once. With an even count the phone deals the starting word and the first
 // player draws it; with an odd count the first player writes it, so the chain always ends on a word.
+// With "written by a player" and an even count, the first player writes then draws it too.
+// With "random" and an odd count, the first player gets a random word pre-filled, which they may keep or change.
 function startChain() {
   const ids = S.players.map(p => p.id), st = Math.floor(Math.random() * ids.length);
-  const order = ids.slice(st).concat(ids.slice(0, st));
-  const pw = pickWord(S.cat), c = catById(pw.catId);
+  let order = ids.slice(st).concat(ids.slice(0, st));
+  const pw = pickWord(S.cat), dealt = catById(pw.catId).words[pw.wordIdx][L()];
+  const own = S.chainFrom === 'own', even = order.length % 2 === 0;
+  let start = null, prefill = '';
+  if (!own && even) start = dealt;
+  else if (!own) prefill = dealt;
+  else if (even) order = [order[0], ...order];
+  const kinds = order.map((_, i) => start == null && i === 0 ? 'start' : (i + (start == null ? 1 : 0)) % 2 === 0 ? 'draw' : 'word');
   view = null;
-  S.game = { kind: 'chain', phase: 'chainPass', order, i: 0, steps: [], cur: [],
-    start: order.length % 2 ? null : c.words[pw.wordIdx][L()] };
+  S.game = { kind: 'chain', phase: 'chainPass', order, kinds, i: 0, steps: [], cur: [], start, prefill };
   save(); render(); scrollTo(0, 0);
 }
 // Kind of step i: 'start' (write the starting word), 'draw' or 'word'.
-function chainKind(g, i = g.i) {
-  if (g.start == null && i === 0) return 'start';
-  return (i + (g.start == null ? 1 : 0)) % 2 === 0 ? 'draw' : 'word';
-}
+const chainKind = (g, i = g.i) => g.kinds[i];
 const chainPrev = g => g.i === 0 ? null : g.steps[g.i - 1];
 const chainWord = g => { const p = chainPrev(g); return p ? p.text : g.start; };
 
@@ -1037,7 +1050,7 @@ function renderChainPass() {
 function chainNext(step) {
   const g = S.game;
   g.steps.push(step); g.cur = []; g.i++; buzz(15);
-  go(g.i >= g.order.length ? 'chainEnd' : 'chainPass');
+  go(g.i >= g.order.length ? 'chainEnd' : g.order[g.i] === step.id ? 'chainStep' : 'chainPass');
 }
 
 function renderChainStep() {
@@ -1073,7 +1086,7 @@ function renderChainStep() {
   app.innerHTML = `
     <div class="center" style="font-size:20px">${dotOf(id)}<b>${nameOf(id)}</b> <span class="muted" style="font-size:15px">· ${t('chStep')(g.i + 1, n)}</span></div>
     <h2 class="center">${start ? t('chStartTitle') : t('chGuess')}</h2>
-    <p class="center muted">${start ? t('chStartHint') : g.i === n - 1 ? t('chLastHint') : t('chGuessHint')}</p>
+    <p class="center muted">${start ? (g.order[1] === id ? t('chDrawToo') : t('chStartHint')) : g.i === n - 1 ? t('chLastHint') : t('chGuessHint')}</p>
     ${start ? '' : '<div class="paper view"><canvas id="cv"></canvas></div>'}
     <input type="text" id="wi" placeholder="${start ? t('chStartPh') : t('chGuessPh')}" autocomplete="off" maxlength="40" enterkeyhint="done">
     ${start ? `<button class="btn" id="sug" style="margin-top:12px">🎲 ${t('suggest')}</button>` : ''}
@@ -1081,6 +1094,7 @@ function renderChainStep() {
   if (!start) mountCanvas($('cv'), { strokes: () => prev.strokes, colorOf: s => P(s.id)?.color });
   const wi = $('wi'), ok = $('ok');
   const upd = () => ok.disabled = !wi.value.trim();
+  if (start && g.prefill) { wi.value = g.prefill; upd(); }
   wi.oninput = upd;
   wi.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); if (wi.value.trim()) ok.click(); } };
   $('sug')?.addEventListener('click', () => {
