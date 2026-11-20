@@ -665,15 +665,22 @@ function bureauArtiste(cx, cy, rot, W, D, nom) {
   }
 }
 // Guirlande lumineuse : fil fin + petites ampoules chaudes tous les 10 cm le long de chaque tracé
-function guirlande(traces, nom) {
+// options : r = rayon des ampoules (m), pas = écart entre ampoules (m), ep = rayon du fil (m) ; les grosses ampoules (guinguette) pendent sous le fil
+function guirlande(traces, nom, { r = 0.008, pas = 0.1, ep = 0.0018 } = {}) {
   const gl = new THREE.Group(); gl.userData.nom = nom; gl.name = nom; cur.add(gl);
   const fil = mat.filGuirlande ??= M(0x3a3a2e, { roughness: 0.6 });
   const ampoule = mat.ampoule ??= M(0xffe2a0, { emissive: 0xffb347, emissiveIntensity: 1.4, roughness: 0.3 });
+  const grosse = r > 0.012;
   for (const pts of traces) {
     const c = new THREE.CatmullRomCurve3(pts);
-    gl.add(mesh(new THREE.TubeGeometry(c, Math.max(40, pts.length * 12), 0.0018, 6), fil));
-    for (const p of c.getSpacedPoints(Math.round(c.getLength() / 0.1))) {
-      const b = mesh(new THREE.SphereGeometry(0.008, 10, 8), ampoule); b.castShadow = false; b.position.copy(p); gl.add(b);
+    gl.add(mesh(new THREE.TubeGeometry(c, Math.max(40, pts.length * 12), ep, 6), fil));
+    for (const p of c.getSpacedPoints(Math.max(1, Math.round(c.getLength() / pas)))) {
+      const b = mesh(new THREE.SphereGeometry(r, 16, 12), ampoule); b.castShadow = false; b.position.copy(p);
+      if (grosse) {                                                        // douille noire + ampoule ovale qui pend
+        b.scale.set(1, 1.25, 1); b.position.y -= r * 1.6;
+        const d = mesh(new THREE.CylinderGeometry(r * 0.45, r * 0.45, r * 0.9, 12), fil); d.castShadow = false; d.position.copy(p); d.position.y -= r * 0.45; gl.add(d);
+      }
+      gl.add(b);
     }
   }
   return gl;
@@ -785,6 +792,8 @@ function couvert(parent, x, y, z) {
   const couteau = mesh(new THREE.BoxGeometry(0.017, 0.003, 0.215), mat.inox); couteau.position.set(0.165, 0.002, 0); g.add(couteau);
   return g;
 }
+// Arche de la façade du balcon : côtés droits jusqu'à ARCHE_DEPART, puis courbe surbaissée jusqu'à ARCHE_SOMMET (m)
+const ARCHE_DEPART = 1.65, ARCHE_SOMMET = 2.33;
 function construire() {
   root.clear();
   rond = 0;
@@ -809,10 +818,10 @@ function construire() {
   // Enveloppe
   // Façade du balcon : grande arche surbaissée entre les deux murs, garde-corps à barreaux classiques
   if (exterieur && !coupe) {
-    const W = (1185 - 236) * S, m = 0.12, ys = 1.15, sh = new THREE.Shape();
+    const W = (1185 - 236) * S, m = 0.12, ys = ARCHE_DEPART, sh = new THREE.Shape();
     sh.moveTo(0, 0); sh.lineTo(W, 0); sh.lineTo(W, H / 100); sh.lineTo(0, H / 100); sh.closePath();
     const trou = new THREE.Path();
-    trou.moveTo(m, 0); trou.lineTo(m, ys); trou.absellipse(W / 2, ys, W / 2 - m, 2.3 - ys, Math.PI, 0, true); trou.lineTo(W - m, 0); trou.closePath();
+    trou.moveTo(m, 0); trou.lineTo(m, ys); trou.absellipse(W / 2, ys, W / 2 - m, ARCHE_SOMMET - ys, Math.PI, 0, true); trou.lineTo(W - m, 0); trou.closePath();
     sh.holes.push(trou);
     const arche = mesh(new THREE.ExtrudeGeometry(sh, { depth: 12 * S, bevelEnabled: false, curveSegments: 48 }), mat.crepiArche, 'Arche du balcon');
     arche.position.set(X(236), 0, Z(100)); cur.add(arche);
@@ -1063,6 +1072,15 @@ function construire() {
     for (const r of [8, 14, 20]) { const t = mesh(new THREE.TorusGeometry(r / 100, 0.003, 6, 40), tole); t.position.set(X(1055), 0.33, Z(300) - 0.006); ue.add(t); }
     B(1115, 298, 1150, 300, 10, 55, M(0xcfd2d3, { roughness: 0.5 }), null, ue);       // trappe de raccordement
   }
+  { // Suspension au plafond du séjour, au-dessus de la table basse : abat-jour en dôme, ampoule allumée, fil et cache-piton
+    const sp = new THREE.Group(); sp.userData.nom = 'Suspension (abat-jour)'; sp.name = 'Suspension'; sp.position.set(X(590), 0, Z(645)); cur.add(sp);
+    const prof = [[0.025, 0.22], [0.08, 0.215], [0.15, 0.185], [0.2, 0.12], [0.225, 0.04], [0.232, 0]].map(([r, h]) => new THREE.Vector2(r, h));
+    const abat = mesh(new THREE.LatheGeometry(prof, 48), mat.abatJour ??= M(0xece4d6, { roughness: 0.9, side: THREE.DoubleSide, emissive: 0xffd9a0, emissiveIntensity: 0.12 }));
+    abat.position.y = 1.86; sp.add(abat);
+    const ampoule = mesh(new THREE.SphereGeometry(0.04, 16, 12), mat.ampoule ??= M(0xffe2a0, { emissive: 0xffb347, emissiveIntensity: 1.4, roughness: 0.3 })); ampoule.castShadow = false; ampoule.position.y = 1.97; sp.add(ampoule);
+    const fil = mesh(new THREE.CylinderGeometry(0.003, 0.003, H / 100 - 2.08, 8), mat.filGuirlande ??= M(0x3a3a2e, { roughness: 0.6 })); fil.position.y = (2.08 + H / 100) / 2; sp.add(fil);
+    const cache = mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.02, 24), mat.blanc); cache.position.y = H / 100 - 0.01; sp.add(cache);
+  }
   // Climatisation murale au-dessus du piano, goulotte le long du mur jusqu'au retour vers le balcon
   if (!coupe) {
     const cl = new THREE.Group(); cl.userData.nom = 'Climatisation'; cl.name = 'Climatisation'; cur.add(cl);
@@ -1208,14 +1226,14 @@ function construire() {
   { // Guirlandes du balcon : le long de l'arche (côté balcon) et en festons sur la rambarde
     const tr = [];
     if (!coupe && exterieur) {                                                              // la guirlande de l'arche suit l'arche
-      const W = (1185 - 236) * S, cx = X(236) + W / 2, a = W / 2 - 0.12 + 0.04, bh = 2.3 - 1.15 + 0.04, zi = Z(112) + 0.012, arc = [];
-      for (let k = 0; k <= 40; k++) { const t = Math.PI - k / 40 * Math.PI; arc.push(new THREE.Vector3(cx + a * Math.cos(t), 1.15 + bh * Math.sin(t), zi)); }
+      const W = (1185 - 236) * S, cx = X(236) + W / 2, a = W / 2 - 0.12 + 0.04, bh = ARCHE_SOMMET - ARCHE_DEPART + 0.04, zi = Z(112) + 0.012, arc = [];
+      for (let k = 0; k <= 40; k++) { const t = Math.PI - k / 40 * Math.PI; arc.push(new THREE.Vector3(cx + a * Math.cos(t), ARCHE_DEPART + bh * Math.sin(t), zi)); }
       tr.push(arc);
     }
     const ram = [], zr = Z(115);                                                  // côté balcon, devant la canisse
     for (let x = 270, k = 0; x <= 1155; x += 30, k++) ram.push(new THREE.Vector3(X(x), k % 2 ? 0.95 : 1.045, zr));   // festons de 30 cm
-    tr.push(ram);
-    guirlande(tr, 'Guirlandes du balcon');
+    guirlande([ram], 'Guirlande de la rambarde');
+    if (tr.length) guirlande(tr, "Guirlande de l'arche", { r: 0.022, pas: 0.32, ep: 0.0025 });   // grosses ampoules type guinguette
   }
   { // Petite étagère basse contre le mur du balcon : plantes dessus, chaussures et rangements dessous (75 × 25 × 45)
     const eb = new THREE.Group(); eb.userData.nom = 'Petite étagère du balcon'; eb.name = 'Étagère balcon'; cur.add(eb);
