@@ -71,9 +71,7 @@
     <button id="bProjet" class="on" aria-pressed="true" title="Après les travaux, meublé · touche 3 (&quot;)" aria-keyshortcuts="3">Projet travaux</button>
     <button id="bVideP" aria-pressed="false" title="Après les travaux, sans meubles · touche 4 (')" aria-keyshortcuts="4">Vide après</button>
   </div>
-  <button id="bInv" class="tog on" role="switch" aria-checked="true"><i></i>Dressing au fond</button>
   <button id="bEcran" class="tog on" role="switch" aria-checked="true"><i></i>Écran projecteur</button>
-  <button id="bMurs" class="tog on" role="switch" aria-checked="true" title="Touche M" aria-keyshortcuts="M"><i></i>Murs pleine hauteur</button>
 </div>
 <div id="vues">
   <div id="gVues" class="groupe" role="group" aria-label="Point de vue">
@@ -86,7 +84,7 @@
 </div>
 <div id="tip"></div>
 <div id="joy"><i></i></div>
-<div id="aide" data-orbite="Glisser : tourner · molette / pincer : zoom · clic droit / 2 doigts : déplacer · touches : 1–4 (&amp; é &quot; ') versions · D dessus · R 3D · V visite · M murs" data-visite="Flèches ou ZQSD : avancer / tourner · glisser : regarder · rond en bas à gauche : se déplacer au doigt · Échap : quitter la visite"></div>
+<div id="aide" data-orbite="Glisser : tourner · molette / pincer : zoom · clic droit / 2 doigts : déplacer · touches : 1–4 (&amp; é &quot; ') versions · D dessus · R 3D · V visite" data-visite="Flèches ou ZQSD : avancer / tourner · glisser : regarder · rond en bas à gauche : se déplacer au doigt · Échap : quitter la visite"></div>
 
 <script type="module">
 import * as THREE from 'three';
@@ -397,7 +395,7 @@ const root = new THREE.Group();   // tout ce qui est exporté
 scene.add(root);
 let archi, mobilier;
 let cur;                          // groupe courant pour B()
-let mode = 'projet', coupe = false, inverse = true, ecran = true;   // murs pleine hauteur par défaut
+let mode = 'projet', coupe = false, ecran = true, exterieur = true;   // murs toujours pleine hauteur, murs et porte extérieurs toujours affichés
 let visite = false, obst = [];    // mode visite : boîtes de collision   // mode : 'vide' | 'actuel' | 'projet'
 
 // Arêtes adoucies pour le mobilier (0 = arêtes vives, pour l'architecture)
@@ -444,14 +442,32 @@ function mur(x0, y0, x1, y1, h = H, z0 = 0, name = 'Mur') {
 }
 // Portes intérieures cliquables : ouvertes au départ, un clic les ouvre / ferme
 const etatPortes = { 'Porte salle de bain': true, 'Porte WC': true };
+const pivotsPortes = {}, animsPortes = {};
+function animerPorte(nom) {                           // lance la rotation vers l'état courant (≈ 0,45 s, accélération douce)
+  const p = pivotsPortes[nom]; if (!p) return;
+  animsPortes[nom] = { de: p.pivot.rotation.y, vers: etatPortes[nom] ? p.ouvert : 0, t: 0 };
+}
+function majPortes(dt) {
+  for (const [nom, a] of Object.entries(animsPortes)) {
+    a.t = Math.min(1, a.t + dt / 0.45);
+    const e = a.t < 0.5 ? 2 * a.t * a.t : 1 - (-2 * a.t + 2) ** 2 / 2;
+    pivotsPortes[nom].pivot.rotation.y = a.de + (a.vers - a.de) * e;
+    if (a.t >= 1) { delete animsPortes[nom]; if (visite) obstacles(); }
+  }
+}
 let tableDepliee = true; const NOM_TABLE = 'Table repliable 60 × 30';   // table à abattant : clic pour plier / déplier
 // ouverte = { sens: +1 (vers +x) | -1, gond: 'debut' (côté y0) | 'fin' (côté y1) } : vantail ouvert à 90° (portes verticales)
 function porte(x0, y0, x1, y1, name, ouverte) {       // ouverture 204 cm + linteau
   const vertical = (y1 - y0) > (x1 - x0);
   const top = coupe ? Math.min(204, CUT) : 204;
-  if (vertical && ouverte && etatPortes[name]) {
-    const face = ouverte.sens > 0 ? x1 : x0, l = (y1 - y0) - 2, yg = ouverte.gond === 'debut' ? y0 + 1 : y1 - 9;
-    B(Math.min(face, face + ouverte.sens * l), yg, Math.max(face, face + ouverte.sens * l), yg + 8, 0, top, mat.porte, name);
+  if (vertical && ouverte) {                         // porte animée : vantail monté sur un pivot (gond) qui tourne de 90°
+    const sens = ouverte.sens, dz = ouverte.gond === 'debut' ? 1 : -1, face = sens > 0 ? x1 : x0, lg = (y1 - y0 - 2) * S;
+    const pivot = new THREE.Group(); pivot.userData.nom = name; pivot.name = name;
+    pivot.position.set(X(face), 0, Z(ouverte.gond === 'debut' ? y0 : y1)); cur.add(pivot);
+    const vantail = mesh(new THREE.BoxGeometry(8 * S, top / 100, lg), mat.porte); vantail.position.set(-sens * 5 * S, top / 200, dz * (lg / 2 + S)); pivot.add(vantail);
+    const ouvert = dz * sens * Math.PI / 2;
+    pivot.rotation.y = etatPortes[name] ? ouvert : 0;
+    pivotsPortes[name] = { pivot, ouvert };
     mur(x0, y0, x1, y1, H, 204); return;
   }
   if (vertical) { const c = (x0 + x1) / 2; B(c - 4, y0, c + 4, y1, 0, top, mat.porte, name); }
@@ -785,7 +801,7 @@ function construire() {
 
   // Enveloppe
   // Façade du balcon : grande arche surbaissée entre les deux murs, garde-corps à barreaux classiques
-  if (!coupe) {
+  if (exterieur && !coupe) {
     const W = (1185 - 236) * S, m = 0.12, ys = 1.15, sh = new THREE.Shape();
     sh.moveTo(0, 0); sh.lineTo(W, 0); sh.lineTo(W, H / 100); sh.lineTo(0, H / 100); sh.closePath();
     const trou = new THREE.Path();
@@ -793,7 +809,7 @@ function construire() {
     sh.holes.push(trou);
     const arche = mesh(new THREE.ExtrudeGeometry(sh, { depth: 12 * S, bevelEnabled: false, curveSegments: 48 }), mat.crepiArche, 'Arche du balcon');
     arche.position.set(X(236), 0, Z(100)); cur.add(arche);
-  } else for (const x of [236, 1161]) B(x, 100, x + 24, 112, 0, CUT, mat.crepi, 'Arche du balcon');
+  } else if (exterieur) for (const x of [236, 1161]) B(x, 100, x + 24, 112, 0, CUT, mat.crepi, 'Arche du balcon');
   { const gc = new THREE.Group(); gc.userData.nom = 'Garde-corps à barreaux'; gc.name = 'Garde-corps'; cur.add(gc);
     const fer = mat.fer ??= M(0x3b3e42, { roughness: 0.45, metalness: 0.5 });
     B(260, 102, 1161, 110, 100, 105, fer, null, gc);                                 // main courante
@@ -801,28 +817,29 @@ function construire() {
     for (let x = 268; x < 1157; x += 22) B(x - 1, 105, x + 1, 107, 9, 100, fer, null, gc);   // barreaux tous les 11 cm
   }
   B(248, 112, 1173, 114, 2, 104, mat.canisse ??= new THREE.MeshStandardMaterial({ map: canisseTex, roughness: 0.8 }), 'Canisse en roseaux');
-  mur(236, 112, 248, 1328);                                 // gauche (haut)
-  mur(236, 1478, 248, 1892);                                // gauche (entrée)
-  mur(1173, 112, 1185, 1892);                               // droite
-  mur(236, 1880, 268, 1892); mur(428, 1880, 1173, 1892);    // bas
-  porte(268, 1880, 428, 1892, "Porte d'entrée");
+  if (exterieur) {                                          // enveloppe (option « Murs extérieurs »)
+    mur(236, 112, 248, 1328);                               // gauche (haut)
+    mur(236, 1478, 248, 1892);                              // gauche (entrée)
+    mur(1173, 112, 1185, 1892);                             // droite
+    mur(236, 1880, 268, 1892); mur(428, 1880, 1173, 1892);  // bas
+    porte(268, 1880, 428, 1892, "Porte d'entrée");
+  }
   // Retraits entre balcon et séjour
-  mur(248, 388, 258, 402, H, 0, 'Montant de la baie');                    // pas de gros poteau : simple montant de 5 cm, la baie va presque jusqu'au mur
+  mur(248, 388, 347, 402, H, 0, 'Mur');                                    // pan de mur fin (7 cm) entre le mur de gauche et la baie, pas de gros poteau
   { // Crépi orangé sur les faces des murs côté balcon (fine couche posée devant)
     const hc = coupe ? CUT : H;
-    B(248, 112, 249, 388, 0, hc, mat.crepi, 'Crépi');            // mur de gauche
-    B(1172, 112, 1173, 393, 0, hc, mat.crepi, 'Crépi');          // mur de droite
-    B(249, 387, 258, 388, 0, hc, mat.crepi, 'Crépi');            // montant de la baie
+    if (exterieur) { B(248, 112, 249, 388, 0, hc, mat.crepi, 'Crépi'); B(1172, 112, 1173, 393, 0, hc, mat.crepi, 'Crépi'); }   // murs de gauche et de droite
+    B(249, 387, 347, 388, 0, hc, mat.crepi, 'Crépi');            // pan de mur à gauche de la baie
     B(845, 392, 1172, 393, 0, hc, mat.crepi, 'Crépi');           // retour de la clim
-    if (!coupe) B(258, 387, 845, 388, 220, H, mat.crepi, 'Crépi');   // au-dessus de la baie
+    if (!coupe) B(347, 387, 845, 388, 220, H, mat.crepi, 'Crépi');   // au-dessus de la baie
   }
   mur(845, 393, 1173, 462, H, 0, 'Retour 166 (clim)');
   // Baie vitrée 220/235
   const hv = coupe ? CUT : 215;
-  B(258, 393, 845, 397, 0, hv, mat.verre, 'Baie vitrée');
-  B(258, 390, 845, 400, 0, 5, mat.metal); B(546, 391, 556, 399, 0, hv, mat.metal);
-  if (!coupe) B(258, 390, 845, 400, 215, 220, mat.metal);
-  mur(258, 388, 845, 402, H, 220);
+  B(347, 393, 845, 397, 0, hv, mat.verre, 'Baie vitrée');
+  B(347, 390, 845, 400, 0, 5, mat.metal); B(591, 391, 601, 399, 0, hv, mat.metal);
+  if (!coupe) B(347, 390, 845, 400, 215, 220, mat.metal);
+  mur(347, 388, 845, 402, H, 220);
   // Gaine côté cuisine (49/56)
   mur(236, 1328, 370, 1478, H, 0, 'Gaine 49/56');
   // Muret cuisine / entrée et retour (hauteur 125/129)
@@ -1181,7 +1198,7 @@ function construire() {
   }
   { // Guirlandes du balcon : le long de l'arche (côté balcon) et en festons sur la rambarde
     const tr = [];
-    if (!coupe) {
+    if (!coupe && exterieur) {                                                              // la guirlande de l'arche suit l'arche
       const W = (1185 - 236) * S, cx = X(236) + W / 2, a = W / 2 - 0.12 + 0.04, bh = 2.3 - 1.15 + 0.04, zi = Z(112) + 0.012, arc = [];
       for (let k = 0; k <= 40; k++) { const t = Math.PI - k / 40 * Math.PI; arc.push(new THREE.Vector3(cx + a * Math.cos(t), 1.15 + bh * Math.sin(t), zi)); }
       tr.push(arc);
@@ -1381,7 +1398,6 @@ function construire() {
   }
   // Entrée
   B(450, 1806, 610, 1876, 0, 50, mat.bois, 'Meuble bas entrée 35 × 80');
-  B(643, 1796, 807, 1876, 0, 80, mat.gris, 'Meuble 82 × 40');
 
   }
   if (projet) {
@@ -1418,17 +1434,10 @@ function construire() {
         const f = boule(g, 1.8 * s, Math.cos(a) * r, y, Math.sin(a) * r, deco_m.succulente, 1.6, 0.6, 0.8);
         f.rotation.set(0, -a, 0.35);
       }    }
-    // Coin dressing : deux positions à comparer (bouton « Dressing au fond »)
-    const miroirM = M(0xd6e6ee, { roughness: 0.1, metalness: 0.2 });
-    if (inverse) {   // dressing contre le mur du fond
-      B(853, 463, 1173, 583, 0, 240, mat.chene, 'Dressing 160 × 60');
-      for (const x of [933, 1013, 1093]) B(x - 1, 583, x + 1, 584, 0, 240, mat.boisF);
-      B(1169, 715, 1173, 835, 30, hm(190), miroirM, 'Miroir 60 × 160');
-    } else {         // dressing le long du mur de droite
-      B(900, 462, 1020, 466, 30, hm(190), miroirM, 'Miroir 60 × 160');
-      B(1051, 583, 1171, 925, 0, 240, mat.chene, 'Dressing 60 × 170');
-      for (const y of [697, 811]) B(1050, y - 1, 1051, y + 1, 0, 240, mat.boisF);
-    }
+    // Coin dressing : contre le mur du fond, miroir sur le mur de droite
+    B(853, 463, 1173, 583, 0, 240, mat.chene, 'Dressing 160 × 60');
+    for (const x of [933, 1013, 1093]) B(x - 1, 583, x + 1, 584, 0, 240, mat.boisF);
+    B(1169, 715, 1173, 835, 30, hm(190), M(0xd6e6ee, { roughness: 0.1, metalness: 0.2 }), 'Miroir 60 × 160');
     // Bureau côté séjour, adossé à l'allège le long du lit
     bureauAssisDebout(776, 1090, -Math.PI / 2);                            // même bureau qu'aujourd'hui, dos à l'allège
     bureauArtiste(776, 1090, -Math.PI / 2, 120, 69, 'Bureau : écran, PC, dessin');
@@ -1451,9 +1460,18 @@ function construire() {
       guirlande([arc, mur], 'Guirlande lumineuse');
     }
     const livres = [0x9c4a3c, 0x3f6a8a, 0xe0c36a, 0x5d8a6a, 0xd9d2c4, 0x7a5a8c];
-    // Entrée : commode, étagères, chaises hautes, penderie avec banc
-    B(248, 1503, 345, 1703, 0, 90, mat.chene, 'Commode 100 × 50');
+    // Entrée : étagères, chaises hautes, penderie avec banc (plus de commode)
     for (const z of [125, 155]) B(248, 1478, 370, 1518, z, z + 3, mat.chene, 'Étagères 61 × 20');
+    { // Commode 61 × 40 × 80 sous les étagères, façade (3 tiroirs) tournée vers la porte d'entrée
+      const cm = new THREE.Group(); cm.userData.nom = 'Commode 61 × 40'; cm.name = 'Commode'; cur.add(cm);
+      B(249, 1478, 369, 1556, 4, 80, mat.chene, null, cm);                                 // caisson
+      B(251, 1478, 367, 1552, 0, 4, mat.socle ??= M(0x4a4a4a, { roughness: 0.7 }), null, cm);   // socle en retrait
+      for (const [z0, z1] of [[5, 29], [30, 54], [55, 79]]) {
+        B(250, 1556, 368, 1558, z0, z1, mat.chene, null, cm);                               // façades de tiroirs
+        B(300, 1558, 318, 1559.5, (z0 + z1) / 2 + 3, (z0 + z1) / 2 + 4.5, mat.metal, null, cm);   // poignées
+      }
+      for (const z of [29, 54]) B(250, 1556, 368, 1557, z, z + 1, mat.joint ??= M(0x6d6a66), null, cm);   // jours entre tiroirs
+    }
     tabouret(430, 1628, 'Chaise haute'); tabouret(570, 1628, 'Chaise haute');
     // Sur le bar : deux assiettes avec couverts face aux chaises hautes et une petite plante
     for (const x of [430, 570]) couvert(cur, X(x), 1.15, Z(1548));
@@ -1524,7 +1542,7 @@ function basculeVisite() {
   visite = !visite;
   $('bVisite').classList.toggle('on', visite);
   $('bVisite').querySelector('span').textContent = visite ? 'Quitter la visite' : 'Visite';
-  for (const id of ['bMurs', 'gVues']) $(id).style.display = visite ? 'none' : '';
+  $('gVues').style.display = visite ? 'none' : '';
   $('joy').style.display = visite ? 'block' : 'none';
   $('aide').textContent = $('aide').dataset[visite ? 'visite' : 'orbite'];
   controls.enabled = !visite;
@@ -1547,7 +1565,6 @@ addEventListener('keydown', e => {
   if (visite) return;
   if (k === 'd') vue(true);
   else if (k === 'r') vue(false);
-  else if (k === 'm') $('bMurs').click();
 });
 addEventListener('keyup', e => touches.delete(e.code));
 addEventListener('blur', () => touches.clear());
@@ -1580,12 +1597,10 @@ for (const [id, m] of [['bVide', 'vide'], ['bActuel', 'actuel'], ['bProjet', 'pr
   $(id).onclick = () => {
     mode = m; construire();
     for (const b of ['bVide', 'bActuel', 'bProjet', 'bVideP']) { $(b).classList.toggle('on', b === id); $(b).setAttribute('aria-pressed', b === id); }
-    for (const b of ['bInv', 'bEcran']) $(b).style.display = m === 'projet' ? '' : 'none';
+    $('bEcran').style.display = m === 'projet' ? '' : 'none';
   };
 const bascule = (id, val) => { $(id).classList.toggle('on', val); $(id).setAttribute('aria-checked', val); };
-$('bInv').onclick = () => { inverse = !inverse; bascule('bInv', inverse); construire(); };
 $('bEcran').onclick = () => { ecran = !ecran; bascule('bEcran', ecran); construire(); };
-$('bMurs').onclick = () => { coupe = !coupe; bascule('bMurs', !coupe); construire(); };
 $('bDessus').onclick = () => vue(true);
 $('b3d').onclick = () => vue(false);
 $('bGlb').onclick = () => {
@@ -1617,7 +1632,7 @@ function nomSous(e) {
   renderer.domElement.addEventListener('pointerup', e => {
     if (!appui || Math.hypot(e.clientX - appui[0], e.clientY - appui[1]) > 5) return;   // un glisser n'est pas un clic
     const nom = nomSous(e);
-    if (nom in etatPortes) { etatPortes[nom] = !etatPortes[nom]; construire(); }
+    if (nom in etatPortes) { etatPortes[nom] = !etatPortes[nom]; animerPorte(nom); }
     else if (nom === NOM_TABLE) { tableDepliee = !tableDepliee; construire(); }
   });
 }
@@ -1641,6 +1656,7 @@ const horloge = new THREE.Clock();
 window.__app = { scene, camera, root, vue, controls, pos, basculeVisite, get obst() { return obst; } };
 renderer.setAnimationLoop(() => {
   const dt = Math.min(horloge.getDelta(), 0.05);
+  majPortes(dt);
   if (visite) marche(dt); else controls.update();
   renderer.render(scene, camera);
 });
