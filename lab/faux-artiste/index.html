@@ -292,7 +292,11 @@ const T = {
     discussHint: 'Discutez ! Quand tout le monde est prêt, passez le téléphone pour voter en secret, chacun son tour.', startVote: 'Passer au vote',
     voteAs: name => `Je suis ${name}, voter`, ballotHint: 'Qui est le faux artiste selon toi ?', castVote: 'Valider mon vote',
     tallyTitle: 'Résultat du vote', votesN: n => `${n} voix`, tallyTie: 'Égalité !', tallyTop: name => `${name} est accusé·e.`,
-    caught: name => `Bien vu, ${name} était le faux artiste !`,
+    caught: name => `Bien vu, ${name} était un faux artiste !`,
+    roles: 'Rôles', nFake: 'Faux artistes', nFakeHint: 'Ne connaissent que la catégorie.', nForger: 'Faussaires', nForgerHint: 'Reçoivent un autre mot proche, sans savoir qu\'ils sont faussaires.',
+    rolesMax: n => `${n} imposteur${n > 1 ? 's' : ''} au plus avec ce nombre de joueurs (il faut au moins 2 artistes).`,
+    gmForger: 'Mot du faussaire (proche)', forgerWas: 'Le faussaire avait', forgerName: 'Faussaire',
+    rForger: (a, w) => `Bien vu, ${a} était faussaire (son mot : ${w}).`, them: (list, n) => n > 1 ? `C'étaient aussi ${list}.` : `${list} aussi en était.`, impWins: 'Les imposteurs gagnent !', forgerWins: 'Le faussaire gagne !',
     guessHint: name => `${name}, une dernière chance : devine le mot.`,
     guessPh: 'Ta réponse (ou dis-la à voix haute)', revealWord: 'Révéler le mot',
     yourGuess: 'Réponse', theWord: 'Le mot', autoMatch: 'Ça ressemble à une bonne réponse.', noMatch: 'Ça ne correspond pas… à vous de juger.',
@@ -317,7 +321,8 @@ const T = {
       'Les vrais artistes doivent montrer qu\'ils connaissent le mot sans le rendre trop évident ; le faux artiste doit faire illusion.',
       'Ensuite, on discute, puis tout le monde pointe un suspect (ou, en option, vote en secret chacun son tour sur le téléphone). En cas d\'égalité ou d\'erreur, le faux artiste gagne.',
       'S\'il est démasqué, le faux artiste peut encore gagner en devinant le mot.',
-      '<b>Points :</b> si le faux artiste gagne, lui (et le maître du jeu) marquent 2 points. Sinon, chaque artiste marque 1 point.',
+      '<b>Rôles</b> (réglables) : il peut y avoir plusieurs faux artistes, et des <b>faussaires</b>, qui reçoivent un autre mot proche de la même catégorie sans le savoir. Démasquer n\'importe quel imposteur suffit aux artistes (un faux artiste démasqué peut encore deviner le mot).',
+      '<b>Points :</b> si les imposteurs gagnent, chacun d\'eux (et le maître du jeu) marque 2 points. Sinon, chaque artiste marque 1 point.',
       'Chaque dessin terminé est rangé dans la <b>galerie</b> 🖼️ (les 30 derniers).',
       '<b>Téléphone arabe</b> (autre jeu, dans les réglages) : un mot de départ, le joueur suivant le dessine, le suivant devine le mot d\'après le dessin, le suivant redessine ce mot… jusqu\'à ce que tout le monde soit passé. À la fin, on compare avec le mot de départ.',
     ],
@@ -358,7 +363,11 @@ const T = {
     discussHint: 'Discuss! When everyone is ready, pass the phone round to vote in secret, one by one.', startVote: 'Go to the vote',
     voteAs: name => `I'm ${name}, vote`, ballotHint: 'Who do you think is the fake artist?', castVote: 'Cast my vote',
     tallyTitle: 'Vote result', votesN: n => n === 1 ? '1 vote' : `${n} votes`, tallyTie: 'It\'s a tie!', tallyTop: name => `${name} is accused.`,
-    caught: name => `Well spotted, ${name} was the fake artist!`,
+    caught: name => `Well spotted, ${name} was a fake artist!`,
+    roles: 'Roles', nFake: 'Fake artists', nFakeHint: 'Only know the category.', nForger: 'Forgers', nForgerHint: 'Get another, close word, without knowing they are forgers.',
+    rolesMax: n => `At most ${n} impostor${n > 1 ? 's' : ''} with this many players (you need at least 2 artists).`,
+    gmForger: 'Forger\'s word (close)', forgerWas: 'The forger had', forgerName: 'Forger',
+    rForger: (a, w) => `Well spotted, ${a} was a forger (their word: ${w}).`, them: (list, n) => `${list} ${n > 1 ? 'were' : 'was'} one too.`, impWins: 'The impostors win!', forgerWins: 'The forger wins!',
     guessHint: name => `${name}, one last chance: guess the word.`,
     guessPh: 'Your answer (or say it out loud)', revealWord: 'Reveal the word',
     yourGuess: 'Answer', theWord: 'The word', autoMatch: 'Looks like a correct answer.', noMatch: 'Doesn\'t match… you be the judge.',
@@ -383,7 +392,8 @@ const T = {
       'Real artists must show they know the word without making it obvious; the fake artist must blend in.',
       'Then discuss, and everyone points at a suspect (or, as an option, votes in secret one by one on the phone). On a tie or a wrong guess, the fake artist wins.',
       'If caught, the fake artist can still win by guessing the word.',
-      '<b>Points:</b> if the fake artist wins, they (and the question master) score 2 points. Otherwise each artist scores 1 point.',
+      '<b>Roles</b> (adjustable): there can be several fake artists, and <b>forgers</b>, who get another, close word from the same category without knowing it. Catching any impostor is enough for the artists (a caught fake artist can still guess the word).',
+      '<b>Points:</b> if the impostors win, each of them (and the question master) scores 2 points. Otherwise each artist scores 1 point.',
       'Every finished drawing goes to the <b>gallery</b> 🖼️ (the last 30).',
       '<b>Telephone</b> (another game, in the settings): a starting word, the next player draws it, the next one guesses the word from the drawing, the next draws that word again… until everyone has played. At the end, compare with the starting word.',
     ],
@@ -407,6 +417,7 @@ S.players.forEach((p, i) => {
 if (S.players.length > MAX_PLAYERS) S.players = S.players.slice(0, MAX_PLAYERS);
 if (!S.r1) { S.rounds = 1; S.r1 = true; } // one-time switch of saved setups to the new 1-round default
 if (S.game && S.game.phase === 'reveal') S.game.phase = 'pass'; // never reopen on a secret
+if (S.game && S.game.fake && !S.game.roles) S.game.roles = { [S.game.fake]: 'fake' }; // single-fake save
 if (S.game && S.game.phase === 'ballot') S.game.phase = 'votePass'; // nor on someone's ballot
 if (S.game && S.game.phase === 'chainStep') S.game.phase = 'chainPass';
 if (S.game && S.game.kind === 'chain' && !S.game.kinds) S.game = null; // chain saved before per-step kinds
@@ -439,6 +450,21 @@ const P = id => S.players.find(p => p.id === id);
 const pname = (p, i) => (p && p.name.trim()) || `${t('player')} ${(i ?? S.players.indexOf(p)) + 1}`;
 const nameOf = id => esc(pname(P(id)));
 const av = (color, emoji, cls = '') => `<span class="av ${cls}" style="background:${color};--c:${color}"><i>${emoji}</i></span>`;
+const roleOf = (g, id) => g.roles?.[id] || 'artist';
+const impostors = g => g.drawers.filter(id => roleOf(g, id) !== 'artist');
+const roleIcon = (g, id) => ({ fake: ' 🎭', forger: ' 🥸' })[roleOf(g, id)] || '';
+// At least 2 artists; returns the clamped [fakes, forgers] for the current table.
+function roleCounts() {
+  const d = S.players.length - (S.mode === 'gm' ? 1 : 0), max = Math.max(1, d - 2);
+  let f = S.nFake ?? 1, k = S.nForger ?? 0;
+  f = Math.min(max, Math.max(0, f)); k = Math.min(max - f, Math.max(0, k));
+  if (f + k < 1) f = 1;
+  return [f, k, max];
+}
+function forgerWord(g) {
+  if (g.custom) return g.custom.forger || '';
+  return g.forgerIdx == null ? '' : catById(g.catId).words[g.forgerIdx][L()];
+}
 const dotOf = (id, cls) => av(P(id).color, P(id).emoji, cls);
 const catById = id => CATEGORIES.find(c => c.id === id);
 const L = () => S.lang === 'fr' ? 0 : 1;
@@ -536,6 +562,12 @@ function renderSetup() {
         <div class="seg" id="skinSeg">${Object.keys(SKINS).map(k => `<button data-v="${k}" aria-pressed="${(S.skin || 'classic') === k}">${t('skinNames')[k]}</button>`).join('')}</div></div>
       <div class="field"><label>${t('rounds')}</label>
         <div class="seg" id="roundSeg">${[1, 2, 3].map(n => `<button data-v="${n}" aria-pressed="${S.rounds === n}">${n}</button>`).join('')}</div></div>
+      <div class="field"><label>${t('roles')}</label>
+        ${[['nFake', 0], ['nForger', 1]].map(([k, j]) => `<div class="rrow" style="margin:6px 0">
+          <button class="step" data-role="${k}" data-d="-1" aria-label="− ${t(k)}" ${roleCounts()[j] <= (roleCounts()[1 - j] ? 0 : 1) ? 'disabled' : ''}>−</button>
+          <div style="flex:1;min-width:0"><b>${roleCounts()[j]}</b> ${t(k)}<div class="muted" style="font-size:14px">${t(k + 'Hint')}</div></div>
+          <button class="step" data-role="${k}" data-d="1" aria-label="+ ${t(k)}" ${roleCounts()[0] + roleCounts()[1] >= roleCounts()[2] ? 'disabled' : ''}>+</button></div>`).join('')}
+        ${roleCounts()[0] + roleCounts()[1] >= roleCounts()[2] ? `<p class="muted" style="font-size:14px;margin:4px 2px 0">${t('rolesMax')(roleCounts()[2])}</p>` : ''}</div>
       <div class="field"><label>${t('voteMode')}</label>
         <div class="seg" id="voteSeg">${['table', 'turns'].map(k => `<button data-v="${k}" aria-pressed="${(S.voteMode || 'table') === k}">${t(k === 'table' ? 'voteTable' : 'voteTurns')}</button>`).join('')}</div>
         <p class="muted" style="font-size:15px;margin:8px 2px 0">${S.voteMode === 'turns' ? t('voteTurnsHint') : t('voteTableHint')}</p></div>
@@ -567,6 +599,12 @@ function renderSetup() {
   seg('countSeg', v => setCount(+v));
   seg('gameSeg', v => S.variant = v);
   seg('fromSeg', v => S.chainFrom = v);
+  app.querySelectorAll('[data-role]').forEach(b => b.onclick = () => {
+    const [f, k] = roleCounts(), d = +b.dataset.d;
+    if (b.dataset.role === 'nFake') { S.nFake = f + d; S.nForger = k; } else { S.nFake = f; S.nForger = k + d; }
+    if (S.nFake + S.nForger < 1) return;
+    [S.nFake, S.nForger] = roleCounts(); save(); renderSetup();
+  });
   seg('modeSeg', v => S.mode = v);
   seg('roundSeg', v => S.rounds = +v);
   seg('skinSeg', v => S.skin = v);
@@ -576,7 +614,7 @@ function renderSetup() {
   $('resetBtn')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); save(); renderSetup(); });
   $('startBtn').addEventListener('click', startGame);
   if (!$('ffRange')) return;
-  const ffR = $('ffRange'), ffV = $('ffVal'), auto = () => Math.round(100 / (S.players.length - (S.mode === 'gm' ? 1 : 0)));
+  const ffR = $('ffRange'), ffV = $('ffVal'), auto = () => { const [f, k] = roleCounts(); return Math.round(100 * (f || k) / (S.players.length - (S.mode === 'gm' ? 1 : 0))); };
   const ffShow = () => { ffV.textContent = S.firstFake == null ? t('firstAuto')(auto()) : S.firstFake + ' %'; };
   ffR.value = S.firstFake ?? auto(); ffShow();
   ffR.oninput = () => { S.firstFake = +ffR.value; ffShow(); save(); };
@@ -627,21 +665,27 @@ function startGame() {
   const ids = S.players.map(p => p.id);
   const gm = S.mode === 'gm' ? ids[S.gmPtr++ % ids.length] : null;
   const drawers = ids.filter(id => id !== gm);
-  const fake = pick(drawers), fi = drawers.indexOf(fake);
-  // S.firstFake (0–100, or null = plain random) is the chance the fake artist opens the drawing.
+  const [nf, nk] = roleCounts(), roles = {};
+  const shuffled = [...drawers].sort(() => Math.random() - .5);
+  shuffled.slice(0, nf).forEach(id => roles[id] = 'fake');
+  shuffled.slice(nf, nf + nk).forEach(id => roles[id] = 'forger');
+  // S.firstFake (0–100, or null = plain random) is the chance an impostor (a fake artist if any) opens the drawing.
+  const lead = drawers.map((_, i) => i).filter(i => roles[drawers[i]] === (nf ? 'fake' : 'forger'));
   let start = Math.floor(Math.random() * drawers.length);
   if (S.firstFake != null) {
-    if (Math.random() * 100 < S.firstFake) start = fi;
-    else { const others = drawers.map((_, i) => i).filter(i => i !== fi); start = pick(others); }
+    if (Math.random() * 100 < S.firstFake) start = pick(lead);
+    else { const others = drawers.map((_, i) => i).filter(i => !lead.includes(i)); start = pick(others); }
   }
+  let w = gm ? { custom: null } : pickWord(S.cat);
+  if (!gm && nk) { const c = catById(w.catId); w.forgerIdx = pick(c.words.map((_, i) => i).filter(i => i !== w.wordIdx)); }
   const loop = drawers.slice(start).concat(drawers.slice(0, start));
   const order = [];
   for (let r = 0; r < S.rounds; r++) order.push(...loop);
   view = null;
   S.game = {
-    phase: gm ? 'gm' : 'pass', gm, drawers, fake, order, turn: 0, strokes: [], pending: false,
+    phase: gm ? 'gm' : 'pass', gm, drawers, roles, order, turn: 0, strokes: [], pending: false,
     revealI: 0, secret: S.voteMode === 'turns', votes: {}, voteI: 0, accused: null, guessed: null, outcome: null, scored: false,
-    ...(gm ? { custom: null } : pickWord(S.cat)),
+    ...w,
   };
   save(); render(); scrollTo(0, 0);
 }
@@ -658,22 +702,26 @@ function renderGm() {
     $('ok').onclick = () => { g.gmOpen = true; renderGm(); };
     return;
   }
+  const needF = Object.values(g.roles).includes('forger');
   app.innerHTML = `<div class="card">
       <h3>${t('gmTitle')} · ${nameOf(g.gm)}</h3>
       <div class="field"><label for="gc">${t('gmCat')}</label><input type="text" id="gc" maxlength="40" autocomplete="off" enterkeyhint="next"></div>
-      <div class="field"><label for="gw">${t('gmWord')}</label><input type="text" id="gw" maxlength="40" autocomplete="off" enterkeyhint="done"></div>
+      <div class="field"><label for="gw">${t('gmWord')}</label><input type="text" id="gw" maxlength="40" autocomplete="off" enterkeyhint="${needF ? 'next' : 'done'}"></div>
+      ${needF ? `<div class="field"><label for="gf">${t('gmForger')}</label><input type="text" id="gf" maxlength="40" autocomplete="off" enterkeyhint="done"></div>` : ''}
       <button class="btn" id="sug" style="margin-top:16px">🎲 ${t('suggest')}</button>
     </div>
     <button class="btn primary" id="go" disabled>${t('gmGo')} →</button>`;
-  const gc = $('gc'), gw = $('gw'), goB = $('go');
-  const upd = () => goB.disabled = !(gc.value.trim() && gw.value.trim());
-  gc.oninput = gw.oninput = upd;
+  const gc = $('gc'), gw = $('gw'), gf = $('gf'), goB = $('go');
+  const upd = () => goB.disabled = !(gc.value.trim() && gw.value.trim() && (!gf || gf.value.trim()));
+  gc.oninput = gw.oninput = upd; if (gf) gf.oninput = upd;
   gc.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); gw.focus(); } };
-  gw.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); gw.blur(); } };
+  gw.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); gf ? gf.focus() : gw.blur(); } };
+  if (gf) gf.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); gf.blur(); } };
   $('sug').onclick = () => {
-    const c = pick(CATEGORIES); gc.value = c[S.lang]; gw.value = pick(c.words)[L()]; upd();
+    const c = pick(CATEGORIES), [a, b] = [...c.words].sort(() => Math.random() - .5);
+    gc.value = c[S.lang]; gw.value = a[L()]; if (gf) gf.value = b[L()]; upd();
   };
-  goB.onclick = () => { g.custom = { cat: gc.value.trim(), word: gw.value.trim() }; delete g.gmOpen; go('pass'); };
+  goB.onclick = () => { g.custom = { cat: gc.value.trim(), word: gw.value.trim(), forger: gf ? gf.value.trim() : '' }; delete g.gmOpen; go('pass'); };
 }
 
 // ---------- hand out roles ----------
@@ -689,11 +737,11 @@ function renderPass() {
 }
 
 function renderReveal() {
-  const g = S.game, id = g.drawers[g.revealI], fake = id === g.fake;
+  const g = S.game, id = g.drawers[g.revealI], role = roleOf(g, id), fake = role === 'fake';
   app.innerHTML = `<div class="pass">
     <div class="center" style="font-size:20px">${dotOf(id)}<b>${nameOf(id)}</b></div>
     <div class="role"><div class="k">${t('catLabel')} · ${esc(catText(g))}</div><div class="k" style="margin-top:14px">${t('yourCard')}</div>
-      <div class="v">${fake ? t('fakeName') : esc(wordText(g))}</div></div>
+      <div class="v">${fake ? t('fakeName') : esc(role === 'forger' ? forgerWord(g) : wordText(g))}</div></div>
     <p class="center muted">${t('memorize')}</p>
     <button class="btn primary" id="ok">${t('hide')}</button></div>`;
   $('ok').onclick = () => { g.revealI++; go(g.revealI >= g.drawers.length ? 'draw' : 'pass'); };
@@ -946,12 +994,16 @@ function renderVote() {
     app.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === b));
     ok.disabled = false;
   });
-  ok.onclick = () => {
-    g.accused = sel;
-    if (sel === g.fake) return go('guess');
-    g.outcome = { fakeWins: true, reason: sel === 'tie' ? 'tie' : 'wrong' };
-    go('result');
-  };
+  ok.onclick = () => accuse(sel);
+}
+
+// One accusation: a fake artist gets a last guess, a forger is simply caught, anyone else (or a tie) lets the impostors win.
+function accuse(sel) {
+  const g = S.game, r = sel === 'tie' ? null : roleOf(g, sel);
+  g.accused = sel;
+  if (r === 'fake') return go('guess');
+  g.outcome = r === 'forger' ? { fakeWins: false, reason: 'forger' } : { fakeWins: true, reason: sel === 'tie' ? 'tie' : 'wrong' };
+  go('result');
 }
 
 // ---------- secret vote, one by one (same pass/hide rhythm as the role reveal) ----------
@@ -1004,12 +1056,7 @@ function renderTally() {
       <span class="gain" style="min-width:0">${g.drawers.filter(v => g.votes[v] === id).map(v => dotOf(v)).join('')}</span><span class="pts" style="min-width:4.2em;text-align:right">${t('votesN')(n[id])}</span></li>`).join('')}</ul></div>
     <p class="center" style="font-size:20px;font-weight:700">${accused === 'tie' ? '⚖️ ' + t('tallyTie') : t('tallyTop')(nameOf(accused))}</p>
     <div class="sticky"><button class="btn accent" id="ok">${t('revealVote')}</button></div>`;
-  $('ok').onclick = () => {
-    g.accused = accused;
-    if (accused === g.fake) return go('guess');
-    g.outcome = { fakeWins: true, reason: accused === 'tie' ? 'tie' : 'wrong' };
-    go('result');
-  };
+  $('ok').onclick = () => accuse(accused);
 }
 
 // ---------- Telephone: word → drawing → word → … around the table, ending on a word ----------
@@ -1142,8 +1189,8 @@ const looksRight = (guess, word) => { const a = norm(guess), b = norm(word); ret
 function renderGuess() {
   const g = S.game;
   app.innerHTML = `
-    <div class="verdict art"><h2>🎯</h2><p>${t('caught')(nameOf(g.fake))}</p></div>
-    <p class="center" style="font-size:18px">${t('guessHint')(nameOf(g.fake))}</p>
+    <div class="verdict art"><h2>🎯</h2><p>${t('caught')(nameOf(g.accused))}</p></div>
+    <p class="center" style="font-size:18px">${t('guessHint')(nameOf(g.accused))}</p>
     <div class="center" style="margin-bottom:14px"><span class="catpill">${t('catLabel')}${t('colon')}${esc(catText(g))}</span></div>
     <input type="text" id="gi" placeholder="${t('guessPh')}" autocomplete="off" maxlength="40" enterkeyhint="done">
     <div id="out"></div>
@@ -1180,7 +1227,7 @@ function archive(g) {
     id: uid(), at: Date.now(), fakeWins: g.outcome.fakeWins,
     catId: g.custom ? null : g.catId, wordIdx: g.custom ? null : g.wordIdx,
     word: wordText(g), cat: catText(g),
-    players: g.drawers.map(id => { const p = P(id); return { name: pname(p), color: p.color, emoji: p.emoji, fake: id === g.fake }; }),
+    players: g.drawers.map(id => { const p = P(id); return { name: pname(p), color: p.color, emoji: p.emoji, fake: roleOf(g, id) === 'fake', forger: roleOf(g, id) === 'forger' }; }),
     strokes: g.strokes.map(s => ({ i: g.drawers.indexOf(s.id), pts: s.pts.map(([x, y]) => [r3(x), r3(y)]) })),
   };
   const list = loadGal(); list.unshift(entry);
@@ -1215,7 +1262,7 @@ function renderShot() {
     <div class="galhead"><button class="iconbtn" id="back" aria-label="${t('back')}">←</button>
       <div class="t"><div class="word">${esc(gWord(e))}</div><small>${esc(gCat(e))} · ${gDate(e.at)} · ${e.fakeWins ? t('fakeWins') : t('artistsWin')}</small></div></div>
     <div class="paper"><canvas id="cv"></canvas></div>
-    <div class="legend">${e.players.map(p => `<span>${av(p.color, p.emoji)}${esc(p.name)}${p.fake ? ' 🎭' : ''}</span>`).join('')}</div>
+    <div class="legend">${e.players.map(p => `<span>${av(p.color, p.emoji)}${esc(p.name)}${p.fake ? ' 🎭' : p.forger ? ' 🥸' : ''}</span>`).join('')}</div>
     <div class="row"><button class="btn" id="replay">▶ ${t('replay')}</button><button class="btn" id="dl">⬇ ${t('save')}</button></div>
     <div class="row"><button class="btn" id="prev" ${i <= 0 ? 'disabled' : ''}>‹ ${t('prev')}</button><button class="btn" id="nxt" ${i >= list.length - 1 ? 'disabled' : ''}>${t('next2')} ›</button></div>
     <button class="link" id="del">🗑 ${t('del')}</button>`;
@@ -1234,8 +1281,8 @@ function renderShot() {
 // ---------- result ----------
 function applyScore(g) {
   const gains = {};
-  if (g.outcome.fakeWins) { gains[g.fake] = 2; if (g.gm) gains[g.gm] = 2; }
-  else g.drawers.forEach(id => { if (id !== g.fake) gains[id] = 1; });
+  if (g.outcome.fakeWins) { impostors(g).forEach(id => gains[id] = 2); if (g.gm) gains[g.gm] = 2; }
+  else g.drawers.forEach(id => { if (roleOf(g, id) === 'artist') gains[id] = 1; });
   g.gains = gains;
   for (const id in gains) P(id).score += gains[id];
   g.archived = archive(g);
@@ -1245,21 +1292,25 @@ function applyScore(g) {
 function renderResult() {
   const g = S.game;
   if (!g.scored) { applyScore(g); save(); }
-  const f = nameOf(g.fake), o = g.outcome;
-  const reason = { tie: t('rTie')(f), wrong: t('rWrong')(g.accused !== 'tie' && P(g.accused) ? nameOf(g.accused) : '?', f), guessed: t('rGuessed')(f), caught: t('rCaught')(f) }[o.reason];
+  const o = g.outcome, imp = impostors(g), f = imp.map(nameOf).join(S.lang === 'fr' ? ' et ' : ' and ');
+  const a = g.accused !== 'tie' && P(g.accused) ? nameOf(g.accused) : '?';
+  const others = imp.filter(id => id !== g.accused), more = others.length ? ' ' + t('them')(others.map(nameOf).join(S.lang === 'fr' ? ' et ' : ' and '), others.length) : '';
+  const winT = imp.length > 1 ? 'impWins' : roleOf(g, imp[0]) === 'forger' ? 'forgerWins' : 'fakeWins';
+  const reason = { tie: t('rTie')(f), wrong: t('rWrong')(a, f), guessed: t('rGuessed')(a) + more, caught: t('rCaught')(a) + more, forger: t('rForger')(a, esc(forgerWord(g))) + more }[o.reason];
+  const fw = imp.some(id => roleOf(g, id) === 'forger') ? forgerWord(g) : '';
   const ranked = [...S.players].sort((a, b) => b.score - a.score);
   const champ = ranked[0].score >= S.target && (ranked.length < 2 || ranked[1].score < ranked[0].score) ? ranked[0] : null;
   app.innerHTML = `
-    <div class="verdict ${o.fakeWins ? 'fake' : 'art'}"><h2>${o.fakeWins ? t('fakeWins') : t('artistsWin')}</h2><p>${reason}</p></div>
-    <p class="center" style="margin:6px 0 12px">${t('wordWas')}<br><span class="word">${esc(wordText(g))}</span><br><span class="catpill">${esc(catText(g))}</span></p>
+    <div class="verdict ${o.fakeWins ? 'fake' : 'art'}"><h2>${o.fakeWins ? (SKIN_T[S.skin]?.[S.lang]?.fakeWins ?? t(winT)) : t('artistsWin')}</h2><p>${reason}</p></div>
+    <p class="center" style="margin:6px 0 12px">${t('wordWas')}<br><span class="word">${esc(wordText(g))}</span><br><span class="catpill">${esc(catText(g))}</span>${fw ? `<br><small class="muted">${t('forgerWas')}${t('colon')}<b>${esc(fw)}</b> 🥸</small>` : ''}</p>
     ${champ ? `<div class="trophy">${t('champion')(esc(pname(champ)))}</div>` : ''}
     <div class="card">
       <div class="paper view"><canvas id="cv"></canvas></div>
-      <div class="legend">${g.drawers.map(id => `<span>${dotOf(id)}${nameOf(id)}${id === g.fake ? ' 🎭' : ''}</span>`).join('')}</div>
+      <div class="legend">${g.drawers.map(id => `<span>${dotOf(id)}${nameOf(id)}${roleIcon(g, id)}</span>`).join('')}</div>
       ${g.archived ? `<p class="note">${t('saved')}</p>` : ''}
       <div class="row"><button class="btn" id="replay">▶ ${t('replay')}</button><button class="btn" id="dl">⬇ ${t('save')}</button></div>
     </div>
-    <div class="card"><h3>${t('scores')}</h3><ul class="scores">${ranked.map(p => `<li>${dotOf(p.id)}<span class="n">${esc(pname(p))}${p.id === g.gm ? ` · ${t('gm')}` : ''}${p.id === g.fake ? ' 🎭' : ''}</span>
+    <div class="card"><h3>${t('scores')}</h3><ul class="scores">${ranked.map(p => `<li>${dotOf(p.id)}<span class="n">${esc(pname(p))}${p.id === g.gm ? ` · ${t('gm')}` : ''}${roleIcon(g, p.id)}</span>
       <span class="gain">${g.gains[p.id] ? '+' + g.gains[p.id] : ''}</span><span class="pts">${p.score}</span></li>`).join('')}</ul></div>
     ${champ ? `<button class="btn primary" id="newGame">${t('newGame')}</button>` : `<button class="btn primary" id="next">${t('next')} →</button>`}
     <button class="btn" id="settings">${t('settings')}</button>`;
