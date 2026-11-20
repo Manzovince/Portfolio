@@ -82,14 +82,14 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:52px
   background-position:calc(100% - 26px) 52%,calc(100% - 19px) 52%;background-size:7px 7px;background-repeat:no-repeat}
 .players{display:flex;flex-direction:column;gap:10px}
 .prow{display:flex;align-items:center;gap:10px}
-.swatch{width:56px;height:56px;border-radius:50%;border:0;flex:none;cursor:pointer;font-size:30px;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:inset 0 0 0 3px rgba(255,255,255,.3);position:relative}
+.swatch{width:56px;height:56px;border-radius:50%;border:0;flex:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:inset 0 0 0 3px rgba(255,255,255,.3);position:relative}
 .prow input{flex:1;min-width:0}
 .prow .score{font-weight:700;min-width:36px;text-align:center;color:var(--muted);font-size:18px}
 .sticky{position:sticky;bottom:0;padding:14px 0 calc(10px + env(safe-area-inset-bottom));background:linear-gradient(to bottom, transparent, var(--bg) 30%);z-index:3}
 .center{text-align:center}
 .big-name{font-size:38px;font-weight:700;margin:.2em 0;display:flex;align-items:center;justify-content:center;flex-wrap:wrap}
 .av{display:inline-flex;align-items:center;justify-content:center;width:1.5em;height:1.5em;border-radius:50%;margin-right:.4em;flex:none;vertical-align:middle;line-height:1}
-.av i{font-style:normal;font-size:.85em}
+.av i{font-style:normal;font-size:.68em}
 .role{border-radius:14px;padding:30px 18px;text-align:center;margin:18px 0;background:var(--card);border:1px solid var(--line)}
 .role .k{font-size:15px;text-transform:uppercase;letter-spacing:.08em;opacity:.75;font-weight:600}
 .role .v{font-family:Caveat,cursive;font-size:60px;line-height:1.05;font-weight:700;margin:.15em 0 .3em;overflow-wrap:anywhere}
@@ -111,6 +111,12 @@ body.drawing header{width:100%}
 body.drawing main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;padding-bottom:10px}
 .paperhint{position:absolute;left:10px;right:10px;top:10px;z-index:2;text-align:center;font-size:14px;color:#6f675d;pointer-events:none}
 .paper.view{width:min(86%, 360px);min-width:0}
+.paper.view.small{width:min(62%, 240px);margin-top:8px}
+.chain .chs,.chain .chw{text-align:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.chain .chs:last-child{border-bottom:0}
+.chain .chn{display:flex;align-items:center;justify-content:center;gap:2px;font-size:16px}
+.chain .chn .muted{margin-left:6px}
+.chain small{display:block;color:var(--muted);font-size:14px}
 .zoomctl{position:absolute;right:8px;bottom:8px;display:flex;gap:8px;z-index:2}
 .zoomctl button{width:46px;height:46px;border-radius:50%;border:1px solid rgba(31,29,26,.15);background:rgba(255,253,248,.92);color:#1f1d1a;font-size:24px;font-weight:600;line-height:1;cursor:pointer;padding:0;box-shadow:0 4px 12px -6px rgba(0,0,0,.4);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 .zoomctl button:disabled{opacity:.35}
@@ -257,6 +263,14 @@ const T = {
     modeAutoHint: 'Tout le monde dessine. Le mot est tiré au hasard.',
     modeGmHint: 'À tour de rôle, un joueur choisit le mot et ne dessine pas. Il gagne avec le faux artiste.',
     category: 'Catégorie', random: 'Au hasard', rounds: 'Tours de dessin', skin: 'Ambiance', skinNames: { classic: 'Classique', atelier: 'Atelier', enquete: 'Enquête' }, firstFake: 'Chance que le faux artiste dessine en premier', firstAuto: n => `hasard (${n} %)`, firstReset: 'Remettre au hasard', target: 'Points pour gagner',
+    game: 'Jeu', gameFake: 'Faux artiste', gameChain: 'Téléphone arabe',
+    gameChainHint: 'Un mot, puis un dessin, puis un mot… Chacun ne voit que l\'étape d\'avant. À la fin, retrouvez-vous le mot de départ ?',
+    chStep: (i, n) => `Étape ${i}/${n}`, chGo: name => `Je suis ${name}, c'est parti`,
+    chStartTitle: 'Choisis le mot de départ', chStartHint: 'Personne d\'autre ne le verra. Le joueur suivant devra le dessiner.', chStartPh: 'Un mot ou une petite expression',
+    chDraw: 'Dessine', chDrawHint: 'Autant de traits que tu veux. Deux doigts pour zoomer.', chUndo: 'Annuler le trait',
+    chGuess: 'Qu\'est-ce que c\'est ?', chGuessHint: 'Écris ce que représente ce dessin. Le joueur suivant devra le redessiner.', chGuessPh: 'Ta réponse', chLastHint: 'Tu es le dernier : écris ce que représente ce dessin, puis on compare avec le mot de départ !',
+    chStartWas: 'Mot de départ', chArrived: 'Le message est bien arrivé !', chLost: 'Le message s\'est perdu en route…',
+    chAgain: 'Rejouer', chWrote: 'a écrit', chDrew: 'a dessiné', chOk: 'Valider',
     start: 'Commencer la manche', resetScores: 'Remettre les scores à zéro',
     needPlayers: n => `Il faut au moins ${n} joueurs.`,
     gmTitle: 'Maître du jeu', gmPass: name => `Passe le téléphone à <b>${name}</b>, le maître du jeu.`,
@@ -303,6 +317,7 @@ const T = {
       'S\'il est démasqué, le faux artiste peut encore gagner en devinant le mot.',
       '<b>Points :</b> si le faux artiste gagne, lui (et le maître du jeu) marquent 2 points. Sinon, chaque artiste marque 1 point.',
       'Chaque dessin terminé est rangé dans la <b>galerie</b> 🖼️ (les 30 derniers).',
+      '<b>Téléphone arabe</b> (autre jeu, dans les réglages) : un mot de départ, le joueur suivant le dessine, le suivant devine le mot d\'après le dessin, le suivant redessine ce mot… jusqu\'à ce que tout le monde soit passé. À la fin, on compare avec le mot de départ.',
     ],
     close: 'Fermer',
   },
@@ -312,6 +327,14 @@ const T = {
     modeAutoHint: 'Everyone draws. The word is picked at random.',
     modeGmHint: 'Players take turns choosing the word and sit out the drawing. They win with the fake artist.',
     category: 'Category', random: 'Random', rounds: 'Drawing rounds', skin: 'Look', skinNames: { classic: 'Classic', atelier: 'Studio', enquete: 'Case file' }, firstFake: 'Chance the fake artist draws first', firstAuto: n => `random (${n} %)`, firstReset: 'Back to random', target: 'Points to win',
+    game: 'Game', gameFake: 'Fake artist', gameChain: 'Telephone',
+    gameChainHint: 'A word, then a drawing, then a word… Each player only sees the step before. Do you get the starting word back at the end?',
+    chStep: (i, n) => `Step ${i}/${n}`, chGo: name => `I'm ${name}, let's go`,
+    chStartTitle: 'Pick the starting word', chStartHint: 'Nobody else will see it. The next player will have to draw it.', chStartPh: 'A word or a short phrase',
+    chDraw: 'Draw', chDrawHint: 'As many lines as you like. Two fingers to zoom.', chUndo: 'Undo line',
+    chGuess: 'What is it?', chGuessHint: 'Write what this drawing shows. The next player will have to draw it again.', chGuessPh: 'Your answer', chLastHint: 'You\'re last: write what this drawing shows, then compare with the starting word!',
+    chStartWas: 'Starting word', chArrived: 'The message made it!', chLost: 'The message got lost on the way…',
+    chAgain: 'Play again', chWrote: 'wrote', chDrew: 'drew', chOk: 'Confirm',
     start: 'Start the round', resetScores: 'Reset scores',
     needPlayers: n => `You need at least ${n} players.`,
     gmTitle: 'Question master', gmPass: name => `Hand the phone to <b>${name}</b>, the question master.`,
@@ -358,6 +381,7 @@ const T = {
       'If caught, the fake artist can still win by guessing the word.',
       '<b>Points:</b> if the fake artist wins, they (and the question master) score 2 points. Otherwise each artist scores 1 point.',
       'Every finished drawing goes to the <b>gallery</b> 🖼️ (the last 30).',
+      '<b>Telephone</b> (another game, in the settings): a starting word, the next player draws it, the next one guesses the word from the drawing, the next draws that word again… until everyone has played. At the end, compare with the starting word.',
     ],
     close: 'Close',
   },
@@ -380,6 +404,7 @@ if (S.players.length > MAX_PLAYERS) S.players = S.players.slice(0, MAX_PLAYERS);
 if (!S.r1) { S.rounds = 1; S.r1 = true; } // one-time switch of saved setups to the new 1-round default
 if (S.game && S.game.phase === 'reveal') S.game.phase = 'pass'; // never reopen on a secret
 if (S.game && S.game.phase === 'ballot') S.game.phase = 'votePass'; // nor on someone's ballot
+if (S.game && S.game.phase === 'chainStep') S.game.phase = 'chainPass';
 // Per-skin wording on top of T (the role reveal stays identical in every skin).
 const SKIN_T = {
   atelier: {
@@ -429,7 +454,7 @@ function render() {
   $('langBtn').textContent = S.lang === 'fr' ? 'EN' : 'FR';
   $('langBtn').hidden = !!g && !view; // no language switch mid-game
   const q = $('quitBtn');
-  q.hidden = !g || g.phase === 'result' || !!view;
+  q.hidden = !g || g.phase === 'result' || g.phase === 'chainEnd' || !!view;
   q.textContent = '✕'; q.title = q.ariaLabel = t('quit');
   const gb = $('galBtn');
   gb.hidden = !!g && g.phase !== 'result';
@@ -437,10 +462,10 @@ function render() {
   gb.title = gb.ariaLabel = t('gallery');
   $('rulesBtn').title = t('rulesTitle');
   keepAwake();
-  document.body.classList.toggle('drawing', !view && !!g && g.phase === 'draw');
+  document.body.classList.toggle('drawing', !view && !!g && (g.phase === 'draw' || (g.phase === 'chainStep' && chainKind(g) === 'draw')));
   if (view) return view.shot != null ? renderShot() : renderGallery();
   if (!g) return renderSetup();
-  ({ gm: renderGm, pass: renderPass, reveal: renderReveal, draw: renderDraw, vote: renderVote, votePass: renderVotePass, ballot: renderBallot, tally: renderTally, guess: renderGuess, result: renderResult })[g.phase]();
+  ({ gm: renderGm, pass: renderPass, reveal: renderReveal, draw: renderDraw, vote: renderVote, votePass: renderVotePass, ballot: renderBallot, tally: renderTally, chainPass: renderChainPass, chainStep: renderChainStep, chainEnd: renderChainEnd, guess: renderGuess, result: renderResult })[g.phase]();
 }
 
 // Keep the screen on while a round is being played (the phone sits on the table between turns).
@@ -466,7 +491,7 @@ function ask(title, hint, okLabel, onOk) {
 
 // ---------- setup ----------
 function renderSetup() {
-  const min = S.mode === 'gm' ? 4 : 3;
+  const min = S.mode === 'gm' && S.variant !== 'chain' ? 4 : 3;
   const cats = CATEGORIES.map(c => `<option value="${c.id}" ${S.cat === c.id ? 'selected' : ''}>${esc(c[S.lang])}</option>`).join('');
   app.innerHTML = `
     <div class="card">
@@ -479,6 +504,16 @@ function renderSetup() {
           ${S.players.some(x => x.score) ? `<span class="score">${p.score}</span>` : ''}
         </div>`).join('')}
       </div>
+    </div>
+    <div class="card">
+      <h3>${t('game')}</h3>
+      <div class="seg" id="gameSeg">${['fake', 'chain'].map(k => `<button data-v="${k}" aria-pressed="${(S.variant || 'fake') === k}">${t(k === 'fake' ? 'gameFake' : 'gameChain')}</button>`).join('')}</div>
+      ${S.variant === 'chain' ? `<p class="muted" style="font-size:15px;margin:10px 2px 0">${t('gameChainHint')}</p>
+      <div class="field"><label for="catSel">${t('category')}</label>
+        <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
+      <div class="field"><label>${t('skin')}</label>
+        <div class="seg" id="skinSeg">${Object.keys(SKINS).map(k => `<button data-v="${k}" aria-pressed="${(S.skin || 'classic') === k}">${t('skinNames')[k]}</button>`).join('')}</div></div>
+    </div>` : `
     </div>
     <div class="card">
       <h3>${t('mode')}</h3>
@@ -502,7 +537,7 @@ function renderSetup() {
       <div class="field"><label>${t('target')}</label>
         <div class="seg" id="targetSeg">${[3, 5, 7, 10].map(n => `<button data-v="${n}" aria-pressed="${S.target === n}">${n}</button>`).join('')}</div></div>
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
-    </div>
+    </div>`}
     <div class="sticky">
       <button class="btn primary" id="startBtn" ${S.players.length < min ? 'disabled' : ''}>${t('start')} →</button>
       ${S.players.length < min ? `<p class="hint">${t('needPlayers')(min)}</p>` : ''}
@@ -520,13 +555,18 @@ function renderSetup() {
     });
     row.querySelector('[data-act=pick]').addEventListener('click', () => openPicker(p));
   });
-  const seg = (id, fn) => $(id).querySelectorAll('button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); save(); renderSetup(); }));
+  const seg = (id, fn) => $(id)?.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); save(); renderSetup(); }));
   seg('countSeg', v => setCount(+v));
+  seg('gameSeg', v => S.variant = v);
   seg('modeSeg', v => S.mode = v);
   seg('roundSeg', v => S.rounds = +v);
   seg('skinSeg', v => S.skin = v);
   seg('voteSeg', v => S.voteMode = v);
   seg('targetSeg', v => S.target = +v);
+  $('catSel')?.addEventListener('change', e => { S.cat = e.target.value; save(); });
+  $('resetBtn')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); save(); renderSetup(); });
+  $('startBtn').addEventListener('click', startGame);
+  if (!$('ffRange')) return;
   const ffR = $('ffRange'), ffV = $('ffVal'), auto = () => Math.round(100 / (S.players.length - (S.mode === 'gm' ? 1 : 0)));
   const ffShow = () => { ffV.textContent = S.firstFake == null ? t('firstAuto')(auto()) : S.firstFake + ' %'; };
   ffR.value = S.firstFake ?? auto(); ffShow();
@@ -536,9 +576,6 @@ function renderSetup() {
   $('ffMinus').onclick = () => nudge(-1);
   $('ffPlus').onclick = () => nudge(1);
   $('ffReset')?.addEventListener('click', () => { S.firstFake = null; save(); renderSetup(); });
-  $('catSel')?.addEventListener('change', e => { S.cat = e.target.value; save(); });
-  $('resetBtn')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); save(); renderSetup(); });
-  $('startBtn').addEventListener('click', startGame);
 }
 
 function setCount(n) {
@@ -577,6 +614,7 @@ function pickWord(catFilter) {
 }
 
 function startGame() {
+  if (S.variant === 'chain') return startChain();
   const ids = S.players.map(p => p.id);
   const gm = S.mode === 'gm' ? ids[S.gmPtr++ % ids.length] : null;
   const drawers = ids.filter(id => id !== gm);
@@ -963,6 +1001,115 @@ function renderTally() {
     g.outcome = { fakeWins: true, reason: accused === 'tie' ? 'tie' : 'wrong' };
     go('result');
   };
+}
+
+// ---------- Telephone: word → drawing → word → … around the table, ending on a word ----------
+// Every player plays once. With an even count the phone deals the starting word and the first
+// player draws it; with an odd count the first player writes it, so the chain always ends on a word.
+function startChain() {
+  const ids = S.players.map(p => p.id), st = Math.floor(Math.random() * ids.length);
+  const order = ids.slice(st).concat(ids.slice(0, st));
+  const pw = pickWord(S.cat), c = catById(pw.catId);
+  view = null;
+  S.game = { kind: 'chain', phase: 'chainPass', order, i: 0, steps: [], cur: [],
+    start: order.length % 2 ? null : c.words[pw.wordIdx][L()] };
+  save(); render(); scrollTo(0, 0);
+}
+// Kind of step i: 'start' (write the starting word), 'draw' or 'word'.
+function chainKind(g, i = g.i) {
+  if (g.start == null && i === 0) return 'start';
+  return (i + (g.start == null ? 1 : 0)) % 2 === 0 ? 'draw' : 'word';
+}
+const chainPrev = g => g.i === 0 ? null : g.steps[g.i - 1];
+const chainWord = g => { const p = chainPrev(g); return p ? p.text : g.start; };
+
+function renderChainPass() {
+  const g = S.game, id = g.order[g.i];
+  app.innerHTML = `<div class="pass center">
+    <p class="muted">${t('passTo')}</p>
+    <div class="big-name">${dotOf(id)}${nameOf(id)}</div>
+    <p class="muted">${t('passHint')}</p>
+    <p class="muted" style="font-size:15px">${t('chStep')(g.i + 1, g.order.length)}</p>
+    <button class="btn primary" id="ok">${t('chGo')(nameOf(id))}</button></div>`;
+  $('ok').onclick = () => go('chainStep');
+}
+
+function chainNext(step) {
+  const g = S.game;
+  g.steps.push(step); g.cur = []; g.i++; buzz(15);
+  go(g.i >= g.order.length ? 'chainEnd' : 'chainPass');
+}
+
+function renderChainStep() {
+  const g = S.game, id = g.order[g.i], kind = chainKind(g), n = g.order.length;
+  if (kind === 'draw') {
+    app.innerHTML = `
+      <div class="drawbar">
+        <div class="who">${dotOf(id)}<span>${nameOf(id)}</span></div>
+        <div class="meta">${t('chDraw')}${t('colon')}<b>${esc(chainWord(g))}</b></div>
+      </div>
+      <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.cur.length ? '' : `<div class="paperhint" id="phint">${t('chDrawHint')}</div>`}</div></div>
+      <div class="row">
+        <button class="btn" id="undo">↺ ${t('chUndo')}</button>
+        <button class="btn primary" id="ok">${t('chOk')} →</button>
+      </div>`;
+    const undo = $('undo'), ok = $('ok');
+    const sync = () => { undo.disabled = ok.disabled = !g.cur.length; };
+    const api = mountCanvas($('cv'), {
+      strokes: () => g.cur, colorOf: () => P(id)?.color,
+      draw: {
+        can: () => true,
+        start: p => { $('phint')?.remove(); const s = { id, pts: [p] }; g.cur.push(s); return s; },
+        cancel: () => { g.cur.pop(); },
+        end: () => { save(); sync(); },
+      },
+    });
+    sync();
+    undo.onclick = () => { g.cur.pop(); save(); sync(); api.draw(); };
+    ok.onclick = () => { if (g.cur.length) chainNext({ id, kind, strokes: g.cur }); };
+    return;
+  }
+  const prev = chainPrev(g), start = kind === 'start';
+  app.innerHTML = `
+    <div class="center" style="font-size:20px">${dotOf(id)}<b>${nameOf(id)}</b> <span class="muted" style="font-size:15px">· ${t('chStep')(g.i + 1, n)}</span></div>
+    <h2 class="center">${start ? t('chStartTitle') : t('chGuess')}</h2>
+    <p class="center muted">${start ? t('chStartHint') : g.i === n - 1 ? t('chLastHint') : t('chGuessHint')}</p>
+    ${start ? '' : '<div class="paper view"><canvas id="cv"></canvas></div>'}
+    <input type="text" id="wi" placeholder="${start ? t('chStartPh') : t('chGuessPh')}" autocomplete="off" maxlength="40" enterkeyhint="done">
+    ${start ? `<button class="btn" id="sug" style="margin-top:12px">🎲 ${t('suggest')}</button>` : ''}
+    <div class="sticky"><button class="btn primary" id="ok" disabled>${t('chOk')} →</button></div>`;
+  if (!start) mountCanvas($('cv'), { strokes: () => prev.strokes, colorOf: s => P(s.id)?.color });
+  const wi = $('wi'), ok = $('ok');
+  const upd = () => ok.disabled = !wi.value.trim();
+  wi.oninput = upd;
+  wi.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); if (wi.value.trim()) ok.click(); } };
+  $('sug')?.addEventListener('click', () => {
+    const c = S.cat === 'random' ? pick(CATEGORIES) : catById(S.cat); wi.value = pick(c.words)[L()]; upd();
+  });
+  ok.onclick = () => { const v = wi.value.trim(); if (v) chainNext({ id, kind, text: v }); };
+}
+
+function renderChainEnd() {
+  const g = S.game, first = g.start ?? g.steps[0].text, last = g.steps[g.steps.length - 1].text;
+  const hit = looksRight(last, first);
+  app.innerHTML = `
+    <div class="verdict ${hit ? 'art' : 'fake'}"><h2>${hit ? t('chArrived') : t('chLost')}</h2>
+      <p>${esc(first)} → ${esc(last)}</p></div>
+    <div class="card chain">
+      ${g.start != null ? `<div class="chw"><small>${t('chStartWas')}</small><span class="word">${esc(g.start)}</span></div>` : ''}
+      ${g.steps.map((s, i) => `<div class="chs">
+        <div class="chn">${dotOf(s.id)}<b>${nameOf(s.id)}</b> <span class="muted">${s.kind === 'draw' ? t('chDrew') : t('chWrote')}</span></div>
+        ${s.kind === 'draw' ? `<div class="paper view small"><canvas data-i="${i}"></canvas></div>` : `<span class="word">${esc(s.text)}</span>`}
+      </div>`).join('')}
+    </div>
+    <button class="btn primary" id="again">${t('chAgain')} →</button>
+    <button class="btn" id="settings">${t('settings')}</button>`;
+  app.querySelectorAll('canvas[data-i]').forEach(cv => {
+    const st = g.steps[+cv.dataset.i];
+    mountCanvas(cv, { strokes: () => st.strokes, colorOf: s => P(s.id)?.color });
+  });
+  $('again').onclick = startChain;
+  $('settings').onclick = () => { S.game = null; save(); render(); scrollTo(0, 0); };
 }
 
 // ---------- fake artist's last guess ----------
