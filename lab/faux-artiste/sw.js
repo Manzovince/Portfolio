@@ -1,5 +1,5 @@
 // Offline cache: network first, falling back to the cached copy.
-const C = 'faux-artiste-v3';
+const C = 'faux-artiste-v4';
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(['./', 'index.html', 'words.js', 'icon.svg', 'manifest.webmanifest']))); self.skipWaiting(); });
 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 self.addEventListener('fetch', e => {

@@ -271,6 +271,11 @@ const T = {
     voteTitle: 'Qui est le faux artiste ?',
     voteHint: 'Discutez ! Puis, à trois, tout le monde pointe un suspect du doigt. Sélectionnez la personne la plus désignée.',
     tie: 'Égalité', revealVote: 'Révéler',
+    voteMode: 'Vote', voteTable: 'Tous ensemble', voteTurns: 'Chacun son tour',
+    voteTableHint: 'À trois, tout le monde pointe un suspect du doigt.', voteTurnsHint: 'Le téléphone passe de main en main, chacun vote en secret.',
+    discussHint: 'Discutez ! Quand tout le monde est prêt, passez le téléphone pour voter en secret, chacun son tour.', startVote: 'Passer au vote',
+    voteAs: name => `Je suis ${name}, voter`, ballotHint: 'Qui est le faux artiste selon toi ?', castVote: 'Valider mon vote',
+    tallyTitle: 'Résultat du vote', votesN: n => `${n} voix`, tallyTie: 'Égalité !', tallyTop: name => `${name} est accusé·e.`,
     caught: name => `Bien vu, ${name} était le faux artiste !`,
     guessHint: name => `${name}, une dernière chance : devine le mot.`,
     guessPh: 'Ta réponse (ou dis-la à voix haute)', revealWord: 'Révéler le mot',
@@ -294,7 +299,7 @@ const T = {
       'Chaque joueur prend le téléphone à tour de rôle et découvre le mot secret… sauf un : le <b>faux artiste</b>, qui ne connaît que la catégorie.',
       'Chacun à son tour ajoute <b>un seul trait</b> au dessin commun, sans lever le doigt. Un tour de table par défaut (réglable). Pincez avec deux doigts pour zoomer.',
       'Les vrais artistes doivent montrer qu\'ils connaissent le mot sans le rendre trop évident ; le faux artiste doit faire illusion.',
-      'Ensuite, on discute, puis tout le monde pointe un suspect. En cas d\'égalité ou d\'erreur, le faux artiste gagne.',
+      'Ensuite, on discute, puis tout le monde pointe un suspect (ou, en option, vote en secret chacun son tour sur le téléphone). En cas d\'égalité ou d\'erreur, le faux artiste gagne.',
       'S\'il est démasqué, le faux artiste peut encore gagner en devinant le mot.',
       '<b>Points :</b> si le faux artiste gagne, lui (et le maître du jeu) marquent 2 points. Sinon, chaque artiste marque 1 point.',
       'Chaque dessin terminé est rangé dans la <b>galerie</b> 🖼️ (les 30 derniers).',
@@ -321,6 +326,11 @@ const T = {
     voteTitle: 'Who is the fake artist?',
     voteHint: 'Discuss! Then, on three, everyone points at a suspect. Select the person with the most fingers.',
     tie: 'Tie', revealVote: 'Reveal',
+    voteMode: 'Vote', voteTable: 'All together', voteTurns: 'One by one',
+    voteTableHint: 'On three, everyone points at a suspect.', voteTurnsHint: 'The phone goes round, everyone votes in secret.',
+    discussHint: 'Discuss! When everyone is ready, pass the phone round to vote in secret, one by one.', startVote: 'Go to the vote',
+    voteAs: name => `I'm ${name}, vote`, ballotHint: 'Who do you think is the fake artist?', castVote: 'Cast my vote',
+    tallyTitle: 'Vote result', votesN: n => n === 1 ? '1 vote' : `${n} votes`, tallyTie: 'It\'s a tie!', tallyTop: name => `${name} is accused.`,
     caught: name => `Well spotted, ${name} was the fake artist!`,
     guessHint: name => `${name}, one last chance: guess the word.`,
     guessPh: 'Your answer (or say it out loud)', revealWord: 'Reveal the word',
@@ -344,7 +354,7 @@ const T = {
       'Everyone takes the phone in turn and sees the secret word… except one: the <b>fake artist</b>, who only knows the category.',
       'In turn, each player adds <b>one single line</b> to the shared drawing, without lifting their finger. One round by default (adjustable). Pinch with two fingers to zoom.',
       'Real artists must show they know the word without making it obvious; the fake artist must blend in.',
-      'Then discuss, and everyone points at a suspect. On a tie or a wrong guess, the fake artist wins.',
+      'Then discuss, and everyone points at a suspect (or, as an option, votes in secret one by one on the phone). On a tie or a wrong guess, the fake artist wins.',
       'If caught, the fake artist can still win by guessing the word.',
       '<b>Points:</b> if the fake artist wins, they (and the question master) score 2 points. Otherwise each artist scores 1 point.',
       'Every finished drawing goes to the <b>gallery</b> 🖼️ (the last 30).',
@@ -369,6 +379,7 @@ S.players.forEach((p, i) => {
 if (S.players.length > MAX_PLAYERS) S.players = S.players.slice(0, MAX_PLAYERS);
 if (!S.r1) { S.rounds = 1; S.r1 = true; } // one-time switch of saved setups to the new 1-round default
 if (S.game && S.game.phase === 'reveal') S.game.phase = 'pass'; // never reopen on a secret
+if (S.game && S.game.phase === 'ballot') S.game.phase = 'votePass'; // nor on someone's ballot
 // Per-skin wording on top of T (the role reveal stays identical in every skin).
 const SKIN_T = {
   atelier: {
@@ -429,7 +440,7 @@ function render() {
   document.body.classList.toggle('drawing', !view && !!g && g.phase === 'draw');
   if (view) return view.shot != null ? renderShot() : renderGallery();
   if (!g) return renderSetup();
-  ({ gm: renderGm, pass: renderPass, reveal: renderReveal, draw: renderDraw, vote: renderVote, guess: renderGuess, result: renderResult })[g.phase]();
+  ({ gm: renderGm, pass: renderPass, reveal: renderReveal, draw: renderDraw, vote: renderVote, votePass: renderVotePass, ballot: renderBallot, tally: renderTally, guess: renderGuess, result: renderResult })[g.phase]();
 }
 
 // Keep the screen on while a round is being played (the phone sits on the table between turns).
@@ -482,6 +493,9 @@ function renderSetup() {
         <div class="seg" id="skinSeg">${Object.keys(SKINS).map(k => `<button data-v="${k}" aria-pressed="${(S.skin || 'classic') === k}">${t('skinNames')[k]}</button>`).join('')}</div></div>
       <div class="field"><label>${t('rounds')}</label>
         <div class="seg" id="roundSeg">${[1, 2, 3].map(n => `<button data-v="${n}" aria-pressed="${S.rounds === n}">${n}</button>`).join('')}</div></div>
+      <div class="field"><label>${t('voteMode')}</label>
+        <div class="seg" id="voteSeg">${['table', 'turns'].map(k => `<button data-v="${k}" aria-pressed="${(S.voteMode || 'table') === k}">${t(k === 'table' ? 'voteTable' : 'voteTurns')}</button>`).join('')}</div>
+        <p class="muted" style="font-size:15px;margin:8px 2px 0">${S.voteMode === 'turns' ? t('voteTurnsHint') : t('voteTableHint')}</p></div>
       <div class="field"><label for="ffRange" class="rlabel"><span>${t('firstFake')}</span><b id="ffVal"></b></label>
         <div class="rrow"><button class="step" id="ffMinus" aria-label="−1">−</button><input type="range" id="ffRange" min="0" max="100" step="1"><button class="step" id="ffPlus" aria-label="+1">+</button></div>
         ${S.firstFake != null ? `<button class="link" id="ffReset" style="margin:4px 0 0 auto">${t('firstReset')}</button>` : ''}</div>
@@ -511,6 +525,7 @@ function renderSetup() {
   seg('modeSeg', v => S.mode = v);
   seg('roundSeg', v => S.rounds = +v);
   seg('skinSeg', v => S.skin = v);
+  seg('voteSeg', v => S.voteMode = v);
   seg('targetSeg', v => S.target = +v);
   const ffR = $('ffRange'), ffV = $('ffVal'), auto = () => Math.round(100 / (S.players.length - (S.mode === 'gm' ? 1 : 0)));
   const ffShow = () => { ffV.textContent = S.firstFake == null ? t('firstAuto')(auto()) : S.firstFake + ' %'; };
@@ -578,7 +593,7 @@ function startGame() {
   view = null;
   S.game = {
     phase: gm ? 'gm' : 'pass', gm, drawers, fake, order, turn: 0, strokes: [], pending: false,
-    revealI: 0, accused: null, guessed: null, outcome: null, scored: false,
+    revealI: 0, secret: S.voteMode === 'turns', votes: {}, voteI: 0, accused: null, guessed: null, outcome: null, scored: false,
     ...(gm ? { custom: null } : pickWord(S.cat)),
   };
   save(); render(); scrollTo(0, 0);
@@ -859,6 +874,16 @@ function renderDraw() {
 // ---------- vote ----------
 function renderVote() {
   const g = S.game;
+  if (g.secret) {
+    app.innerHTML = `
+      <h2 class="center">${t('voteTitle')}</h2>
+      <p class="center muted">${t('discussHint')}</p>
+      <div class="paper view"><canvas id="cv"></canvas></div>
+      <div class="sticky"><button class="btn accent" id="ok">${t('startVote')} →</button></div>`;
+    mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color });
+    $('ok').onclick = () => { g.votes = {}; g.voteI = 0; go('votePass'); };
+    return;
+  }
   app.innerHTML = `
     <h2 class="center">${t('voteTitle')}</h2>
     <p class="center muted">${t('voteHint')}</p>
@@ -878,6 +903,64 @@ function renderVote() {
     g.accused = sel;
     if (sel === g.fake) return go('guess');
     g.outcome = { fakeWins: true, reason: sel === 'tie' ? 'tie' : 'wrong' };
+    go('result');
+  };
+}
+
+// ---------- secret vote, one by one (same pass/hide rhythm as the role reveal) ----------
+function renderVotePass() {
+  const g = S.game, id = g.drawers[g.voteI];
+  app.innerHTML = `<div class="pass center">
+    <p class="muted">${t('passTo')}</p>
+    <div class="big-name">${dotOf(id)}${nameOf(id)}</div>
+    <p class="muted">${t('passHint')}</p>
+    <p class="muted" style="font-size:15px">${g.voteI + 1} / ${g.drawers.length}</p>
+    <button class="btn primary" id="ok">${t('voteAs')(nameOf(id))}</button></div>`;
+  $('ok').onclick = () => go('ballot');
+}
+
+function renderBallot() {
+  const g = S.game, me = g.drawers[g.voteI];
+  app.innerHTML = `
+    <div class="center" style="font-size:20px">${dotOf(me)}<b>${nameOf(me)}</b></div>
+    <p class="center muted">${t('ballotHint')}</p>
+    <div class="grid" style="margin-bottom:14px">${g.drawers.filter(id => id !== me).map(id => `<button class="chip" data-id="${id}" aria-pressed="false">${dotOf(id)}<span>${nameOf(id)}</span></button>`).join('')}</div>
+    <div class="paper view"><canvas id="cv"></canvas></div>
+    <div class="sticky"><button class="btn accent" id="ok" disabled>${t('castVote')}</button></div>`;
+  mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color });
+  let sel = null;
+  const ok = $('ok');
+  app.querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    sel = b.dataset.id;
+    app.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === b));
+    ok.disabled = false;
+  });
+  ok.onclick = () => {
+    g.votes[me] = sel; g.voteI++;
+    go(g.voteI >= g.drawers.length ? 'tally' : 'votePass');
+  };
+}
+
+function tallyOf(g) {
+  const n = {}; g.drawers.forEach(id => n[id] = 0);
+  Object.values(g.votes).forEach(id => { if (id in n) n[id]++; });
+  const max = Math.max(...Object.values(n)), top = g.drawers.filter(id => n[id] === max);
+  return { n, max, accused: top.length === 1 ? top[0] : 'tie' };
+}
+
+function renderTally() {
+  const g = S.game, { n, max, accused } = tallyOf(g);
+  const rows = [...g.drawers].sort((a, b) => n[b] - n[a]);
+  app.innerHTML = `
+    <h2 class="center">${t('tallyTitle')}</h2>
+    <div class="card"><ul class="scores">${rows.map(id => `<li style="${n[id] === max ? 'font-weight:700' : ''}">${dotOf(id)}<span class="n">${nameOf(id)}</span>
+      <span class="gain" style="min-width:0">${g.drawers.filter(v => g.votes[v] === id).map(v => dotOf(v)).join('')}</span><span class="pts" style="min-width:4.2em;text-align:right">${t('votesN')(n[id])}</span></li>`).join('')}</ul></div>
+    <p class="center" style="font-size:20px;font-weight:700">${accused === 'tie' ? '⚖️ ' + t('tallyTie') : t('tallyTop')(nameOf(accused))}</p>
+    <div class="sticky"><button class="btn accent" id="ok">${t('revealVote')}</button></div>`;
+  $('ok').onclick = () => {
+    g.accused = accused;
+    if (accused === g.fake) return go('guess');
+    g.outcome = { fakeWins: true, reason: accused === 'tie' ? 'tie' : 'wrong' };
     go('result');
   };
 }
