@@ -84,7 +84,7 @@
 </div>
 <div id="tip"></div>
 <div id="joy"><i></i></div>
-<div id="aide" data-orbite="Glisser : tourner · molette / pincer : zoom · clic droit / 2 doigts : déplacer · touches : 1–4 (&amp; é &quot; ') versions · D dessus · R 3D · V visite" data-visite="Flèches ou ZQSD : avancer / tourner · glisser : regarder · rond en bas à gauche : se déplacer au doigt · Échap : quitter la visite"></div>
+<div id="aide" data-orbite="Glisser : tourner · molette / pincer : zoom · clic droit / 2 doigts : déplacer · touches : 1–4 (&amp; é &quot; ') versions · D dessus · R 3D · V visite" data-visite="Flèches : se déplacer · ZQSD : regarder (Z haut, S bas, Q gauche, D droite) · glisser : regarder · rond en bas à gauche : se déplacer au doigt · Échap : quitter la visite"></div>
 
 <script type="module">
 import * as THREE from 'three';
@@ -794,6 +794,10 @@ function construire() {
   /* ===== Architecture ===== */
   cur = archi;
   B(236, 400, 1185, 1892, -12, 0, projet ? mat.sol : mat.tomette, 'Sol');
+  if (visite) {   // plafond uniquement en visite (sans ombre portée, sinon il éteindrait la lumière du soleil)
+    const pl = B(236, 100, 1185, 1892, H, H + 12, mat.plafond ??= M(0xf4f2ee, { roughness: 0.95, emissive: 0xd9d4cb, emissiveIntensity: 0.55 }), 'Plafond');
+    pl.castShadow = false;
+  }
   B(236, 100, 1185, 400, -12, 0, mat.balcon, 'Balcon 460 × 139 (faux gazon)');
   B(248, 114, 668, 390, 0, 2.5, mat.dalles ??= new THREE.MeshStandardMaterial({ map: dallesTex, roughness: 0.7 }), 'Dalles bois 30 × 30');   // coin canapé + table de jardin
   B(858, 1328, 1173, 1712, 0, 0.6, mat.carrelage, 'Carrelage');                     // salle de bain
@@ -1528,9 +1532,11 @@ function obstacles() {
 const libre = (x, z) => !obst.some(b => x > b.min.x - RAYON && x < b.max.x + RAYON && z > b.min.z - RAYON && z < b.max.z + RAYON);
 function marche(dt) {
   const k = c => touches.has(c) ? 1 : 0;
-  const av = k('KeyW') + k('ArrowUp') - k('KeyS') - k('ArrowDown') - joy.y;
-  const lat = k('KeyD') - k('KeyA');
-  yaw -= (k('ArrowRight') - k('ArrowLeft') + joy.x) * 1.8 * dt;
+  // Flèches : se déplacer (avancer / reculer, pas de côté) ; ZQSD (AZERTY, lues par position) : orienter le regard
+  const av = k('ArrowUp') - k('ArrowDown') - joy.y;
+  const lat = k('ArrowRight') - k('ArrowLeft');
+  yaw -= (k('KeyD') - k('KeyA') + joy.x) * 1.8 * dt;                     // Q / D : tourner à gauche / à droite
+  pitch = Math.max(-1.2, Math.min(1.2, pitch + (k('KeyW') - k('KeyS')) * 1.2 * dt));   // Z / S : regarder en haut / en bas
   const dx = (-Math.sin(yaw) * av + Math.cos(yaw) * lat) * 1.6 * dt;
   const dz = (-Math.cos(yaw) * av - Math.sin(yaw) * lat) * 1.6 * dt;
   if (libre(pos.x + dx, pos.z)) pos.x += dx;
