@@ -72,6 +72,7 @@
     <button id="bVideP" aria-pressed="false" title="Après les travaux, sans meubles · touche 4 (')" aria-keyshortcuts="4">Vide après</button>
   </div>
   <button id="bEcran" class="tog on" role="switch" aria-checked="true"><i></i>Écran projecteur</button>
+  <button id="bBar" class="tog" role="switch" aria-checked="false" title="Le bar actuel sur le muret, une table de 50 cm en dessous et des chaises classiques"><i></i>Ancien bar + table</button>
 </div>
 <div id="vues">
   <div id="gVues" class="groupe" role="group" aria-label="Point de vue">
@@ -395,7 +396,7 @@ const root = new THREE.Group();   // tout ce qui est exporté
 scene.add(root);
 let archi, mobilier;
 let cur;                          // groupe courant pour B()
-let mode = 'projet', coupe = false, ecran = true, exterieur = true;   // murs toujours pleine hauteur, murs et porte extérieurs toujours affichés
+let mode = 'projet', coupe = false, ecran = true, exterieur = true, ancienBar = false;   // ancienBar : variante du projet avec le bar actuel + table basse le long du muret   // murs toujours pleine hauteur, murs et porte extérieurs toujours affichés
 let visite = false, obst = [];    // mode visite : boîtes de collision   // mode : 'vide' | 'actuel' | 'projet'
 
 // Arêtes adoucies pour le mobilier (0 = arêtes vives, pour l'architecture)
@@ -1066,9 +1067,10 @@ function construire() {
   if (!coupe) {
     const cl = new THREE.Group(); cl.userData.nom = 'Climatisation'; cl.name = 'Climatisation'; cur.add(cl);
     const u = mesh(new RoundedBoxGeometry(0.20, 0.30, 0.85, 3, 0.03), mat.blanc);
-    u.position.set(X(1153), 2.13, Z(1025)); cl.add(u);                                 // unité intérieure 85 × 30 × 20, à 30 cm du placard
-    B(1132, 946, 1134, 1104, 200, 203, mat.ecranCorps ??= M(0x2a2b2d, { roughness: 0.45 }), null, cl);   // volet de soufflage
-    B(1159, 462, 1173, 983, 198, 208, mat.blanc, 'Goulotte de la clim');      // goulotte 7 × 10 vers l'extérieur, alignée sur le bas de la clim
+    const yc = projet ? 835 : 1025;                                                    // travaux : en face de l'ouverture entre les verrières
+    u.position.set(X(1153), 2.13, Z(yc)); cl.add(u);                                   // unité intérieure 85 × 30 × 20
+    B(1132, yc - 79, 1134, yc + 79, 200, 203, mat.ecranCorps ??= M(0x2a2b2d, { roughness: 0.45 }), null, cl);   // volet de soufflage
+    B(1159, 462, 1173, yc - 42, 198, 208, mat.blanc, 'Goulotte de la clim');      // goulotte 7 × 10 vers l'extérieur, alignée sur le bas de la clim
   }
   // Tableau électrique
   B(248, 1755, 256, 1835, 120, hm(180), mat.gris, 'Panneau électrique');          // 40 × 60
@@ -1106,10 +1108,11 @@ function construire() {
   if (projet) {
     // Crédence au-dessus du plan de travail
     B(248, 978, 251, 1320, 90, hm(145), mat.menthe, 'Crédence');
-    // Bar posé sur le muret, débordant côté entrée
-    B(370, 1462, 660, 1478, 110, 115, mat.chene, 'Bar 60 × 145');
-    B(370, 1478, 660, 1590, 110, 115, mat.chene, 'Bar 60 × 145');
-    B(650, 1578, 656, 1584, 0, 110, mat.noir);
+    if (!ancienBar) {   // Bar posé sur le muret, débordant côté entrée
+      B(370, 1462, 660, 1478, 110, 115, mat.chene, 'Bar 60 × 145');
+      B(370, 1478, 660, 1590, 110, 115, mat.chene, 'Bar 60 × 145');
+      B(650, 1578, 656, 1584, 0, 110, mat.noir);
+    } else B(370, 1441, 660, 1502, 110, 114, mat.boisFonce, 'Bar 30 cm (ancien bar)');   // variante : le bar actuel en noyer, centré sur le muret
     // Estrade + arche du coin nuit
     B(851, 925, 1173, 1316, 0, 40, mat.chene, 'Estrade');
     if (coupe) {
@@ -1443,7 +1446,7 @@ function construire() {
     // Coin dressing : contre le mur du fond, miroir sur le mur de droite
     B(853, 463, 1173, 583, 0, 240, mat.chene, 'Dressing 160 × 60');
     for (const x of [933, 1013, 1093]) B(x - 1, 583, x + 1, 584, 0, 240, mat.boisF);
-    B(1169, 715, 1173, 835, 30, hm(190), M(0xd6e6ee, { roughness: 0.1, metalness: 0.2 }), 'Miroir 60 × 160');
+    B(1169, 775, 1173, 895, 30, hm(190), M(0xd6e6ee, { roughness: 0.1, metalness: 0.2 }), 'Miroir 60 × 160');   // sous la clim, en face de l'ouverture
     // Bureau côté séjour, adossé à l'allège le long du lit
     bureauAssisDebout(776, 1090, -Math.PI / 2);                            // même bureau qu'aujourd'hui, dos à l'allège
     bureauArtiste(776, 1090, -Math.PI / 2, 120, 69, 'Bureau : écran, PC, dessin');
@@ -1453,7 +1456,7 @@ function construire() {
     lit2.position.x = -15 * S;                                     // centré dans l'ouverture de la niche
     B(887, 938, 1168, 1314, 40, 60, mat.drap, null, lit2);
     B(885, 938, 1170, 1200, 56, 64, mat.bleu, null, lit2);
-    lapinVivant(1000, 1060, 64, 0.5);                                     // sur la couette
+    lapinVivant(1000, 1060, 64, -0.55);                                  // sur la couette, tourné un peu vers la droite
     B(900, 1222, 1014, 1304, 60, 74, mat.oreiller, null, lit2);
     B(1040, 1222, 1154, 1304, 60, 74, mat.oreiller, null, lit2);
     if (!coupe) { // Petite guirlande lumineuse : le long de l'arche puis en festons sur le mur de gauche
@@ -1478,10 +1481,17 @@ function construire() {
       }
       for (const z of [29, 54]) B(250, 1556, 368, 1557, z, z + 1, mat.joint ??= M(0x6d6a66), null, cm);   // jours entre tiroirs
     }
-    tabouret(430, 1628, 'Chaise haute'); tabouret(570, 1628, 'Chaise haute');
-    // Sur le bar : deux assiettes avec couverts face aux chaises hautes et une petite plante
-    for (const x of [430, 570]) couvert(cur, X(x), 1.15, Z(1548));
-    { const g = deco(630, 1492, 115, 'Petite plante'); pot(g, 6, 9, deco_m.terracotta);
+    if (!ancienBar) {
+      tabouret(430, 1580, 'Chaise haute'); tabouret(570, 1580, 'Chaise haute');   // avancées sous le bar
+      for (const x of [430, 570]) couvert(cur, X(x), 1.15, Z(1548));            // assiettes sur le bar, face aux chaises hautes
+    } else {            // variante : petite table en noyer de 50 cm tout le long du muret, chaises classiques
+      const tb = new THREE.Group(); tb.userData.nom = 'Table le long du muret 145 × 50'; tb.name = 'Table muret'; cur.add(tb);
+      B(370, 1479, 660, 1579, 72, 75, mat.boisFonce, null, tb);                  // plateau
+      B(372, 1479, 658, 1484, 64, 72, mat.boisFonce, null, tb);                  // tasseau fixé au muret
+      for (const x of [374, 650]) B(x, 1569, x + 6, 1575, 0, 72, mat.boisFonce, null, tb);   // pieds avant
+      for (const x of [430, 570]) { chaise(x, 1597, 0, 'Chaise', mat.tissuF); couvert(cur, X(x), 0.75, Z(1535)); }   // chaises avancées sous la table
+    }
+    { const g = deco(630, ancienBar ? 1471 : 1492, ancienBar ? 114 : 115, 'Petite plante'); pot(g, 6, 9, deco_m.terracotta);
       for (let i = 0; i < 7; i++) boule(g, 3 + hasard(i + 70) * 1.5, Math.cos(i * 2.3) * 2.5, 11 + hasard(i + 80) * 6, Math.sin(i * 2.3) * 2.5, vert[i % 3], 1, 0.8, 1); }
     const pen = new THREE.Group(); pen.userData.nom = 'Banc et penderie 40 × 150'; pen.name = 'Banc et penderie'; cur.add(pen);
     B(440, 1800, 560, 1880, 0, H, mat.blanc, null, pen);          // colonne penderie
@@ -1605,9 +1615,10 @@ for (const [id, m] of [['bVide', 'vide'], ['bActuel', 'actuel'], ['bProjet', 'pr
   $(id).onclick = () => {
     mode = m; construire();
     for (const b of ['bVide', 'bActuel', 'bProjet', 'bVideP']) { $(b).classList.toggle('on', b === id); $(b).setAttribute('aria-pressed', b === id); }
-    $('bEcran').style.display = m === 'projet' ? '' : 'none';
+    for (const b of ['bEcran', 'bBar']) $(b).style.display = m === 'projet' ? '' : 'none';
   };
 const bascule = (id, val) => { $(id).classList.toggle('on', val); $(id).setAttribute('aria-checked', val); };
+$('bBar').onclick = () => { ancienBar = !ancienBar; bascule('bBar', ancienBar); construire(); };
 $('bEcran').onclick = () => { ecran = !ecran; bascule('bEcran', ecran); construire(); };
 $('bDessus').onclick = () => vue(true);
 $('b3d').onclick = () => vue(false);
