@@ -699,6 +699,63 @@ function chaiseDesign(cxp, cyp, rot, nom) {
   for (const sx of [-1, 1]) { L(g, 3, 20, 3, sx * 23, 57, 4, cadre); L(g, 6, 3, 25, sx * 23, 68, 2, cadre); }
   g.position.set(X(cxp), 0, Z(cyp)); g.rotation.y = rot; cur.add(g);
 }
+// Vrai petit lapin couché (env. 30 cm), blanc avec une selle grise, une oreille blanche et une grise ; museau vers -x local
+const pelage = (fond, meche) => texture(128, (g, n) => {
+  g.fillStyle = fond; g.fillRect(0, 0, n, n); g.lineWidth = 1;
+  for (let i = 0; i < 1400; i++) { const x = alea() * n, y = alea() * n; g.strokeStyle = meche + (0.08 + alea() * 0.12) + ')';
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + 4 + alea() * 4, y + (alea() - .5) * 2); g.stroke(); }
+});
+// Pelage mélangé de l'arrière-train : blanc dessous, gris sur le dos, avec une lisière irrégulière faite de mèches qui se mêlent
+// (texture plaquée sur une sphère : le haut de l'image = le dessus du lapin ; bords gauche/droite raccordés)
+const pelageMelange = texture(256, (g, n) => {
+  g.fillStyle = '#f2efe9'; g.fillRect(0, 0, n, n);
+  const lisiere = x => 0.5 + 0.07 * Math.sin(x / n * 6.283 * 2 + 0.6) + 0.04 * Math.sin(x / n * 6.283 * 5 + 2);   // hauteur de la limite gris/blanc
+  for (let x = 0; x < n; x += 2) {                                       // fond : gris sur le dos qui se fond dans le blanc
+    const yb = (1 - lisiere(x)) * n, gr = g.createLinearGradient(0, yb - n * 0.09, 0, yb + n * 0.09);
+    gr.addColorStop(0, '#8d8883'); gr.addColorStop(0.5, '#bdb8b2'); gr.addColorStop(1, '#f2efe9');
+    g.fillStyle = gr; g.fillRect(x, 0, 2, n);
+  }
+  for (let i = 0; i < 9000; i++) {
+    const x = alea() * n, y = alea() * n, h = 1 - y / n, d = h - lisiere(x);
+    const pg = Math.min(1, Math.max(0, 0.5 + d * 6));                  // probabilité de mèche grise : fondu sur ~15 % de la hauteur
+    const gris = alea() < pg, t = 0.85 + alea() * 0.3;
+    g.strokeStyle = gris ? `rgba(${120 * t | 0},${115 * t | 0},${110 * t | 0},.45)` : `rgba(${250 * Math.min(1, t) | 0},${246 * Math.min(1, t) | 0},${238 * Math.min(1, t) | 0},.45)`;
+    g.lineWidth = 1.2; const l = 4 + alea() * 5;
+    for (const ox of [0, -n, n]) { g.beginPath(); g.moveTo(x + ox, y); g.lineTo(x + ox + l, y + (alea() - .5) * 3); g.stroke(); }
+  }
+});
+function lapinVivant(cx, cy, z0, rot, nom = 'Lapin') {
+  const g = new THREE.Group(); g.userData.nom = nom; g.name = nom; g.position.set(X(cx), z0 / 100, Z(cy)); g.rotation.y = rot; cur.add(g);
+  const blanc = mat.poilBlanc ??= new THREE.MeshStandardMaterial({ map: pelage('#f4f1ec', 'rgba(150,140,130,'), bumpMap: pelage('#bbbbbb', 'rgba(255,255,255,'), bumpScale: 0.6, roughness: 1 });
+  const gris = mat.poilGris ??= new THREE.MeshStandardMaterial({ map: pelage('#8f8b87', 'rgba(40,36,34,'), roughness: 1 });
+  const rose = mat.nezRose ??= M(0xd99a9a, { roughness: 0.6 }), roseIn = mat.oreilleRose ??= M(0xe8b9b4, { roughness: 0.8 });
+  const oeil = mat.oeilLapin ??= M(0x120e0c, { roughness: 0.08 }), reflet = mat.refletOeil ??= M(0xffffff, { emissive: 0xffffff, emissiveIntensity: 0.6 });
+  // corps en poire : arrière-train rond, poitrail plus fin
+  boule(g, 9.5, 6, 8.2, 0, mat.poilMelange ??= new THREE.MeshStandardMaterial({ map: pelageMelange, roughness: 1 }), 1.15, 0.86, 1.08);   // arrière-train blanc et gris fondus
+  boule(g, 7, -3.5, 7.4, 0, blanc, 1.1, 0.9, 0.95);
+  for (const sz of [-1, 1]) boule(g, 3.4, 8, 2.2, sz * 6.6, blanc, 1.9, 0.6, 0.75);   // pattes arrière
+  // tête un peu tournée, joues, museau
+  const t = new THREE.Group(); t.position.set(-0.095, 0.112, 0); t.rotation.y = 0.2; g.add(t);
+  boule(t, 5.6, 0, 0, 0, blanc, 1.15, 0.95, 0.92);
+  for (const sz of [-1, 1]) boule(t, 3, -2.6, -1.8, sz * 2.4, blanc);                 // joues
+  boule(t, 2.6, -5.6, -1.3, 0, blanc, 1, 0.85, 1.2);                                    // museau
+  boule(t, 0.75, -8, -0.6, 0, rose, 1, 0.8, 1.2);                                       // nez
+  for (const sz of [-1, 1]) {
+    boule(t, 1.05, -3.2, 1.8, sz * 3.9, oeil);                                          // yeux
+    boule(t, 0.3, -3.9, 2.4, sz * 4.3, reflet);                                         // reflet
+    for (const [dy, ang] of [[-0.2, 0.15], [-0.9, 0], [-1.6, -0.15]]) {                 // moustaches
+      const m = mesh(new THREE.CylinderGeometry(0.0004, 0.0004, 0.07, 4), mat.poilBlanc); m.castShadow = false;
+      m.position.set(-0.07, (-1.3 + dy) / 100, sz * 0.045); m.rotation.set(Math.PI / 2 - sz * 0.35, 0, ang); t.add(m);
+    }
+    // oreilles couchées vers l'arrière : gauche blanche, droite grise, intérieur rosé
+    const o = new THREE.Group(); o.position.set(2.4 / 100, 4.6 / 100, sz * 0.022); o.rotation.set(sz * 0.22, 0, -1.2); t.add(o);
+    const ext = mesh(new THREE.CapsuleGeometry(0.018, 0.08, 6, 14), sz < 0 ? blanc : gris); ext.scale.set(1, 1, 0.45); ext.position.y = 0.05; o.add(ext);
+    const int = mesh(new THREE.CapsuleGeometry(0.011, 0.065, 4, 10), roseIn); int.scale.set(1, 1, 0.2); int.position.set(0, 0.05, sz * 0.006); o.add(int);
+  }
+  for (const sz of [-1, 1]) boule(g, 2.1, -11.5, 1.3, sz * 3, blanc, 1.7, 0.6, 0.85);   // pattes avant
+  boule(g, 2.7, 17.2, 8.6, 0, blanc);                                                   // queue
+  return g;
+}
 function construire() {
   root.clear();
   rond = 0;
@@ -1192,6 +1249,7 @@ function construire() {
   B(890, 466, 1171, 845, 0, 28, mat.bois, null, lit);
   B(894, 470, 1167, 841, 28, 48, mat.drap, null, lit);
   B(892, 590, 1169, 843, 44, 52, mat.couette, null, lit);
+  lapinVivant(1010, 700, 52, 0.5);                                         // sur la couette
   B(906, 478, 1020, 560, 48, 62, mat.oreiller, null, lit);
   B(1040, 478, 1154, 560, 48, 62, mat.oreiller, null, lit);
   // Piano 27 × 130
@@ -1286,6 +1344,8 @@ function construire() {
       B(837, 466, 840, 744, 79.5, 156.5, mat.noir, null, e);                // liseré noir de 5 mm
       B(836, 467, 837, 743, 80, 156, mat.toile ??= M(0xf4f3f0, { roughness: 1 }), null, e);   // toile
     }
+    enceinte(cur, X(792), 0.45, Z(668), -Math.PI / 2,                                    // enceinte noire sous l'écran de projection
+      mat.coqueNoire ??= M(0x1c1c1d, { roughness: 0.75 }), mat.grilleNoire ??= new THREE.MeshStandardMaterial({ map: grilleTex('#0e0e0e', '#2c2c2c'), roughness: 0.8 }));
     { // Petite succulente
       const g = deco(806, 706, 45, 'Succulente'); pot(g, 6, 8, deco_m.sauge);
       for (const [n, r, y, s] of [[9, 3, 8.5, 1], [6, 1.6, 9.8, 0.75]]) for (let k = 0; k < n; k++) {
@@ -1313,6 +1373,7 @@ function construire() {
     lit2.position.x = -15 * S;                                     // centré dans l'ouverture de la niche
     B(887, 938, 1168, 1314, 40, 60, mat.drap, null, lit2);
     B(885, 938, 1170, 1200, 56, 64, mat.bleu, null, lit2);
+    lapinVivant(1000, 1060, 64, 0.5);                                     // sur la couette
     B(900, 1222, 1014, 1304, 60, 74, mat.oreiller, null, lit2);
     B(1040, 1222, 1154, 1304, 60, 74, mat.oreiller, null, lit2);
     if (!coupe) { // Petite guirlande lumineuse : le long de l'arche puis en festons sur le mur de gauche
