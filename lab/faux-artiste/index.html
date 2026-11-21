@@ -96,10 +96,6 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:52px
 .seg.big button{min-height:72px;font-size:26px}
 .titles{display:flex;flex-direction:column;gap:10px;margin-top:14px}
 .titles .chip{justify-content:center;text-align:center;white-space:normal}
-.terrbar{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:15px;flex:none}
-.terrbar>span:not(.tb){display:flex;align-items:center;white-space:nowrap}
-.terrbar .tb{flex:1;height:10px;border-radius:99px;background:var(--line);display:flex;overflow:hidden}
-.terrbar .tb i{display:block;height:100%}
 .inkbar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:0 0 8px;flex:none}
 .inkbar i{display:block;height:100%;width:100%;background:var(--accent);border-radius:99px;transition:width .08s linear}
 .inkbar.dry{animation:dry .4s ease-out}
@@ -295,10 +291,6 @@ const T = {
     howMany: 'Combien de joueurs ?', chooseGame: 'Choisis un jeu', settingsTitle: 'Réglages',
     pitchFake: 'Un imposteur se cache parmi les artistes.', pitchChain: 'Le mot passe de main en main, dessin après dessin.', pitchSame: 'Duel : avez-vous le même mot ?',
     pl36: '3 à 6 joueurs', pl2: '2 joueurs', pl46: '4 à 6 joueurs',
-    gameTerr: 'Territoire', pitchTerr: 'Encerclez le plus de terrain avec votre encre.',
-    trStrokes: 'Traits chacun', trTurn: (a, b) => `trait ${a}/${b}`, trHint: 'Ferme une forme avec ton trait (ou en t\'appuyant sur ton terrain) pour la capturer. Impossible de traverser l\'adversaire.',
-    trBlocked: 'Bloqué par l\'adversaire !', trWin: name => `${name} remporte le territoire !`, trTie: 'Égalité parfaite !', trAgain: 'Revanche',
-    trRules: 'Une victoire = +1 point',
     gameBluff: 'Le bluff des titres', pitchBluff: 'Inventez de faux titres pour le dessin et trouvez le vrai.',
     blDrawGo: name => `Je suis ${name}, dessiner`, blDrawK: 'Dessinateur de la manche', blReroll: '🎲 Autre sujet', blDraw: 'Dessine', blDrawHint: 'Ne montre pas ton sujet ! Autant de traits que tu veux.',
     blWriteK: 'Invente un faux titre', blWriteGo: name => `Je suis ${name}, écrire`, blWriteHint: 'Un titre crédible pour piéger les autres. Il restera secret jusqu\'au vote.', blWritePh: 'Ton faux titre', blTooClose: 'Tu as trouvé le vrai titre ! Écris plutôt un faux titre crédible.', blTaken: 'Ce titre est déjà proposé, invente autre chose.',
@@ -387,7 +379,6 @@ const T = {
       '<b>Points :</b> si les imposteurs gagnent, chacun d\'eux (et le maître du jeu) marque 2 points. Sinon, chaque artiste marque 1 point.',
       'Chaque dessin terminé est rangé dans la <b>galerie</b> 🖼️ (les 30 derniers).',
       '<b>Même mot ?</b> (duel à 2, dans les réglages) : chacun reçoit un mot secret, le même une fois sur deux, sinon un mot proche. On dessine chacun son tour sur la même feuille, puis chacun parie en secret : même mot ou pas. Bon pari : +1. Si les mots diffèrent, deviner le mot de l\'autre : +2.',
-      '<b>Territoire</b> (2 joueurs) : un trait chacun, à tour de rôle, avec une quantité d\'encre limitée. Une forme fermée par ton trait (ou contre ton propre terrain) devient à toi, même si elle contient du terrain adverse. On ne peut pas traverser les traits ni le terrain de l\'adversaire. Le plus grand territoire gagne.',
       '<b>Le bluff des titres</b> (3 à 6 joueurs) : un joueur dessine un sujet loufoque (« une girafe qui fait du ski »). Chacun des autres invente en secret un faux titre, puis tout le monde vote pour celui qu\'il croit vrai. Vrai titre trouvé : +2 (et +1 au dessinateur). Chaque joueur piégé par ton faux titre : +1.',
       '<b>Le saboteur</b> (4 à 6 joueurs) : un joueur devine sans rien regarder. Les autres dessinent le mot trait par trait, à l\'encre noire… sauf le saboteur, qui a un mot proche et tente d\'orienter le dessin vers le sien. Le devineur propose un mot, puis tout le monde cherche le saboteur. Mot trouvé : devineur +2, artistes +1. Mot du saboteur : saboteur +3. Saboteur démasqué : artistes +1, sinon saboteur +2.',
       '<b>Un mot, un dessin</b> (autre jeu, dans les réglages) : un mot de départ, le joueur suivant le dessine, le suivant devine le mot d\'après le dessin, le suivant redessine ce mot… jusqu\'à ce que tout le monde soit passé. À la fin, on compare avec le mot de départ.',
@@ -405,10 +396,6 @@ const T = {
     howMany: 'How many players?', chooseGame: 'Pick a game', settingsTitle: 'Settings',
     pitchFake: 'An impostor hides among the artists.', pitchChain: 'The word goes round, drawing after drawing.', pitchSame: 'A duel: do you have the same word?',
     pl36: '3 to 6 players', pl2: '2 players', pl46: '4 to 6 players',
-    gameTerr: 'Territory', pitchTerr: 'Enclose the most ground with your ink.',
-    trStrokes: 'Lines each', trTurn: (a, b) => `line ${a}/${b}`, trHint: 'Close a shape with your line (or lean on your own ground) to capture it. You can\'t cross your opponent.',
-    trBlocked: 'Blocked by your opponent!', trWin: name => `${name} wins the territory!`, trTie: 'A perfect tie!', trAgain: 'Rematch',
-    trRules: 'A win = +1 point',
     gameBluff: 'Title bluff', pitchBluff: 'Make up fake titles for the drawing, and spot the real one.',
     blDrawGo: name => `I'm ${name}, draw`, blDrawK: 'This round\'s artist', blReroll: '🎲 Another subject', blDraw: 'Draw', blDrawHint: 'Don\'t show your subject! As many lines as you like.',
     blWriteK: 'Make up a fake title', blWriteGo: name => `I'm ${name}, write`, blWriteHint: 'A believable title to fool the others. It stays secret until the vote.', blWritePh: 'Your fake title', blTooClose: 'You found the real title! Write a believable fake one instead.', blTaken: 'That title is already taken, make up something else.',
@@ -497,7 +484,6 @@ const T = {
       '<b>Points:</b> if the impostors win, each of them (and the question master) scores 2 points. Otherwise each artist scores 1 point.',
       'Every finished drawing goes to the <b>gallery</b> 🖼️ (the last 30).',
       '<b>Same word?</b> (a duel for 2, in the settings): each player gets a secret word, the same one half the time, otherwise a close one. Take turns drawing on the same sheet, then each bets in secret: same word or not. Right bet: +1. If the words differ, guessing the other word: +2.',
-      '<b>Territory</b> (2 players): one line each, in turn, with limited ink. A shape closed by your line (or against your own ground) becomes yours, even if it holds enemy ground. You can\'t cross your opponent\'s lines or ground. The biggest territory wins.',
       '<b>Title bluff</b> (3 to 6 players): one player draws a silly subject ("a giraffe skiing"). Each other player secretly makes up a fake title, then everyone votes for the one they think is real. Real title found: +2 (and +1 to the artist). Each player fooled by your fake title: +1.',
       '<b>The saboteur</b> (4 to 6 players): one player guesses without looking. The others draw the word line by line, in black ink… except the saboteur, who has a close word and tries to steer the drawing toward theirs. The guesser names a word, then everyone hunts for the saboteur. Word found: guesser +2, artists +1. Saboteur\'s word: saboteur +3. Saboteur caught: artists +1, otherwise saboteur +2.',
       '<b>One word, one drawing</b> (another game, in the settings): a starting word, the next player draws it, the next one guesses the word from the drawing, the next draws that word again… until everyone has played. At the end, compare with the starting word.',
@@ -525,7 +511,8 @@ if (S.game && S.game.phase === 'reveal') S.game.phase = 'pass'; // never reopen 
 if (S.game && S.game.fake && !S.game.roles) S.game.roles = { [S.game.fake]: 'fake' }; // single-fake save
 if (S.game && S.game.phase === 'ballot') S.game.phase = 'votePass'; // nor on someone's ballot
 if (S.game && S.game.phase === 'bet') S.game.phase = 'betPass';
-if (S.game && S.game.kind === 'terr' && S.game.grid.length !== 90 * 150) S.game = null; // older, coarser grid
+if (S.game && S.game.kind === 'terr') S.game = null; // Territoire was removed
+if (S.variant === 'terr') S.variant = 'same';
 if (S.game) S.game.phase = ({ bluffDraw: 'bluffPass', bluffWrite: 'bluffWPass', bluffVote: 'bluffVPass' })[S.game.phase] || S.game.phase;
 if (S.game && S.game.phase === 'chainStep') S.game.phase = 'chainPass';
 if (S.game && S.game.kind === 'chain' && !S.game.kinds) S.game = null; // chain saved before per-step kinds
@@ -563,7 +550,7 @@ const impostors = g => g.drawers.filter(id => roleOf(g, id) !== 'artist');
 const roleIcon = (g, id) => ({ fake: ' 🎭', forger: ' 🥸', saboteur: ' 🤫' })[roleOf(g, id)] || '';
 const INK = '#26221d';
 const INK_LEVELS = [[0, 'inkInf'], [3, 'inkLots'], [1.6, 'inkMid'], [0.8, 'inkLow']];
-const inkOf = v => (S.inkBy || {})[v] ?? (v === 'terr' ? 1.6 : 0);
+const inkOf = v => (S.inkBy || {})[v] || 0;
 const inkBar = g => g.ink ? '<div class="inkbar" aria-hidden="true"><i id="inkLvl"></i></div>' : '';
 const inkShow = f => { const el = $('inkLvl'); if (el) { el.style.width = Math.max(0, f) * 100 + '%'; el.parentElement.classList.toggle('dry', f <= 0); } };
 // At least 2 artists; returns the clamped [fakes, forgers] for the current table.
@@ -616,14 +603,14 @@ function render() {
   applySkin();
   const g = S.game;
   const q = $('quitBtn');
-  q.hidden = !g || g.phase === 'result' || g.phase === 'chainEnd' || g.phase === 'sameEnd' || g.phase === 'sabEnd' || g.phase === 'bluffEnd' || g.phase === 'terrEnd' || !!view;
+  q.hidden = !g || g.phase === 'result' || g.phase === 'chainEnd' || g.phase === 'sameEnd' || g.phase === 'sabEnd' || g.phase === 'bluffEnd' || !!view;
   q.textContent = '✕'; q.title = q.ariaLabel = t('quit');
   $('menuBtn').title = $('menuBtn').ariaLabel = t('menu');
   keepAwake();
-  document.body.classList.toggle('drawing', !view && !!g && (g.phase === 'draw' || (g.phase === 'chainStep' && chainKind(g) === 'draw') || g.phase === 'bluffDraw' || g.phase === 'terr'));
+  document.body.classList.toggle('drawing', !view && !!g && (g.phase === 'draw' || (g.phase === 'chainStep' && chainKind(g) === 'draw') || g.phase === 'bluffDraw'));
   if (view) return view.shot != null ? renderShot() : renderGallery();
   if (!g) return renderSetup();
-  ({ gm: renderGm, pass: renderPass, reveal: renderReveal, draw: renderDraw, vote: renderVote, votePass: renderVotePass, ballot: renderBallot, tally: renderTally, chainPass: renderChainPass, chainStep: renderChainStep, chainEnd: renderChainEnd, betPass: renderBetPass, bet: renderBet, sameEnd: renderSameEnd, sabIntro: renderSabIntro, sabPass: renderSabPass, sabGuess: renderSabGuess, sabVote: renderSabVote, sabEnd: renderSabEnd, bluffPass: renderBluffPass, bluffDraw: renderBluffDraw, bluffWPass: renderBluffWPass, bluffWrite: renderBluffWrite, bluffVPass: renderBluffVPass, bluffVote: renderBluffVote, bluffEnd: renderBluffEnd, terr: renderTerr, terrEnd: renderTerrEnd, guess: renderGuess, result: renderResult })[g.phase]();
+  ({ gm: renderGm, pass: renderPass, reveal: renderReveal, draw: renderDraw, vote: renderVote, votePass: renderVotePass, ballot: renderBallot, tally: renderTally, chainPass: renderChainPass, chainStep: renderChainStep, chainEnd: renderChainEnd, betPass: renderBetPass, bet: renderBet, sameEnd: renderSameEnd, sabIntro: renderSabIntro, sabPass: renderSabPass, sabGuess: renderSabGuess, sabVote: renderSabVote, sabEnd: renderSabEnd, bluffPass: renderBluffPass, bluffDraw: renderBluffDraw, bluffWPass: renderBluffWPass, bluffWrite: renderBluffWrite, bluffVPass: renderBluffVPass, bluffVote: renderBluffVote, bluffEnd: renderBluffEnd, guess: renderGuess, result: renderResult })[g.phase]();
 }
 
 // Keep the screen on while a round is being played (the phone sits on the table between turns).
@@ -650,7 +637,7 @@ function ask(title, hint, okLabel, onOk) {
 // ---------- setup ----------
 function renderSetup() {
   const min = S.mode === 'gm' && (S.variant || 'fake') === 'fake' ? 4 : 3;
-  const block = S.variant === 'same' || S.variant === 'terr' ? (S.players.length !== 2 ? t('sameOnly2') : '')
+  const block = S.variant === 'same' ? (S.players.length !== 2 ? t('sameOnly2') : '')
     : S.variant === 'sab' ? (S.players.length < 4 ? t('sabMin') : '')
     : S.players.length < min ? t('needPlayers')(min) : '';
   const cats = CATEGORIES.map(c => `<option value="${c.id}" ${S.cat === c.id ? 'selected' : ''}>${esc(c[S.lang])}</option>`).join('');
@@ -660,10 +647,9 @@ function renderSetup() {
     ['same', '🤝', 'gameSame', 'pitchSame', 'pl2', n === 2],
     ['sab', '🕵️', 'gameSab', 'pitchSab', 'pl46', n >= 4],
     ['bluff', '🤥', 'gameBluff', 'pitchBluff', 'pl36', n >= 3],
-    ['terr', '🗺️', 'gameTerr', 'pitchTerr', 'pl2', n === 2],
   ];
   const si = STEPS.indexOf(step), cur = games.find(x => x[0] === (S.variant || 'fake'));
-  const why = k => k === 'same' || k === 'terr' ? t('onlyN')(2) : t('needMore')(k === 'sab' ? 4 : 3);
+  const why = k => k === 'same' ? t('onlyN')(2) : t('needMore')(k === 'sab' ? 4 : 3);
   // Ink comes last in every game's settings.
   const inkF = `<div class="field"><label>${t('ink')}</label>
         <div class="seg" id="inkSeg">${INK_LEVELS.map(([v, k]) => `<button data-v="${v}" aria-pressed="${inkOf(S.variant || 'fake') === v}">${t(k)}</button>`).join('')}</div>
@@ -693,11 +679,7 @@ function renderSetup() {
     </div>` : ''}
     ${step === 'settings' ? `<div class="card" style="border-top:0;padding-top:4px">
       <h3>${t('settingsTitle')}</h3>
-      ${S.variant === 'terr' ? `<div class="field" style="margin-top:0"><label>${t('trStrokes')}</label>
-        <div class="seg" id="terrSeg">${[6, 8, 10, 12].map(n => `<button data-v="${n}" aria-pressed="${(S.terrStrokes || 8) === n}">${n}</button>`).join('')}</div></div>
-      ${inkF}
-      ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
-    </div>` : S.variant === 'bluff' ? `<div class="field" style="margin-top:0"><label>${t('target')}</label>
+      ${S.variant === 'bluff' ? `<div class="field" style="margin-top:0"><label>${t('target')}</label>
         <div class="seg" id="targetSeg">${[3, 5, 7, 10].map(n => `<button data-v="${n}" aria-pressed="${S.target === n}">${n}</button>`).join('')}</div></div>
       ${inkF}
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
@@ -775,7 +757,7 @@ function renderSetup() {
   const seg = (id, fn) => $(id)?.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); save(); render(); }));
   seg('countSeg', v => {
     setCount(+v);
-    const duo = ['same', 'terr'];
+    const duo = ['same'];
     if (+v === 2) { if (!duo.includes(S.variant)) S.variant = 'same'; }
     else if (duo.includes(S.variant) || (S.variant === 'sab' && +v < 4)) S.variant = 'fake';
   });
@@ -785,7 +767,6 @@ function renderSetup() {
   });
   seg('sameSeg', v => S.sameStrokes = +v);
   seg('sabSeg', v => S.sabStrokes = +v);
-  seg('terrSeg', v => S.terrStrokes = +v);
   seg('inkSeg', v => { S.inkBy = { ...(S.inkBy || {}), [S.variant || 'fake']: +v }; });
   seg('fromSeg', v => S.chainFrom = v);
   seg('strokeSeg', v => S.chainStrokes = +v);
@@ -854,7 +835,6 @@ function startGame() {
   if (S.variant === 'same') return startSame();
   if (S.variant === 'sab') return startSab();
   if (S.variant === 'bluff') return startBluff();
-  if (S.variant === 'terr') return startTerr();
   const ids = S.players.map(p => p.id);
   const gm = S.mode === 'gm' ? ids[S.gmPtr++ % ids.length] : null;
   const drawers = ids.filter(id => id !== gm);
@@ -1060,7 +1040,7 @@ function mountCanvas(cv, o) {
       for (const ev of (co && co.length ? co : [e])) {
         const p = toPaper(local(ev)), l = stroke.pts[stroke.pts.length - 1];
         if (stroke.dry || Math.hypot(p[0] - l[0], p[1] - l[1]) <= 0.003 / v.s) continue;
-        // Walls: a game can forbid parts of the sheet (Territoire); the line stops at the edge.
+        // Walls: a game can forbid parts of the sheet; the line stops at the edge (unused for now).
         if (o.draw.allow && !o.draw.allow(l, p)) { stroke.dry = true; o.draw.onBlock?.(); buzz(25); break; }
         // Ink: length in paper widths (y scaled by the paper's aspect); the line stops when it's spent.
         const max = o.draw.ink?.() || 0;
@@ -1775,157 +1755,6 @@ function renderBluffEnd() {
   $('settings').onclick = () => { S.game = null; save(); goStep('settings'); };
 }
 
-// ---------- "Territoire": 2 players, one ink-limited line each in turn. Ground lives on a
-// TW × TH grid (square cells on the 3:5 sheet). After each line, every region the mover has walled
-// off from the sheet's border becomes theirs (enemy ground inside included). Lines can't enter
-// enemy cells, and a line ending near your own ground or near its own start snaps shut.
-const TW = 90, TH = 150;
-function startTerr() {
-  const ids = S.players.slice(0, 2).map(p => p.id), first = (S.terrPtr = ((S.terrPtr ?? -1) + 1) % 2);
-  view = null;
-  S.game = { kind: 'terr', phase: 'terr', ids, order: [ids[first], ids[1 - first]], n: S.terrStrokes || 8, ink: inkOf('terr'),
-    turn: 0, strokes: [], grid: '0'.repeat(TW * TH), prev: null, pending: false, scored: false };
-  save(); render(); scrollTo(0, 0);
-}
-const terrCode = (g, id) => g.ids.indexOf(id) + 1;
-const terrCell = ([x, y]) => [Math.min(TW - 1, Math.max(0, Math.floor(x * TW))), Math.min(TH - 1, Math.max(0, Math.floor(y * TH)))];
-// Cells crossed by the segment a → b (sampled every ~0.35 cell).
-function terrSeg(a, b, out) {
-  const n = Math.max(1, Math.ceil(Math.hypot((b[0] - a[0]) * TW, (b[1] - a[1]) * TH) / .35));
-  for (let i = 0; i <= n; i++) { const [cx, cy] = terrCell([a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n]); out.push(cy * TW + cx); }
-  return out;
-}
-const terrFree = (grid, a, b, foe) => terrSeg(a, b, []).every(i => grid[i] !== foe);
-function terrShares(grid) {
-  let a = 0, b = 0;
-  for (const c of grid) { if (c === '1') a++; else if (c === '2') b++; }
-  return [a / grid.length, b / grid.length];
-}
-// Adds the line to the mover's ground, snaps loose ends shut, then fills what it encloses.
-function terrApply(g, stroke, code) {
-  const grid = g.grid.split(''), me = String(code), foe = String(3 - code), pts = stroke.pts;
-  const cells = [];
-  for (let i = 1; i < pts.length; i++) terrSeg(pts[i - 1], pts[i], cells);
-  if (pts.length === 1) terrSeg(pts[0], pts[0], cells);
-  // Snap an end to the nearest own cell (or to the line's other end) within 3 cells.
-  const own = i => grid[i] === me;
-  const snap = (end, other) => {
-    const [ex, ey] = terrCell(end); let best = null, bd = 16.5;
-    for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) {
-      const x = ex + dx, y = ey + dy; if (x < 0 || y < 0 || x >= TW || y >= TH) continue;
-      const d = dx * dx + dy * dy; if (d < bd && d > 0 && own(y * TW + x)) { bd = d; best = [(x + .5) / TW, (y + .5) / TH]; }
-    }
-    if (!best && other && Math.hypot((end[0] - other[0]) * TW, (end[1] - other[1]) * TH) <= 6.5 && pts.length > 8) best = other;
-    if (best && terrFree(grid, end, best, foe)) terrSeg(end, best, cells);
-  };
-  snap(pts[pts.length - 1], pts[0]); snap(pts[0], null);
-  cells.forEach(i => { if (grid[i] !== foe) grid[i] = me; });
-  // Flood from the border through every cell that isn't ours: what it can't reach is enclosed.
-  const seen = new Uint8Array(TW * TH), q = [];
-  const push = i => { if (!seen[i] && grid[i] !== me) { seen[i] = 1; q.push(i); } };
-  for (let x = 0; x < TW; x++) { push(x); push((TH - 1) * TW + x); }
-  for (let y = 0; y < TH; y++) { push(y * TW); push(y * TW + TW - 1); }
-  while (q.length) {
-    const i = q.pop(), x = i % TW;
-    if (x > 0) push(i - 1); if (x < TW - 1) push(i + 1); if (i >= TW) push(i - TW); if (i < TW * (TH - 1)) push(i + TW);
-  }
-  for (let i = 0; i < grid.length; i++) if (!seen[i]) grid[i] = me;
-  return grid.join('');
-}
-// Ground painted as soft colour blocks under the lines.
-function terrUnder(g) {
-  const off = document.createElement('canvas'); off.width = TW; off.height = TH;
-  const octx = off.getContext('2d'), img = octx.createImageData(TW, TH);
-  const rgb = id => { const h = P(id).color.replace('#', ''); return [0, 2, 4].map(k => parseInt(h.slice(k, k + 2), 16)); };
-  const cols = [null, rgb(g.ids[0]), rgb(g.ids[1])];
-  for (let i = 0; i < g.grid.length; i++) {
-    const c = cols[+g.grid[i]]; if (!c) continue;
-    img.data.set([c[0], c[1], c[2], 105], i * 4);
-  }
-  octx.putImageData(img, 0, 0);
-  // Shifted half a cell up-left: a wall cell is centred on the line instead of hanging off it.
-  return (ctx, w, h) => { ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(off, -w / TW / 2, -h / TH / 2, w, h); ctx.restore(); };
-}
-function terrScoreBar(g) {
-  const [a, b] = terrShares(g.grid), f = x => (x * 100).toFixed(1) + ' %';
-  return `<div class="terrbar"><span>${dotOf(g.ids[0])}<b>${f(a)}</b></span><span class="tb"><i style="width:${a * 100}%;background:${P(g.ids[0]).color}"></i><i style="width:${b * 100}%;background:${P(g.ids[1]).color};margin-left:auto"></i></span><span><b>${f(b)}</b>${dotOf(g.ids[1])}</span></div>`;
-}
-
-function renderTerr() {
-  const g = S.game, id = g.order[g.turn % 2], code = terrCode(g, id), foe = String(3 - code);
-  app.innerHTML = `
-    <div class="drawbar">
-      <div class="who">${dotOf(id)}<span>${nameOf(id)}</span></div>
-      <div class="meta">${t('trTurn')(Math.floor(g.turn / 2) + 1, g.n)}</div>
-    </div>
-    ${terrScoreBar(g)}
-    ${inkBar(g)}
-    <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.turn < 2 && !g.pending ? `<div class="paperhint" id="phint">${t('trHint')}</div>` : ''}</div></div>
-    <div class="row">
-      <button class="btn" id="undo">↺ ${t('undo')}</button>
-      <button class="btn primary" id="ok">${t('validate')} →</button>
-    </div>`;
-  const undo = $('undo'), ok = $('ok');
-  const sync = () => { undo.disabled = ok.disabled = !g.pending; };
-  let under = terrUnder(g);
-  const api = mountCanvas($('cv'), {
-    strokes: () => g.strokes, colorOf: s => P(s.id)?.color, under: (...a) => under(...a),
-    draw: {
-      can: p => !g.pending && (!p || g.grid[terrCell(p)[1] * TW + terrCell(p)[0]] !== foe),
-      allow: (a, b) => terrFree(g.grid, a, b, foe),
-      onBlock: () => { const h = $('phint') || document.createElement('div'); h.className = 'paperhint'; h.id = 'phint'; h.textContent = t('trBlocked'); $('cv').parentElement.append(h); },
-      ink: () => g.ink, onInk: inkShow,
-      start: p => { $('phint')?.remove(); const s = { id, pts: [p] }; g.strokes.push(s); return s; },
-      cancel: () => { g.strokes.pop(); inkShow(1); },
-      end: s => {
-        g.prev = g.grid; g.grid = terrApply(g, s, code); g.pending = true; save(); buzz(8);
-        under = terrUnder(g); api.draw(); sync();
-        app.querySelector('.terrbar').outerHTML = terrScoreBar(g);
-      },
-    },
-  });
-  sync();
-  undo.onclick = () => {
-    if (!g.pending) return;
-    g.strokes.pop(); g.grid = g.prev; g.prev = null; g.pending = false; save();
-    under = terrUnder(g); api.draw(); sync(); inkShow(1);
-    app.querySelector('.terrbar').outerHTML = terrScoreBar(g);
-  };
-  ok.onclick = () => {
-    if (!g.pending) return;
-    g.pending = false; g.prev = null; g.turn++; buzz(15);
-    if (g.turn >= g.n * 2) go('terrEnd'); else { save(); renderTerr(); }
-  };
-}
-
-function renderTerrEnd() {
-  const g = S.game, [a, b] = terrShares(g.grid), win = Math.abs(a - b) < 1e-9 ? null : a > b ? g.ids[0] : g.ids[1];
-  if (!g.scored) { g.gains = win ? { [win]: 1 } : {}; if (win) P(win).score += 1; g.scored = true; save(); }
-  const ranked = [...S.players].sort((x, y) => y.score - x.score);
-  app.innerHTML = `
-    <div class="verdict ${win ? 'art' : 'fake'}"><h2>${win ? t('trWin')(nameOf(win)) : t('trTie')}</h2></div>
-    ${terrScoreBar(g)}
-    <div class="card" style="border-top:0">
-      <div class="paper view"><canvas id="cv"></canvas></div>
-      <div class="row"><button class="btn" id="replay">▶ ${t('replay')}</button><button class="btn" id="dl">⬇ ${t('save')}</button></div>
-    </div>
-    <div class="card"><h3>${t('scores')}</h3><ul class="scores">${ranked.map(p => `<li>${dotOf(p.id)}<span class="n">${esc(pname(p))}</span>
-      <span class="gain">${g.gains[p.id] ? '+' + g.gains[p.id] : ''}</span><span class="pts">${p.score}</span></li>`).join('')}</ul>
-      <p class="muted center" style="font-size:14px;margin:8px 0 0">${t('trRules')}</p></div>
-    <button class="btn primary" id="next">${t('trAgain')} →</button>
-    <button class="btn" id="settings">${t('settings')}</button>`;
-  const colorOf = s => P(s.id)?.color, under = terrUnder(g);
-  const api = mountCanvas($('cv'), { strokes: () => g.strokes, colorOf, under });
-  $('replay').onclick = replayer(api, g.strokes);
-  $('dl').onclick = () => {
-    const c = document.createElement('canvas'); c.width = 1200; c.height = 2000;
-    paint(c.getContext('2d'), c.width, c.height, g.strokes, colorOf, Infinity, under);
-    c.toBlob(bl => { const el = document.createElement('a'); el.href = URL.createObjectURL(bl); el.download = 'territoire.png'; el.click(); setTimeout(() => URL.revokeObjectURL(el.href), 2000); });
-  };
-  $('next').onclick = startTerr;
-  $('settings').onclick = () => { S.game = null; save(); goStep('settings'); };
-}
-
 // ---------- fake artist's last guess ----------
 const norm = s => s.toLowerCase().replace(/œ/g, 'oe').replace(/æ/g, 'ae').normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/[^a-z0-9]+/g, ' ').replace(/\b(le|la|les|l|un|une|des|du|de|d|the|a|an)\b/g, ' ').replace(/\s+/g, '').trim();
@@ -2079,7 +1908,7 @@ function renderResult() {
 // ---------- chrome ----------
 // Settings menu: gallery, rules and language (gallery and language only between rounds, as before).
 function openMenu() {
-  const g = S.game, between = !g || !!view || g.phase === 'result' || g.phase === 'sameEnd' || g.phase === 'chainEnd' || g.phase === 'sabEnd' || g.phase === 'bluffEnd' || g.phase === 'terrEnd';
+  const g = S.game, between = !g || !!view || g.phase === 'result' || g.phase === 'sameEnd' || g.phase === 'chainEnd' || g.phase === 'sabEnd' || g.phase === 'bluffEnd';
   modal(`<h2>${t('menu')}</h2>
     <div class="menu">
       ${between ? `<button class="btn" id="mGal">🖼️ ${t('gallery')}</button>` : ''}
