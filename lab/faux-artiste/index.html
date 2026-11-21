@@ -81,6 +81,19 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:52px
   background-image:linear-gradient(45deg, transparent 50%, var(--muted) 50%),linear-gradient(135deg, var(--muted) 50%, transparent 50%);
   background-position:calc(100% - 26px) 52%,calc(100% - 19px) 52%;background-size:7px 7px;background-repeat:no-repeat}
 .players{display:flex;flex-direction:column;gap:10px}
+.flabel{display:block;font-size:16px;font-weight:600;margin-bottom:8px}
+.games{display:flex;flex-direction:column;gap:10px}
+.game{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:var(--r);min-height:78px;padding:12px 14px;cursor:pointer;transition:transform .08s,opacity .15s}
+.game:active{transform:scale(.98)}
+.game .ico{font-size:32px;line-height:1;flex:none}
+.game .gt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.game b{font-size:19px}
+.game small{font-size:15px;color:var(--muted);line-height:1.3}
+.game .pl{align-self:flex-start;margin-top:3px;font-size:13px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 9px;white-space:nowrap}
+.game[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.game.off{opacity:.5}
+[data-skin="enquete"] .game{background:#fff;border:1.5px solid var(--ink);box-shadow:var(--shadow)}
+[data-skin="enquete"] .game[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
 .prow{display:flex;align-items:center;gap:10px}
 .swatch{width:56px;height:56px;border-radius:50%;border:0;flex:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:inset 0 0 0 3px rgba(255,255,255,.3);position:relative}
 .prow input{flex:1;min-width:0}
@@ -153,6 +166,10 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 dialog .in{padding:22px 20px 18px;max-height:84dvh;overflow:auto}
 dialog ol{padding-left:22px;line-height:1.5;font-size:17px}
 dialog li{margin-bottom:8px}
+dialog h2{margin:0 0 14px}
+.menu{display:flex;flex-direction:column;gap:10px}
+.menu .btn+.btn{margin-top:0}
+.menu .btn{justify-content:flex-start}
 .link{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:16px;padding:12px;min-height:48px;display:block;margin:10px auto 0}
 .pal{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
 .pal button{aspect-ratio:1;border-radius:50%;border:0;box-shadow:inset 0 0 0 2px rgba(128,128,128,.35);font-size:24px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
@@ -240,9 +257,7 @@ dialog li{margin-bottom:8px}
 <header>
   <div class="logo">Faux <span>Artiste</span></div>
   <button class="iconbtn" id="quitBtn" hidden></button>
-  <button class="iconbtn" id="galBtn" aria-pressed="false">🖼️</button>
-  <button class="iconbtn" id="rulesBtn" aria-label="?">?</button>
-  <button class="iconbtn" id="langBtn"></button>
+  <button class="iconbtn" id="menuBtn" aria-haspopup="dialog">⚙️</button>
 </header>
 <main id="app"></main>
 <dialog id="rules"><div class="in" id="rulesBody"></div></dialog>
@@ -263,6 +278,10 @@ const T = {
     modeAutoHint: 'Tout le monde dessine. Le mot est tiré au hasard.',
     modeGmHint: 'À tour de rôle, un joueur choisit le mot et ne dessine pas. Il gagne avec le faux artiste.',
     category: 'Catégorie', random: 'Au hasard', rounds: 'Tours de dessin', skin: 'Ambiance', skinNames: { classic: 'Classique', atelier: 'Atelier', enquete: 'Enquête' }, firstFake: 'Chance que le faux artiste dessine en premier', firstAuto: n => `hasard (${n} %)`, firstReset: 'Remettre au hasard', target: 'Points pour gagner',
+    menu: 'Paramètres', language: 'Langue',
+    howMany: 'Combien de joueurs ?', chooseGame: 'Choisis un jeu', settingsTitle: 'Réglages',
+    pitchFake: 'Un imposteur se cache parmi les artistes.', pitchChain: 'Le mot passe de main en main, dessin après dessin.', pitchSame: 'Duel : avez-vous le même mot ?',
+    pl36: '3 à 6 joueurs', pl2: '2 joueurs',
     game: 'Jeu', gameFake: 'Faux artiste', gameChain: 'Un mot, un dessin', gameSame: 'Même mot ?',
     gameSameHint: 'Duel à 2. Chacun reçoit un mot en secret : parfois le même, parfois un mot proche. Dessinez tour à tour sur la même feuille, puis pariez en secret : même mot ou pas ?',
     sameOnly2: 'Ce jeu se joue à 2 joueurs.', sameStrokes: 'Traits chacun',
@@ -343,6 +362,10 @@ const T = {
     modeAutoHint: 'Everyone draws. The word is picked at random.',
     modeGmHint: 'Players take turns choosing the word and sit out the drawing. They win with the fake artist.',
     category: 'Category', random: 'Random', rounds: 'Drawing rounds', skin: 'Look', skinNames: { classic: 'Classic', atelier: 'Studio', enquete: 'Case file' }, firstFake: 'Chance the fake artist draws first', firstAuto: n => `random (${n} %)`, firstReset: 'Back to random', target: 'Points to win',
+    menu: 'Settings', language: 'Language',
+    howMany: 'How many players?', chooseGame: 'Pick a game', settingsTitle: 'Settings',
+    pitchFake: 'An impostor hides among the artists.', pitchChain: 'The word goes round, drawing after drawing.', pitchSame: 'A duel: do you have the same word?',
+    pl36: '3 to 6 players', pl2: '2 players',
     game: 'Game', gameFake: 'Fake artist', gameChain: 'One word, one drawing', gameSame: 'Same word?',
     gameSameHint: 'A duel for 2. Each player secretly gets a word: sometimes the same, sometimes a close one. Take turns drawing on the same sheet, then bet in secret: same word or not?',
     sameOnly2: 'This game is for 2 players.', sameStrokes: 'Lines each',
@@ -517,16 +540,10 @@ function render() {
   document.documentElement.lang = S.lang;
   applySkin();
   const g = S.game;
-  $('langBtn').textContent = S.lang === 'fr' ? 'EN' : 'FR';
-  $('langBtn').hidden = !!g && !view; // no language switch mid-game
   const q = $('quitBtn');
   q.hidden = !g || g.phase === 'result' || g.phase === 'chainEnd' || g.phase === 'sameEnd' || !!view;
   q.textContent = '✕'; q.title = q.ariaLabel = t('quit');
-  const gb = $('galBtn');
-  gb.hidden = !!g && g.phase !== 'result' && g.phase !== 'sameEnd';
-  gb.setAttribute('aria-pressed', !!view);
-  gb.title = gb.ariaLabel = t('gallery');
-  $('rulesBtn').title = t('rulesTitle');
+  $('menuBtn').title = $('menuBtn').ariaLabel = t('menu');
   keepAwake();
   document.body.classList.toggle('drawing', !view && !!g && (g.phase === 'draw' || (g.phase === 'chainStep' && chainKind(g) === 'draw')));
   if (view) return view.shot != null ? renderShot() : renderGallery();
@@ -560,10 +577,25 @@ function renderSetup() {
   const min = S.mode === 'gm' && (S.variant || 'fake') === 'fake' ? 4 : 3;
   const block = S.variant === 'same' ? (S.players.length !== 2 ? t('sameOnly2') : '') : S.players.length < min ? t('needPlayers')(min) : '';
   const cats = CATEGORIES.map(c => `<option value="${c.id}" ${S.cat === c.id ? 'selected' : ''}>${esc(c[S.lang])}</option>`).join('');
+  const n = S.players.length, games = [
+    ['fake', '🎭', 'gameFake', 'pitchFake', 'pl36', n >= 3],
+    ['chain', '🔁', 'gameChain', 'pitchChain', 'pl36', n >= 3],
+    ['same', '🤝', 'gameSame', 'pitchSame', 'pl2', n === 2],
+  ];
   app.innerHTML = `
     <div class="card">
+      <h3>${t('howMany')}</h3>
+      <div class="seg" id="countSeg" aria-label="${t('count')}">${[2, 3, 4, 5, 6].map(n => `<button data-v="${n}" aria-pressed="${S.players.length === n}">${n}</button>`).join('')}</div>
+    </div>
+    <div class="card">
+      <h3>${t('chooseGame')}</h3>
+      <div class="games">${games.map(([k, ico, name, pitch, pl, ok]) => `
+        <button class="game${ok ? '' : ' off'}" data-game="${k}" aria-pressed="${(S.variant || 'fake') === k}">
+          <span class="ico">${ico}</span><span class="gt"><b>${t(name)}</b><small>${t(pitch)}</small><span class="pl">${t(pl)}</span></span></button>`).join('')}
+      </div>
+    </div>
+    <div class="card">
       <h3>${t('players')}</h3>
-      <div class="seg" id="countSeg" aria-label="${t('count')}" style="margin-bottom:14px">${[2, 3, 4, 5, 6].map(n => `<button data-v="${n}" aria-pressed="${S.players.length === n}">${n}</button>`).join('')}</div>
       <div class="players">${S.players.map((p, i) => `
         <div class="prow" data-id="${p.id}">
           <button class="swatch" style="background:${p.color}" data-act="pick" aria-label="${t('choose')}">${p.emoji}</button>
@@ -573,32 +605,23 @@ function renderSetup() {
       </div>
     </div>
     <div class="card">
-      <h3>${t('game')}</h3>
-      <div class="seg" id="gameSeg">${['fake', 'chain', 'same'].map(k => `<button data-v="${k}" aria-pressed="${(S.variant || 'fake') === k}">${t({ fake: 'gameFake', chain: 'gameChain', same: 'gameSame' }[k])}</button>`).join('')}</div>
-      ${S.variant === 'same' ? `<p class="muted" style="font-size:15px;margin:10px 2px 0">${t('gameSameHint')}</p>
-      <div class="field"><label>${t('sameStrokes')}</label>
+      <h3>${t('settingsTitle')}</h3>
+      ${S.variant === 'same' ? `<div class="field" style="margin-top:0"><label>${t('sameStrokes')}</label>
         <div class="seg" id="sameSeg">${[2, 3, 4, 5].map(n => `<button data-v="${n}" aria-pressed="${(S.sameStrokes || 3) === n}">${n}</button>`).join('')}</div></div>
       <div class="field"><label for="catSel">${t('category')}</label>
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
-      <div class="field"><label>${t('skin')}</label>
-        <div class="seg" id="skinSeg">${Object.keys(SKINS).map(k => `<button data-v="${k}" aria-pressed="${(S.skin || 'classic') === k}">${t('skinNames')[k]}</button>`).join('')}</div></div>
       <div class="field"><label>${t('target')}</label>
         <div class="seg" id="targetSeg">${[3, 5, 7, 10].map(n => `<button data-v="${n}" aria-pressed="${S.target === n}">${n}</button>`).join('')}</div></div>
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
-    </div>` : S.variant === 'chain' ? `<p class="muted" style="font-size:15px;margin:10px 2px 0">${t('gameChainHint')}</p>
-      <div class="field"><label>${t('chFrom')}</label>
+    </div>` : S.variant === 'chain' ? `<div class="field" style="margin-top:0"><label>${t('chFrom')}</label>
         <div class="seg" id="fromSeg">${['random', 'own'].map(k => `<button data-v="${k}" aria-pressed="${(S.chainFrom || 'random') === k}">${t(k === 'own' ? 'chFromOwn' : 'chFromRandom')}</button>`).join('')}</div>
         <p class="muted" style="font-size:15px;margin:8px 2px 0">${S.chainFrom === 'own' ? t('chFromOwnHint') : t('chFromRandomHint')}</p></div>
       <div class="field"><label>${t('chStrokes')}</label>
         <div class="seg" id="strokeSeg">${[0, 1, 3, 5, 10].map(n => `<button data-v="${n}" aria-pressed="${(S.chainStrokes || 0) === n}">${n || t('chUnlimited')}</button>`).join('')}</div></div>
       <div class="field"><label for="catSel">${t('category')}</label>
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
-      <div class="field"><label>${t('skin')}</label>
-        <div class="seg" id="skinSeg">${Object.keys(SKINS).map(k => `<button data-v="${k}" aria-pressed="${(S.skin || 'classic') === k}">${t('skinNames')[k]}</button>`).join('')}</div></div>
     </div>` : `
-    </div>
-    <div class="card">
-      <h3>${t('mode')}</h3>
+      <label class="flabel">${t('mode')}</label>
       <div class="seg" id="modeSeg">
         <button data-v="auto" aria-pressed="${S.mode === 'auto'}">${t('modeAuto')}</button>
         <button data-v="gm" aria-pressed="${S.mode === 'gm'}">${t('modeGm')}</button>
@@ -606,8 +629,6 @@ function renderSetup() {
       <p class="muted" style="font-size:15px;margin:10px 2px 0">${S.mode === 'auto' ? t('modeAutoHint') : t('modeGmHint')}</p>
       ${S.mode === 'auto' ? `<div class="field"><label for="catSel">${t('category')}</label>
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>` : ''}
-      <div class="field"><label>${t('skin')}</label>
-        <div class="seg" id="skinSeg">${Object.keys(SKINS).map(k => `<button data-v="${k}" aria-pressed="${(S.skin || 'classic') === k}">${t('skinNames')[k]}</button>`).join('')}</div></div>
       <div class="field"><label>${t('rounds')}</label>
         <div class="seg" id="roundSeg">${[1, 2, 3].map(n => `<button data-v="${n}" aria-pressed="${S.rounds === n}">${n}</button>`).join('')}</div></div>
       <div class="field"><label>${t('roles')}</label>
@@ -643,9 +664,17 @@ function renderSetup() {
     });
     row.querySelector('[data-act=pick]').addEventListener('click', () => openPicker(p));
   });
-  const seg = (id, fn) => $(id)?.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); save(); renderSetup(); }));
-  seg('countSeg', v => setCount(+v));
-  seg('gameSeg', v => { S.variant = v; if (v === 'same') setCount(2); else if (S.players.length < 3) setCount(3); });
+  const seg = (id, fn) => $(id)?.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); save(); render(); }));
+  seg('countSeg', v => {
+    setCount(+v);
+    if (+v === 2) S.variant = 'same'; else if (S.variant === 'same') S.variant = 'fake';
+  });
+  app.querySelectorAll('[data-game]').forEach(b => b.onclick = () => {
+    const v = b.dataset.game;
+    S.variant = v;
+    if (v === 'same') setCount(2); else if (S.players.length < 3) setCount(3);
+    save(); renderSetup();
+  });
   seg('sameSeg', v => S.sameStrokes = +v);
   seg('fromSeg', v => S.chainFrom = v);
   seg('strokeSeg', v => S.chainStrokes = +v);
@@ -657,7 +686,6 @@ function renderSetup() {
   });
   seg('modeSeg', v => S.mode = v);
   seg('roundSeg', v => S.rounds = +v);
-  seg('skinSeg', v => S.skin = v);
   seg('voteSeg', v => S.voteMode = v);
   seg('targetSeg', v => S.target = +v);
   $('catSel')?.addEventListener('change', e => { S.cat = e.target.value; save(); });
@@ -1486,13 +1514,31 @@ function renderResult() {
 }
 
 // ---------- chrome ----------
-$('langBtn').onclick = () => { S.lang = S.lang === 'fr' ? 'en' : 'fr'; save(); render(); };
-$('galBtn').onclick = () => view ? closeGallery() : openGallery();
+// Settings menu: gallery, rules and language (gallery and language only between rounds, as before).
+function openMenu() {
+  const g = S.game, between = !g || !!view || g.phase === 'result' || g.phase === 'sameEnd' || g.phase === 'chainEnd';
+  modal(`<h2>${t('menu')}</h2>
+    <div class="menu">
+      ${between ? `<button class="btn" id="mGal">🖼️ ${t('gallery')}</button>` : ''}
+      <button class="btn" id="mRules">📖 ${t('rulesTitle')}</button>
+      <div class="field"><label class="flabel">${t('skin')}</label>
+        <div class="seg" id="mSkin">${Object.keys(SKINS).map(k => `<button data-v="${k}" aria-pressed="${(S.skin || 'classic') === k}">${t('skinNames')[k]}</button>`).join('')}</div></div>
+      ${!g || view ? `<div class="field"><label class="flabel">${t('language')}</label>
+        <div class="seg" id="mLang">${[['fr', 'Français'], ['en', 'English']].map(([k, n]) => `<button data-v="${k}" aria-pressed="${S.lang === k}">${n}</button>`).join('')}</div></div>` : ''}
+    </div>
+    <button class="btn primary" id="mClose" style="margin-top:18px">${t('close')}</button>`);
+  $('mGal')?.addEventListener('click', () => { dlg.close(); openGallery(); });
+  $('mRules').onclick = showRules;
+  $('mSkin').querySelectorAll('button').forEach(b => b.onclick = () => { S.skin = b.dataset.v; save(); render(); openMenu(); });
+  $('mLang')?.querySelectorAll('button').forEach(b => b.onclick = () => { S.lang = b.dataset.v; save(); render(); openMenu(); });
+  $('mClose').onclick = () => dlg.close();
+}
+$('menuBtn').onclick = openMenu;
 $('quitBtn').onclick = () => ask(t('quitConfirm'), t('quitHint'), t('quitRound'), () => { S.game = null; save(); render(); scrollTo(0, 0); });
-$('rulesBtn').onclick = () => {
+function showRules() {
   modal(`<h2>${t('rulesTitle')}</h2><ol>${t('rules').map(r => `<li>${r}</li>`).join('')}</ol>
     <button class="btn primary" onclick="this.closest('dialog').close()">${t('close')}</button>`);
-};
+}
 dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 
 render();
