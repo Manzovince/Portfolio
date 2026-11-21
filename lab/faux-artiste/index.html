@@ -247,7 +247,7 @@ dialog li{margin-bottom:8px}
 <main id="app"></main>
 <dialog id="rules"><div class="in" id="rulesBody"></div></dialog>
 
-<script src="words.js?v=2"></script>
+<script src="words.js?v=3"></script>
 <script>
 const KEY = 'faux-artiste-v1';
 // Ordered so the first players get the most distinct hues; all readable on the cream paper.
@@ -482,13 +482,29 @@ function roleCounts() {
 }
 function forgerWord(g) {
   if (g.custom) return g.custom.forger || '';
+  if (g.pw) return g.pw[1][L()];
   return g.forgerIdx == null ? '' : catById(g.catId).words[g.forgerIdx][L()];
 }
 const dotOf = (id, cls) => av(P(id).color, P(id).emoji, cls);
 const catById = id => CATEGORIES.find(c => c.id === id);
 const L = () => S.lang === 'fr' ? 0 : 1;
-function wordText(g) { return g.custom ? g.custom.word : catById(g.catId).words[g.wordIdx][L()]; }
-function catText(g) { return g.custom ? g.custom.cat : catById(g.catId)[S.lang]; }
+function wordText(g) { return g.custom ? g.custom.word : g.pw ? g.pw[0][L()] : catById(g.catId).words[g.wordIdx][L()]; }
+function catText(g) {
+  if (g.custom) return g.custom.cat;
+  if (g.pw) return typeof g.pcat === 'string' ? catById(g.pcat)[S.lang] : g.pcat[L()];
+  return catById(g.catId)[S.lang];
+}
+// A close-word pair (words.js PAIRS), either way round; null if the chosen category has none.
+function pickPair(catFilter) {
+  const all = (window.PAIRS || []).map((p, i) => i).filter(i => catFilter === 'random' || PAIRS[i][0] === catFilter);
+  if (!all.length) return null;
+  S.pairUsed = (S.pairUsed || []).filter(i => i < PAIRS.length);
+  let fresh = all.filter(i => !S.pairUsed.includes(i));
+  if (!fresh.length) { S.pairUsed = S.pairUsed.filter(i => !all.includes(i)); fresh = all; }
+  const i = pick(fresh), [c, a, b] = PAIRS[i];
+  S.pairUsed.push(i);
+  return { pcat: c, pw: Math.random() < .5 ? [a, b] : [b, a] };
+}
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const buzz = ms => { try { navigator.vibrate?.(ms); } catch {} };
 const $ = id => document.getElementById(id);
@@ -712,7 +728,11 @@ function startGame() {
     else { const others = drawers.map((_, i) => i).filter(i => !lead.includes(i)); start = pick(others); }
   }
   let w = gm ? { custom: null } : pickWord(S.cat);
-  if (!gm && nk) { const c = catById(w.catId); w.forgerIdx = pick(c.words.map((_, i) => i).filter(i => i !== w.wordIdx)); }
+  if (!gm && nk) {
+    const pr = pickPair(S.cat);
+    if (pr) w = pr;
+    else { const c = catById(w.catId); w.forgerIdx = pick(c.words.map((_, i) => i).filter(i => i !== w.wordIdx)); }
+  }
   const loop = drawers.slice(start).concat(drawers.slice(0, start));
   const order = [];
   for (let r = 0; r < S.rounds; r++) order.push(...loop);
@@ -1214,12 +1234,15 @@ function renderChainEnd() {
 // ---------- "Same word?": a 2-player duel. Half the time one player secretly gets a close word
 // (same category). Reuses the role reveal and the stroke-by-stroke drawing, then secret bets.
 function startSame() {
-  const ids = S.players.slice(0, 2).map(p => p.id), w = pickWord(S.cat), roles = {};
-  if (Math.random() < .5) {
-    const c = catById(w.catId);
-    w.forgerIdx = pick(c.words.map((_, i) => i).filter(i => i !== w.wordIdx));
-    roles[pick(ids)] = 'forger';
+  // Always deal from a pair, even when both get the same word, so the word itself gives nothing away.
+  const ids = S.players.slice(0, 2).map(p => p.id), roles = {};
+  let w = pickPair(S.cat);
+  const diff = Math.random() < .5;
+  if (!w) {
+    w = pickWord(S.cat);
+    if (diff) { const c = catById(w.catId); w.forgerIdx = pick(c.words.map((_, i) => i).filter(i => i !== w.wordIdx)); }
   }
+  if (diff) roles[pick(ids)] = 'forger';
   const n = S.sameStrokes || 3, first = Math.floor(Math.random() * 2), loop = [ids[first], ids[1 - first]], order = [];
   for (let r = 0; r < n; r++) order.push(...loop);
   view = null;
@@ -1364,7 +1387,7 @@ function archive(g) {
   const r3 = n => Math.round(n * 1000) / 1000;
   const entry = {
     id: uid(), at: Date.now(), fakeWins: g.outcome.fakeWins,
-    catId: g.custom ? null : g.catId, wordIdx: g.custom ? null : g.wordIdx,
+    catId: g.custom || g.pw ? null : g.catId, wordIdx: g.custom || g.pw ? null : g.wordIdx,
     word: wordText(g), cat: catText(g),
     players: g.drawers.map(id => { const p = P(id); return { name: pname(p), color: p.color, emoji: p.emoji, fake: roleOf(g, id) === 'fake', forger: roleOf(g, id) === 'forger' }; }),
     strokes: g.strokes.map(s => ({ i: g.drawers.indexOf(s.id), pts: s.pts.map(([x, y]) => [r3(x), r3(y)]) })),
