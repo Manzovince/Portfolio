@@ -252,7 +252,7 @@ dialog li{margin-bottom:8px}
 const KEY = 'faux-artiste-v1';
 // Ordered so the first players get the most distinct hues; all readable on the cream paper.
 const COLORS = ['#e02424','#1d5fe0','#16a34a','#f08000','#8b2fc9','#1a1a1a','#e8459c','#0aa5c0','#8a5a2b','#8f96a3'];
-const MIN_PLAYERS = 3, MAX_PLAYERS = 6;
+const MIN_PLAYERS = 2, MAX_PLAYERS = 6;
 const EMOJIS = ['🦊','🐙','🐸','🦉','🐢','🦄','🐝','🦀','🐳','🦩','🐼','🦁','🐧','🐌','🦔','🐨','🐯','🦖','🍄','🌵','🌻','🍉','🍕','🎈','🚀','⭐','🌙','🎩','👾','🤖','🐞','🦋','🍩','🥑','🐠','🦜'];
 const freeEmoji = (except) => pick(EMOJIS.filter(e => !S.players.some(p => p.emoji === e) && e !== except));
 
@@ -263,7 +263,14 @@ const T = {
     modeAutoHint: 'Tout le monde dessine. Le mot est tiré au hasard.',
     modeGmHint: 'À tour de rôle, un joueur choisit le mot et ne dessine pas. Il gagne avec le faux artiste.',
     category: 'Catégorie', random: 'Au hasard', rounds: 'Tours de dessin', skin: 'Ambiance', skinNames: { classic: 'Classique', atelier: 'Atelier', enquete: 'Enquête' }, firstFake: 'Chance que le faux artiste dessine en premier', firstAuto: n => `hasard (${n} %)`, firstReset: 'Remettre au hasard', target: 'Points pour gagner',
-    game: 'Jeu', gameFake: 'Faux artiste', gameChain: 'Un mot, un dessin',
+    game: 'Jeu', gameFake: 'Faux artiste', gameChain: 'Un mot, un dessin', gameSame: 'Même mot ?',
+    gameSameHint: 'Duel à 2. Chacun reçoit un mot en secret : parfois le même, parfois un mot proche. Dessinez tour à tour sur la même feuille, puis pariez en secret : même mot ou pas ?',
+    sameOnly2: 'Ce jeu se joue à 2 joueurs.', sameStrokes: 'Traits chacun',
+    betAs: name => `Je suis ${name}, parier`, betTitle: 'Même mot ?', betHint: 'Ton pari reste secret jusqu\'à la fin.',
+    betSame: '🤝 Même mot', betDiff: '🔀 Pas le même', betGuess: 'Bonus : d\'après toi, quel est le mot de l\'autre ?', betGuessPh: 'Son mot (facultatif)', betGo: 'Valider mon pari',
+    endSame: 'C\'était le même mot !', endDiff: 'Ce n\'était pas le même mot !',
+    hadWord: 'avait', betSaid: b => b === 'same' ? 'a parié « même mot »' : 'a parié « pas le même »', betOk: 'bon pari', betKo: 'raté',
+    guessOk: w => `a deviné « ${w} »`, guessKo: w => `a proposé « ${w} »`, rulesSame: 'pts : bon pari +1, mot de l\'autre deviné +2',
     gameChainHint: 'Un mot, puis un dessin, puis un mot… Chacun ne voit que l\'étape d\'avant. À la fin, retrouvez-vous le mot de départ ?',
     chStep: (i, n) => `Étape ${i}/${n}`, chGo: name => `Je suis ${name}, c'est parti`,
     chStartTitle: 'Choisis le mot de départ', chStartHint: 'Personne d\'autre ne le verra. Le joueur suivant devra le dessiner.', chStartPh: 'Un mot ou une petite expression',
@@ -325,6 +332,7 @@ const T = {
       '<b>Rôles</b> (réglables) : il peut y avoir plusieurs faux artistes, et des <b>faussaires</b>, qui reçoivent un autre mot proche de la même catégorie sans le savoir. Démasquer n\'importe quel imposteur suffit aux artistes (un faux artiste démasqué peut encore deviner le mot).',
       '<b>Points :</b> si les imposteurs gagnent, chacun d\'eux (et le maître du jeu) marque 2 points. Sinon, chaque artiste marque 1 point.',
       'Chaque dessin terminé est rangé dans la <b>galerie</b> 🖼️ (les 30 derniers).',
+      '<b>Même mot ?</b> (duel à 2, dans les réglages) : chacun reçoit un mot secret, le même une fois sur deux, sinon un mot proche. On dessine chacun son tour sur la même feuille, puis chacun parie en secret : même mot ou pas. Bon pari : +1. Si les mots diffèrent, deviner le mot de l\'autre : +2.',
       '<b>Un mot, un dessin</b> (autre jeu, dans les réglages) : un mot de départ, le joueur suivant le dessine, le suivant devine le mot d\'après le dessin, le suivant redessine ce mot… jusqu\'à ce que tout le monde soit passé. À la fin, on compare avec le mot de départ.',
     ],
     close: 'Fermer',
@@ -335,7 +343,14 @@ const T = {
     modeAutoHint: 'Everyone draws. The word is picked at random.',
     modeGmHint: 'Players take turns choosing the word and sit out the drawing. They win with the fake artist.',
     category: 'Category', random: 'Random', rounds: 'Drawing rounds', skin: 'Look', skinNames: { classic: 'Classic', atelier: 'Studio', enquete: 'Case file' }, firstFake: 'Chance the fake artist draws first', firstAuto: n => `random (${n} %)`, firstReset: 'Back to random', target: 'Points to win',
-    game: 'Game', gameFake: 'Fake artist', gameChain: 'One word, one drawing',
+    game: 'Game', gameFake: 'Fake artist', gameChain: 'One word, one drawing', gameSame: 'Same word?',
+    gameSameHint: 'A duel for 2. Each player secretly gets a word: sometimes the same, sometimes a close one. Take turns drawing on the same sheet, then bet in secret: same word or not?',
+    sameOnly2: 'This game is for 2 players.', sameStrokes: 'Lines each',
+    betAs: name => `I'm ${name}, place my bet`, betTitle: 'Same word?', betHint: 'Your bet stays secret until the end.',
+    betSame: '🤝 Same word', betDiff: '🔀 Not the same', betGuess: 'Bonus: what do you think the other word is?', betGuessPh: 'Their word (optional)', betGo: 'Place my bet',
+    endSame: 'It was the same word!', endDiff: 'They were different words!',
+    hadWord: 'had', betSaid: b => b === 'same' ? 'bet "same word"' : 'bet "not the same"', betOk: 'right bet', betKo: 'wrong',
+    guessOk: w => `guessed "${w}"`, guessKo: w => `suggested "${w}"`, rulesSame: 'pts: right bet +1, other word guessed +2',
     gameChainHint: 'A word, then a drawing, then a word… Each player only sees the step before. Do you get the starting word back at the end?',
     chStep: (i, n) => `Step ${i}/${n}`, chGo: name => `I'm ${name}, let's go`,
     chStartTitle: 'Pick the starting word', chStartHint: 'Nobody else will see it. The next player will have to draw it.', chStartPh: 'A word or a short phrase',
@@ -397,6 +412,7 @@ const T = {
       '<b>Roles</b> (adjustable): there can be several fake artists, and <b>forgers</b>, who get another, close word from the same category without knowing it. Catching any impostor is enough for the artists (a caught fake artist can still guess the word).',
       '<b>Points:</b> if the impostors win, each of them (and the question master) scores 2 points. Otherwise each artist scores 1 point.',
       'Every finished drawing goes to the <b>gallery</b> 🖼️ (the last 30).',
+      '<b>Same word?</b> (a duel for 2, in the settings): each player gets a secret word, the same one half the time, otherwise a close one. Take turns drawing on the same sheet, then each bets in secret: same word or not. Right bet: +1. If the words differ, guessing the other word: +2.',
       '<b>One word, one drawing</b> (another game, in the settings): a starting word, the next player draws it, the next one guesses the word from the drawing, the next draws that word again… until everyone has played. At the end, compare with the starting word.',
     ],
     close: 'Close',
@@ -421,6 +437,7 @@ if (!S.r1) { S.rounds = 1; S.r1 = true; } // one-time switch of saved setups to 
 if (S.game && S.game.phase === 'reveal') S.game.phase = 'pass'; // never reopen on a secret
 if (S.game && S.game.fake && !S.game.roles) S.game.roles = { [S.game.fake]: 'fake' }; // single-fake save
 if (S.game && S.game.phase === 'ballot') S.game.phase = 'votePass'; // nor on someone's ballot
+if (S.game && S.game.phase === 'bet') S.game.phase = 'betPass';
 if (S.game && S.game.phase === 'chainStep') S.game.phase = 'chainPass';
 if (S.game && S.game.kind === 'chain' && !S.game.kinds) S.game = null; // chain saved before per-step kinds
 // Per-skin wording on top of T (the role reveal stays identical in every skin).
@@ -487,10 +504,10 @@ function render() {
   $('langBtn').textContent = S.lang === 'fr' ? 'EN' : 'FR';
   $('langBtn').hidden = !!g && !view; // no language switch mid-game
   const q = $('quitBtn');
-  q.hidden = !g || g.phase === 'result' || g.phase === 'chainEnd' || !!view;
+  q.hidden = !g || g.phase === 'result' || g.phase === 'chainEnd' || g.phase === 'sameEnd' || !!view;
   q.textContent = '✕'; q.title = q.ariaLabel = t('quit');
   const gb = $('galBtn');
-  gb.hidden = !!g && g.phase !== 'result';
+  gb.hidden = !!g && g.phase !== 'result' && g.phase !== 'sameEnd';
   gb.setAttribute('aria-pressed', !!view);
   gb.title = gb.ariaLabel = t('gallery');
   $('rulesBtn').title = t('rulesTitle');
@@ -498,7 +515,7 @@ function render() {
   document.body.classList.toggle('drawing', !view && !!g && (g.phase === 'draw' || (g.phase === 'chainStep' && chainKind(g) === 'draw')));
   if (view) return view.shot != null ? renderShot() : renderGallery();
   if (!g) return renderSetup();
-  ({ gm: renderGm, pass: renderPass, reveal: renderReveal, draw: renderDraw, vote: renderVote, votePass: renderVotePass, ballot: renderBallot, tally: renderTally, chainPass: renderChainPass, chainStep: renderChainStep, chainEnd: renderChainEnd, guess: renderGuess, result: renderResult })[g.phase]();
+  ({ gm: renderGm, pass: renderPass, reveal: renderReveal, draw: renderDraw, vote: renderVote, votePass: renderVotePass, ballot: renderBallot, tally: renderTally, chainPass: renderChainPass, chainStep: renderChainStep, chainEnd: renderChainEnd, betPass: renderBetPass, bet: renderBet, sameEnd: renderSameEnd, guess: renderGuess, result: renderResult })[g.phase]();
 }
 
 // Keep the screen on while a round is being played (the phone sits on the table between turns).
@@ -524,12 +541,13 @@ function ask(title, hint, okLabel, onOk) {
 
 // ---------- setup ----------
 function renderSetup() {
-  const min = S.mode === 'gm' && S.variant !== 'chain' ? 4 : 3;
+  const min = S.mode === 'gm' && (S.variant || 'fake') === 'fake' ? 4 : 3;
+  const block = S.variant === 'same' ? (S.players.length !== 2 ? t('sameOnly2') : '') : S.players.length < min ? t('needPlayers')(min) : '';
   const cats = CATEGORIES.map(c => `<option value="${c.id}" ${S.cat === c.id ? 'selected' : ''}>${esc(c[S.lang])}</option>`).join('');
   app.innerHTML = `
     <div class="card">
       <h3>${t('players')}</h3>
-      <div class="seg" id="countSeg" aria-label="${t('count')}" style="margin-bottom:14px">${[3, 4, 5, 6].map(n => `<button data-v="${n}" aria-pressed="${S.players.length === n}">${n}</button>`).join('')}</div>
+      <div class="seg" id="countSeg" aria-label="${t('count')}" style="margin-bottom:14px">${[2, 3, 4, 5, 6].map(n => `<button data-v="${n}" aria-pressed="${S.players.length === n}">${n}</button>`).join('')}</div>
       <div class="players">${S.players.map((p, i) => `
         <div class="prow" data-id="${p.id}">
           <button class="swatch" style="background:${p.color}" data-act="pick" aria-label="${t('choose')}">${p.emoji}</button>
@@ -540,8 +558,18 @@ function renderSetup() {
     </div>
     <div class="card">
       <h3>${t('game')}</h3>
-      <div class="seg" id="gameSeg">${['fake', 'chain'].map(k => `<button data-v="${k}" aria-pressed="${(S.variant || 'fake') === k}">${t(k === 'fake' ? 'gameFake' : 'gameChain')}</button>`).join('')}</div>
-      ${S.variant === 'chain' ? `<p class="muted" style="font-size:15px;margin:10px 2px 0">${t('gameChainHint')}</p>
+      <div class="seg" id="gameSeg">${['fake', 'chain', 'same'].map(k => `<button data-v="${k}" aria-pressed="${(S.variant || 'fake') === k}">${t({ fake: 'gameFake', chain: 'gameChain', same: 'gameSame' }[k])}</button>`).join('')}</div>
+      ${S.variant === 'same' ? `<p class="muted" style="font-size:15px;margin:10px 2px 0">${t('gameSameHint')}</p>
+      <div class="field"><label>${t('sameStrokes')}</label>
+        <div class="seg" id="sameSeg">${[2, 3, 4, 5].map(n => `<button data-v="${n}" aria-pressed="${(S.sameStrokes || 3) === n}">${n}</button>`).join('')}</div></div>
+      <div class="field"><label for="catSel">${t('category')}</label>
+        <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
+      <div class="field"><label>${t('skin')}</label>
+        <div class="seg" id="skinSeg">${Object.keys(SKINS).map(k => `<button data-v="${k}" aria-pressed="${(S.skin || 'classic') === k}">${t('skinNames')[k]}</button>`).join('')}</div></div>
+      <div class="field"><label>${t('target')}</label>
+        <div class="seg" id="targetSeg">${[3, 5, 7, 10].map(n => `<button data-v="${n}" aria-pressed="${S.target === n}">${n}</button>`).join('')}</div></div>
+      ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
+    </div>` : S.variant === 'chain' ? `<p class="muted" style="font-size:15px;margin:10px 2px 0">${t('gameChainHint')}</p>
       <div class="field"><label>${t('chFrom')}</label>
         <div class="seg" id="fromSeg">${['random', 'own'].map(k => `<button data-v="${k}" aria-pressed="${(S.chainFrom || 'random') === k}">${t(k === 'own' ? 'chFromOwn' : 'chFromRandom')}</button>`).join('')}</div>
         <p class="muted" style="font-size:15px;margin:8px 2px 0">${S.chainFrom === 'own' ? t('chFromOwnHint') : t('chFromRandomHint')}</p></div>
@@ -583,8 +611,8 @@ function renderSetup() {
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
     </div>`}
     <div class="sticky">
-      <button class="btn primary" id="startBtn" ${S.players.length < min ? 'disabled' : ''}>${t('start')} →</button>
-      ${S.players.length < min ? `<p class="hint">${t('needPlayers')(min)}</p>` : ''}
+      <button class="btn primary" id="startBtn" ${block ? 'disabled' : ''}>${t('start')} →</button>
+      ${block ? `<p class="hint">${block}</p>` : ''}
     </div>
   `;
   app.querySelectorAll('.prow').forEach(row => {
@@ -601,7 +629,8 @@ function renderSetup() {
   });
   const seg = (id, fn) => $(id)?.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); save(); renderSetup(); }));
   seg('countSeg', v => setCount(+v));
-  seg('gameSeg', v => S.variant = v);
+  seg('gameSeg', v => { S.variant = v; if (v === 'same') setCount(2); else if (S.players.length < 3) setCount(3); });
+  seg('sameSeg', v => S.sameStrokes = +v);
   seg('fromSeg', v => S.chainFrom = v);
   seg('strokeSeg', v => S.chainStrokes = +v);
   app.querySelectorAll('[data-role]').forEach(b => b.onclick = () => {
@@ -667,6 +696,7 @@ function pickWord(catFilter) {
 
 function startGame() {
   if (S.variant === 'chain') return startChain();
+  if (S.variant === 'same') return startSame();
   const ids = S.players.map(p => p.id);
   const gm = S.mode === 'gm' ? ids[S.gmPtr++ % ids.length] : null;
   const drawers = ids.filter(id => id !== gm);
@@ -944,7 +974,7 @@ function renderDraw() {
   app.innerHTML = `
     <div class="drawbar">
       <div class="who">${dotOf(id)}<span>${nameOf(id)}</span></div>
-      <div class="meta">${t('turn')(Math.floor(g.turn / R) + 1, S.rounds)} · ${t('stroke')(g.turn + 1, g.order.length)}</div>
+      <div class="meta">${t('turn')(Math.floor(g.turn / R) + 1, g.rounds || S.rounds)} · ${t('stroke')(g.turn + 1, g.order.length)}</div>
     </div>
     <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.turn < R && !g.pending ? `<div class="paperhint" id="phint">${t('drawHint')}</div>` : ''}</div></div>
     <div class="row">
@@ -967,7 +997,7 @@ function renderDraw() {
   ok.onclick = () => {
     if (!g.pending) return;
     g.pending = false; g.turn++; buzz(15);
-    if (g.turn >= g.order.length) go('vote'); else { save(); renderDraw(); }
+    if (g.turn >= g.order.length) go(g.kind === 'same' ? 'betPass' : 'vote'); else { save(); renderDraw(); }
   };
 }
 
@@ -1178,6 +1208,107 @@ function renderChainEnd() {
     mountCanvas(cv, { strokes: () => st.strokes, colorOf: s => P(s.id)?.color });
   });
   $('again').onclick = startChain;
+  $('settings').onclick = () => { S.game = null; save(); render(); scrollTo(0, 0); };
+}
+
+// ---------- "Same word?": a 2-player duel. Half the time one player secretly gets a close word
+// (same category). Reuses the role reveal and the stroke-by-stroke drawing, then secret bets.
+function startSame() {
+  const ids = S.players.slice(0, 2).map(p => p.id), w = pickWord(S.cat), roles = {};
+  if (Math.random() < .5) {
+    const c = catById(w.catId);
+    w.forgerIdx = pick(c.words.map((_, i) => i).filter(i => i !== w.wordIdx));
+    roles[pick(ids)] = 'forger';
+  }
+  const n = S.sameStrokes || 3, first = Math.floor(Math.random() * 2), loop = [ids[first], ids[1 - first]], order = [];
+  for (let r = 0; r < n; r++) order.push(...loop);
+  view = null;
+  S.game = { kind: 'same', phase: 'pass', gm: null, drawers: ids, roles, order, rounds: n, turn: 0, strokes: [], pending: false,
+    revealI: 0, bets: {}, betI: 0, outcome: null, scored: false, ...w };
+  save(); render(); scrollTo(0, 0);
+}
+const sameWord = (g, id) => roleOf(g, id) === 'forger' ? forgerWord(g) : wordText(g);
+
+function renderBetPass() {
+  const g = S.game, id = g.drawers[g.betI];
+  app.innerHTML = `<div class="pass center">
+    <p class="muted">${t('passTo')}</p>
+    <div class="big-name">${dotOf(id)}${nameOf(id)}</div>
+    <p class="muted">${t('passHint')}</p>
+    <p class="muted" style="font-size:15px">${g.betI + 1} / ${g.drawers.length}</p>
+    <button class="btn primary" id="ok">${t('betAs')(nameOf(id))}</button></div>`;
+  $('ok').onclick = () => go('bet');
+}
+
+function renderBet() {
+  const g = S.game, me = g.drawers[g.betI];
+  app.innerHTML = `
+    <div class="center" style="font-size:20px">${dotOf(me)}<b>${nameOf(me)}</b></div>
+    <h2 class="center">${t('betTitle')}</h2>
+    <p class="center muted">${t('betHint')}</p>
+    <div class="paper view small"><canvas id="cv"></canvas></div>
+    <div class="grid" style="margin-bottom:14px">
+      <button class="chip" data-b="same" aria-pressed="false" style="justify-content:center">${t('betSame')}</button>
+      <button class="chip" data-b="diff" aria-pressed="false" style="justify-content:center">${t('betDiff')}</button></div>
+    <div id="gwrap" hidden><label for="gi" class="muted" style="display:block;margin:0 2px 6px;font-size:15px">${t('betGuess')}</label>
+      <input type="text" id="gi" placeholder="${t('betGuessPh')}" autocomplete="off" maxlength="40" enterkeyhint="done"></div>
+    <div class="sticky"><button class="btn accent" id="ok" disabled>${t('betGo')}</button></div>`;
+  mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color });
+  let sel = null;
+  const ok = $('ok'), gi = $('gi');
+  app.querySelectorAll('[data-b]').forEach(b => b.onclick = () => {
+    sel = b.dataset.b;
+    app.querySelectorAll('[data-b]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    $('gwrap').hidden = sel !== 'diff'; ok.disabled = false;
+  });
+  gi.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); gi.blur(); } };
+  ok.onclick = () => {
+    g.bets[me] = { b: sel, guess: sel === 'diff' ? gi.value.trim() : '' };
+    g.betI++; buzz(15);
+    go(g.betI >= g.drawers.length ? 'sameEnd' : 'betPass');
+  };
+}
+
+function renderSameEnd() {
+  const g = S.game, diff = Object.keys(g.roles).length > 0;
+  if (!g.scored) {
+    const gains = {};
+    g.drawers.forEach((id, i) => {
+      const bt = g.bets[id], other = g.drawers[1 - i];
+      bt.ok = (bt.b === 'diff') === diff;
+      bt.hit = diff && !!bt.guess && looksRight(bt.guess, sameWord(g, other));
+      const n = (bt.ok ? 1 : 0) + (bt.hit ? 2 : 0);
+      if (n) gains[id] = n;
+    });
+    g.gains = gains;
+    for (const id in gains) P(id).score += gains[id];
+    g.outcome = { fakeWins: false };
+    g.archived = archive(g);
+    g.scored = true; save();
+  }
+  const ranked = [...S.players].sort((a, b) => b.score - a.score);
+  const champ = ranked[0].score >= S.target && (ranked.length < 2 || ranked[1].score < ranked[0].score) ? ranked[0] : null;
+  app.innerHTML = `
+    <div class="verdict ${diff ? 'fake' : 'art'}"><h2>${diff ? t('endDiff') : t('endSame')}</h2></div>
+    <div class="card"><ul class="scores">${g.drawers.map(id => { const bt = g.bets[id]; return `<li style="flex-wrap:wrap">${dotOf(id)}<span class="n">${nameOf(id)} <span class="muted">${t('hadWord')}</span> <b>${esc(sameWord(g, id))}</b></span>
+      <span class="gain">${g.gains[id] ? '+' + g.gains[id] : ''}</span>
+      <div style="flex-basis:100%;font-size:15px;color:var(--muted);padding-left:2.2em">${t('betSaid')(bt.b)} · ${bt.ok ? '✓ ' + t('betOk') : '✗ ' + t('betKo')}${bt.guess ? ` · ${bt.hit ? '✓ ' + t('guessOk')(esc(bt.guess)) : t('guessKo')(esc(bt.guess))}` : ''}</div></li>`; }).join('')}</ul>
+      <p class="muted center" style="font-size:14px;margin:8px 0 0">${t('rulesSame')}</p></div>
+    ${champ ? `<div class="trophy">${t('champion')(esc(pname(champ)))}</div>` : ''}
+    <div class="card">
+      <div class="paper view"><canvas id="cv"></canvas></div>
+      ${g.archived ? `<p class="note">${t('saved')}</p>` : ''}
+      <div class="row"><button class="btn" id="replay">▶ ${t('replay')}</button><button class="btn" id="dl">⬇ ${t('save')}</button></div>
+    </div>
+    <div class="card"><h3>${t('scores')}</h3><ul class="scores">${ranked.map(p => `<li>${dotOf(p.id)}<span class="n">${esc(pname(p))}</span><span class="pts">${p.score}</span></li>`).join('')}</ul></div>
+    ${champ ? `<button class="btn primary" id="newGame">${t('newGame')}</button>` : `<button class="btn primary" id="next">${t('next')} →</button>`}
+    <button class="btn" id="settings">${t('settings')}</button>`;
+  const colorOf = s => P(s.id)?.color;
+  const api = mountCanvas($('cv'), { strokes: () => g.strokes, colorOf });
+  $('replay').onclick = replayer(api, g.strokes);
+  $('dl').onclick = () => downloadPng(g.strokes, colorOf, wordText(g));
+  $('next')?.addEventListener('click', startSame);
+  $('newGame')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); startSame(); });
   $('settings').onclick = () => { S.game = null; save(); render(); scrollTo(0, 0); };
 }
 
