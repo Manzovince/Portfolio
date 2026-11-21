@@ -91,7 +91,13 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:52px
 .game small{font-size:15px;color:var(--muted);line-height:1.3}
 .game .pl{align-self:flex-start;margin-top:3px;font-size:13px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 9px;white-space:nowrap}
 .game[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
-.game.off{opacity:.5}
+.game.off{opacity:.45;cursor:default}
+.game .go{flex:none;font-size:30px;color:var(--muted);line-height:1}
+.seg.big button{min-height:72px;font-size:26px}
+.inkbar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:0 0 8px;flex:none}
+.inkbar i{display:block;height:100%;width:100%;background:var(--accent);border-radius:99px;transition:width .08s linear}
+.inkbar.dry{animation:dry .4s ease-out}
+@keyframes dry{0%,100%{transform:none}30%{transform:translateX(-4px)}60%{transform:translateX(4px)}}
 [data-skin="enquete"] .game{background:#fff;border:1.5px solid var(--ink);box-shadow:var(--shadow)}
 [data-skin="enquete"] .game[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
 .prow{display:flex;align-items:center;gap:10px}
@@ -278,10 +284,23 @@ const T = {
     modeAutoHint: 'Tout le monde dessine. Le mot est tiré au hasard.',
     modeGmHint: 'À tour de rôle, un joueur choisit le mot et ne dessine pas. Il gagne avec le faux artiste.',
     category: 'Catégorie', random: 'Au hasard', rounds: 'Tours de dessin', skin: 'Ambiance', skinNames: { classic: 'Classique', atelier: 'Atelier', enquete: 'Enquête' }, firstFake: 'Chance que le faux artiste dessine en premier', firstAuto: n => `hasard (${n} %)`, firstReset: 'Remettre au hasard', target: 'Points pour gagner',
-    menu: 'Paramètres', language: 'Langue',
+    ink: 'Encre', inkHint: 'Longueur maximale d\'un trait : le trait s\'arrête quand l\'encre est vide.', inkInf: '∞ Infinie', inkLots: 'Beaucoup', inkMid: 'Moyenne', inkLow: 'Peu',
+    menu: 'Paramètres', language: 'Langue', nextStep: 'Suivant', launch: 'Lancer la partie', needMore: n => `${n} joueurs minimum`, onlyN: n => `${n} joueurs seulement`,
     howMany: 'Combien de joueurs ?', chooseGame: 'Choisis un jeu', settingsTitle: 'Réglages',
     pitchFake: 'Un imposteur se cache parmi les artistes.', pitchChain: 'Le mot passe de main en main, dessin après dessin.', pitchSame: 'Duel : avez-vous le même mot ?',
-    pl36: '3 à 6 joueurs', pl2: '2 joueurs',
+    pl36: '3 à 6 joueurs', pl2: '2 joueurs', pl46: '4 à 6 joueurs',
+    gameSab: 'Le saboteur', pitchSab: 'Un saboteur détourne le dessin vers son propre mot.', sabMin: 'Ce jeu se joue à partir de 4 joueurs.',
+    sabStrokes: 'Traits par dessinateur',
+    sabIntroK: 'Devineur de la manche', sabIntro: name => `<b>${name}</b> devine ce tour-ci : ne regarde ni les cartes ni le dessin avant qu'on te passe le téléphone !`, sabIntroGo: 'Compris, distribuer les cartes',
+    sabCard: 'Saboteur 🤫', sabCardHint: 'Ton mot est différent ! Oriente discrètement le dessin vers lui.',
+    sabPassK: 'Le dessin est fini', sabPass: name => `Passe le téléphone à <b>${name}</b> pour deviner.`, sabPassGo: name => `Je suis ${name}, deviner`,
+    sabGuessT: 'Qu\'est-ce que c\'est ?', sabGuessPh: 'Le mot', sabGuessGo: 'Valider',
+    sabVoteT: 'Qui est le saboteur ?', sabVoteHint: 'Discutez, puis à trois, tout le monde pointe un suspect. Sélectionnez la personne la plus désignée.',
+    sabWord: 'Le mot', sabHisWord: 'Mot du saboteur', sabWas: name => `Le saboteur était ${name}.`,
+    sabFound: name => `${name} a trouvé le mot !`, sabTricked: name => `${name} est tombé dans le piège du saboteur !`, sabMissed: name => `${name} n'a trouvé aucun des deux mots.`,
+    sabCaught: 'Saboteur démasqué !', sabFree: 'Le saboteur s\'en sort.',
+    sabRules: 'Mot trouvé : devineur +2, artistes +1 · Mot du saboteur : saboteur +3 · Saboteur démasqué : artistes +1, sinon saboteur +2',
+    guesser: 'devineur',
     game: 'Jeu', gameFake: 'Faux artiste', gameChain: 'Un mot, un dessin', gameSame: 'Même mot ?',
     gameSameHint: 'Duel à 2. Chacun reçoit un mot en secret : parfois le même, parfois un mot proche. Dessinez tour à tour sur la même feuille, puis pariez en secret : même mot ou pas ?',
     sameOnly2: 'Ce jeu se joue à 2 joueurs.', sameStrokes: 'Traits chacun',
@@ -352,6 +371,7 @@ const T = {
       '<b>Points :</b> si les imposteurs gagnent, chacun d\'eux (et le maître du jeu) marque 2 points. Sinon, chaque artiste marque 1 point.',
       'Chaque dessin terminé est rangé dans la <b>galerie</b> 🖼️ (les 30 derniers).',
       '<b>Même mot ?</b> (duel à 2, dans les réglages) : chacun reçoit un mot secret, le même une fois sur deux, sinon un mot proche. On dessine chacun son tour sur la même feuille, puis chacun parie en secret : même mot ou pas. Bon pari : +1. Si les mots diffèrent, deviner le mot de l\'autre : +2.',
+      '<b>Le saboteur</b> (4 à 6 joueurs) : un joueur devine sans rien regarder. Les autres dessinent le mot trait par trait, à l\'encre noire… sauf le saboteur, qui a un mot proche et tente d\'orienter le dessin vers le sien. Le devineur propose un mot, puis tout le monde cherche le saboteur. Mot trouvé : devineur +2, artistes +1. Mot du saboteur : saboteur +3. Saboteur démasqué : artistes +1, sinon saboteur +2.',
       '<b>Un mot, un dessin</b> (autre jeu, dans les réglages) : un mot de départ, le joueur suivant le dessine, le suivant devine le mot d\'après le dessin, le suivant redessine ce mot… jusqu\'à ce que tout le monde soit passé. À la fin, on compare avec le mot de départ.',
     ],
     close: 'Fermer',
@@ -362,10 +382,23 @@ const T = {
     modeAutoHint: 'Everyone draws. The word is picked at random.',
     modeGmHint: 'Players take turns choosing the word and sit out the drawing. They win with the fake artist.',
     category: 'Category', random: 'Random', rounds: 'Drawing rounds', skin: 'Look', skinNames: { classic: 'Classic', atelier: 'Studio', enquete: 'Case file' }, firstFake: 'Chance the fake artist draws first', firstAuto: n => `random (${n} %)`, firstReset: 'Back to random', target: 'Points to win',
-    menu: 'Settings', language: 'Language',
+    ink: 'Ink', inkHint: 'Longest possible line: the line stops when the ink runs out.', inkInf: '∞ Endless', inkLots: 'Lots', inkMid: 'Medium', inkLow: 'Little',
+    menu: 'Settings', language: 'Language', nextStep: 'Next', launch: 'Start the game', needMore: n => `${n} players minimum`, onlyN: n => `${n} players only`,
     howMany: 'How many players?', chooseGame: 'Pick a game', settingsTitle: 'Settings',
     pitchFake: 'An impostor hides among the artists.', pitchChain: 'The word goes round, drawing after drawing.', pitchSame: 'A duel: do you have the same word?',
-    pl36: '3 to 6 players', pl2: '2 players',
+    pl36: '3 to 6 players', pl2: '2 players', pl46: '4 to 6 players',
+    gameSab: 'The saboteur', pitchSab: 'A saboteur steers the drawing toward their own word.', sabMin: 'This game needs at least 4 players.',
+    sabStrokes: 'Lines per drawer',
+    sabIntroK: 'This round\'s guesser', sabIntro: name => `<b>${name}</b> guesses this round: don't look at the cards or the drawing until the phone comes to you!`, sabIntroGo: 'Got it, deal the cards',
+    sabCard: 'Saboteur 🤫', sabCardHint: 'Your word is different! Subtly steer the drawing toward it.',
+    sabPassK: 'The drawing is done', sabPass: name => `Hand the phone to <b>${name}</b> to guess.`, sabPassGo: name => `I'm ${name}, guess`,
+    sabGuessT: 'What is it?', sabGuessPh: 'The word', sabGuessGo: 'Confirm',
+    sabVoteT: 'Who is the saboteur?', sabVoteHint: 'Discuss, then on three everyone points at a suspect. Select the person with the most fingers.',
+    sabWord: 'The word', sabHisWord: 'Saboteur\'s word', sabWas: name => `The saboteur was ${name}.`,
+    sabFound: name => `${name} found the word!`, sabTricked: name => `${name} fell for the saboteur's trap!`, sabMissed: name => `${name} found neither word.`,
+    sabCaught: 'Saboteur caught!', sabFree: 'The saboteur got away.',
+    sabRules: 'Word found: guesser +2, artists +1 · Saboteur\'s word: saboteur +3 · Saboteur caught: artists +1, otherwise saboteur +2',
+    guesser: 'guesser',
     game: 'Game', gameFake: 'Fake artist', gameChain: 'One word, one drawing', gameSame: 'Same word?',
     gameSameHint: 'A duel for 2. Each player secretly gets a word: sometimes the same, sometimes a close one. Take turns drawing on the same sheet, then bet in secret: same word or not?',
     sameOnly2: 'This game is for 2 players.', sameStrokes: 'Lines each',
@@ -436,6 +469,7 @@ const T = {
       '<b>Points:</b> if the impostors win, each of them (and the question master) scores 2 points. Otherwise each artist scores 1 point.',
       'Every finished drawing goes to the <b>gallery</b> 🖼️ (the last 30).',
       '<b>Same word?</b> (a duel for 2, in the settings): each player gets a secret word, the same one half the time, otherwise a close one. Take turns drawing on the same sheet, then each bets in secret: same word or not. Right bet: +1. If the words differ, guessing the other word: +2.',
+      '<b>The saboteur</b> (4 to 6 players): one player guesses without looking. The others draw the word line by line, in black ink… except the saboteur, who has a close word and tries to steer the drawing toward theirs. The guesser names a word, then everyone hunts for the saboteur. Word found: guesser +2, artists +1. Saboteur\'s word: saboteur +3. Saboteur caught: artists +1, otherwise saboteur +2.',
       '<b>One word, one drawing</b> (another game, in the settings): a starting word, the next player draws it, the next one guesses the word from the drawing, the next draws that word again… until everyone has played. At the end, compare with the starting word.',
     ],
     close: 'Close',
@@ -494,7 +528,12 @@ const nameOf = id => esc(pname(P(id)));
 const av = (color, emoji, cls = '') => `<span class="av ${cls}" style="background:${color};--c:${color}"><i>${emoji}</i></span>`;
 const roleOf = (g, id) => g.roles?.[id] || 'artist';
 const impostors = g => g.drawers.filter(id => roleOf(g, id) !== 'artist');
-const roleIcon = (g, id) => ({ fake: ' 🎭', forger: ' 🥸' })[roleOf(g, id)] || '';
+const roleIcon = (g, id) => ({ fake: ' 🎭', forger: ' 🥸', saboteur: ' 🤫' })[roleOf(g, id)] || '';
+const INK = '#26221d';
+const INK_LEVELS = [[0, 'inkInf'], [3, 'inkLots'], [1.6, 'inkMid'], [0.8, 'inkLow']];
+const inkOf = v => (S.inkBy || {})[v] || 0;
+const inkBar = g => g.ink ? '<div class="inkbar" aria-hidden="true"><i id="inkLvl"></i></div>' : '';
+const inkShow = f => { const el = $('inkLvl'); if (el) { el.style.width = Math.max(0, f) * 100 + '%'; el.parentElement.classList.toggle('dry', f <= 0); } };
 // At least 2 artists; returns the clamped [fakes, forgers] for the current table.
 function roleCounts() {
   const d = S.players.length - (S.mode === 'gm' ? 1 : 0), max = Math.max(1, d - 2);
@@ -534,6 +573,10 @@ const $ = id => document.getElementById(id);
 
 const app = $('app');
 let view = null; // null | { shot: index } | {} for the gallery grid — not persisted
+// Setup is a short path: players (count + names) → game → that game's settings. Not persisted.
+let step = 'players';
+const STEPS = ['players', 'games', 'settings'];
+function goStep(s) { step = s; render(); scrollTo(0, 0); }
 function go(phase) { if (S.game) S.game.phase = phase; save(); render(); scrollTo(0, 0); }
 
 function render() {
@@ -541,14 +584,14 @@ function render() {
   applySkin();
   const g = S.game;
   const q = $('quitBtn');
-  q.hidden = !g || g.phase === 'result' || g.phase === 'chainEnd' || g.phase === 'sameEnd' || !!view;
+  q.hidden = !g || g.phase === 'result' || g.phase === 'chainEnd' || g.phase === 'sameEnd' || g.phase === 'sabEnd' || !!view;
   q.textContent = '✕'; q.title = q.ariaLabel = t('quit');
   $('menuBtn').title = $('menuBtn').ariaLabel = t('menu');
   keepAwake();
   document.body.classList.toggle('drawing', !view && !!g && (g.phase === 'draw' || (g.phase === 'chainStep' && chainKind(g) === 'draw')));
   if (view) return view.shot != null ? renderShot() : renderGallery();
   if (!g) return renderSetup();
-  ({ gm: renderGm, pass: renderPass, reveal: renderReveal, draw: renderDraw, vote: renderVote, votePass: renderVotePass, ballot: renderBallot, tally: renderTally, chainPass: renderChainPass, chainStep: renderChainStep, chainEnd: renderChainEnd, betPass: renderBetPass, bet: renderBet, sameEnd: renderSameEnd, guess: renderGuess, result: renderResult })[g.phase]();
+  ({ gm: renderGm, pass: renderPass, reveal: renderReveal, draw: renderDraw, vote: renderVote, votePass: renderVotePass, ballot: renderBallot, tally: renderTally, chainPass: renderChainPass, chainStep: renderChainStep, chainEnd: renderChainEnd, betPass: renderBetPass, bet: renderBet, sameEnd: renderSameEnd, sabIntro: renderSabIntro, sabPass: renderSabPass, sabGuess: renderSabGuess, sabVote: renderSabVote, sabEnd: renderSabEnd, guess: renderGuess, result: renderResult })[g.phase]();
 }
 
 // Keep the screen on while a round is being played (the phone sits on the table between turns).
@@ -575,26 +618,36 @@ function ask(title, hint, okLabel, onOk) {
 // ---------- setup ----------
 function renderSetup() {
   const min = S.mode === 'gm' && (S.variant || 'fake') === 'fake' ? 4 : 3;
-  const block = S.variant === 'same' ? (S.players.length !== 2 ? t('sameOnly2') : '') : S.players.length < min ? t('needPlayers')(min) : '';
+  const block = S.variant === 'same' ? (S.players.length !== 2 ? t('sameOnly2') : '')
+    : S.variant === 'sab' ? (S.players.length < 4 ? t('sabMin') : '')
+    : S.players.length < min ? t('needPlayers')(min) : '';
   const cats = CATEGORIES.map(c => `<option value="${c.id}" ${S.cat === c.id ? 'selected' : ''}>${esc(c[S.lang])}</option>`).join('');
   const n = S.players.length, games = [
     ['fake', '🎭', 'gameFake', 'pitchFake', 'pl36', n >= 3],
     ['chain', '🔁', 'gameChain', 'pitchChain', 'pl36', n >= 3],
     ['same', '🤝', 'gameSame', 'pitchSame', 'pl2', n === 2],
+    ['sab', '🕵️', 'gameSab', 'pitchSab', 'pl46', n >= 4],
   ];
+  const si = STEPS.indexOf(step), cur = games.find(x => x[0] === (S.variant || 'fake'));
+  const why = k => k === 'same' ? t('onlyN')(2) : t('needMore')(k === 'sab' ? 4 : 3);
+  // Ink comes last in every game's settings.
+  const inkF = `<div class="field"><label>${t('ink')}</label>
+        <div class="seg" id="inkSeg">${INK_LEVELS.map(([v, k]) => `<button data-v="${v}" aria-pressed="${inkOf(S.variant || 'fake') === v}">${t(k)}</button>`).join('')}</div>
+        <p class="muted" style="font-size:15px;margin:8px 2px 0">${t('inkHint')}</p></div>`;
   app.innerHTML = `
-    <div class="card">
-      <h3>${t('howMany')}</h3>
-      <div class="seg" id="countSeg" aria-label="${t('count')}">${[2, 3, 4, 5, 6].map(n => `<button data-v="${n}" aria-pressed="${S.players.length === n}">${n}</button>`).join('')}</div>
-    </div>
-    <div class="card">
-      <h3>${t('chooseGame')}</h3>
+    ${si > 0 ? `<div class="galhead"><button class="iconbtn" id="stepBack" aria-label="${t('back')}">←</button>
+      <h2>${step === 'games' ? t('chooseGame') : `${cur[1]} ${t(cur[2])}`}</h2><span class="muted">${si + 1}/3</span></div>` : ''}
+    ${step === 'players' ? `<div class="card">
+      <h2 class="center" style="margin:10px 0 18px">${t('howMany')}</h2>
+      <div class="seg big" id="countSeg" aria-label="${t('count')}">${[2, 3, 4, 5, 6].map(n => `<button data-v="${n}" aria-pressed="${S.players.length === n}">${n}</button>`).join('')}</div>
+    </div>` : ''}
+    ${step === 'games' ? `<div class="card" style="border-top:0;padding-top:4px">
       <div class="games">${games.map(([k, ico, name, pitch, pl, ok]) => `
-        <button class="game${ok ? '' : ' off'}" data-game="${k}" aria-pressed="${(S.variant || 'fake') === k}">
-          <span class="ico">${ico}</span><span class="gt"><b>${t(name)}</b><small>${t(pitch)}</small><span class="pl">${t(pl)}</span></span></button>`).join('')}
+        <button class="game${ok ? '' : ' off'}" data-game="${k}" ${ok ? '' : 'disabled'}>
+          <span class="ico">${ico}</span><span class="gt"><b>${t(name)}</b><small>${t(pitch)}</small><span class="pl">${ok ? t(pl) : why(k)}</span></span><span class="go">${ok ? '›' : ''}</span></button>`).join('')}
       </div>
-    </div>
-    <div class="card">
+    </div>` : ''}
+    ${step === 'players' ? `<div class="card">
       <h3>${t('players')}</h3>
       <div class="players">${S.players.map((p, i) => `
         <div class="prow" data-id="${p.id}">
@@ -603,15 +656,24 @@ function renderSetup() {
           ${S.players.some(x => x.score) ? `<span class="score">${p.score}</span>` : ''}
         </div>`).join('')}
       </div>
-    </div>
-    <div class="card">
+    </div>` : ''}
+    ${step === 'settings' ? `<div class="card" style="border-top:0;padding-top:4px">
       <h3>${t('settingsTitle')}</h3>
-      ${S.variant === 'same' ? `<div class="field" style="margin-top:0"><label>${t('sameStrokes')}</label>
+      ${S.variant === 'sab' ? `<div class="field" style="margin-top:0"><label>${t('sabStrokes')}</label>
+        <div class="seg" id="sabSeg">${[1, 2, 3].map(n => `<button data-v="${n}" aria-pressed="${(S.sabStrokes || 2) === n}">${n}</button>`).join('')}</div></div>
+      <div class="field"><label for="catSel">${t('category')}</label>
+        <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
+      <div class="field"><label>${t('target')}</label>
+        <div class="seg" id="targetSeg">${[3, 5, 7, 10].map(n => `<button data-v="${n}" aria-pressed="${S.target === n}">${n}</button>`).join('')}</div></div>
+      ${inkF}
+      ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
+    </div>` : S.variant === 'same' ? `<div class="field" style="margin-top:0"><label>${t('sameStrokes')}</label>
         <div class="seg" id="sameSeg">${[2, 3, 4, 5].map(n => `<button data-v="${n}" aria-pressed="${(S.sameStrokes || 3) === n}">${n}</button>`).join('')}</div></div>
       <div class="field"><label for="catSel">${t('category')}</label>
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
       <div class="field"><label>${t('target')}</label>
         <div class="seg" id="targetSeg">${[3, 5, 7, 10].map(n => `<button data-v="${n}" aria-pressed="${S.target === n}">${n}</button>`).join('')}</div></div>
+      ${inkF}
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
     </div>` : S.variant === 'chain' ? `<div class="field" style="margin-top:0"><label>${t('chFrom')}</label>
         <div class="seg" id="fromSeg">${['random', 'own'].map(k => `<button data-v="${k}" aria-pressed="${(S.chainFrom || 'random') === k}">${t(k === 'own' ? 'chFromOwn' : 'chFromRandom')}</button>`).join('')}</div>
@@ -620,6 +682,7 @@ function renderSetup() {
         <div class="seg" id="strokeSeg">${[0, 1, 3, 5, 10].map(n => `<button data-v="${n}" aria-pressed="${(S.chainStrokes || 0) === n}">${n || t('chUnlimited')}</button>`).join('')}</div></div>
       <div class="field"><label for="catSel">${t('category')}</label>
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
+      ${inkF}
     </div>` : `
       <label class="flabel">${t('mode')}</label>
       <div class="seg" id="modeSeg">
@@ -645,13 +708,16 @@ function renderSetup() {
         ${S.firstFake != null ? `<button class="link" id="ffReset" style="margin:4px 0 0 auto">${t('firstReset')}</button>` : ''}</div>
       <div class="field"><label>${t('target')}</label>
         <div class="seg" id="targetSeg">${[3, 5, 7, 10].map(n => `<button data-v="${n}" aria-pressed="${S.target === n}">${n}</button>`).join('')}</div></div>
+      ${inkF}
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
+    </div>`}` : ''}
+    ${step === 'games' ? '' : `<div class="sticky">
+      ${step === 'settings' ? `<button class="btn primary" id="startBtn" ${block ? 'disabled' : ''}>${t('launch')} →</button>
+      ${block ? `<p class="hint">${block}</p>` : ''}` : `<button class="btn primary" id="nextBtn">${t('nextStep')} →</button>`}
     </div>`}
-    <div class="sticky">
-      <button class="btn primary" id="startBtn" ${block ? 'disabled' : ''}>${t('start')} →</button>
-      ${block ? `<p class="hint">${block}</p>` : ''}
-    </div>
   `;
+  $('stepBack')?.addEventListener('click', () => goStep(STEPS[si - 1]));
+  $('nextBtn')?.addEventListener('click', () => goStep(STEPS[si + 1]));
   app.querySelectorAll('.prow').forEach(row => {
     const p = P(row.dataset.id);
     const inp = row.querySelector('[data-act=name]');
@@ -667,15 +733,16 @@ function renderSetup() {
   const seg = (id, fn) => $(id)?.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); save(); render(); }));
   seg('countSeg', v => {
     setCount(+v);
-    if (+v === 2) S.variant = 'same'; else if (S.variant === 'same') S.variant = 'fake';
+    if (+v === 2) S.variant = 'same';
+    else if (S.variant === 'same' || (S.variant === 'sab' && +v < 4)) S.variant = 'fake';
   });
   app.querySelectorAll('[data-game]').forEach(b => b.onclick = () => {
     const v = b.dataset.game;
-    S.variant = v;
-    if (v === 'same') setCount(2); else if (S.players.length < 3) setCount(3);
-    save(); renderSetup();
+    S.variant = v; save(); goStep('settings');
   });
   seg('sameSeg', v => S.sameStrokes = +v);
+  seg('sabSeg', v => S.sabStrokes = +v);
+  seg('inkSeg', v => { S.inkBy = { ...(S.inkBy || {}), [S.variant || 'fake']: +v }; });
   seg('fromSeg', v => S.chainFrom = v);
   seg('strokeSeg', v => S.chainStrokes = +v);
   app.querySelectorAll('[data-role]').forEach(b => b.onclick = () => {
@@ -690,7 +757,7 @@ function renderSetup() {
   seg('targetSeg', v => S.target = +v);
   $('catSel')?.addEventListener('change', e => { S.cat = e.target.value; save(); });
   $('resetBtn')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); save(); renderSetup(); });
-  $('startBtn').addEventListener('click', startGame);
+  $('startBtn')?.addEventListener('click', startGame);
   if (!$('ffRange')) return;
   const ffR = $('ffRange'), ffV = $('ffVal'), auto = () => { const [f, k] = roleCounts(); return Math.round(100 * (f || k) / (S.players.length - (S.mode === 'gm' ? 1 : 0))); };
   const ffShow = () => { ffV.textContent = S.firstFake == null ? t('firstAuto')(auto()) : S.firstFake + ' %'; };
@@ -741,6 +808,7 @@ function pickWord(catFilter) {
 function startGame() {
   if (S.variant === 'chain') return startChain();
   if (S.variant === 'same') return startSame();
+  if (S.variant === 'sab') return startSab();
   const ids = S.players.map(p => p.id);
   const gm = S.mode === 'gm' ? ids[S.gmPtr++ % ids.length] : null;
   const drawers = ids.filter(id => id !== gm);
@@ -765,7 +833,7 @@ function startGame() {
   const order = [];
   for (let r = 0; r < S.rounds; r++) order.push(...loop);
   view = null;
-  S.game = {
+  S.game = { ink: inkOf('fake'),
     phase: gm ? 'gm' : 'pass', gm, drawers, roles, order, turn: 0, strokes: [], pending: false,
     revealI: 0, secret: S.voteMode === 'turns', votes: {}, voteI: 0, accused: null, guessed: null, outcome: null, scored: false,
     ...w,
@@ -823,9 +891,9 @@ function renderReveal() {
   const g = S.game, id = g.drawers[g.revealI], role = roleOf(g, id), fake = role === 'fake';
   app.innerHTML = `<div class="pass">
     <div class="center" style="font-size:20px">${dotOf(id)}<b>${nameOf(id)}</b></div>
-    <div class="role"><div class="k">${t('catLabel')} · ${esc(catText(g))}</div><div class="k" style="margin-top:14px">${t('yourCard')}</div>
-      <div class="v">${fake ? t('fakeName') : esc(role === 'forger' ? forgerWord(g) : wordText(g))}</div></div>
-    <p class="center muted">${t('memorize')}</p>
+    <div class="role"><div class="k">${t('catLabel')} · ${esc(catText(g))}</div><div class="k" style="margin-top:14px">${role === 'saboteur' ? t('sabCard') : t('yourCard')}</div>
+      <div class="v">${fake ? t('fakeName') : esc(role === 'forger' || role === 'saboteur' ? forgerWord(g) : wordText(g))}</div></div>
+    <p class="center muted">${role === 'saboteur' ? t('sabCardHint') + ' ' : ''}${t('memorize')}</p>
     <button class="btn primary" id="ok">${t('hide')}</button></div>`;
   $('ok').onclick = () => { g.revealI++; go(g.revealI >= g.drawers.length ? 'draw' : 'pass'); };
 }
@@ -925,7 +993,7 @@ function mountCanvas(cv, o) {
       tap = { t: performance.now(), p };
       if (o.draw && o.draw.can()) {
         e.preventDefault(); mode = 'draw'; strokeId = e.pointerId; strokeT = performance.now();
-        stroke = o.draw.start(toPaper(p)); draw();
+        stroke = o.draw.start(toPaper(p)); stroke.len = 0; o.draw.onInk?.(1); draw();
       } else if (v.s > 1.01) { e.preventDefault(); mode = 'pan'; panLast = p; }
       else mode = null;
     } else {
@@ -944,7 +1012,19 @@ function mountCanvas(cv, o) {
       const co = e.getCoalescedEvents?.();
       for (const ev of (co && co.length ? co : [e])) {
         const p = toPaper(local(ev)), l = stroke.pts[stroke.pts.length - 1];
-        if (Math.hypot(p[0] - l[0], p[1] - l[1]) > 0.003 / v.s) stroke.pts.push(p);
+        if (stroke.dry || Math.hypot(p[0] - l[0], p[1] - l[1]) <= 0.003 / v.s) continue;
+        // Ink: length in paper widths (y scaled by the paper's aspect); the line stops when it's spent.
+        const max = o.draw.ink?.() || 0;
+        if (max) {
+          const d = Math.hypot(p[0] - l[0], (p[1] - l[1]) * h / w);
+          if (stroke.len + d >= max) {
+            const k = (max - stroke.len) / d;
+            stroke.pts.push([l[0] + (p[0] - l[0]) * k, l[1] + (p[1] - l[1]) * k]);
+            stroke.len = max; stroke.dry = true; o.draw.onInk?.(0); buzz(20); break;
+          }
+          stroke.len += d; o.draw.onInk?.(1 - stroke.len / max);
+        }
+        stroke.pts.push(p);
       }
       draw(); return;
     }
@@ -1024,6 +1104,7 @@ function renderDraw() {
       <div class="who">${dotOf(id)}<span>${nameOf(id)}</span></div>
       <div class="meta">${t('turn')(Math.floor(g.turn / R) + 1, g.rounds || S.rounds)} · ${t('stroke')(g.turn + 1, g.order.length)}</div>
     </div>
+    ${inkBar(g)}
     <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.turn < R && !g.pending ? `<div class="paperhint" id="phint">${t('drawHint')}</div>` : ''}</div></div>
     <div class="row">
       <button class="btn" id="undo">↺ ${t('undo')}</button>
@@ -1032,20 +1113,21 @@ function renderDraw() {
   const undo = $('undo'), ok = $('ok');
   const sync = () => { undo.disabled = ok.disabled = !g.pending; };
   const api = mountCanvas($('cv'), {
-    strokes: () => g.strokes, colorOf: s => P(s.id)?.color,
+    strokes: () => g.strokes, colorOf: s => g.kind === 'sab' ? INK : P(s.id)?.color,
     draw: {
       can: () => !g.pending,
+      ink: () => g.ink, onInk: inkShow,
       start: p => { $('phint')?.remove(); const s = { id, pts: [p] }; g.strokes.push(s); return s; },
-      cancel: () => { g.strokes.pop(); },
+      cancel: () => { g.strokes.pop(); inkShow(1); },
       end: () => { g.pending = true; save(); sync(); buzz(8); },
     },
   });
   sync();
-  undo.onclick = () => { if (!g.pending) return; g.strokes.pop(); g.pending = false; save(); sync(); api.draw(); };
+  undo.onclick = () => { if (!g.pending) return; g.strokes.pop(); g.pending = false; save(); sync(); api.draw(); inkShow(1); };
   ok.onclick = () => {
     if (!g.pending) return;
     g.pending = false; g.turn++; buzz(15);
-    if (g.turn >= g.order.length) go(g.kind === 'same' ? 'betPass' : 'vote'); else { save(); renderDraw(); }
+    if (g.turn >= g.order.length) go(g.kind === 'same' ? 'betPass' : g.kind === 'sab' ? 'sabPass' : 'vote'); else { save(); renderDraw(); }
   };
 }
 
@@ -1158,7 +1240,7 @@ function startChain() {
   else if (even) order = [order[0], ...order];
   const kinds = order.map((_, i) => start == null && i === 0 ? 'start' : (i + (start == null ? 1 : 0)) % 2 === 0 ? 'draw' : 'word');
   view = null;
-  S.game = { kind: 'chain', phase: 'chainPass', order, kinds, max: S.chainStrokes || 0, i: 0, steps: [], cur: [], start, prefill };
+  S.game = { kind: 'chain', ink: inkOf('chain'), phase: 'chainPass', order, kinds, max: S.chainStrokes || 0, i: 0, steps: [], cur: [], start, prefill };
   save(); render(); scrollTo(0, 0);
 }
 // Kind of step i: 'start' (write the starting word), 'draw' or 'word'.
@@ -1191,6 +1273,7 @@ function renderChainStep() {
         <div class="who">${dotOf(id)}<span>${nameOf(id)}</span></div>
         <div class="meta">${t('chDraw')}${t('colon')}<b>${esc(chainWord(g))}</b>${g.max ? `<br><span id="left">${t('chLeft')(Math.min(g.cur.length + 1, g.max), g.max)}</span>` : ''}</div>
       </div>
+      ${inkBar(g)}
       <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.cur.length ? '' : `<div class="paperhint" id="phint">${g.max ? t('chDrawHintN')(g.max) : t('chDrawHint')}</div>`}</div></div>
       <div class="row">
         <button class="btn" id="undo">↺ ${t('chUndo')}</button>
@@ -1205,6 +1288,7 @@ function renderChainStep() {
       strokes: () => g.cur, colorOf: () => P(id)?.color,
       draw: {
         can: () => !g.max || g.cur.length < g.max,
+        ink: () => g.ink, onInk: inkShow,
         start: p => { $('phint')?.remove(); const s = { id, pts: [p] }; g.cur.push(s); return s; },
         cancel: () => { g.cur.pop(); },
         end: () => { save(); sync(); },
@@ -1256,7 +1340,7 @@ function renderChainEnd() {
     mountCanvas(cv, { strokes: () => st.strokes, colorOf: s => P(s.id)?.color });
   });
   $('again').onclick = startChain;
-  $('settings').onclick = () => { S.game = null; save(); render(); scrollTo(0, 0); };
+  $('settings').onclick = () => { S.game = null; save(); goStep('settings'); };
 }
 
 // ---------- "Same word?": a 2-player duel. Half the time one player secretly gets a close word
@@ -1274,7 +1358,7 @@ function startSame() {
   const n = S.sameStrokes || 3, first = Math.floor(Math.random() * 2), loop = [ids[first], ids[1 - first]], order = [];
   for (let r = 0; r < n; r++) order.push(...loop);
   view = null;
-  S.game = { kind: 'same', phase: 'pass', gm: null, drawers: ids, roles, order, rounds: n, turn: 0, strokes: [], pending: false,
+  S.game = { kind: 'same', ink: inkOf('same'), phase: 'pass', gm: null, drawers: ids, roles, order, rounds: n, turn: 0, strokes: [], pending: false,
     revealI: 0, bets: {}, betI: 0, outcome: null, scored: false, ...w };
   save(); render(); scrollTo(0, 0);
 }
@@ -1360,7 +1444,126 @@ function renderSameEnd() {
   $('dl').onclick = () => downloadPng(g.strokes, colorOf, wordText(g));
   $('next')?.addEventListener('click', startSame);
   $('newGame')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); startSame(); });
-  $('settings').onclick = () => { S.game = null; save(); render(); scrollTo(0, 0); };
+  $('settings').onclick = () => { S.game = null; save(); goStep('settings'); };
+}
+
+// ---------- "Le saboteur": a rotating guesser looks away; the others draw the word stroke by
+// stroke in plain ink, except the saboteur who has the close word of a pair. Guess, then vote.
+function startSab() {
+  const ids = S.players.map(p => p.id), guesser = ids[(S.sabPtr = (S.sabPtr || 0) + 1) % ids.length];
+  const drawers = ids.filter(id => id !== guesser), roles = { [pick(drawers)]: 'saboteur' };
+  const w = pickPair(S.cat) || pickPair('random');
+  const n = S.sabStrokes || 2, st = Math.floor(Math.random() * drawers.length), loop = drawers.slice(st).concat(drawers.slice(0, st)), order = [];
+  for (let r = 0; r < n; r++) order.push(...loop);
+  view = null;
+  S.game = { kind: 'sab', ink: inkOf('sab'), phase: 'sabIntro', guesser, gm: null, drawers, roles, order, rounds: n, turn: 0, strokes: [], pending: false,
+    revealI: 0, guess: '', hit: null, accused: null, outcome: null, scored: false, ...w };
+  save(); render(); scrollTo(0, 0);
+}
+const saboteurOf = g => g.drawers.find(id => roleOf(g, id) === 'saboteur');
+
+function renderSabIntro() {
+  const g = S.game;
+  app.innerHTML = `<div class="pass center">
+    <p class="muted">${t('sabIntroK')}</p>
+    <div class="big-name">${dotOf(g.guesser)}${nameOf(g.guesser)}</div>
+    <p>${t('sabIntro')(nameOf(g.guesser))}</p>
+    <button class="btn primary" id="ok">${t('sabIntroGo')} →</button></div>`;
+  $('ok').onclick = () => go('pass');
+}
+
+function renderSabPass() {
+  const g = S.game;
+  app.innerHTML = `<div class="pass center">
+    <p class="muted">${t('sabPassK')}</p>
+    <div class="big-name">${dotOf(g.guesser)}${nameOf(g.guesser)}</div>
+    <p>${t('sabPass')(nameOf(g.guesser))}</p>
+    <button class="btn primary" id="ok">${t('sabPassGo')(nameOf(g.guesser))}</button></div>`;
+  $('ok').onclick = () => go('sabGuess');
+}
+
+function renderSabGuess() {
+  const g = S.game;
+  app.innerHTML = `
+    <h2 class="center">${t('sabGuessT')}</h2>
+    <div class="center" style="margin-bottom:12px"><span class="catpill">${t('catLabel')}${t('colon')}${esc(catText(g))}</span></div>
+    <div class="paper view"><canvas id="cv"></canvas></div>
+    <input type="text" id="gi" placeholder="${t('sabGuessPh')}" autocomplete="off" maxlength="40" enterkeyhint="done">
+    <div class="sticky"><button class="btn primary" id="ok" disabled>${t('sabGuessGo')} →</button></div>`;
+  mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: () => INK });
+  const gi = $('gi'), ok = $('ok');
+  gi.oninput = () => ok.disabled = !gi.value.trim();
+  gi.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); if (gi.value.trim()) ok.click(); } };
+  ok.onclick = () => {
+    const v = gi.value.trim(); if (!v) return;
+    g.guess = v;
+    g.hit = looksRight(v, wordText(g)) ? 'word' : looksRight(v, forgerWord(g)) ? 'sab' : 'none';
+    go('sabVote');
+  };
+}
+
+function renderSabVote() {
+  const g = S.game;
+  app.innerHTML = `
+    <h2 class="center">${t('sabVoteT')}</h2>
+    <p class="center muted">${t('sabVoteHint')}</p>
+    <div class="grid">${g.drawers.map(id => `<button class="chip" data-id="${id}" aria-pressed="false">${dotOf(id)}<span>${nameOf(id)}</span></button>`).join('')}
+      <button class="chip" data-id="tie" aria-pressed="false" style="justify-content:center">⚖️ ${t('tie')}</button></div>
+    <div class="paper view small" style="margin-top:14px"><canvas id="cv"></canvas></div>
+    <div class="sticky"><button class="btn accent" id="ok" disabled>${t('revealVote')}</button></div>`;
+  mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: () => INK });
+  let sel = null;
+  const ok = $('ok');
+  app.querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    sel = b.dataset.id;
+    app.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === b));
+    ok.disabled = false;
+  });
+  ok.onclick = () => { g.accused = sel; go('sabEnd'); };
+}
+
+function renderSabEnd() {
+  const g = S.game, sab = saboteurOf(g), caught = g.accused === sab;
+  if (!g.scored) {
+    const gains = {}, add = (id, n) => gains[id] = (gains[id] || 0) + n;
+    const artists = g.drawers.filter(id => id !== sab);
+    if (g.hit === 'word') { add(g.guesser, 2); artists.forEach(id => add(id, 1)); }
+    else if (g.hit === 'sab') add(sab, 3);
+    if (caught) artists.forEach(id => add(id, 1)); else add(sab, 2);
+    g.gains = gains;
+    for (const id in gains) P(id).score += gains[id];
+    g.outcome = { fakeWins: !caught };
+    g.archived = archive(g);
+    g.scored = true; save();
+  }
+  const gName = nameOf(g.guesser), good = g.hit === 'word';
+  const ranked = [...S.players].sort((a, b) => b.score - a.score);
+  const champ = ranked[0].score >= S.target && (ranked.length < 2 || ranked[1].score < ranked[0].score) ? ranked[0] : null;
+  app.innerHTML = `
+    <div class="verdict ${good ? 'art' : 'fake'}"><h2>${good ? t('sabFound')(gName) : g.hit === 'sab' ? t('sabTricked')(gName) : t('sabMissed')(gName)}</h2>
+      <p>« ${esc(g.guess)} »</p></div>
+    <div class="compare"><div><small>${t('sabWord')}</small><b>${esc(wordText(g))}</b></div><div><small>${t('sabHisWord')} 🤫</small><b>${esc(forgerWord(g))}</b></div></div>
+    <p class="center" style="font-size:18px;margin:12px 0"><b>${caught ? t('sabCaught') : t('sabFree')}</b><br>${t('sabWas')(nameOf(sab))}</p>
+    ${champ ? `<div class="trophy">${t('champion')(esc(pname(champ)))}</div>` : ''}
+    <div class="card">
+      <div class="paper view"><canvas id="cv"></canvas></div>
+      <div class="legend">${g.drawers.map(id => `<span>${dotOf(id)}${nameOf(id)}${roleIcon(g, id)}</span>`).join('')}</div>
+      ${g.archived ? `<p class="note">${t('saved')}</p>` : ''}
+      <div class="row"><button class="btn" id="replay">▶ ${t('replay')}</button><button class="btn" id="dl">⬇ ${t('save')}</button></div>
+    </div>
+    <div class="card"><h3>${t('scores')}</h3><ul class="scores">${ranked.map(p => `<li>${dotOf(p.id)}<span class="n">${esc(pname(p))}${p.id === g.guesser ? ` · ${t('guesser')}` : ''}${roleIcon(g, p.id)}</span>
+      <span class="gain">${g.gains[p.id] ? '+' + g.gains[p.id] : ''}</span><span class="pts">${p.score}</span></li>`).join('')}</ul>
+      <p class="muted center" style="font-size:14px;margin:8px 0 0">${t('sabRules')}</p></div>
+    ${champ ? `<button class="btn primary" id="newGame">${t('newGame')}</button>` : `<button class="btn primary" id="next">${t('next')} →</button>`}
+    <button class="btn" id="settings">${t('settings')}</button>`;
+  // Colours come back on the result so everyone sees who drew what.
+  const colorOf = s => P(s.id)?.color;
+  const api = mountCanvas($('cv'), { strokes: () => g.strokes, colorOf });
+  $('replay').onclick = replayer(api, g.strokes);
+  $('dl').onclick = () => downloadPng(g.strokes, colorOf, wordText(g));
+  $('next')?.addEventListener('click', startSab);
+  $('newGame')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); startSab(); });
+  $('settings').onclick = () => { S.game = null; save(); goStep('settings'); };
 }
 
 // ---------- fake artist's last guess ----------
@@ -1417,7 +1620,7 @@ function archive(g) {
     id: uid(), at: Date.now(), fakeWins: g.outcome.fakeWins,
     catId: g.custom || g.pw ? null : g.catId, wordIdx: g.custom || g.pw ? null : g.wordIdx,
     word: wordText(g), cat: catText(g),
-    players: g.drawers.map(id => { const p = P(id); return { name: pname(p), color: p.color, emoji: p.emoji, fake: roleOf(g, id) === 'fake', forger: roleOf(g, id) === 'forger' }; }),
+    players: g.drawers.map(id => { const p = P(id); return { name: pname(p), color: p.color, emoji: p.emoji, fake: roleOf(g, id) === 'fake', forger: roleOf(g, id) === 'forger', sab: roleOf(g, id) === 'saboteur' }; }),
     strokes: g.strokes.map(s => ({ i: g.drawers.indexOf(s.id), pts: s.pts.map(([x, y]) => [r3(x), r3(y)]) })),
   };
   const list = loadGal(); list.unshift(entry);
@@ -1452,7 +1655,7 @@ function renderShot() {
     <div class="galhead"><button class="iconbtn" id="back" aria-label="${t('back')}">←</button>
       <div class="t"><div class="word">${esc(gWord(e))}</div><small>${esc(gCat(e))} · ${gDate(e.at)} · ${e.fakeWins ? t('fakeWins') : t('artistsWin')}</small></div></div>
     <div class="paper"><canvas id="cv"></canvas></div>
-    <div class="legend">${e.players.map(p => `<span>${av(p.color, p.emoji)}${esc(p.name)}${p.fake ? ' 🎭' : p.forger ? ' 🥸' : ''}</span>`).join('')}</div>
+    <div class="legend">${e.players.map(p => `<span>${av(p.color, p.emoji)}${esc(p.name)}${p.fake ? ' 🎭' : p.forger ? ' 🥸' : p.sab ? ' 🤫' : ''}</span>`).join('')}</div>
     <div class="row"><button class="btn" id="replay">▶ ${t('replay')}</button><button class="btn" id="dl">⬇ ${t('save')}</button></div>
     <div class="row"><button class="btn" id="prev" ${i <= 0 ? 'disabled' : ''}>‹ ${t('prev')}</button><button class="btn" id="nxt" ${i >= list.length - 1 ? 'disabled' : ''}>${t('next2')} ›</button></div>
     <button class="link" id="del">🗑 ${t('del')}</button>`;
@@ -1510,13 +1713,13 @@ function renderResult() {
   $('dl').onclick = () => downloadPng(g.strokes, colorOf, wordText(g));
   $('next')?.addEventListener('click', startGame);
   $('newGame')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); startGame(); });
-  $('settings').onclick = () => { S.game = null; save(); render(); scrollTo(0, 0); };
+  $('settings').onclick = () => { S.game = null; save(); goStep('settings'); };
 }
 
 // ---------- chrome ----------
 // Settings menu: gallery, rules and language (gallery and language only between rounds, as before).
 function openMenu() {
-  const g = S.game, between = !g || !!view || g.phase === 'result' || g.phase === 'sameEnd' || g.phase === 'chainEnd';
+  const g = S.game, between = !g || !!view || g.phase === 'result' || g.phase === 'sameEnd' || g.phase === 'chainEnd' || g.phase === 'sabEnd';
   modal(`<h2>${t('menu')}</h2>
     <div class="menu">
       ${between ? `<button class="btn" id="mGal">🖼️ ${t('gallery')}</button>` : ''}
