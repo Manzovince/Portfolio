@@ -263,11 +263,12 @@ const T = {
     modeAutoHint: 'Tout le monde dessine. Le mot est tiré au hasard.',
     modeGmHint: 'À tour de rôle, un joueur choisit le mot et ne dessine pas. Il gagne avec le faux artiste.',
     category: 'Catégorie', random: 'Au hasard', rounds: 'Tours de dessin', skin: 'Ambiance', skinNames: { classic: 'Classique', atelier: 'Atelier', enquete: 'Enquête' }, firstFake: 'Chance que le faux artiste dessine en premier', firstAuto: n => `hasard (${n} %)`, firstReset: 'Remettre au hasard', target: 'Points pour gagner',
-    game: 'Jeu', gameFake: 'Faux artiste', gameChain: 'Téléphone arabe',
+    game: 'Jeu', gameFake: 'Faux artiste', gameChain: 'Un mot, un dessin',
     gameChainHint: 'Un mot, puis un dessin, puis un mot… Chacun ne voit que l\'étape d\'avant. À la fin, retrouvez-vous le mot de départ ?',
     chStep: (i, n) => `Étape ${i}/${n}`, chGo: name => `Je suis ${name}, c'est parti`,
     chStartTitle: 'Choisis le mot de départ', chStartHint: 'Personne d\'autre ne le verra. Le joueur suivant devra le dessiner.', chStartPh: 'Un mot ou une petite expression',
-    chDraw: 'Dessine', chDrawHint: 'Autant de traits que tu veux. Deux doigts pour zoomer.', chUndo: 'Annuler le trait',
+    chDraw: 'Dessine', chDrawHint: 'Autant de traits que tu veux. Deux doigts pour zoomer.', chDrawHintN: n => n === 1 ? 'Un seul trait, sans lever le doigt. Deux doigts pour zoomer.' : `${n} traits maximum. Deux doigts pour zoomer.`,
+    chStrokes: 'Traits par dessin', chUnlimited: 'Illimité', chLeft: (u, n) => `trait ${u}/${n}`, chUndo: 'Annuler le trait',
     chGuess: 'Qu\'est-ce que c\'est ?', chGuessHint: 'Écris ce que représente ce dessin. Le joueur suivant devra le redessiner.', chGuessPh: 'Ta réponse', chLastHint: 'Tu es le dernier : écris ce que représente ce dessin, puis on compare avec le mot de départ !',
     chStartWas: 'Mot de départ', chArrived: 'Le message est bien arrivé !', chLost: 'Le message s\'est perdu en route…',
     chFrom: 'Mot de départ', chFromRandom: 'Au hasard', chFromOwn: 'Écrit par un joueur',
@@ -324,7 +325,7 @@ const T = {
       '<b>Rôles</b> (réglables) : il peut y avoir plusieurs faux artistes, et des <b>faussaires</b>, qui reçoivent un autre mot proche de la même catégorie sans le savoir. Démasquer n\'importe quel imposteur suffit aux artistes (un faux artiste démasqué peut encore deviner le mot).',
       '<b>Points :</b> si les imposteurs gagnent, chacun d\'eux (et le maître du jeu) marque 2 points. Sinon, chaque artiste marque 1 point.',
       'Chaque dessin terminé est rangé dans la <b>galerie</b> 🖼️ (les 30 derniers).',
-      '<b>Téléphone arabe</b> (autre jeu, dans les réglages) : un mot de départ, le joueur suivant le dessine, le suivant devine le mot d\'après le dessin, le suivant redessine ce mot… jusqu\'à ce que tout le monde soit passé. À la fin, on compare avec le mot de départ.',
+      '<b>Un mot, un dessin</b> (autre jeu, dans les réglages) : un mot de départ, le joueur suivant le dessine, le suivant devine le mot d\'après le dessin, le suivant redessine ce mot… jusqu\'à ce que tout le monde soit passé. À la fin, on compare avec le mot de départ.',
     ],
     close: 'Fermer',
   },
@@ -334,11 +335,12 @@ const T = {
     modeAutoHint: 'Everyone draws. The word is picked at random.',
     modeGmHint: 'Players take turns choosing the word and sit out the drawing. They win with the fake artist.',
     category: 'Category', random: 'Random', rounds: 'Drawing rounds', skin: 'Look', skinNames: { classic: 'Classic', atelier: 'Studio', enquete: 'Case file' }, firstFake: 'Chance the fake artist draws first', firstAuto: n => `random (${n} %)`, firstReset: 'Back to random', target: 'Points to win',
-    game: 'Game', gameFake: 'Fake artist', gameChain: 'Telephone',
+    game: 'Game', gameFake: 'Fake artist', gameChain: 'One word, one drawing',
     gameChainHint: 'A word, then a drawing, then a word… Each player only sees the step before. Do you get the starting word back at the end?',
     chStep: (i, n) => `Step ${i}/${n}`, chGo: name => `I'm ${name}, let's go`,
     chStartTitle: 'Pick the starting word', chStartHint: 'Nobody else will see it. The next player will have to draw it.', chStartPh: 'A word or a short phrase',
-    chDraw: 'Draw', chDrawHint: 'As many lines as you like. Two fingers to zoom.', chUndo: 'Undo line',
+    chDraw: 'Draw', chDrawHint: 'As many lines as you like. Two fingers to zoom.', chDrawHintN: n => n === 1 ? 'One single line, without lifting your finger. Two fingers to zoom.' : `${n} lines at most. Two fingers to zoom.`,
+    chStrokes: 'Lines per drawing', chUnlimited: 'Unlimited', chLeft: (u, n) => `line ${u}/${n}`, chUndo: 'Undo line',
     chGuess: 'What is it?', chGuessHint: 'Write what this drawing shows. The next player will have to draw it again.', chGuessPh: 'Your answer', chLastHint: 'You\'re last: write what this drawing shows, then compare with the starting word!',
     chStartWas: 'Starting word', chArrived: 'The message made it!', chLost: 'The message got lost on the way…',
     chFrom: 'Starting word', chFromRandom: 'Random', chFromOwn: 'Written by a player',
@@ -395,7 +397,7 @@ const T = {
       '<b>Roles</b> (adjustable): there can be several fake artists, and <b>forgers</b>, who get another, close word from the same category without knowing it. Catching any impostor is enough for the artists (a caught fake artist can still guess the word).',
       '<b>Points:</b> if the impostors win, each of them (and the question master) scores 2 points. Otherwise each artist scores 1 point.',
       'Every finished drawing goes to the <b>gallery</b> 🖼️ (the last 30).',
-      '<b>Telephone</b> (another game, in the settings): a starting word, the next player draws it, the next one guesses the word from the drawing, the next draws that word again… until everyone has played. At the end, compare with the starting word.',
+      '<b>One word, one drawing</b> (another game, in the settings): a starting word, the next player draws it, the next one guesses the word from the drawing, the next draws that word again… until everyone has played. At the end, compare with the starting word.',
     ],
     close: 'Close',
   },
@@ -543,6 +545,8 @@ function renderSetup() {
       <div class="field"><label>${t('chFrom')}</label>
         <div class="seg" id="fromSeg">${['random', 'own'].map(k => `<button data-v="${k}" aria-pressed="${(S.chainFrom || 'random') === k}">${t(k === 'own' ? 'chFromOwn' : 'chFromRandom')}</button>`).join('')}</div>
         <p class="muted" style="font-size:15px;margin:8px 2px 0">${S.chainFrom === 'own' ? t('chFromOwnHint') : t('chFromRandomHint')}</p></div>
+      <div class="field"><label>${t('chStrokes')}</label>
+        <div class="seg" id="strokeSeg">${[0, 1, 3, 5, 10].map(n => `<button data-v="${n}" aria-pressed="${(S.chainStrokes || 0) === n}">${n || t('chUnlimited')}</button>`).join('')}</div></div>
       <div class="field"><label for="catSel">${t('category')}</label>
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
       <div class="field"><label>${t('skin')}</label>
@@ -599,6 +603,7 @@ function renderSetup() {
   seg('countSeg', v => setCount(+v));
   seg('gameSeg', v => S.variant = v);
   seg('fromSeg', v => S.chainFrom = v);
+  seg('strokeSeg', v => S.chainStrokes = +v);
   app.querySelectorAll('[data-role]').forEach(b => b.onclick = () => {
     const [f, k] = roleCounts(), d = +b.dataset.d;
     if (b.dataset.role === 'nFake') { S.nFake = f + d; S.nForger = k; } else { S.nFake = f; S.nForger = k + d; }
@@ -1075,7 +1080,7 @@ function startChain() {
   else if (even) order = [order[0], ...order];
   const kinds = order.map((_, i) => start == null && i === 0 ? 'start' : (i + (start == null ? 1 : 0)) % 2 === 0 ? 'draw' : 'word');
   view = null;
-  S.game = { kind: 'chain', phase: 'chainPass', order, kinds, i: 0, steps: [], cur: [], start, prefill };
+  S.game = { kind: 'chain', phase: 'chainPass', order, kinds, max: S.chainStrokes || 0, i: 0, steps: [], cur: [], start, prefill };
   save(); render(); scrollTo(0, 0);
 }
 // Kind of step i: 'start' (write the starting word), 'draw' or 'word'.
@@ -1106,19 +1111,22 @@ function renderChainStep() {
     app.innerHTML = `
       <div class="drawbar">
         <div class="who">${dotOf(id)}<span>${nameOf(id)}</span></div>
-        <div class="meta">${t('chDraw')}${t('colon')}<b>${esc(chainWord(g))}</b></div>
+        <div class="meta">${t('chDraw')}${t('colon')}<b>${esc(chainWord(g))}</b>${g.max ? `<br><span id="left">${t('chLeft')(Math.min(g.cur.length + 1, g.max), g.max)}</span>` : ''}</div>
       </div>
-      <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.cur.length ? '' : `<div class="paperhint" id="phint">${t('chDrawHint')}</div>`}</div></div>
+      <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.cur.length ? '' : `<div class="paperhint" id="phint">${g.max ? t('chDrawHintN')(g.max) : t('chDrawHint')}</div>`}</div></div>
       <div class="row">
         <button class="btn" id="undo">↺ ${t('chUndo')}</button>
         <button class="btn primary" id="ok">${t('chOk')} →</button>
       </div>`;
     const undo = $('undo'), ok = $('ok');
-    const sync = () => { undo.disabled = ok.disabled = !g.cur.length; };
+    const sync = () => {
+      undo.disabled = ok.disabled = !g.cur.length;
+      if ($('left')) $('left').textContent = t('chLeft')(Math.min(g.cur.length + (g.cur.length < g.max ? 1 : 0), g.max), g.max);
+    };
     const api = mountCanvas($('cv'), {
       strokes: () => g.cur, colorOf: () => P(id)?.color,
       draw: {
-        can: () => true,
+        can: () => !g.max || g.cur.length < g.max,
         start: p => { $('phint')?.remove(); const s = { id, pts: [p] }; g.cur.push(s); return s; },
         cancel: () => { g.cur.pop(); },
         end: () => { save(); sync(); },
