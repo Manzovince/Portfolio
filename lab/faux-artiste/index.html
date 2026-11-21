@@ -94,6 +94,8 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:52px
 .game.off{opacity:.45;cursor:default}
 .game .go{flex:none;font-size:30px;color:var(--muted);line-height:1}
 .seg.big button{min-height:72px;font-size:26px}
+.titles{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.titles .chip{justify-content:center;text-align:center;white-space:normal}
 .inkbar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:0 0 8px;flex:none}
 .inkbar i{display:block;height:100%;width:100%;background:var(--accent);border-radius:99px;transition:width .08s linear}
 .inkbar.dry{animation:dry .4s ease-out}
@@ -268,7 +270,7 @@ dialog h2{margin:0 0 14px}
 <main id="app"></main>
 <dialog id="rules"><div class="in" id="rulesBody"></div></dialog>
 
-<script src="words.js?v=3"></script>
+<script src="words.js?v=4"></script>
 <script>
 const KEY = 'faux-artiste-v1';
 // Ordered so the first players get the most distinct hues; all readable on the cream paper.
@@ -289,6 +291,12 @@ const T = {
     howMany: 'Combien de joueurs ?', chooseGame: 'Choisis un jeu', settingsTitle: 'Réglages',
     pitchFake: 'Un imposteur se cache parmi les artistes.', pitchChain: 'Le mot passe de main en main, dessin après dessin.', pitchSame: 'Duel : avez-vous le même mot ?',
     pl36: '3 à 6 joueurs', pl2: '2 joueurs', pl46: '4 à 6 joueurs',
+    gameBluff: 'Le bluff des titres', pitchBluff: 'Inventez de faux titres pour le dessin et trouvez le vrai.',
+    blDrawGo: name => `Je suis ${name}, dessiner`, blDrawK: 'Dessinateur de la manche', blReroll: '🎲 Autre sujet', blDraw: 'Dessine', blDrawHint: 'Ne montre pas ton sujet ! Autant de traits que tu veux.',
+    blWriteK: 'Invente un faux titre', blWriteGo: name => `Je suis ${name}, écrire`, blWriteHint: 'Un titre crédible pour piéger les autres. Il restera secret jusqu\'au vote.', blWritePh: 'Ton faux titre', blTooClose: 'Tu as trouvé le vrai titre ! Écris plutôt un faux titre crédible.', blTaken: 'Ce titre est déjà proposé, invente autre chose.',
+    blVoteK: 'Vote pour le vrai titre', blVoteGo: name => `Je suis ${name}, voter`, blVoteHint: 'Lequel est le vrai sujet du dessin ?',
+    blReal: 'Le vrai titre', blRealTag: '✅ vrai titre', blBy: 'par', blPts: 'Vrai titre trouvé : +2 (et +1 au dessinateur) · Chaque joueur piégé : +1 pour l\'auteur',
+    blNobody: 'Personne n\'a trouvé !', blFound: n => n > 1 ? `${n} joueurs ont trouvé le vrai titre.` : '1 joueur a trouvé le vrai titre.',
     gameSab: 'Le saboteur', pitchSab: 'Un saboteur détourne le dessin vers son propre mot.', sabMin: 'Ce jeu se joue à partir de 4 joueurs.',
     sabStrokes: 'Traits par dessinateur',
     sabIntroK: 'Devineur de la manche', sabIntro: name => `<b>${name}</b> devine ce tour-ci : ne regarde ni les cartes ni le dessin avant qu'on te passe le téléphone !`, sabIntroGo: 'Compris, distribuer les cartes',
@@ -371,6 +379,7 @@ const T = {
       '<b>Points :</b> si les imposteurs gagnent, chacun d\'eux (et le maître du jeu) marque 2 points. Sinon, chaque artiste marque 1 point.',
       'Chaque dessin terminé est rangé dans la <b>galerie</b> 🖼️ (les 30 derniers).',
       '<b>Même mot ?</b> (duel à 2, dans les réglages) : chacun reçoit un mot secret, le même une fois sur deux, sinon un mot proche. On dessine chacun son tour sur la même feuille, puis chacun parie en secret : même mot ou pas. Bon pari : +1. Si les mots diffèrent, deviner le mot de l\'autre : +2.',
+      '<b>Le bluff des titres</b> (3 à 6 joueurs) : un joueur dessine un sujet loufoque (« une girafe qui fait du ski »). Chacun des autres invente en secret un faux titre, puis tout le monde vote pour celui qu\'il croit vrai. Vrai titre trouvé : +2 (et +1 au dessinateur). Chaque joueur piégé par ton faux titre : +1.',
       '<b>Le saboteur</b> (4 à 6 joueurs) : un joueur devine sans rien regarder. Les autres dessinent le mot trait par trait, à l\'encre noire… sauf le saboteur, qui a un mot proche et tente d\'orienter le dessin vers le sien. Le devineur propose un mot, puis tout le monde cherche le saboteur. Mot trouvé : devineur +2, artistes +1. Mot du saboteur : saboteur +3. Saboteur démasqué : artistes +1, sinon saboteur +2.',
       '<b>Un mot, un dessin</b> (autre jeu, dans les réglages) : un mot de départ, le joueur suivant le dessine, le suivant devine le mot d\'après le dessin, le suivant redessine ce mot… jusqu\'à ce que tout le monde soit passé. À la fin, on compare avec le mot de départ.',
     ],
@@ -387,6 +396,12 @@ const T = {
     howMany: 'How many players?', chooseGame: 'Pick a game', settingsTitle: 'Settings',
     pitchFake: 'An impostor hides among the artists.', pitchChain: 'The word goes round, drawing after drawing.', pitchSame: 'A duel: do you have the same word?',
     pl36: '3 to 6 players', pl2: '2 players', pl46: '4 to 6 players',
+    gameBluff: 'Title bluff', pitchBluff: 'Make up fake titles for the drawing, and spot the real one.',
+    blDrawGo: name => `I'm ${name}, draw`, blDrawK: 'This round\'s artist', blReroll: '🎲 Another subject', blDraw: 'Draw', blDrawHint: 'Don\'t show your subject! As many lines as you like.',
+    blWriteK: 'Make up a fake title', blWriteGo: name => `I'm ${name}, write`, blWriteHint: 'A believable title to fool the others. It stays secret until the vote.', blWritePh: 'Your fake title', blTooClose: 'You found the real title! Write a believable fake one instead.', blTaken: 'That title is already taken, make up something else.',
+    blVoteK: 'Vote for the real title', blVoteGo: name => `I'm ${name}, vote`, blVoteHint: 'Which one is the drawing\'s real subject?',
+    blReal: 'The real title', blRealTag: '✅ real title', blBy: 'by', blPts: 'Real title found: +2 (and +1 to the artist) · Each player fooled: +1 to the author',
+    blNobody: 'Nobody found it!', blFound: n => n > 1 ? `${n} players found the real title.` : '1 player found the real title.',
     gameSab: 'The saboteur', pitchSab: 'A saboteur steers the drawing toward their own word.', sabMin: 'This game needs at least 4 players.',
     sabStrokes: 'Lines per drawer',
     sabIntroK: 'This round\'s guesser', sabIntro: name => `<b>${name}</b> guesses this round: don't look at the cards or the drawing until the phone comes to you!`, sabIntroGo: 'Got it, deal the cards',
@@ -469,6 +484,7 @@ const T = {
       '<b>Points:</b> if the impostors win, each of them (and the question master) scores 2 points. Otherwise each artist scores 1 point.',
       'Every finished drawing goes to the <b>gallery</b> 🖼️ (the last 30).',
       '<b>Same word?</b> (a duel for 2, in the settings): each player gets a secret word, the same one half the time, otherwise a close one. Take turns drawing on the same sheet, then each bets in secret: same word or not. Right bet: +1. If the words differ, guessing the other word: +2.',
+      '<b>Title bluff</b> (3 to 6 players): one player draws a silly subject ("a giraffe skiing"). Each other player secretly makes up a fake title, then everyone votes for the one they think is real. Real title found: +2 (and +1 to the artist). Each player fooled by your fake title: +1.',
       '<b>The saboteur</b> (4 to 6 players): one player guesses without looking. The others draw the word line by line, in black ink… except the saboteur, who has a close word and tries to steer the drawing toward theirs. The guesser names a word, then everyone hunts for the saboteur. Word found: guesser +2, artists +1. Saboteur\'s word: saboteur +3. Saboteur caught: artists +1, otherwise saboteur +2.',
       '<b>One word, one drawing</b> (another game, in the settings): a starting word, the next player draws it, the next one guesses the word from the drawing, the next draws that word again… until everyone has played. At the end, compare with the starting word.',
     ],
@@ -495,6 +511,7 @@ if (S.game && S.game.phase === 'reveal') S.game.phase = 'pass'; // never reopen 
 if (S.game && S.game.fake && !S.game.roles) S.game.roles = { [S.game.fake]: 'fake' }; // single-fake save
 if (S.game && S.game.phase === 'ballot') S.game.phase = 'votePass'; // nor on someone's ballot
 if (S.game && S.game.phase === 'bet') S.game.phase = 'betPass';
+if (S.game) S.game.phase = ({ bluffDraw: 'bluffPass', bluffWrite: 'bluffWPass', bluffVote: 'bluffVPass' })[S.game.phase] || S.game.phase;
 if (S.game && S.game.phase === 'chainStep') S.game.phase = 'chainPass';
 if (S.game && S.game.kind === 'chain' && !S.game.kinds) S.game = null; // chain saved before per-step kinds
 // Per-skin wording on top of T (the role reveal stays identical in every skin).
@@ -584,14 +601,14 @@ function render() {
   applySkin();
   const g = S.game;
   const q = $('quitBtn');
-  q.hidden = !g || g.phase === 'result' || g.phase === 'chainEnd' || g.phase === 'sameEnd' || g.phase === 'sabEnd' || !!view;
+  q.hidden = !g || g.phase === 'result' || g.phase === 'chainEnd' || g.phase === 'sameEnd' || g.phase === 'sabEnd' || g.phase === 'bluffEnd' || !!view;
   q.textContent = '✕'; q.title = q.ariaLabel = t('quit');
   $('menuBtn').title = $('menuBtn').ariaLabel = t('menu');
   keepAwake();
-  document.body.classList.toggle('drawing', !view && !!g && (g.phase === 'draw' || (g.phase === 'chainStep' && chainKind(g) === 'draw')));
+  document.body.classList.toggle('drawing', !view && !!g && (g.phase === 'draw' || (g.phase === 'chainStep' && chainKind(g) === 'draw') || g.phase === 'bluffDraw'));
   if (view) return view.shot != null ? renderShot() : renderGallery();
   if (!g) return renderSetup();
-  ({ gm: renderGm, pass: renderPass, reveal: renderReveal, draw: renderDraw, vote: renderVote, votePass: renderVotePass, ballot: renderBallot, tally: renderTally, chainPass: renderChainPass, chainStep: renderChainStep, chainEnd: renderChainEnd, betPass: renderBetPass, bet: renderBet, sameEnd: renderSameEnd, sabIntro: renderSabIntro, sabPass: renderSabPass, sabGuess: renderSabGuess, sabVote: renderSabVote, sabEnd: renderSabEnd, guess: renderGuess, result: renderResult })[g.phase]();
+  ({ gm: renderGm, pass: renderPass, reveal: renderReveal, draw: renderDraw, vote: renderVote, votePass: renderVotePass, ballot: renderBallot, tally: renderTally, chainPass: renderChainPass, chainStep: renderChainStep, chainEnd: renderChainEnd, betPass: renderBetPass, bet: renderBet, sameEnd: renderSameEnd, sabIntro: renderSabIntro, sabPass: renderSabPass, sabGuess: renderSabGuess, sabVote: renderSabVote, sabEnd: renderSabEnd, bluffPass: renderBluffPass, bluffDraw: renderBluffDraw, bluffWPass: renderBluffWPass, bluffWrite: renderBluffWrite, bluffVPass: renderBluffVPass, bluffVote: renderBluffVote, bluffEnd: renderBluffEnd, guess: renderGuess, result: renderResult })[g.phase]();
 }
 
 // Keep the screen on while a round is being played (the phone sits on the table between turns).
@@ -627,6 +644,7 @@ function renderSetup() {
     ['chain', '🔁', 'gameChain', 'pitchChain', 'pl36', n >= 3],
     ['same', '🤝', 'gameSame', 'pitchSame', 'pl2', n === 2],
     ['sab', '🕵️', 'gameSab', 'pitchSab', 'pl46', n >= 4],
+    ['bluff', '🤥', 'gameBluff', 'pitchBluff', 'pl36', n >= 3],
   ];
   const si = STEPS.indexOf(step), cur = games.find(x => x[0] === (S.variant || 'fake'));
   const why = k => k === 'same' ? t('onlyN')(2) : t('needMore')(k === 'sab' ? 4 : 3);
@@ -659,7 +677,11 @@ function renderSetup() {
     </div>` : ''}
     ${step === 'settings' ? `<div class="card" style="border-top:0;padding-top:4px">
       <h3>${t('settingsTitle')}</h3>
-      ${S.variant === 'sab' ? `<div class="field" style="margin-top:0"><label>${t('sabStrokes')}</label>
+      ${S.variant === 'bluff' ? `<div class="field" style="margin-top:0"><label>${t('target')}</label>
+        <div class="seg" id="targetSeg">${[3, 5, 7, 10].map(n => `<button data-v="${n}" aria-pressed="${S.target === n}">${n}</button>`).join('')}</div></div>
+      ${inkF}
+      ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
+    </div>` : S.variant === 'sab' ? `<div class="field" style="margin-top:0"><label>${t('sabStrokes')}</label>
         <div class="seg" id="sabSeg">${[1, 2, 3].map(n => `<button data-v="${n}" aria-pressed="${(S.sabStrokes || 2) === n}">${n}</button>`).join('')}</div></div>
       <div class="field"><label for="catSel">${t('category')}</label>
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
@@ -809,6 +831,7 @@ function startGame() {
   if (S.variant === 'chain') return startChain();
   if (S.variant === 'same') return startSame();
   if (S.variant === 'sab') return startSab();
+  if (S.variant === 'bluff') return startBluff();
   const ids = S.players.map(p => p.id);
   const gm = S.mode === 'gm' ? ids[S.gmPtr++ % ids.length] : null;
   const drawers = ids.filter(id => id !== gm);
@@ -1566,6 +1589,166 @@ function renderSabEnd() {
   $('settings').onclick = () => { S.game = null; save(); goStep('settings'); };
 }
 
+// ---------- "Le bluff des titres" (Drawful-like): one player draws a silly subject, the others
+// each write a fake title in secret, then everyone else votes for the one they believe is real.
+const bluffPrompt = () => { const B = window.BLUFF; return pick(B.who)[L()] + ' ' + pick(B.what)[L()]; };
+function startBluff() {
+  const ids = S.players.map(p => p.id), drawer = ids[(S.bluffPtr = (S.bluffPtr || 0) + 1) % ids.length];
+  const prompt = bluffPrompt();
+  view = null;
+  S.game = { kind: 'bluff', ink: inkOf('bluff'), phase: 'bluffPass', drawer, others: ids.filter(id => id !== drawer),
+    drawers: [drawer], roles: {}, gm: null, custom: { word: prompt, cat: t('gameBluff') }, strokes: [], fakes: {}, votes: {}, i: 0,
+    titles: null, outcome: null, scored: false };
+  save(); render(); scrollTo(0, 0);
+}
+function passTo(id, k, go2, label, count) {
+  app.innerHTML = `<div class="pass center">
+    <p class="muted">${k}</p>
+    <div class="big-name">${dotOf(id)}${nameOf(id)}</div>
+    <p class="muted">${t('passHint')}</p>
+    ${count ? `<p class="muted" style="font-size:15px">${count}</p>` : ''}
+    <button class="btn primary" id="ok">${label}</button></div>`;
+  $('ok').onclick = () => go(go2);
+}
+function renderBluffPass() { const g = S.game; passTo(g.drawer, t('blDrawK'), 'bluffDraw', t('blDrawGo')(nameOf(g.drawer))); }
+function renderBluffWPass() {
+  const g = S.game, id = g.others[g.i];
+  passTo(id, t('blWriteK'), 'bluffWrite', t('blWriteGo')(nameOf(id)), `${g.i + 1} / ${g.others.length}`);
+}
+function renderBluffVPass() {
+  const g = S.game, id = g.others[g.i];
+  passTo(id, t('blVoteK'), 'bluffVote', t('blVoteGo')(nameOf(id)), `${g.i + 1} / ${g.others.length}`);
+}
+
+function renderBluffDraw() {
+  const g = S.game, id = g.drawer;
+  app.innerHTML = `
+    <div class="drawbar">
+      <div class="who">${dotOf(id)}<span>${nameOf(id)}</span></div>
+      <div class="meta">${t('blDraw')}${t('colon')}<b>${esc(g.custom.word)}</b>${g.strokes.length ? '' : `<br><button class="link" id="reroll" style="margin:2px 0 0 auto">${t('blReroll')}</button>`}</div>
+    </div>
+    ${inkBar(g)}
+    <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.strokes.length ? '' : `<div class="paperhint" id="phint">${t('blDrawHint')}</div>`}</div></div>
+    <div class="row">
+      <button class="btn" id="undo">↺ ${t('chUndo')}</button>
+      <button class="btn primary" id="ok">${t('chOk')} →</button>
+    </div>`;
+  const undo = $('undo'), ok = $('ok');
+  const sync = () => { undo.disabled = ok.disabled = !g.strokes.length; };
+  const api = mountCanvas($('cv'), {
+    strokes: () => g.strokes, colorOf: () => P(id)?.color,
+    draw: {
+      can: () => true, ink: () => g.ink, onInk: inkShow,
+      start: p => { $('phint')?.remove(); $('reroll')?.remove(); const s = { id, pts: [p] }; g.strokes.push(s); return s; },
+      cancel: () => { g.strokes.pop(); },
+      end: () => { save(); sync(); },
+    },
+  });
+  sync();
+  $('reroll')?.addEventListener('click', () => { g.custom.word = bluffPrompt(); save(); renderBluffDraw(); });
+  undo.onclick = () => { g.strokes.pop(); save(); sync(); api.draw(); inkShow(1); };
+  ok.onclick = () => { if (!g.strokes.length) return; g.i = 0; buzz(15); go('bluffWPass'); };
+}
+
+function renderBluffWrite() {
+  const g = S.game, me = g.others[g.i];
+  app.innerHTML = `
+    <div class="center" style="font-size:20px">${dotOf(me)}<b>${nameOf(me)}</b></div>
+    <h2 class="center">${t('blWriteK')}</h2>
+    <p class="center muted">${t('blWriteHint')}</p>
+    <div class="paper view"><canvas id="cv"></canvas></div>
+    <input type="text" id="wi" placeholder="${t('blWritePh')}" autocomplete="off" maxlength="60" enterkeyhint="done">
+    <p class="hint" id="warn" hidden></p>
+    <div class="sticky"><button class="btn primary" id="ok" disabled>${t('chOk')} →</button></div>`;
+  mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color });
+  const wi = $('wi'), ok = $('ok'), warn = $('warn');
+  wi.oninput = () => { ok.disabled = !wi.value.trim(); warn.hidden = true; };
+  wi.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); if (wi.value.trim()) ok.click(); } };
+  ok.onclick = () => {
+    const v = wi.value.trim(); if (!v) return;
+    const clash = msg => { warn.textContent = msg; warn.hidden = false; buzz(30); wi.select(); };
+    if (looksRight(v, g.custom.word) || norm(v) === norm(g.custom.word)) return clash(t('blTooClose'));
+    if (Object.values(g.fakes).some(f => norm(f) === norm(v))) return clash(t('blTaken'));
+    g.fakes[me] = v; g.i++; buzz(15);
+    if (g.i < g.others.length) return go('bluffWPass');
+    // Shuffle the real title among the fakes once, so every voter sees the same order.
+    g.titles = [{ text: g.custom.word, by: null }, ...g.others.map(id => ({ text: g.fakes[id], by: id }))].sort(() => Math.random() - .5);
+    g.i = 0; go('bluffVPass');
+  };
+}
+
+function renderBluffVote() {
+  const g = S.game, me = g.others[g.i];
+  app.innerHTML = `
+    <div class="center" style="font-size:20px">${dotOf(me)}<b>${nameOf(me)}</b></div>
+    <h2 class="center">${t('blVoteK')}</h2>
+    <p class="center muted">${t('blVoteHint')}</p>
+    <div class="paper view small"><canvas id="cv"></canvas></div>
+    <div class="titles">${g.titles.map((x, i) => x.by === me ? '' : `<button class="chip" data-i="${i}" aria-pressed="false">${esc(x.text)}</button>`).join('')}</div>
+    <div class="sticky"><button class="btn accent" id="ok" disabled>${t('chOk')} →</button></div>`;
+  mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color });
+  let sel = null;
+  const ok = $('ok');
+  app.querySelectorAll('.titles .chip').forEach(b => b.onclick = () => {
+    sel = +b.dataset.i;
+    app.querySelectorAll('.titles .chip').forEach(x => x.setAttribute('aria-pressed', x === b));
+    ok.disabled = false;
+  });
+  ok.onclick = () => {
+    if (sel == null) return;
+    g.votes[me] = sel; g.i++; buzz(15);
+    go(g.i < g.others.length ? 'bluffVPass' : 'bluffEnd');
+  };
+}
+
+function renderBluffEnd() {
+  const g = S.game, realI = g.titles.findIndex(x => x.by === null);
+  const votersOf = i => g.others.filter(id => g.votes[id] === i);
+  if (!g.scored) {
+    const gains = {}, add = (id, n) => gains[id] = (gains[id] || 0) + n;
+    g.others.forEach(id => {
+      const v = g.votes[id];
+      if (v === realI) { add(id, 2); add(g.drawer, 1); }
+      else if (g.titles[v]?.by) add(g.titles[v].by, 1);
+    });
+    g.gains = gains;
+    for (const id in gains) P(id).score += gains[id];
+    g.outcome = { fakeWins: false };
+    g.archived = archive(g);
+    g.scored = true; save();
+  }
+  const found = votersOf(realI).length;
+  const rows = g.titles.map((x, i) => ({ ...x, i, voters: votersOf(i) }))
+    .sort((a, b) => (a.by === null ? -1 : b.by === null ? 1 : b.voters.length - a.voters.length));
+  const ranked = [...S.players].sort((a, b) => b.score - a.score);
+  const champ = ranked[0].score >= S.target && (ranked.length < 2 || ranked[1].score < ranked[0].score) ? ranked[0] : null;
+  app.innerHTML = `
+    <div class="verdict ${found ? 'art' : 'fake'}"><h2>${found ? t('blFound')(found) : t('blNobody')}</h2></div>
+    <p class="center" style="margin:6px 0 12px">${t('blReal')}<br><span class="word">${esc(g.custom.word)}</span></p>
+    <div class="card"><ul class="scores">${rows.map(r => `<li style="flex-wrap:wrap">
+      <span class="n" style="white-space:normal">${r.by === null ? '<b>' + esc(r.text) + '</b>' : '« ' + esc(r.text) + ' »'}</span>
+      <span>${r.voters.map(id => dotOf(id)).join('')}</span>
+      <div style="flex-basis:100%;font-size:15px;color:var(--muted)">${r.by === null ? `${t('blRealTag')} · ${dotOf(g.drawer)}${nameOf(g.drawer)}` : `${t('blBy')} ${dotOf(r.by)}${nameOf(r.by)}`}</div></li>`).join('')}</ul></div>
+    ${champ ? `<div class="trophy">${t('champion')(esc(pname(champ)))}</div>` : ''}
+    <div class="card">
+      <div class="paper view"><canvas id="cv"></canvas></div>
+      ${g.archived ? `<p class="note">${t('saved')}</p>` : ''}
+      <div class="row"><button class="btn" id="replay">▶ ${t('replay')}</button><button class="btn" id="dl">⬇ ${t('save')}</button></div>
+    </div>
+    <div class="card"><h3>${t('scores')}</h3><ul class="scores">${ranked.map(p => `<li>${dotOf(p.id)}<span class="n">${esc(pname(p))}</span>
+      <span class="gain">${g.gains[p.id] ? '+' + g.gains[p.id] : ''}</span><span class="pts">${p.score}</span></li>`).join('')}</ul>
+      <p class="muted center" style="font-size:14px;margin:8px 0 0">${t('blPts')}</p></div>
+    ${champ ? `<button class="btn primary" id="newGame">${t('newGame')}</button>` : `<button class="btn primary" id="next">${t('next')} →</button>`}
+    <button class="btn" id="settings">${t('settings')}</button>`;
+  const colorOf = s => P(s.id)?.color;
+  const api = mountCanvas($('cv'), { strokes: () => g.strokes, colorOf });
+  $('replay').onclick = replayer(api, g.strokes);
+  $('dl').onclick = () => downloadPng(g.strokes, colorOf, g.custom.word);
+  $('next')?.addEventListener('click', startBluff);
+  $('newGame')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); startBluff(); });
+  $('settings').onclick = () => { S.game = null; save(); goStep('settings'); };
+}
+
 // ---------- fake artist's last guess ----------
 const norm = s => s.toLowerCase().replace(/œ/g, 'oe').replace(/æ/g, 'ae').normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/[^a-z0-9]+/g, ' ').replace(/\b(le|la|les|l|un|une|des|du|de|d|the|a|an)\b/g, ' ').replace(/\s+/g, '').trim();
@@ -1719,7 +1902,7 @@ function renderResult() {
 // ---------- chrome ----------
 // Settings menu: gallery, rules and language (gallery and language only between rounds, as before).
 function openMenu() {
-  const g = S.game, between = !g || !!view || g.phase === 'result' || g.phase === 'sameEnd' || g.phase === 'chainEnd' || g.phase === 'sabEnd';
+  const g = S.game, between = !g || !!view || g.phase === 'result' || g.phase === 'sameEnd' || g.phase === 'chainEnd' || g.phase === 'sabEnd' || g.phase === 'bluffEnd';
   modal(`<h2>${t('menu')}</h2>
     <div class="menu">
       ${between ? `<button class="btn" id="mGal">🖼️ ${t('gallery')}</button>` : ''}

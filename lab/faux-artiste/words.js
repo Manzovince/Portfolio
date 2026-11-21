@@ -99,3 +99,24 @@ window.PAIRS = [
   [['Cylindres','Cylinders'], ['tambour','drum'], ['gâteau','cake']], [['Dômes','Domes'], ['igloo','igloo'], ['tortue','turtle']],
   [['Arches','Arches'], ['arc-en-ciel','rainbow'], ['pont','bridge']],
 ];
+
+// "Le bluff des titres": the drawer gets one subject + one situation, as [fr, en] pairs.
+// Situations are worded so they never need to agree with the subject's gender.
+window.BLUFF = {
+  who: [
+    ['un chat','a cat'],['une girafe','a giraffe'],['un grille-pain','a toaster'],['un dinosaure','a dinosaur'],['une pieuvre','an octopus'],
+    ['un robot','a robot'],['une grand-mère','a grandma'],['un fantôme','a ghost'],['un pingouin','a penguin'],['une banane','a banana'],
+    ['un cactus','a cactus'],['un chevalier','a knight'],['une vache','a cow'],['un escargot','a snail'],['un pirate','a pirate'],
+    ['une licorne','a unicorn'],['un hamster','a hamster'],['un astronaute','an astronaut'],['une sorcière','a witch'],['un requin','a shark'],
+    ['un bonhomme de neige','a snowman'],['un éléphant','an elephant'],['une tortue','a turtle'],['un vampire','a vampire'],['un pompier','a firefighter'],
+    ['une poule','a hen'],['un ours','a bear'],['un extraterrestre','an alien'],['un crocodile','a crocodile'],['une baleine','a whale'],
+  ],
+  what: [
+    ['qui fait du ski','skiing'],['en vacances','on vacation'],['sur la Lune','on the Moon'],['qui a peur du noir','afraid of the dark'],['au restaurant','at a restaurant'],
+    ['en colère','who is angry'],['qui fait la vaisselle','doing the dishes'],['à la plage','at the beach'],['qui joue de la guitare','playing the guitar'],['dans une baignoire','in a bathtub'],
+    ['qui fait du vélo','riding a bike'],['sous la pluie','in the rain'],['à un mariage','at a wedding'],['qui passe l\'aspirateur','vacuuming'],['chez le dentiste','at the dentist'],
+    ['qui fait du yoga','doing yoga'],['en prison','in jail'],['qui mange des spaghettis','eating spaghetti'],['au cinéma','at the cinema'],['qui fait un selfie','taking a selfie'],
+    ['en pyjama','in pajamas'],['qui danse','dancing'],['sur un skateboard','on a skateboard'],['qui pêche','fishing'],['dans un ascenseur','in an elevator'],
+    ['qui fait un gâteau','baking a cake'],['qui a le hoquet','with the hiccups'],['au sommet d\'une montagne','on a mountaintop'],['qui promène son chien','walking the dog'],['qui fait du karaoké','doing karaoke'],
+  ],
+};
