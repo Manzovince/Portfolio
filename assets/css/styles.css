@@ -635,17 +635,45 @@ header {
     /* border: solid 1px red; */
 }
 
+/* Reveal: a soft edge runs down the text, top to bottom, as if it were
+   being read, while the text comes into focus and settles a few pixels up */
 .methodology-text {
-    transform: translateX(-200px);
-    opacity: 0;
     max-width: 52ch;
-    transition: all cubic-bezier(0.85, 0, 0.15, 1) 2s;
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(16px);
+    -webkit-mask-image: linear-gradient(180deg, #000 40%, transparent 60%);
+    mask-image: linear-gradient(180deg, #000 40%, transparent 60%);
+    -webkit-mask-size: 100% 300%;
+    mask-size: 100% 300%;
+    -webkit-mask-position: 0 100%;
+    mask-position: 0 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    transition:
+        opacity .6s ease,
+        filter 1.4s ease,
+        transform 1.4s cubic-bezier(0.2, 0.7, 0.2, 1),
+        -webkit-mask-position 1.8s cubic-bezier(0.4, 0, 0.2, 1),
+        mask-position 1.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #methodology.revealed .methodology-text {
-    transform: translateX(0);
     opacity: 1;
-    transition: all cubic-bezier(0.85, 0, 0.15, 1) 2s;
+    filter: none;
+    transform: none;
+    -webkit-mask-position: 0 0;
+    mask-position: 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .methodology-text {
+        filter: none;
+        transform: none;
+        -webkit-mask-image: none;
+        mask-image: none;
+        transition: opacity .3s ease;
+    }
 }
 
 /* "Démêler": a tangled line pulls tight into four simple steps as the
@@ -721,17 +749,15 @@ header {
 }
 
 /* Professional projects: a bento of four, wide and narrow tiles alternating */
-/* Professional projects: an editorial list, one row per project — number,
-   title and tags, then the cover. Hovering a row dims the others; the cover
+/* Professional projects: an editorial list, one row per project — title and
+   tags, then the cover. Hovering a row dims the others; the cover
    still turns from wireframe into the shipped screen. */
 .work-list {
-    counter-reset: work;
     border-bottom: 1px solid rgba(var(--rgb-text), .15);
 }
 
 .work-list .project-tile {
-    counter-increment: work;
-    grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1.15fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
     grid-template-rows: auto;
     align-items: start;
     gap: 24px 48px;
@@ -740,23 +766,8 @@ header {
     transition: opacity .4s ease;
 }
 
-.work-list .project-tile::before {
-    content: counter(work, decimal-leading-zero);
-    grid-column: 1;
-    grid-row: 1;
-    padding-top: .6em;
-    font-family: "IBM Plex Serif", serif;
-    font-size: .9rem;
-    font-weight: 400;
-    color: var(--color-primary);
-}
-
-:root[data-theme="light"] .work-list .project-tile::before {
-    color: var(--color-secondary);
-}
-
 .work-list .project-details {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 1;
     gap: 12px;
     transition: transform .4s ease;
@@ -774,7 +785,7 @@ header {
 }
 
 .work-list .project-cover {
-    grid-column: 3;
+    grid-column: 2;
     grid-row: 1;
     height: clamp(220px, 24vw, 340px);
 }
@@ -898,7 +909,9 @@ header {
 }
 
 #land-and-sea .project-cover.project-cover--single img,
-#lagon .project-cover.project-cover--single img {
+#lagon .project-cover.project-cover--single img,
+/* experiments page: every picture fills its tile */
+.visual-grid .project-tile .project-cover.project-cover--single img {
     width: 100%;
     height: 100%;
     max-width: none;
@@ -978,6 +991,8 @@ header {
     gap: 24px;
 }
 
+
+/* seven tiles: the first and last run two columns wide (3 rows of 3) */
 .visual-grid .project-tile:first-child,
 .visual-grid .project-tile:last-child {
     grid-column: span 2;
@@ -1143,6 +1158,10 @@ header {
     background: linear-gradient(135deg, #0a5f9e 0%, #2a95cf 100%);
 }
 
+#vivant .project-cover {
+    background: linear-gradient(135deg, #0e2f33 0%, #1c4c4c 100%);
+}
+
 #life-calendar .project-cover {
     background: linear-gradient(135deg, #082f42 0%, #164c66 100%);
 }
@@ -1157,9 +1176,9 @@ header {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    /* the list stacks: number and text on one row, the cover underneath */
+    /* the list stacks: the text, then the cover underneath */
     .work-list .project-tile {
-        grid-template-columns: 32px minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr);
         gap: 24px 12px;
         padding: 32px 0;
     }
@@ -1505,6 +1524,23 @@ footer {
     width: 100%;
     max-width: 900px;
 }
+/* An image with a caption on a project page */
+#project-page .project-figure {
+    width: 100%;
+    max-width: 900px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#project-page .project-figure figcaption {
+    font-family: "IBM Plex Serif", serif;
+    font-size: .85rem;
+    font-weight: 300;
+    opacity: .6;
+}
+
 /* <picture> only swaps sources (e.g. a zoomed mobile showcase); lay out the img as if it stood alone */
 #project-page picture {
     display: contents;

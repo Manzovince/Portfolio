@@ -6,7 +6,7 @@ const translations = {
     navPersonal: "Experiments",
     navAbout: "About me",
     introText: "I'm Vincent, a <span>product designer</span> with a background in cognitive and computer sciences, driven by a research-backed methodology.",
-    methodologyText: "After earning a master's in psychology, I became fascinated by how cognitive sciences can shape technology. <br><br> My scientific mindset lets me test hypotheses rigorously, while my technical knowledge helps me communicate effectively with engineering teams. <br><br> I'm a visual thinker - I tend to approach problems by visualizing ideas through sketches and diagrams, and breaking down complex issues into simple, understandable steps.",
+    methodologyText: "After earning a master's in psychology, I became interested in how cognitive sciences can shape technology. <br><br> My scientific approach lets me test hypotheses rigorously, while my technical knowledge helps me communicate effectively with engineering teams. <br><br> I approach problems by visualizing ideas through sketches and diagrams, and breaking down complex issues into simple, understandable steps.",
     proProjectText: "Discover my vision of design through some of my professional and personal projects.",
     tagPhoto: "Photography",
     tagDesign: "Design",
@@ -38,7 +38,7 @@ const translations = {
     popin3: "When we had all we need : personas, user flows, Q/A content, and a new face for Pop-in, we needed to structure a discussion to make users understand who Pop-in is, what she does and how to talk to her. I tested multiple platforms before finding the write one. It was a way for me to learn how chatbots works, and to quickly get parents interested. Our final solution was to use DialogFlow for a good Natural Language Understanding, and ManyChat, a chatbot development plateform for Facebook Messenger. <br><br> We also needed a website to showcase our goals and values. After making the sitemap, I designed a few prototypes of the website in Adobe XD, to show to parents and coachs how a platform enables them to start a coaching, and launched it using Wix.",
     popin4: "Our chatbot can answer more than 100 questions about sleep and baby health, but is this enough ? Parents can have access to information quickly, and some of our elaborate answers provide an great source of help. But are we missing something ? <br><br> Science facts and tips are great, but to really help parents, they need more than a chatbot. And because every child is different, it was impossible for us to give super personalized answers with Pop-in. And who is the best placed to understand and resolve child's sleep problems ? Specialists ! Around the world, their are a lot a sleep coachs, but in France, it's not well known. And we had to change this. That's why we decided to bring professionals of babies sleep to help parents in their journey.",
     aboutTitle: "About me",
-    aboutText: "I am a lifelong learner who values design that positively impacts society. <br><br> That's why in my free time, I enjoy experimenting with ideas that blend my skills in photography, music, science or education, continually pushing my creative boundaries. <br><br> The rest of the time, I love pretending to be a bird with my drone, or a fish with my mask and snorkel!",
+    aboutText: "I am a lifelong learner, and I enjoy experimenting with ideas that blend my skills in photography, music, science or education, continually pushing my creative boundaries. <br><br> The rest of the time, I love pretending to be a bird with my drone, or a fish with my mask and snorkel!",
     experienceTitle: "Experience",
     yearNow: "Now",
     expScalianText: "UX designer consultant at Scalian, on assignment for the French Ministry of the Armed Forces, working specifically on operational IT systems.",
@@ -62,6 +62,7 @@ const translations = {
     webPianoOpen: "Play Octave",
     webPianoStory: "It started with a simple idea: what if the piano keys I play could light up a strip of LEDs in real time? At the time, I had never touched an Arduino and barely knew what MIDI looked like under the hood. The first version was a single octave and a sine wave drawn on the screen. <br><br> It became a web piano that named chords, wrote them on a staff and drove an LED strip through an ESP32. Meanwhile I built Phase, an FM synthesizer for my two ROLI LUMI keyboards. Octave is both, rebuilt from scratch around one question: what should the screen show when your hands are on the keys?",
     webPianoPrototypeAlt: "First prototype: a sine wave drawn above a one-octave keyboard",
+    webPianoPrototypeCaption: "Octave v0.1: a sine wave over a one-octave keyboard.",
     webPianoPlayTitle: "Play",
     webPianoPlay: "Notes rise from the keys as you play them, over a faint oscilloscope of the sound. Above, the chord is named the way a musician would spell it, with its inversion: E♭ in C minor, D♯ in B major. <br><br> The keyboard can be split in two, one sound per hand or per LUMI block, each with its own colour. An arpeggiator and a sixteen-step pattern sit one tap away, and a second view writes what you play on a grand staff, ready to download as an image or a MIDI file.",
     webPianoAppAlt: "Octave's Play screen: a G major seventh chord named above rising notes, with a grand piano on the left half of the keyboard and an FM electric piano on the right",
@@ -99,13 +100,14 @@ const translations = {
     topographyStyle: "Seven palettes, from paper to neon, a layered or gradient fill with hillshading, a pixelated render, and a randomise button for happy accidents. Every map can be saved as a PNG, a vector SVG, a WebM video of the animation, or even as ASCII text.",
     topographyLooksAlt: "Four maps made with Topography: a paper island, green terraced hills, purple neon lines and a blueprint",
     lifeCalendarDesc: "Tiny squares, entire journey",
+    vivantDesc: "A pixel lost in the Game of Life",
     workTitle: "From paper to screen",
     themeToDark: "Switch to dark mode",
     themeToLight: "Switch to light mode",
     backToWork: "Back to work",
     backToPortfolio: "Back to the portfolio",
     backToExperiments: "Back to experiments",
-    workLead: "Discover my vision of design through my professional projects.",
+    workLead: "Discover my vision of design through my professional and personal projects.",
     personalTitle: "Pixels, zeros and ones",
     personalLead: "What I build on my own time: music, games, water and maps.",
     personalTeaser: "Beyond these projects, I keep another playground: ideas built for the fun of it, with no brief and no deadline. <a href=\"./experiments.html\" class=\"link\">See the experiments&nbsp;→</a>",
@@ -144,7 +146,7 @@ const translations = {
     navPersonal: "Expérimentations",
     navAbout: "A propos de moi",
     introText: "Moi, c'est Vincent, un <span>product designer</span> avec une formation en sciences cognitives et en informatique, guidé par une méthodologie basée sur la recherche.",
-    methodologyText: "Après un master en psychologie, je me suis passionné par la manière dont les sciences cognitives peuvent façonner les nouvelles technologie. <br><br> Mon esprit scientifique me permet de tester rigoureusement des hypothèses, et mes connaissances techniques m'aident à communiquer efficacement avec les ingénieurs. <br><br> J'ai tendance à aborder les problèmes en visualisant des idées à travers des croquis et des diagrammes, et en décomposant les problèmes complexes en étapes simples et compréhensibles.",
+    methodologyText: "Après un master en psychologie, je me suis intéressé à la manière dont les sciences cognitives peuvent façonner les nouvelles technologies. <br><br> Mon approche scientifique me permet de tester rigoureusement des hypothèses, et mes connaissances techniques m'aident à communiquer efficacement avec les ingénieurs. <br><br> J'aborde les problèmes en visualisant des idées à travers des croquis et des diagrammes, et en décomposant les problèmes complexes en étapes simples et compréhensibles.",
     proProjectText: "Découvrez ma vision du design à travers mes projets professionels et personnels.",
     tagPhoto: "Photographie",
     tagDesign: "Design",
@@ -176,7 +178,7 @@ const translations = {
     popin3: "Lorsque nous avions tout ce dont nous avions besoin : personas, user flows, contenu Q/A, et un nouveau visage pour Pop-in, nous devions structurer une discussion pour faire comprendre aux utilisateurs qui est Pop-in, ce qu'elle fait et comment lui parler. J'ai testé plusieurs plateformes avant de trouver la bonne. C'était un moyen pour moi d'apprendre comment fonctionnent les chatbots, et de rapidement intéresser les parents. Notre solution finale a été d'utiliser DialogFlow pour une bonne compréhension du langage naturel, et ManyChat, une plateforme de développement de chatbot pour Facebook Messenger. <br><br> Nous avions également besoin d'un site web pour présenter nos objectifs et nos valeurs. Après la construction d'une sitemap, j'ai conçu quelques prototypes du site web dans Adobe XD, pour montrer aux parents et aux coachs comment une plateforme leur permet de commencer un coaching, et l'ai lancé en utilisant Wix.",
     popin4: "Notre chatbot peut répondre à plus de 100 questions sur le sommeil et la santé des bébés, mais est-ce suffisant ? Les parents peuvent accéder rapidement à des informations, et certaines de nos réponses élaborées fournissent une grande source d'aide. Mais manquons-nous quelque chose ? Les faits scientifiques et les conseils sont excellents, mais pour vraiment aider les parents, ils ont besoin de plus qu'un chatbot. Et parce que chaque enfant est différent, il nous était impossible de donner des réponses super personnalisées avec Pop-in. Et qui est le mieux placé pour comprendre et résoudre les problèmes de sommeil des enfants ? Les spécialistes ! Dans le monde entier, il y a beaucoup de coachs du sommeil, mais en France, ce n'est pas bien connu. Et nous devions changer cela. C'est pourquoi nous avons décidé de faire venir des professionnels du sommeil des bébés pour aider les parents dans leur parcours.",
     aboutTitle: "A propos de moi",
-    aboutText: "Je suis un éternel curieux qui accorde une grande importance au design ayant un impact positif sur la société. <br><br> C'est pourquoi pendant mon temps libre, j'aime expérimenter avec des idées qui mélangent mes compétences en photographie, sciences et éducation, repoussant continuellement mes limites créatives. <br><br> Le reste du temps, j'aime me prendre pour un oiseau avec mon drone, ou pour un poisson avec mon masque et mon tuba !",
+    aboutText: "Je suis un éternel curieux, et j'aime expérimenter avec des idées qui mélangent mes compétences en photographie, sciences et éducation, repoussant continuellement mes limites créatives. <br><br> Le reste du temps, j'aime me prendre pour un oiseau avec mon drone, ou pour un poisson avec mon masque et mon tuba !",
     experienceTitle: "Expérience",
     yearNow: "Auj.",
     expScalianText: "Consultant UX designer chez Scalian, en mission pour le ministère des Armées, spécifiquement sur les systèmes informatiques opérationnels.",
@@ -199,6 +201,7 @@ const translations = {
     webPianoOpen: "Jouer avec Octave",
     webPianoStory: "Tout est parti d'une idée simple : et si les touches du piano que je joue pouvaient allumer un ruban de LED en temps réel ? À l'époque, je n'avais jamais touché à un Arduino et je savais à peine à quoi ressemblait le MIDI sous le capot. La première version tenait sur une octave, avec une onde sinusoïdale dessinée à l'écran. <br><br> C'est devenu un piano web qui nommait les accords, les écrivait sur une portée et pilotait un ruban LED via un ESP32. En parallèle, j'ai construit Phase, un synthé FM pour mes deux claviers ROLI LUMI. Octave réunit les deux, refait de zéro autour d'une question : que doit montrer l'écran quand on a les mains sur le clavier ?",
     webPianoPrototypeAlt: "Premier prototype : une onde sinusoïdale dessinée au-dessus d'un clavier d'une octave",
+    webPianoPrototypeCaption: "La v0.1 d'Octave : une onde sinusoïdale au-dessus d'un clavier d'une octave.",
     webPianoPlayTitle: "Jouer",
     webPianoPlay: "Les notes montent des touches à mesure qu'on les joue, sur un léger oscilloscope du son. Au-dessus, l'accord est nommé comme l'écrirait un musicien, renversement compris : Mi♭ en Do mineur, Ré♯ en Si majeur. <br><br> Le clavier se coupe en deux, un son par main ou par bloc LUMI, chacun dans sa couleur. Un arpégiateur et un motif de seize pas sont à un geste, et une seconde vue écrit ce que l'on joue sur une double portée, à télécharger en image ou en fichier MIDI.",
     webPianoAppAlt: "L'écran Jouer d'Octave : un accord de Sol majeur septième nommé au-dessus des notes qui montent, un piano à queue sur la moitié gauche du clavier et un piano électrique FM sur la droite",
@@ -236,13 +239,14 @@ const translations = {
     topographyStyle: "Sept palettes, du papier au néon, un remplissage étagé ou en dégradé avec ombrage du relief, un rendu pixélisé, et un bouton aléatoire pour les heureux accidents. Chaque carte s'enregistre en PNG, en SVG vectoriel, en vidéo WebM de l'animation, ou même en texte ASCII.",
     topographyLooksAlt: "Quatre cartes faites avec Topography : une île sur papier, des collines vertes en terrasses, des lignes néon violettes et un plan bleu",
     lifeCalendarDesc: "De petits carrés, toute une vie",
+    vivantDesc: "Un pixel perdu dans le Jeu de la vie",
     workTitle: "Du papier à l’écran",
     themeToDark: "Passer en mode sombre",
     themeToLight: "Passer en mode clair",
     backToWork: "Retour aux projets",
     backToPortfolio: "Retour au portfolio",
     backToExperiments: "Retour aux expérimentations",
-    workLead: "Découvrez ma vision du design à travers mes projets professionnels.",
+    workLead: "Découvrez ma vision du design à travers mes projets professionnels et personnels.",
     personalTitle: "Des pixels, des 0 et des 1",
     personalLead: "Ce que je construis sur mon temps libre : musique, jeux, eau et cartes.",
     personalTeaser: "En dehors de ces projets, je garde un autre terrain de jeu : des idées construites pour le plaisir, sans brief ni deadline. <a href=\"./experiments.html\" class=\"link\">Voir les expérimentations&nbsp;→</a>",
@@ -352,7 +356,7 @@ class NavComponent extends HTMLElement {
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('/assets/css/styles.css?v=20261124c');
+        @import url('/assets/css/styles.css?v=20261124i');
       </style>
       <nav id="nav">
         <div class="page-path">
@@ -536,7 +540,7 @@ class FooterComponent extends HTMLElement {
     // HTML content for the footer
     this.shadowRoot.innerHTML = `     
       <style>
-        @import url('/assets/css/styles.css?v=20261124c');
+        @import url('/assets/css/styles.css?v=20261124i');
       </style>
       <footer>
         <div class="footer-item">
