@@ -5,7 +5,7 @@ const translations = {
     navProjects: "Work",
     navPersonal: "Experiments",
     navAbout: "About me",
-    introText: "I'm Vincent, a product designer with a background in <span>cognitive</span> and <span>computer sciences</span>, driven by a research-backed methodology.",
+    introText: "I'm Vincent, a <span>product designer</span> with a background in cognitive and computer sciences, driven by a research-backed methodology.",
     methodologyText: "After earning a master's in psychology, I became fascinated by how cognitive sciences can shape technology. <br><br> My scientific mindset lets me test hypotheses rigorously, while my technical knowledge helps me communicate effectively with engineering teams. <br><br> I'm a visual thinker - I tend to approach problems by visualizing ideas through sketches and diagrams, and breaking down complex issues into simple, understandable steps.",
     proProjectText: "Discover my vision of design through some of my professional and personal projects.",
     tagPhoto: "Photography",
@@ -103,6 +103,7 @@ const translations = {
     themeToDark: "Switch to dark mode",
     themeToLight: "Switch to light mode",
     backToWork: "Back to work",
+    backToPortfolio: "Back to the portfolio",
     backToExperiments: "Back to experiments",
     workLead: "Discover my vision of design through my professional projects.",
     personalTitle: "Pixels, zeros and ones",
@@ -239,6 +240,7 @@ const translations = {
     themeToDark: "Passer en mode sombre",
     themeToLight: "Passer en mode clair",
     backToWork: "Retour aux projets",
+    backToPortfolio: "Retour au portfolio",
     backToExperiments: "Retour aux expérimentations",
     workLead: "Découvrez ma vision du design à travers mes projets professionnels.",
     personalTitle: "Des pixels, des 0 et des 1",
@@ -350,7 +352,7 @@ class NavComponent extends HTMLElement {
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('/assets/css/styles.css?v=20261123u');
+        @import url('/assets/css/styles.css?v=20261124b');
       </style>
       <nav id="nav">
         <div class="page-path">
@@ -379,14 +381,8 @@ class NavComponent extends HTMLElement {
               </a>
             </li>
             <li style="--i: 1">
-              <a href="./experiments.html" data-section="personal">
-                <span class="nav-num" aria-hidden="true">02</span>
-                <span data-i18n="navPersonal"></span>
-              </a>
-            </li>
-            <li style="--i: 2">
               <a href="./index.html#about" data-section="about">
-                <span class="nav-num" aria-hidden="true">03</span>
+                <span class="nav-num" aria-hidden="true">02</span>
                 <span data-i18n="navAbout"></span>
               </a>
             </li>
@@ -540,7 +536,7 @@ class FooterComponent extends HTMLElement {
     // HTML content for the footer
     this.shadowRoot.innerHTML = `     
       <style>
-        @import url('/assets/css/styles.css?v=20261123u');
+        @import url('/assets/css/styles.css?v=20261124b');
       </style>
       <footer>
         <div class="footer-item">

@@ -25,7 +25,7 @@
     <link rel="canonical" href="https://manzovince.com/experiments.html">
     <!-- Styles -->
     <link rel="icon" href="/assets/icons/favicon.png">
-    <link rel="stylesheet" href="/assets/css/styles.css?v=20261123u">
+    <link rel="stylesheet" href="/assets/css/styles.css?v=20261124b">
     <meta name="theme-color" content="#03121a">
     <script>
         // Saved light theme, applied before the first paint (see setTheme in script.js)
@@ -45,14 +45,14 @@
 </head>
 
 <body>
-    <!-- Navigation -->
-    <site-nav page-name="Experiments" page-name-i18n="navPersonal"></site-nav>
-
     <main id="main-page" class="experiments-page">
         <section id="personal">
+            <h1 class="visually-hidden" data-i18n="navPersonal">Experiments</h1>
             <div class="section-head">
-                <h2 data-i18n="personalTitle">Pixels, zeros and ones</h2>
-                <p class="lead" data-i18n="personalLead">What I build on my own time: music, games, water and maps.</p>
+                <a href="./index.html#personal" class="project-button back-button">
+                    <span aria-hidden="true">←</span>
+                    <span data-i18n="backToPortfolio">Back to the portfolio</span>
+                </a>
             </div>
             <div class="visual-grid">
                 <a id="web-piano" href="./web-piano.html" class="project-tile">
@@ -149,15 +149,7 @@
         </section>
     </main>
 
-    <!-- Footer -->
-    <div class="intro-line">
-        <svg class="water-line" width="100%" height="100" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <path d="M 0 50 L 100 50" fill="none" stroke-width="1" vector-effect="non-scaling-stroke" />
-        </svg>
-    </div>
-    <site-footer></site-footer>
 </body>
-<script src="/assets/js/script.js?v=20261123h"></script>
-<script src="/assets/js/line-animation.js?v=20261016b"></script>
+<script src="/assets/js/script.js?v=20261124b"></script>
 
 </html>

@@ -1024,6 +1024,74 @@ header {
     transform: scale(1.04);
 }
 
+/* Experiments page: no navbar or footer. One line on top — the way back on
+   the left, the lead text on the right — then the grid; on a desktop screen
+   it all fits in the window, no scrolling. */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* no navbar here, so no room to keep for it */
+#main-page.experiments-page {
+    margin-top: 32px;
+}
+
+.experiments-page .section-head {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px 32px;
+    margin-bottom: 32px;
+}
+
+.experiments-page .back-button {
+    width: fit-content;
+}
+
+.experiments-page .section-head .lead {
+    font-size: 1.1rem;
+}
+
+@media (min-width: 1001px) {
+    .experiments-page .section-head .lead {
+        max-width: none;
+        text-align: right;
+    }
+}
+
+@media (min-width: 1001px) and (min-height: 560px) and (hover: hover) {
+    #main-page.experiments-page {
+        margin-top: 0;
+        height: 100dvh;
+        padding-block: 28px;
+        gap: 0;
+    }
+
+    .experiments-page #personal {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        height: 100%;
+        min-height: 0;
+    }
+
+    .experiments-page .section-head {
+        margin-bottom: 24px;
+    }
+
+    .experiments-page .visual-grid {
+        grid-auto-rows: auto;
+        grid-template-rows: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        min-height: 0;
+    }
+}
+
 /* Touch screens have no hover: the title and description sit under the picture */
 @media (hover: none) {
     /* the id outranks the row heights set for narrow screens below */
