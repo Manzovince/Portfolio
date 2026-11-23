@@ -708,9 +708,9 @@ header {
 
 /* Home: the experiments now live on their own page; one sentence points there */
 .experiments-teaser p {
-    max-width: 40ch;
+    max-width: 48ch;
     font-family: "IBM Plex Serif", serif;
-    font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
+    font-size: clamp(1.2rem, 1.05rem + .6vw, 1.6rem);
     font-weight: 200;
     line-height: 1.35;
     text-wrap: pretty;

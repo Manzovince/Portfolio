@@ -108,7 +108,7 @@ const translations = {
     workLead: "Discover my vision of design through my professional projects.",
     personalTitle: "Pixels, zeros and ones",
     personalLead: "What I build on my own time: music, games, water and maps.",
-    personalTeaser: "On my own time, I also build small things: music, games, water and maps. <a href=\"./experiments.html\" class=\"link\">See the experiments&nbsp;→</a>",
+    personalTeaser: "Beyond these projects, I keep another playground: ideas built for the fun of it, with no brief and no deadline. <a href=\"./experiments.html\" class=\"link\">See the experiments&nbsp;→</a>",
     landSeaDesc: "Aerial photography",
     lifeCalendarIntro: "A whole life drawn as a grid of tiny squares, one for each week. Enter a date of birth, and the weeks already lived fill in, up to the one happening right now.",
     lifeCalendarOpen: "Open Life calendar",
@@ -245,7 +245,7 @@ const translations = {
     workLead: "Découvrez ma vision du design à travers mes projets professionnels.",
     personalTitle: "Des pixels, des 0 et des 1",
     personalLead: "Ce que je construis sur mon temps libre : musique, jeux, eau et cartes.",
-    personalTeaser: "Sur mon temps libre, je construis aussi des petites choses : musique, jeux, eau et cartes. <a href=\"./experiments.html\" class=\"link\">Voir les expérimentations&nbsp;→</a>",
+    personalTeaser: "En dehors de ces projets, je garde un autre terrain de jeu : des idées construites pour le plaisir, sans brief ni deadline. <a href=\"./experiments.html\" class=\"link\">Voir les expérimentations&nbsp;→</a>",
     landSeaDesc: "Photographie aérienne",
     lifeCalendarIntro: "Une vie entière dessinée en une grille de petits carrés, un par semaine. On entre une date de naissance, et les semaines déjà vécues se remplissent, jusqu'à celle qui se passe en ce moment.",
     lifeCalendarOpen: "Ouvrir Life calendar",
@@ -352,7 +352,7 @@ class NavComponent extends HTMLElement {
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('/assets/css/styles.css?v=20261124b');
+        @import url('/assets/css/styles.css?v=20261124c');
       </style>
       <nav id="nav">
         <div class="page-path">
@@ -536,7 +536,7 @@ class FooterComponent extends HTMLElement {
     // HTML content for the footer
     this.shadowRoot.innerHTML = `     
       <style>
-        @import url('/assets/css/styles.css?v=20261124b');
+        @import url('/assets/css/styles.css?v=20261124c');
       </style>
       <footer>
         <div class="footer-item">
