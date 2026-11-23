@@ -31,8 +31,17 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png">
     <link rel="manifest" href="/assets/icons/site.webmanifest">
     <!-- Styles -->
-    <link rel="stylesheet" href="/assets/css/styles.css?v=20261016d">
-    <meta name="theme-color" content="#041e2a">
+    <link rel="stylesheet" href="/assets/css/styles.css?v=20261123r">
+    <meta name="theme-color" content="#010d14">
+    <script>
+        // Saved light theme, applied before the first paint (see setTheme in script.js)
+        try {
+            if (localStorage.getItem('theme') === 'light') {
+                document.documentElement.dataset.theme = 'light';
+                document.querySelector('meta[name="theme-color"]').content = '#e7d7c0';
+            }
+        } catch (e) {}
+    </script>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,28 +75,18 @@
         <!-- Methodology -->
         <section id="methodology">
             <div class="methodology-text" data-i18n="methodologyText"></div>
-            <div class="stack">
-                <div class="layer layer-text">
-                    <h6>Hiding complexity in plain sight</h6>
-                    <p>Finding elegance in complexity and purpose in every pixel.</p>
-                    <svg width="240" height="80" xmlns="http://www.w3.org/2000/svg">
-                        <polygon id="#layer-triangle" points="20,60 60,60 40,20" fill="none" stroke="currentColor" />
-                        <circle id="#layer-circle" cx="120" cy="40" r="20" fill="none" stroke="currentColor" />
-                        <rect id="#layer-square" x="180" y="20" width="40" height="40" fill="none"
-                            stroke="currentColor" />
-                    </svg>
-                </div>
-                <div class="layer layer-padding"></div>
-                <div class="layer layer-border"></div>
-                <div class="layer layer-background"></div>
-                <div class="layer layer-shadow"></div>
+            <div class="untangle" aria-hidden="true">
+                <svg viewBox="0 0 360 360"></svg>
             </div>
         </section>
 
         <!-- Featured -->
-        <p data-i18n="proProjectText"></p>
         <section id="featured">
-            <div class="project-2col">
+            <div class="section-head">
+                <h2 data-i18n="workTitle">From paper to screen</h2>
+                <p class="lead" data-i18n="workLead">Discover my vision of design through my professional projects.</p>
+            </div>
+            <div class="work-list">
                 <a id="sealens" href="./sealens.html" class="project-tile">
                     <div class="project-cover">
                         <img src="/assets/img/sealens-dev.png" alt="Sealens.art website showing an underwater photography gallery">
@@ -118,8 +117,6 @@
                         </div>
                     </div>
                 </a>
-            </div>
-            <div class="project-2col">
                 <a id="popin" href="./popin.html" class="project-tile">
                     <div class="project-cover">
                         <img src="/assets/img/popin-dev.png" alt="Screenshot of the Pop-in parenting support chatbot website">
@@ -152,98 +149,103 @@
         </section>
 
         <!-- Personal projects -->
-        <p data-i18n="persoProjectText"></p>
         <section id="personal">
-            <a id="web-piano" href="./web-piano.html" class="project-tile">
-                <div class="project-cover project-cover--single">
-                    <img src="/assets/img/web-piano-card.webp?v=20261109" alt="Octave naming a C major seventh chord above the notes rising from the keys">
-                </div>
-                <div class="project-details">
-                    <h3>Octave</h3>
-                    <p data-i18n="webPianoDesc"></p>
-                    <div class="tag-list">
-                        <div class="tag" data-i18n="tagMusic"></div>
-                        <div class="tag" data-i18n="tagDev"></div>
+            <div class="section-head">
+                <h2 data-i18n="personalTitle">Pixels, zeros and ones</h2>
+                <p class="lead" data-i18n="personalLead">What I build on my own time: music, games, water and maps.</p>
+            </div>
+            <div class="visual-grid">
+                <a id="web-piano" href="./web-piano.html" class="project-tile">
+                    <div class="project-cover project-cover--single">
+                        <img src="/assets/img/web-piano-card.webp?v=20261109" alt="Octave naming a C major seventh chord above the notes rising from the keys" loading="lazy">
                     </div>
-                </div>
-            </a>
-            <a id="apnea" href="./apnea.html" class="project-tile">
-                <div class="project-cover project-cover--single">
-                    <img src="/assets/img/apnea-card.webp?v=2" alt="Apnea app during a max hold, with contraction marks on the timer ring">
-                </div>
-                <div class="project-details">
-                    <h3>Apnea</h3>
-                    <p data-i18n="apneaDesc"></p>
-                    <div class="tag-list">
-                        <div class="tag" data-i18n="tagDesign"></div>
-                        <div class="tag" data-i18n="tagDev"></div>
+                    <div class="project-details">
+                        <h3>Octave</h3>
+                        <p data-i18n="webPianoDesc"></p>
+                        <div class="tag-list">
+                            <div class="tag" data-i18n="tagMusic"></div>
+                            <div class="tag" data-i18n="tagDev"></div>
+                        </div>
                     </div>
-                </div>
-            </a>
-            <a id="land-and-sea" href="./land-and-sea.html" class="project-tile">
-                <div class="project-cover project-cover--single">
-                    <img src="/assets/img/aerial-boats.jpeg" alt="Aerial drone photo of fishing boats along a Mediterranean coastline">
-                </div>
-                <div class="project-details">
-                    <h3>Land & sea</h3>
-                    <p>Aerial photography</p>
-                    <div class="tag-list">
-                        <div class="tag" data-i18n="tagPhoto"></div>
+                </a>
+                <a id="apnea" href="./apnea.html" class="project-tile">
+                    <div class="project-cover project-cover--single">
+                        <img src="/assets/img/apnea-card.webp?v=2" alt="Apnea app during a max hold, with contraction marks on the timer ring" loading="lazy">
                     </div>
-                </div>
-            </a>
-            <a id="ikeaguesser" href="./ikeaguesser.html" class="project-tile">
-                <div class="project-cover project-cover--single">
-                    <img src="/assets/img/ikeaguesser-card.webp?v=2" alt="IKEA guesser quiz asking what KALLAX is, with four illustrated answers">
-                </div>
-                <div class="project-details">
-                    <h3>IKEA guesser</h3>
-                    <p data-i18n="ikeaDesc"></p>
-                    <div class="tag-list">
-                        <div class="tag" data-i18n="tagGame"></div>
-                        <div class="tag" data-i18n="tagDev"></div>
+                    <div class="project-details">
+                        <h3>Apnea</h3>
+                        <p data-i18n="apneaDesc"></p>
+                        <div class="tag-list">
+                            <div class="tag" data-i18n="tagDesign"></div>
+                            <div class="tag" data-i18n="tagDev"></div>
+                        </div>
                     </div>
-                </div>
-            </a>
-            <a id="topography" href="./topography.html" class="project-tile">
-                <div class="project-cover project-cover--single">
-                    <img src="/assets/img/topography-card.webp" alt="Light contour lines of a procedural terrain on a dark navy background">
-                </div>
-                <div class="project-details">
-                    <h3>Topography</h3>
-                    <p data-i18n="topographyDesc"></p>
-                    <div class="tag-list">
-                        <div class="tag" data-i18n="tagGenerative"></div>
-                        <div class="tag" data-i18n="tagDev"></div>
+                </a>
+                <a id="land-and-sea" href="./land-and-sea.html" class="project-tile">
+                    <div class="project-cover project-cover--single">
+                        <img src="/assets/img/aerial-boats.jpeg" alt="Aerial drone photo of fishing boats along a Mediterranean coastline" loading="lazy">
                     </div>
-                </div>
-            </a>
-            <a id="lagon" href="./lagon.html" class="project-tile">
-                <div class="project-cover project-cover--single">
-                    <img src="/assets/img/caustics-card.webp" alt="Bright blue water caustics rippling across a pool floor">
-                </div>
-                <div class="project-details">
-                    <h3>Lagon</h3>
-                    <p data-i18n="lagonDesc"></p>
-                    <div class="tag-list">
-                        <div class="tag" data-i18n="tagGenerative"></div>
-                        <div class="tag" data-i18n="tagDev"></div>
+                    <div class="project-details">
+                        <h3>Land & sea</h3>
+                        <p data-i18n="landSeaDesc">Aerial photography</p>
+                        <div class="tag-list">
+                            <div class="tag" data-i18n="tagPhoto"></div>
+                        </div>
                     </div>
-                </div>
-            </a>
-            <a id="life-calendar" href="./life-calendar.html" class="project-tile">
-                <div class="project-cover project-cover--single">
-                    <img src="/assets/img/life-calendar.png" alt="Life calendar grid of small squares representing weeks of a lifetime">
-                </div>
-                <div class="project-details">
-                    <h3>Life calendar</h3>
-                    <p data-i18n="lifeCalendarDesc"></p>
-                    <div class="tag-list">
-                        <div class="tag" data-i18n="tagDesign"></div>
-                        <div class="tag" data-i18n="tagDev"></div>
+                </a>
+                <a id="ikeaguesser" href="./ikeaguesser.html" class="project-tile">
+                    <div class="project-cover project-cover--single">
+                        <img src="/assets/img/ikeaguesser-card.webp?v=2" alt="IKEA guesser quiz asking what KALLAX is, with four illustrated answers" loading="lazy">
                     </div>
-                </div>
-            </a>
+                    <div class="project-details">
+                        <h3>IKEA guesser</h3>
+                        <p data-i18n="ikeaDesc"></p>
+                        <div class="tag-list">
+                            <div class="tag" data-i18n="tagGame"></div>
+                            <div class="tag" data-i18n="tagDev"></div>
+                        </div>
+                    </div>
+                </a>
+                <a id="topography" href="./topography.html" class="project-tile">
+                    <div class="project-cover project-cover--single">
+                        <img src="/assets/img/topography-card.webp" alt="Light contour lines of a procedural terrain on a dark navy background" loading="lazy">
+                    </div>
+                    <div class="project-details">
+                        <h3>Topography</h3>
+                        <p data-i18n="topographyDesc"></p>
+                        <div class="tag-list">
+                            <div class="tag" data-i18n="tagGenerative"></div>
+                            <div class="tag" data-i18n="tagDev"></div>
+                        </div>
+                    </div>
+                </a>
+                <a id="lagon" href="./lagon.html" class="project-tile">
+                    <div class="project-cover project-cover--single">
+                        <img src="/assets/img/caustics-card.webp" alt="Bright blue water caustics rippling across a pool floor" loading="lazy">
+                    </div>
+                    <div class="project-details">
+                        <h3>Lagon</h3>
+                        <p data-i18n="lagonDesc"></p>
+                        <div class="tag-list">
+                            <div class="tag" data-i18n="tagGenerative"></div>
+                            <div class="tag" data-i18n="tagDev"></div>
+                        </div>
+                    </div>
+                </a>
+                <a id="life-calendar" href="./life-calendar.html" class="project-tile">
+                    <div class="project-cover project-cover--single">
+                        <img src="/assets/img/life-calendar.png" alt="Life calendar grid of small squares representing weeks of a lifetime" loading="lazy">
+                    </div>
+                    <div class="project-details">
+                        <h3>Life calendar</h3>
+                        <p data-i18n="lifeCalendarDesc"></p>
+                        <div class="tag-list">
+                            <div class="tag" data-i18n="tagDesign"></div>
+                            <div class="tag" data-i18n="tagDev"></div>
+                        </div>
+                    </div>
+                </a>
+            </div>
         </section>
 
         <!-- About -->
@@ -359,8 +361,9 @@
     <site-footer></site-footer>
 
     <!-- Scripts -->
-    <script src="/assets/js/script.js?v=20261109o"></script>
-    <script src="/assets/js/header-animation.js?v=20261015a"></script>
+    <script src="/assets/js/script.js?v=20261123f"></script>
+    <script src="/assets/js/header-animation.js?v=20261123f"></script>
+    <script src="/assets/js/untangle.js?v=20261123b"></script>
     <script src="/assets/js/line-animation.js?v=20261016b"></script>
 
 </body>

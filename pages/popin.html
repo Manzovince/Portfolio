@@ -25,8 +25,17 @@
     <link rel="canonical" href="https://manzovince.com/popin.html">
     <!-- Styles -->
     <link rel="icon" href="/assets/icons/favicon.png">
-    <link rel="stylesheet" href="/assets/css/styles.css?v=20261016d">
-    <meta name="theme-color" content="#041e2a">
+    <link rel="stylesheet" href="/assets/css/styles.css?v=20261123r">
+    <meta name="theme-color" content="#010d14">
+    <script>
+        // Saved light theme, applied before the first paint (see setTheme in script.js)
+        try {
+            if (localStorage.getItem('theme') === 'light') {
+                document.documentElement.dataset.theme = 'light';
+                document.querySelector('meta[name="theme-color"]').content = '#e7d7c0';
+            }
+        } catch (e) {}
+    </script>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -65,6 +74,10 @@
         <img src="/assets/img/popin-illu-3.png" alt="Illustration highlighting the design challenges tackled in Pop-in">
         <p data-i18n="popin4"></p>
         <img src="/assets/img/demo-popin.gif" alt="Animated demo of the Pop-in chatbot conversation flow" style="max-width: 300px;">
+        <a href="./index.html#featured" class="project-button back-button">
+            <span aria-hidden="true">←</span>
+            <span data-i18n="backToWork"></span>
+        </a>
     </main>
 
     <!-- Footer -->
@@ -77,7 +90,7 @@
 
 </body>
 
-<script src="/assets/js/script.js?v=20261016b"></script>
+<script src="/assets/js/script.js?v=20261123f"></script>
 <script src="/assets/js/line-animation.js?v=20261016b"></script>
 
 </html>

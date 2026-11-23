@@ -99,6 +99,15 @@ const translations = {
     topographyStyle: "Seven palettes, from paper to neon, a layered or gradient fill with hillshading, a pixelated render, and a randomise button for happy accidents. Every map can be saved as a PNG, a vector SVG, a WebM video of the animation, or even as ASCII text.",
     topographyLooksAlt: "Four maps made with Topography: a paper island, green terraced hills, purple neon lines and a blueprint",
     lifeCalendarDesc: "Tiny squares, entire journey",
+    workTitle: "From paper to screen",
+    themeToDark: "Switch to dark mode",
+    themeToLight: "Switch to light mode",
+    backToWork: "Back to work",
+    backToExperiments: "Back to experiments",
+    workLead: "Discover my vision of design through my professional projects.",
+    personalTitle: "Pixels, zeros and ones",
+    personalLead: "What I build on my own time: music, games, water and maps.",
+    landSeaDesc: "Aerial photography",
     lifeCalendarIntro: "A whole life drawn as a grid of tiny squares, one for each week. Enter a date of birth, and the weeks already lived fill in, up to the one happening right now.",
     lifeCalendarOpen: "Open Life calendar",
     lifeCalendarStory: "The idea comes from Tim Urban's \"Your Life in Weeks\": ninety rows of fifty-two squares fit on a single page, and seeing them all at once changes how a week feels. I wanted my own version, one I could fill with the chapters of my life.",
@@ -225,6 +234,15 @@ const translations = {
     topographyStyle: "Sept palettes, du papier au néon, un remplissage étagé ou en dégradé avec ombrage du relief, un rendu pixélisé, et un bouton aléatoire pour les heureux accidents. Chaque carte s'enregistre en PNG, en SVG vectoriel, en vidéo WebM de l'animation, ou même en texte ASCII.",
     topographyLooksAlt: "Quatre cartes faites avec Topography : une île sur papier, des collines vertes en terrasses, des lignes néon violettes et un plan bleu",
     lifeCalendarDesc: "De petits carrés, toute une vie",
+    workTitle: "Du papier à l’écran",
+    themeToDark: "Passer en mode sombre",
+    themeToLight: "Passer en mode clair",
+    backToWork: "Retour aux projets",
+    backToExperiments: "Retour aux expérimentations",
+    workLead: "Découvrez ma vision du design à travers mes projets professionnels.",
+    personalTitle: "Des pixels, des 0 et des 1",
+    personalLead: "Ce que je construis sur mon temps libre : musique, jeux, eau et cartes.",
+    landSeaDesc: "Photographie aérienne",
     lifeCalendarIntro: "Une vie entière dessinée en une grille de petits carrés, un par semaine. On entre une date de naissance, et les semaines déjà vécues se remplissent, jusqu'à celle qui se passe en ce moment.",
     lifeCalendarOpen: "Ouvrir Life calendar",
     lifeCalendarStory: "L'idée vient de « Your Life in Weeks » de Tim Urban : quatre-vingt-dix lignes de cinquante-deux carrés tiennent sur une seule page, et les voir toutes d'un coup change la façon dont on ressent une semaine. Je voulais ma propre version, à remplir avec les chapitres de ma vie.",
@@ -286,6 +304,24 @@ function getStoredLanguage() {
   }
 }
 
+// ------ Theme ------
+// Dark by default; the light choice is saved and applied from <head>
+// (see the inline script in each page) so it holds before the first paint
+const THEME_COLORS = { dark: '#010d14', light: '#e7d7c0' };
+
+function currentTheme() {
+  return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+}
+
+function setTheme(theme) {
+  if (theme === 'light') document.documentElement.dataset.theme = 'light';
+  else delete document.documentElement.dataset.theme;
+  try { localStorage.setItem('theme', theme); } catch (e) {}
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', THEME_COLORS[theme] || THEME_COLORS.dark);
+  document.querySelectorAll('site-nav').forEach(nav => nav.updateThemeSwitch?.());
+}
+
 function saveLanguage(lang) {
   try {
     localStorage.setItem('selectedLanguage', lang);
@@ -307,13 +343,12 @@ class NavComponent extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.currentPageName = '';
     this.availableLanguages = ['English', 'Français'];
-    this.availableThemes = ['Dark theme', 'Light theme'];
   }
 
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('/assets/css/styles.css?v=20261016d');
+        @import url('/assets/css/styles.css?v=20261123r');
       </style>
       <nav id="nav">
         <div class="page-path">
@@ -328,43 +363,47 @@ class NavComponent extends HTMLElement {
             <div id="current-page"></div>
           </div>
         </div>
-        <input id="nav-checkbox" type="checkbox">
-        <label id="nav-icon" for="nav-checkbox">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <button id="nav-icon" type="button" aria-expanded="false" aria-controls="nav-dropdown" aria-label="Menu">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M0 0 L16 0 L16 16 L16 16 Z" fill="currentColor" />
           </svg>
-        </label>
+        </button>
         <div id="nav-dropdown">
-          <ul id="nav-settings">
-            <li class="language-switch">
-              <button type="button" data-lang="fr" lang="fr">Français</button>
-              <button type="button" data-lang="en" lang="en">English</button>
+          <ul id="nav-list">
+            <li style="--i: 0">
+              <a href="./index.html#featured" data-section="featured">
+                <span class="nav-num" aria-hidden="true">01</span>
+                <span data-i18n="navProjects"></span>
+              </a>
             </li>
-            <li style="display:none">
-              <p id="theme-toggle">Dark theme</p>
+            <li style="--i: 1">
+              <a href="./index.html#personal" data-section="personal">
+                <span class="nav-num" aria-hidden="true">02</span>
+                <span data-i18n="navPersonal"></span>
+              </a>
+            </li>
+            <li style="--i: 2">
+              <a href="./index.html#about" data-section="about">
+                <span class="nav-num" aria-hidden="true">03</span>
+                <span data-i18n="navAbout"></span>
+              </a>
             </li>
           </ul>
-          <ul id="nav-list">
-            <li>
-              <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 0 L4 4 L0 8Z" fill="currentColor" />
-              </svg>
-              <a href="./index.html#featured" onclick="this.getRootNode().host.closeMenu()"
-                 data-i18n="navProjects"></a>
+          <ul id="nav-settings">
+            <li class="language-switch">
+              <button type="button" data-lang="fr" lang="fr" aria-label="Français">FR</button>
+              <button type="button" data-lang="en" lang="en" aria-label="English">EN</button>
             </li>
-            <li>
-              <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 0 L4 4 L0 8Z" fill="currentColor" />
-              </svg>
-              <a href="./index.html#personal" onclick="this.getRootNode().host.closeMenu()"
-                 data-i18n="navPersonal"></a>
-            </li>
-            <li>
-              <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 0 L4 4 L0 8Z" fill="currentColor" />
-              </svg>
-              <a href="./index.html#about" onclick="this.getRootNode().host.closeMenu()"
-                 data-i18n="navAbout"></a>
+            <li class="theme-switch">
+              <button id="theme-btn" type="button">
+                <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="4"/>
+                  <path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>
+                </svg>
+                <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/>
+                </svg>
+              </button>
             </li>
           </ul>
         </div>
@@ -372,14 +411,29 @@ class NavComponent extends HTMLElement {
     `;
 
     // Add event listeners for switching language and theme
-    const themeToggle = this.shadowRoot.getElementById('theme-toggle');
     this.shadowRoot.querySelectorAll('.language-switch button').forEach(button => {
-      button.addEventListener('click', () => {
-        this.setLanguage(button.dataset.lang);
-        this.closeMenu();
-      });
+      button.addEventListener('click', () => this.setLanguage(button.dataset.lang));
     });
-    themeToggle.addEventListener('click', () => this.toggleTheme());
+    this.shadowRoot.getElementById('theme-btn').addEventListener('click', () => {
+      setTheme(currentTheme() === 'light' ? 'dark' : 'light');
+    });
+    this.updateThemeSwitch();
+
+    // Menu: a real button, closed by Escape, a click outside or a link
+    const navIcon = this.shadowRoot.getElementById('nav-icon');
+    navIcon.addEventListener('click', () => this.toggleMenu());
+    this.shadowRoot.querySelectorAll('#nav-list a').forEach(link => {
+      link.addEventListener('click', () => this.closeMenu());
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && this.isMenuOpen()) {
+        this.closeMenu();
+        navIcon.focus();
+      }
+    });
+    document.addEventListener('click', event => {
+      if (this.isMenuOpen() && !event.composedPath().includes(this)) this.closeMenu();
+    });
 
     // Highlight the language currently applied (saved choice, or browser default)
     this.updateLanguageSwitch();
@@ -414,30 +468,36 @@ class NavComponent extends HTMLElement {
     // Update translations for the entire page
     translate(currentLanguage); // Update main document
     translate(currentLanguage, this.shadowRoot); // Update shadowRoot for NavComponent
+    this.updateThemeSwitch();
   }
 
   toggleLanguage() {
     this.setLanguage(currentLanguage === 'en' ? 'fr' : 'en');
   }
 
-  toggleTheme() {
-    const themeToggle = this.shadowRoot.getElementById('theme-toggle');
-    const currentTheme = themeToggle.textContent.trim();
-    const nextTheme = this.availableThemes.find(theme => theme !== currentTheme);
-    themeToggle.textContent = nextTheme;
-
-    // Update theme styles
-    const isDarkTheme = nextTheme === 'Dark theme';
-    document.documentElement.style.setProperty('--rgb-text', isDarkTheme ? 'var(--rgb-light)' : 'var(--rgb-dark)');
-    document.documentElement.style.setProperty('--rgb-bg', isDarkTheme ? 'var(--rgb-dark)' : 'var(--rgb-light)');
+  // Theme button: shows the theme it switches to. The theme is mirrored on
+  // #nav because :root[data-theme] can't be matched inside the shadow DOM.
+  updateThemeSwitch() {
+    const theme = currentTheme();
+    this.shadowRoot.getElementById('nav').dataset.theme = theme;
+    const label = translations[currentLanguage][theme === 'light' ? 'themeToDark' : 'themeToLight'];
+    const button = this.shadowRoot.getElementById('theme-btn');
+    button.setAttribute('aria-label', label);
+    button.setAttribute('title', label);
   }
 
-  // Method to close the mobile menu
+  // ----- Menu -----
+  isMenuOpen() {
+    return this.shadowRoot.getElementById('nav').classList.contains('open');
+  }
+
+  toggleMenu(open = !this.isMenuOpen()) {
+    this.shadowRoot.getElementById('nav').classList.toggle('open', open);
+    this.shadowRoot.getElementById('nav-icon').setAttribute('aria-expanded', open);
+  }
+
   closeMenu() {
-    const checkbox = this.shadowRoot.getElementById('nav-checkbox');
-    if (checkbox) {
-      checkbox.checked = false;
-    }
+    this.toggleMenu(false);
   }
 
   // Method to update the page name display
@@ -449,6 +509,7 @@ class NavComponent extends HTMLElement {
     if (pageNameContainer && currentPage && this.currentPageName) {
       currentPage.textContent = this.currentPageName;
       pageNameContainer.style.display = 'flex';
+      pageNameContainer.classList.add('shown');
     } else if (pageNameContainer) {
       pageNameContainer.style.display = 'none';
     }
@@ -471,7 +532,7 @@ class FooterComponent extends HTMLElement {
     // HTML content for the footer
     this.shadowRoot.innerHTML = `     
       <style>
-        @import url('/assets/css/styles.css?v=20261016d');
+        @import url('/assets/css/styles.css?v=20261123r');
       </style>
       <footer>
         <div class="footer-item">
