@@ -2,7 +2,7 @@
 
 :root {
     --rgb-light: 231, 215, 192;
-    --rgb-dark: 1, 13, 20;
+    --rgb-dark: 3, 18, 26;
     --rgb-text: var(--rgb-light);
     --rgb-bg: var(--rgb-dark);
 
@@ -157,6 +157,8 @@ td {
 
 #nav {
     position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -702,6 +704,20 @@ header {
 #featured,
 #personal {
     scroll-margin-top: 256px;
+}
+
+/* Home: the experiments now live on their own page; one sentence points there */
+.experiments-teaser p {
+    max-width: 40ch;
+    font-family: "IBM Plex Serif", serif;
+    font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
+    font-weight: 200;
+    line-height: 1.35;
+    text-wrap: pretty;
+}
+
+.experiments-teaser a {
+    white-space: nowrap;
 }
 
 /* Professional projects: a bento of four, wide and narrow tiles alternating */

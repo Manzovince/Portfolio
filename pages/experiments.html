@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Vincent Manzoni">
+    <meta name="description"
+        content="Experiments by Vincent Manzoni: what I build on my own time, from music and games to water, maps and photography.">
+    <meta name="keywords" content="experiments, side projects, web apps, music, games, photography, maps, Vincent Manzoni">
+    <meta property="og:title" content="Vincent Manzoni / Experiments">
+    <meta property="og:description"
+        content="What I build on my own time: music, games, water and maps.">
+    <meta property="og:image" content="https://manzovince.com/assets/img/og-index.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://manzovince.com/experiments.html">
+    <meta property="og:site_name" content="Vincent Manzoni Portfolio">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Vincent Manzoni / Experiments">
+    <meta name="twitter:description" content="What I build on my own time: music, games, water and maps.">
+    <meta name="twitter:image" content="https://manzovince.com/assets/img/og-index.png">
+    <link rel="canonical" href="https://manzovince.com/experiments.html">
+    <!-- Styles -->
+    <link rel="icon" href="/assets/icons/favicon.png">
+    <link rel="stylesheet" href="/assets/css/styles.css?v=20261123u">
+    <meta name="theme-color" content="#03121a">
+    <script>
+        // Saved light theme, applied before the first paint (see setTheme in script.js)
+        try {
+            if (localStorage.getItem('theme') === 'light') {
+                document.documentElement.dataset.theme = 'light';
+                document.querySelector('meta[name="theme-color"]').content = '#e7d7c0';
+            }
+        } catch (e) {}
+    </script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <!-- Title -->
+    <title>Vincent Manzoni / Experiments</title>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <site-nav page-name="Experiments" page-name-i18n="navPersonal"></site-nav>
+
+    <main id="main-page" class="experiments-page">
+        <section id="personal">
+            <div class="section-head">
+                <h2 data-i18n="personalTitle">Pixels, zeros and ones</h2>
+                <p class="lead" data-i18n="personalLead">What I build on my own time: music, games, water and maps.</p>
+            </div>
+            <div class="visual-grid">
+                <a id="web-piano" href="./web-piano.html" class="project-tile">
+                    <div class="project-cover project-cover--single">
+                        <img src="/assets/img/web-piano-card.webp?v=20261109" alt="Octave naming a C major seventh chord above the notes rising from the keys" loading="lazy">
+                    </div>
+                    <div class="project-details">
+                        <h3>Octave</h3>
+                        <p data-i18n="webPianoDesc"></p>
+                        <div class="tag-list">
+                            <div class="tag" data-i18n="tagMusic"></div>
+                            <div class="tag" data-i18n="tagDev"></div>
+                        </div>
+                    </div>
+                </a>
+                <a id="apnea" href="./apnea.html" class="project-tile">
+                    <div class="project-cover project-cover--single">
+                        <img src="/assets/img/apnea-card.webp?v=2" alt="Apnea app during a max hold, with contraction marks on the timer ring" loading="lazy">
+                    </div>
+                    <div class="project-details">
+                        <h3>Apnea</h3>
+                        <p data-i18n="apneaDesc"></p>
+                        <div class="tag-list">
+                            <div class="tag" data-i18n="tagDesign"></div>
+                            <div class="tag" data-i18n="tagDev"></div>
+                        </div>
+                    </div>
+                </a>
+                <a id="land-and-sea" href="./land-and-sea.html" class="project-tile">
+                    <div class="project-cover project-cover--single">
+                        <img src="/assets/img/aerial-boats.jpeg" alt="Aerial drone photo of fishing boats along a Mediterranean coastline" loading="lazy">
+                    </div>
+                    <div class="project-details">
+                        <h3>Land & sea</h3>
+                        <p data-i18n="landSeaDesc">Aerial photography</p>
+                        <div class="tag-list">
+                            <div class="tag" data-i18n="tagPhoto"></div>
+                        </div>
+                    </div>
+                </a>
+                <a id="ikeaguesser" href="./ikeaguesser.html" class="project-tile">
+                    <div class="project-cover project-cover--single">
+                        <img src="/assets/img/ikeaguesser-card.webp?v=2" alt="IKEA guesser quiz asking what KALLAX is, with four illustrated answers" loading="lazy">
+                    </div>
+                    <div class="project-details">
+                        <h3>IKEA guesser</h3>
+                        <p data-i18n="ikeaDesc"></p>
+                        <div class="tag-list">
+                            <div class="tag" data-i18n="tagGame"></div>
+                            <div class="tag" data-i18n="tagDev"></div>
+                        </div>
+                    </div>
+                </a>
+                <a id="topography" href="./topography.html" class="project-tile">
+                    <div class="project-cover project-cover--single">
+                        <img src="/assets/img/topography-card.webp" alt="Light contour lines of a procedural terrain on a dark navy background" loading="lazy">
+                    </div>
+                    <div class="project-details">
+                        <h3>Topography</h3>
+                        <p data-i18n="topographyDesc"></p>
+                        <div class="tag-list">
+                            <div class="tag" data-i18n="tagGenerative"></div>
+                            <div class="tag" data-i18n="tagDev"></div>
+                        </div>
+                    </div>
+                </a>
+                <a id="lagon" href="./lagon.html" class="project-tile">
+                    <div class="project-cover project-cover--single">
+                        <img src="/assets/img/caustics-card.webp" alt="Bright blue water caustics rippling across a pool floor" loading="lazy">
+                    </div>
+                    <div class="project-details">
+                        <h3>Lagon</h3>
+                        <p data-i18n="lagonDesc"></p>
+                        <div class="tag-list">
+                            <div class="tag" data-i18n="tagGenerative"></div>
+                            <div class="tag" data-i18n="tagDev"></div>
+                        </div>
+                    </div>
+                </a>
+                <a id="life-calendar" href="./life-calendar.html" class="project-tile">
+                    <div class="project-cover project-cover--single">
+                        <img src="/assets/img/life-calendar.png" alt="Life calendar grid of small squares representing weeks of a lifetime" loading="lazy">
+                    </div>
+                    <div class="project-details">
+                        <h3>Life calendar</h3>
+                        <p data-i18n="lifeCalendarDesc"></p>
+                        <div class="tag-list">
+                            <div class="tag" data-i18n="tagDesign"></div>
+                            <div class="tag" data-i18n="tagDev"></div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <div class="intro-line">
+        <svg class="water-line" width="100%" height="100" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path d="M 0 50 L 100 50" fill="none" stroke-width="1" vector-effect="non-scaling-stroke" />
+        </svg>
+    </div>
+    <site-footer></site-footer>
+</body>
+<script src="/assets/js/script.js?v=20261123h"></script>
+<script src="/assets/js/line-animation.js?v=20261016b"></script>
+
+</html>

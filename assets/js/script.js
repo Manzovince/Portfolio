@@ -107,6 +107,7 @@ const translations = {
     workLead: "Discover my vision of design through my professional projects.",
     personalTitle: "Pixels, zeros and ones",
     personalLead: "What I build on my own time: music, games, water and maps.",
+    personalTeaser: "On my own time, I also build small things: music, games, water and maps. <a href=\"./experiments.html\" class=\"link\">See the experiments&nbsp;→</a>",
     landSeaDesc: "Aerial photography",
     lifeCalendarIntro: "A whole life drawn as a grid of tiny squares, one for each week. Enter a date of birth, and the weeks already lived fill in, up to the one happening right now.",
     lifeCalendarOpen: "Open Life calendar",
@@ -242,6 +243,7 @@ const translations = {
     workLead: "Découvrez ma vision du design à travers mes projets professionnels.",
     personalTitle: "Des pixels, des 0 et des 1",
     personalLead: "Ce que je construis sur mon temps libre : musique, jeux, eau et cartes.",
+    personalTeaser: "Sur mon temps libre, je construis aussi des petites choses : musique, jeux, eau et cartes. <a href=\"./experiments.html\" class=\"link\">Voir les expérimentations&nbsp;→</a>",
     landSeaDesc: "Photographie aérienne",
     lifeCalendarIntro: "Une vie entière dessinée en une grille de petits carrés, un par semaine. On entre une date de naissance, et les semaines déjà vécues se remplissent, jusqu'à celle qui se passe en ce moment.",
     lifeCalendarOpen: "Ouvrir Life calendar",
@@ -307,7 +309,7 @@ function getStoredLanguage() {
 // ------ Theme ------
 // Dark by default; the light choice is saved and applied from <head>
 // (see the inline script in each page) so it holds before the first paint
-const THEME_COLORS = { dark: '#010d14', light: '#e7d7c0' };
+const THEME_COLORS = { dark: '#03121a', light: '#e7d7c0' };
 
 function currentTheme() {
   return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
@@ -348,7 +350,7 @@ class NavComponent extends HTMLElement {
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('/assets/css/styles.css?v=20261123r');
+        @import url('/assets/css/styles.css?v=20261123u');
       </style>
       <nav id="nav">
         <div class="page-path">
@@ -377,7 +379,7 @@ class NavComponent extends HTMLElement {
               </a>
             </li>
             <li style="--i: 1">
-              <a href="./index.html#personal" data-section="personal">
+              <a href="./experiments.html" data-section="personal">
                 <span class="nav-num" aria-hidden="true">02</span>
                 <span data-i18n="navPersonal"></span>
               </a>
@@ -508,6 +510,12 @@ class NavComponent extends HTMLElement {
     this.shadowRoot.getElementById('path-home').hidden = !this.currentPageName;
     if (pageNameContainer && currentPage && this.currentPageName) {
       currentPage.textContent = this.currentPageName;
+      // a page name that follows the language (e.g. "Expérimentations")
+      const key = this.getAttribute('page-name-i18n');
+      if (key && translations[currentLanguage][key]) {
+        currentPage.setAttribute('data-i18n', key);
+        currentPage.innerHTML = translations[currentLanguage][key];
+      }
       pageNameContainer.style.display = 'flex';
       pageNameContainer.classList.add('shown');
     } else if (pageNameContainer) {
@@ -532,7 +540,7 @@ class FooterComponent extends HTMLElement {
     // HTML content for the footer
     this.shadowRoot.innerHTML = `     
       <style>
-        @import url('/assets/css/styles.css?v=20261123r');
+        @import url('/assets/css/styles.css?v=20261123u');
       </style>
       <footer>
         <div class="footer-item">
