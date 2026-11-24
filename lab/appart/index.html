@@ -1574,8 +1574,35 @@ function marche(dt) {
   camera.position.set(pos.x, YEUX, pos.z);
   camera.rotation.set(pitch, yaw, 0, 'YXZ');
 }
+// Vue panoramique depuis le balcon (photo réelle), sur un morceau de cylindre centré sur le balcon,
+// face à l'extérieur (-Z). Visible seulement en visite. PANO_ARC : angle horizontal couvert par la photo.
+const PANO_ARC = THREE.MathUtils.degToRad(170), PANO_R = 40, PANO_DECALAGE = 0;   // décalage : rotation (rad, + = vers la gauche)
+const panorama = (() => {
+  const tex = new THREE.TextureLoader().load('vue-balcon.jpg', t => {
+    // Le ciel au-dessus de la photo prend la couleur moyenne du haut de l'image
+    const c = document.createElement('canvas'); c.width = 64; c.height = 4;
+    const g = c.getContext('2d'); g.drawImage(t.image, 0, 0, t.image.width, 20, 0, 0, 64, 4);
+    const d = g.getImageData(0, 0, 64, 4).data; let r = 0, v = 0, b = 0;
+    for (let i = 0; i < d.length; i += 4) { r += d[i]; v += d[i + 1]; b += d[i + 2]; }
+    const n = d.length / 4; ciel.setRGB(r / n / 255, v / n / 255, b / n / 255, THREE.SRGBColorSpace);
+  });
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = THREE.RepeatWrapping; tex.repeat.x = -1; tex.offset.x = 1;   // vu de l'intérieur : remettre la photo à l'endroit
+  tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const haut = PANO_R * PANO_ARC * 1052 / 2000;                           // proportions de la photo (2000 × 1052)
+  const m = new THREE.Mesh(
+    new THREE.CylinderGeometry(PANO_R, PANO_R, haut, 96, 1, true, Math.PI - PANO_ARC / 2 + PANO_DECALAGE, PANO_ARC),
+    new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, toneMapped: false, fog: false }));
+  m.position.set(X(710), YEUX, Z(250));                                    // horizon de la photo à hauteur d'yeux, au milieu du balcon
+  m.name = 'Vue depuis le balcon'; m.visible = false; m.renderOrder = -1;
+  scene.add(m);                                                            // hors de root : ni collisions ni infobulle
+  return m;
+})();
+const ciel = new THREE.Color(0xc4d6e8), fondOrbite = scene.background.clone();
 function basculeVisite() {
   visite = !visite;
+  panorama.visible = visite;
+  scene.background = visite ? ciel : fondOrbite;
   $('bVisite').classList.toggle('on', visite);
   $('bVisite').querySelector('span').textContent = visite ? 'Quitter la visite' : 'Visite';
   $('gVues').style.display = visite ? 'none' : '';
