@@ -101,6 +101,9 @@ const translations = {
     topographyLooksAlt: "Four maps made with Topography: a paper island, green terraced hills, purple neon lines and a blueprint",
     lifeCalendarDesc: "Tiny squares, entire journey",
     vivantDesc: "A pixel lost in the Game of Life",
+    crabesDesc: "A crab battle on a board of hidden tiles",
+    fauxArtisteDesc: "A drawing party game where one player is bluffing",
+    effortlessDesc: "The worst sign-up form ever designed, on purpose",
     workTitle: "From paper to screen",
     themeToDark: "Switch to dark mode",
     themeToLight: "Switch to light mode",
@@ -240,6 +243,9 @@ const translations = {
     topographyLooksAlt: "Quatre cartes faites avec Topography : une île sur papier, des collines vertes en terrasses, des lignes néon violettes et un plan bleu",
     lifeCalendarDesc: "De petits carrés, toute une vie",
     vivantDesc: "Un pixel perdu dans le Jeu de la vie",
+    crabesDesc: "Une bataille de crabes sur un plateau de tuiles cachées",
+    fauxArtisteDesc: "Un jeu de dessin entre amis, dont l’un bluffe",
+    effortlessDesc: "Le pire formulaire d’inscription jamais conçu, exprès",
     workTitle: "Du papier à l’écran",
     themeToDark: "Passer en mode sombre",
     themeToLight: "Passer en mode clair",
@@ -356,7 +362,7 @@ class NavComponent extends HTMLElement {
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('/assets/css/styles.css?v=20261124j');
+        @import url('/assets/css/styles.css?v=20261124k');
       </style>
       <nav id="nav">
         <div class="page-path">
@@ -540,7 +546,7 @@ class FooterComponent extends HTMLElement {
     // HTML content for the footer
     this.shadowRoot.innerHTML = `     
       <style>
-        @import url('/assets/css/styles.css?v=20261124j');
+        @import url('/assets/css/styles.css?v=20261124k');
       </style>
       <footer>
         <div class="footer-item">

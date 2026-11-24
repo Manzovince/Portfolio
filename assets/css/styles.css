@@ -982,7 +982,7 @@ header {
     max-width: 44ch;
 }
 
-/* Three columns of pictures; the first and last tiles run two columns wide.
+/* Three columns of pictures in tiles of different sizes (see the areas below).
    The description sits over the picture and shows on hover or keyboard focus. */
 .visual-grid {
     display: grid;
@@ -991,11 +991,29 @@ header {
     gap: 24px;
 }
 
+/* Wide screens with a mouse: a mosaic of wide, tall and square tiles */
+@media (min-width: 901px) and (hover: hover) {
+    .visual-grid {
+        grid-auto-rows: clamp(240px, 22vw, 360px);
+        grid-template-areas:
+            "apnea apnea land"
+            "ikea crabes land"
+            "faux effortless effortless"
+            "faux topography topography"
+            "vivant vivant calendar"
+            "lagon lagon calendar";
+    }
 
-/* seven tiles: the first and last run two columns wide (3 rows of 3) */
-.visual-grid .project-tile:first-child,
-.visual-grid .project-tile:last-child {
-    grid-column: span 2;
+    #apnea { grid-area: apnea; }
+    #land-and-sea { grid-area: land; }
+    #ikeaguesser { grid-area: ikea; }
+    #crabes { grid-area: crabes; }
+    #faux-artiste { grid-area: faux; }
+    #effortless { grid-area: effortless; }
+    #topography { grid-area: topography; }
+    #vivant { grid-area: vivant; }
+    #life-calendar { grid-area: calendar; }
+    #lagon { grid-area: lagon; }
 }
 
 .visual-grid .project-tile {
@@ -1039,9 +1057,7 @@ header {
     transform: scale(1.04);
 }
 
-/* Experiments page: no navbar or footer. One line on top — the way back on
-   the left, the lead text on the right — then the grid; on a desktop screen
-   it all fits in the window, no scrolling. */
+/* Experiments page: no navbar or footer. The way back on top, then the grid. */
 .visually-hidden {
     position: absolute;
     width: 1px;
@@ -1054,6 +1070,7 @@ header {
 /* no navbar here, so no room to keep for it */
 #main-page.experiments-page {
     margin-top: 32px;
+    padding-bottom: 64px;
 }
 
 .experiments-page .section-head {
@@ -1077,33 +1094,6 @@ header {
     .experiments-page .section-head .lead {
         max-width: none;
         text-align: right;
-    }
-}
-
-@media (min-width: 1001px) and (min-height: 560px) and (hover: hover) {
-    #main-page.experiments-page {
-        margin-top: 0;
-        height: 100dvh;
-        padding-block: 28px;
-        gap: 0;
-    }
-
-    .experiments-page #personal {
-        display: grid;
-        grid-template-rows: auto minmax(0, 1fr);
-        height: 100%;
-        min-height: 0;
-    }
-
-    .experiments-page .section-head {
-        margin-bottom: 24px;
-    }
-
-    .experiments-page .visual-grid {
-        grid-auto-rows: auto;
-        grid-template-rows: repeat(3, minmax(0, 1fr));
-        gap: 16px;
-        min-height: 0;
     }
 }
 
@@ -1198,20 +1188,12 @@ header {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         grid-auto-rows: clamp(200px, 34vw, 300px);
     }
-
-    .visual-grid .project-tile:last-child {
-        grid-column: auto;
-    }
 }
 
 @media screen and (max-width: 600px) {
     .visual-grid {
         grid-template-columns: minmax(0, 1fr);
         grid-auto-rows: 260px;
-    }
-
-    .visual-grid .project-tile:first-child {
-        grid-column: auto;
     }
 }
 
