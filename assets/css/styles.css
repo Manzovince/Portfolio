@@ -1472,6 +1472,43 @@ footer {
     transform: translateX(-4px);
 }
 
+/* "Next project" at the end of a case study */
+.next-project {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(var(--rgb-text), .15);
+    color: inherit;
+}
+
+.next-project-label {
+    font-family: "Unbounded", serif;
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    opacity: .6;
+}
+
+.next-project-title {
+    font-family: "Unbounded", serif;
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    font-weight: 300;
+    text-transform: uppercase;
+}
+
+.next-project-title span {
+    display: inline-block;
+    transition: transform .3s ease;
+}
+
+.next-project:hover .next-project-title span,
+.next-project:focus-visible .next-project-title span {
+    transform: translateX(8px);
+}
+
 .project-infos {
     display: flex;
     flex-direction: column;

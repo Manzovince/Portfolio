@@ -134,6 +134,7 @@ const translations = {
     themeToDark: "Switch to dark mode",
     themeToLight: "Switch to light mode",
     backToWork: "Back to work",
+    nextProject: "Next project",
     backToPortfolio: "Back to the portfolio",
     backToExperiments: "Back to experiments",
     workLead: "Discover my vision of design through my professional and personal projects.",
@@ -306,6 +307,7 @@ const translations = {
     themeToDark: "Passer en mode sombre",
     themeToLight: "Passer en mode clair",
     backToWork: "Retour aux projets",
+    nextProject: "Projet suivant",
     backToPortfolio: "Retour au portfolio",
     backToExperiments: "Retour aux expérimentations",
     workLead: "Découvrez ma vision du design à travers mes projets professionnels et personnels.",
@@ -423,7 +425,7 @@ class NavComponent extends HTMLElement {
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('/assets/css/styles.css?v=20261124n');
+        @import url('/assets/css/styles.css?v=20261124o');
       </style>
       <nav id="nav">
         <div class="page-path">
@@ -607,7 +609,7 @@ class FooterComponent extends HTMLElement {
     // HTML content for the footer
     this.shadowRoot.innerHTML = `     
       <style>
-        @import url('/assets/css/styles.css?v=20261124n');
+        @import url('/assets/css/styles.css?v=20261124o');
       </style>
       <footer>
         <div class="footer-item">
