@@ -1186,7 +1186,7 @@ function construire() {
     dos.position.set(0, 0.46, 0.185); g.add(dos);
     g.position.set(X(cx), 0, Z(cy)); g.rotation.y = rot; cur.add(g);
   }
-  { // Bambou en pot entre le bout du canapé-coffre et la table de jardin (pot Ø 30 cm, cannes 1,4–2 m)
+  { // Bambou en pot entre le bout du canapé-coffre et la table de jardin (pot Ø 30 cm, cannes 1,05–1,5 m)
     const bb = new THREE.Group(); bb.userData.nom = 'Bambou en pot'; bb.name = 'Bambou'; cur.add(bb);
     bb.position.set(X(378), 0, Z(148));
     let gr = 11; const rnd = () => (gr = (gr * 16807) % 2147483647) / 2147483647;   // tirage propre : même bambou à chaque reconstruction
@@ -1199,7 +1199,7 @@ function construire() {
     const sol = mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.01, 28), terre); sol.position.y = 0.345; bb.add(sol);
     const feuilles = [];
     for (let i = 0; i < 9; i++) {
-      const h = 1.4 + rnd() * 0.6, r = 0.007 + rnd() * 0.005, ang = rnd() * Math.PI * 2, d = rnd() * 0.08, pen = 0.03 + rnd() * 0.07;
+      const h = 1.05 + rnd() * 0.45, r = 0.007 + rnd() * 0.005, ang = rnd() * Math.PI * 2, d = rnd() * 0.08, pen = 0.03 + rnd() * 0.07;
       const c = new THREE.Group(); c.position.set(Math.cos(ang) * d, 0.34, Math.sin(ang) * d);
       c.rotation.set(Math.sin(ang) * pen, 0, -Math.cos(ang) * pen); bb.add(c);   // cannes légèrement évasées
       const tige = mesh(new THREE.CylinderGeometry(r * 0.7, r, h, 8), canne); tige.position.y = h / 2; c.add(tige);
