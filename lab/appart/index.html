@@ -441,8 +441,8 @@ function mur(x0, y0, x1, y1, h = H, z0 = 0, name = 'Mur') {
   B(x0, y0, x1, y1, z0, top, mat.mur, name);
   if (coupe && h > CUT) B(x0, y0, x1, y1, top, top + 1, mat.coupe);
 }
-// Portes intérieures cliquables : ouvertes au départ, un clic les ouvre / ferme
-const etatPortes = { 'Porte salle de bain': true, 'Porte WC': true };
+// Portes intérieures cliquables : salle de bain fermée et WC ouvert au départ, un clic les ouvre / ferme
+const etatPortes = { 'Porte salle de bain': false, 'Porte WC': true };
 const pivotsPortes = {}, animsPortes = {};
 function animerPorte(nom) {                           // lance la rotation vers l'état courant (≈ 0,45 s, accélération douce)
   const p = pivotsPortes[nom]; if (!p) return;
@@ -794,6 +794,8 @@ function couvert(parent, x, y, z) {
 }
 // Arche de la façade du balcon : côtés droits jusqu'à ARCHE_DEPART, puis courbe surbaissée jusqu'à ARCHE_SOMMET (m)
 const ARCHE_DEPART = 1.65, ARCHE_SOMMET = 2.33;
+const ARCHE_PILIER_G = 0.60, ARCHE_PILIER_D = 0.12;   // largeur des piliers (m) : bout de mur de 60 cm à gauche (mesure de l'utilisateur)
+const ARCHE_G = 236 + ARCHE_PILIER_G / S, ARCHE_D = 1185 - ARCHE_PILIER_D / S;   // ouverture de l'arche, en px du plan
 function construire() {
   root.clear();
   rond = 0;
@@ -818,21 +820,22 @@ function construire() {
   // Enveloppe
   // Façade du balcon : grande arche surbaissée entre les deux murs, garde-corps à barreaux classiques
   if (exterieur && !coupe) {
-    const W = (1185 - 236) * S, m = 0.12, ys = ARCHE_DEPART, sh = new THREE.Shape();
+    const W = (1185 - 236) * S, ys = ARCHE_DEPART, sh = new THREE.Shape();
     sh.moveTo(0, 0); sh.lineTo(W, 0); sh.lineTo(W, H / 100); sh.lineTo(0, H / 100); sh.closePath();
     const trou = new THREE.Path();
-    trou.moveTo(m, 0); trou.lineTo(m, ys); trou.absellipse(W / 2, ys, W / 2 - m, ARCHE_SOMMET - ys, Math.PI, 0, true); trou.lineTo(W - m, 0); trou.closePath();
+    const g = ARCHE_PILIER_G, d = W - ARCHE_PILIER_D;
+    trou.moveTo(g, 0); trou.lineTo(g, ys); trou.absellipse((g + d) / 2, ys, (d - g) / 2, ARCHE_SOMMET - ys, Math.PI, 0, true); trou.lineTo(d, 0); trou.closePath();
     sh.holes.push(trou);
     const arche = mesh(new THREE.ExtrudeGeometry(sh, { depth: 12 * S, bevelEnabled: false, curveSegments: 48 }), mat.crepiArche, 'Arche du balcon');
     arche.position.set(X(236), 0, Z(100)); cur.add(arche);
-  } else if (exterieur) for (const x of [236, 1161]) B(x, 100, x + 24, 112, 0, CUT, mat.crepi, 'Arche du balcon');
+  } else if (exterieur) { B(236, 100, ARCHE_G, 112, 0, CUT, mat.crepi, 'Arche du balcon'); B(ARCHE_D, 100, 1185, 112, 0, CUT, mat.crepi, 'Arche du balcon'); }
   { const gc = new THREE.Group(); gc.userData.nom = 'Garde-corps à barreaux'; gc.name = 'Garde-corps'; cur.add(gc);
     const fer = mat.fer ??= M(0x3b3e42, { roughness: 0.45, metalness: 0.5 });
-    B(260, 102, 1161, 110, 100, 105, fer, null, gc);                                 // main courante
-    B(260, 104, 1161, 108, 6, 9, fer, null, gc);                                     // lisse basse
-    for (let x = 268; x < 1157; x += 22) B(x - 1, 105, x + 1, 107, 9, 100, fer, null, gc);   // barreaux tous les 11 cm
+    B(ARCHE_G, 102, ARCHE_D, 110, 100, 105, fer, null, gc);                                 // main courante
+    B(ARCHE_G, 104, ARCHE_D, 108, 6, 9, fer, null, gc);                                     // lisse basse
+    for (let x = ARCHE_G + 8; x < ARCHE_D - 4; x += 22) B(x - 1, 105, x + 1, 107, 9, 100, fer, null, gc);   // barreaux tous les 11 cm
   }
-  B(248, 112, 1173, 114, 2, 104, mat.canisse ??= new THREE.MeshStandardMaterial({ map: canisseTex, roughness: 0.8 }), 'Canisse en roseaux');
+  B(ARCHE_G, 112, 1173, 114, 2, 104, mat.canisse ??= new THREE.MeshStandardMaterial({ map: canisseTex, roughness: 0.8 }), 'Canisse en roseaux');
   if (exterieur) {                                          // enveloppe (option « Murs extérieurs »)
     mur(236, 112, 248, 1328);                               // gauche (haut)
     mur(236, 1478, 248, 1892);                              // gauche (entrée)
@@ -1171,9 +1174,9 @@ function construire() {
   for (const x of [-25, 25]) for (const s of [-1, 1]) L(tj, 3, 85, 2.5, x, 34.5, s * 1.5, blancJ).rotation.x = s * a;
   L(tj, 50, 2.5, 2.5, 0, 34.5, 0, blancJ);                          // entretoise au croisement
   tj.position.set(X(470), 0, Z(175)); tj.rotation.y = Math.PI / 2;  // collée au garde-corps, pieds en X côté garde-corps et côté séjour
-  // Deux chaises de jardin bleu turquoise très pâle, dossier plat arrondi sur le dessus (dossier côté +z local)
+  // Une chaise de jardin bleu turquoise très pâle, dossier plat arrondi sur le dessus (dossier côté +z local)
   const turquoise = mat.turquoise ??= M(0xcfe7e4, { roughness: 0.5 });
-  for (const [cx, cy, rot] of [[406, 175, -Math.PI / 2], [534, 175, Math.PI / 2]]) {   // rangées sous la table, face à face, assises glissées sous le plateau
+  for (const [cx, cy, rot] of [[534, 175, Math.PI / 2]]) {   // rangée sous la table, côté opposé au canapé-coffre, assise glissée sous le plateau
     const g = new THREE.Group(); g.userData.nom = 'Chaise de jardin'; g.name = 'Chaise de jardin';
     L(g, 44, 6, 44, 0, 43, 0, turquoise);                                           // assise (comme avant)
     for (const [a2, b2] of [[-19, -19], [19, -19], [-19, 19], [19, 19]]) L(g, 4, 40, 4, a2, 20, b2, turquoise);   // pieds
@@ -1182,6 +1185,43 @@ function construire() {
     const dos = mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.04, bevelEnabled: true, bevelThickness: 0.005, bevelSize: 0.005, bevelSegments: 2, curveSegments: 24 }), turquoise);
     dos.position.set(0, 0.46, 0.185); g.add(dos);
     g.position.set(X(cx), 0, Z(cy)); g.rotation.y = rot; cur.add(g);
+  }
+  { // Bambou en pot entre le bout du canapé-coffre et la table de jardin (pot Ø 30 cm, cannes 1,4–2 m)
+    const bb = new THREE.Group(); bb.userData.nom = 'Bambou en pot'; bb.name = 'Bambou'; cur.add(bb);
+    bb.position.set(X(378), 0, Z(148));
+    let gr = 11; const rnd = () => (gr = (gr * 16807) % 2147483647) / 2147483647;   // tirage propre : même bambou à chaque reconstruction
+    const potM = mat.potBambou ??= M(0x4a4d50, { roughness: 0.6 });
+    const terre = mat.terreBambou ??= M(0x3b2a1e, { roughness: 1 });
+    const canne = mat.canneBambou ??= M(0x8fa94a, { roughness: 0.55 });
+    const noeud = mat.noeudBambou ??= M(0x6f8a34, { roughness: 0.6 });
+    const feuilleM = mat.feuilleBambou ??= M(0x5f9a3a, { roughness: 0.7, side: THREE.DoubleSide });
+    const pot = mesh(new THREE.CylinderGeometry(0.15, 0.12, 0.36, 28), potM); pot.position.y = 0.18; bb.add(pot);
+    const sol = mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.01, 28), terre); sol.position.y = 0.345; bb.add(sol);
+    const feuilles = [];
+    for (let i = 0; i < 9; i++) {
+      const h = 1.4 + rnd() * 0.6, r = 0.007 + rnd() * 0.005, ang = rnd() * Math.PI * 2, d = rnd() * 0.08, pen = 0.03 + rnd() * 0.07;
+      const c = new THREE.Group(); c.position.set(Math.cos(ang) * d, 0.34, Math.sin(ang) * d);
+      c.rotation.set(Math.sin(ang) * pen, 0, -Math.cos(ang) * pen); bb.add(c);   // cannes légèrement évasées
+      const tige = mesh(new THREE.CylinderGeometry(r * 0.7, r, h, 8), canne); tige.position.y = h / 2; c.add(tige);
+      for (let y = 0.22; y < h - 0.05; y += 0.2 + rnd() * 0.06) { const n = mesh(new THREE.CylinderGeometry(r * 1.25, r * 1.25, 0.012, 8), noeud); n.position.y = y; c.add(n); }
+      for (let k = 0; k < 26; k++) {                                     // feuilles fines sur le haut de la canne
+        const y = h * (0.45 + rnd() * 0.58), a2 = rnd() * Math.PI * 2, l = 0.08 + rnd() * 0.08;
+        feuilles.push({ c, y, a2, l, inc: 0.3 + rnd() * 0.9, tw: rnd() * Math.PI });
+      }
+    }
+    // Feuilles en une seule InstancedMesh (losanges étirés, pointe vers l'extérieur)
+    const fg = new THREE.BufferGeometry();
+    fg.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0.5, 0, 0.09, 1, 0, 0, 0.5, 0, -0.09], 3));
+    fg.setIndex([0, 1, 2, 0, 2, 3]); fg.computeVertexNormals();
+    const im = new THREE.InstancedMesh(fg, feuilleM, feuilles.length); im.castShadow = true; im.userData.nom = 'Bambou en pot';
+    bb.updateMatrixWorld(true);
+    const inv = new THREE.Matrix4().copy(bb.matrixWorld).invert(), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3();
+    feuilles.forEach((f, i) => {
+      v.set(0, f.y, 0); f.c.localToWorld(v); v.applyMatrix4(inv);
+      e.set(f.tw, f.a2, -f.inc, 'YZX'); q.setFromEuler(e);
+      m4.compose(v, q, new THREE.Vector3(f.l, 1, f.l)); im.setMatrixAt(i, m4);
+    });
+    bb.add(im);
   }
   { // Rack à sirops en fil noir (4 marches) à droite des plaques, avec 4 bouteilles de sirop 70 cl, étiquettes blanches
     const rk = new THREE.Group(); rk.userData.nom = 'Rack à sirops'; rk.name = 'Rack à sirops'; cur.add(rk);
@@ -1226,12 +1266,12 @@ function construire() {
   { // Guirlandes du balcon : le long de l'arche (côté balcon) et en festons sur la rambarde
     const tr = [];
     if (!coupe && exterieur) {                                                              // la guirlande de l'arche suit l'arche
-      const W = (1185 - 236) * S, cx = X(236) + W / 2, a = W / 2 - 0.12 + 0.04, bh = ARCHE_SOMMET - ARCHE_DEPART + 0.04, zi = Z(112) + 0.012, arc = [];
+      const cx = X((ARCHE_G + ARCHE_D) / 2), a = (ARCHE_D - ARCHE_G) * S / 2 + 0.04, bh = ARCHE_SOMMET - ARCHE_DEPART + 0.04, zi = Z(112) + 0.012, arc = [];
       for (let k = 0; k <= 40; k++) { const t = Math.PI - k / 40 * Math.PI; arc.push(new THREE.Vector3(cx + a * Math.cos(t), ARCHE_DEPART + bh * Math.sin(t), zi)); }
       tr.push(arc);
     }
     const ram = [], zr = Z(115);                                                  // côté balcon, devant la canisse
-    for (let x = 270, k = 0; x <= 1155; x += 30, k++) ram.push(new THREE.Vector3(X(x), k % 2 ? 0.95 : 1.045, zr));   // festons de 30 cm
+    for (let x = ARCHE_G + 10, k = 0; x <= ARCHE_D - 6; x += 30, k++) ram.push(new THREE.Vector3(X(x), k % 2 ? 0.95 : 1.045, zr));   // festons de 30 cm
     guirlande([ram], 'Guirlande de la rambarde');
     if (tr.length) guirlande(tr, "Guirlande de l'arche", { r: 0.022, pas: 0.32, ep: 0.0025 });   // grosses ampoules type guinguette
   }
