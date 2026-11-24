@@ -5,7 +5,7 @@ const translations = {
     navProjects: "Work",
     navPersonal: "Experiments",
     navAbout: "About me",
-    introText: "I'm Vincent, a <span>product designer</span> with a background in cognitive and computer sciences, driven by a research-backed methodology.",
+    introText: "<span class=\"dict-word\">Vincent</span><span class=\"dict-meta\">n.</span><span class=\"dict-def\">Product designer who understands people, sketches, tests and brings ideas to life.</span><span class=\"nowrap intro-fields\">Cognitive sciences&nbsp;· Computer science&nbsp;· <em>(Sea)</em></span>",
     methodologyText: "After earning a master's in psychology, I became interested in how cognitive sciences can shape technology. <br><br> My scientific approach lets me test hypotheses rigorously, while my technical knowledge helps me communicate effectively with engineering teams. <br><br> I approach problems by visualizing ideas through sketches and diagrams, and breaking down complex issues into simple, understandable steps.",
     proProjectText: "Discover my vision of design through some of my professional and personal projects.",
     tagPhoto: "Photography",
@@ -179,7 +179,7 @@ const translations = {
     navProjects: "Projets",
     navPersonal: "Expérimentations",
     navAbout: "A propos de moi",
-    introText: "Moi, c'est Vincent, un <span>product designer</span> avec une formation en sciences cognitives et en informatique, guidé par une méthodologie basée sur la recherche.",
+    introText: "<span class=\"dict-word\">Vincent</span><span class=\"dict-meta\">n. m.</span><span class=\"dict-def\">Product designer qui comprend les gens, dessine, teste et donne vie aux idées.</span><span class=\"nowrap intro-fields\">Sciences cognitives&nbsp;· Informatique&nbsp;· <em>(Mer)</em></span>",
     methodologyText: "Après un master en psychologie, je me suis intéressé à la manière dont les sciences cognitives peuvent façonner les nouvelles technologies. <br><br> Mon approche scientifique me permet de tester rigoureusement des hypothèses, et mes connaissances techniques m'aident à communiquer efficacement avec les ingénieurs. <br><br> J'aborde les problèmes en visualisant des idées à travers des croquis et des diagrammes, et en décomposant les problèmes complexes en étapes simples et compréhensibles.",
     proProjectText: "Découvrez ma vision du design à travers mes projets professionels et personnels.",
     tagPhoto: "Photographie",
@@ -425,7 +425,7 @@ class NavComponent extends HTMLElement {
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('/assets/css/styles.css?v=20261124o');
+        @import url('/assets/css/styles.css?v=20261125e');
       </style>
       <nav id="nav">
         <div class="page-path">
@@ -609,7 +609,7 @@ class FooterComponent extends HTMLElement {
     // HTML content for the footer
     this.shadowRoot.innerHTML = `     
       <style>
-        @import url('/assets/css/styles.css?v=20261124o');
+        @import url('/assets/css/styles.css?v=20261125e');
       </style>
       <footer>
         <div class="footer-item">

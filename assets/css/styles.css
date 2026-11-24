@@ -579,8 +579,40 @@ header {
     z-index: 1;
 }
 
-#introduction p span {
+/* The intro reads like a dictionary entry: headword, part of speech,
+   definition, then the fields it belongs to */
+#introduction .dict-word {
+    font-size: 1.5em;
     font-weight: 400;
+}
+
+#introduction .dict-meta {
+    margin-left: .5em;
+    font-size: .7em;
+    font-style: italic;
+    opacity: .6;
+}
+
+#introduction .dict-def {
+    display: block;
+    max-width: 38ch;
+    margin-top: .6em;
+    font-size: .85em;
+}
+
+#introduction .intro-fields {
+    display: block;
+    margin-top: 1em;
+    font-size: .65em;
+    opacity: .85;
+}
+
+/* Keeps "Sciences cognitives · Informatique" on one line, except on phones
+   where it would not fit */
+@media (min-width: 600px) {
+    .nowrap {
+        white-space: nowrap;
+    }
 }
 
 .intro-line {
@@ -1249,7 +1281,6 @@ header {
     display: flex;
     flex-direction: column;
 }
-
 @media (max-width: 1200px) {
     .about-container {
         flex-direction: column;
