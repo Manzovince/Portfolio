@@ -1,111 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://manzovince.com/index.html</loc>
-    <lastmod>2025-03-03</lastmod>
-    <changefreq>monthly</changefreq>
+    <loc>https://manzovince.com/</loc>
+    <lastmod>2026-11-24</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://manzovince.com/experiments.html</loc>
-    <lastmod>2026-11-23</lastmod>
-    <changefreq>monthly</changefreq>
+    <loc>https://manzovince.com/sealens.html</loc>
+    <lastmod>2026-11-24</lastmod>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://manzovince.com/land-and-sea.html</loc>
-    <lastmod>2025-03-03</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://manzovince.com/popin.html</loc>
-    <lastmod>2025-03-03</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://manzovince.com/sgm-design.html</loc>
+    <lastmod>2026-11-24</lastmod>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://manzovince.com/sgm-iso20022.html</loc>
-    <lastmod>2025-03-03</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-11-24</lastmod>
+    <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://manzovince.com/sgm-design.html</loc>
-    <lastmod>2025-03-03</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://manzovince.com/project-wip.html</loc>
-    <lastmod>2025-03-03</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://manzovince.com/popin.html</loc>
+    <lastmod>2026-11-24</lastmod>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://manzovince.com/web-piano.html</loc>
-    <lastmod>2026-10-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-11-24</lastmod>
+    <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://manzovince.com/octave/</loc>
-    <lastmod>2026-10-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <loc>https://manzovince.com/experiments.html</loc>
+    <lastmod>2026-11-24</lastmod>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://manzovince.com/apnea.html</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://manzovince.com/apnea/</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://manzovince.com/ikeaguesser/</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://manzovince.com/topography/</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://manzovince.com/caustics/</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://manzovince.com/ikeaguesser.html</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
+    <lastmod>2026-11-24</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://manzovince.com/topography.html</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
+    <loc>https://manzovince.com/land-and-sea.html</loc>
+    <lastmod>2026-11-24</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://manzovince.com/life-calendar.html</loc>
-    <lastmod>2026-10-16</lastmod>
-    <changefreq>monthly</changefreq>
+    <lastmod>2026-11-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://manzovince.com/topography.html</loc>
+    <lastmod>2026-11-24</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://manzovince.com/lagon.html</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
+    <lastmod>2026-11-24</lastmod>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://manzovince.com/ikeaguesser.html</loc>
+    <lastmod>2026-11-24</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://manzovince.com/apnea/</loc>
+    <lastmod>2026-10-30</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://manzovince.com/life-calendar/</loc>
+    <lastmod>2026-10-30</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://manzovince.com/topography/</loc>
+    <lastmod>2026-10-30</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://manzovince.com/caustics/</loc>
+    <lastmod>2026-10-30</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://manzovince.com/ikeaguesser/</loc>
+    <lastmod>2026-10-30</lastmod>
+    <priority>0.5</priority>
   </url>
 </urlset>

@@ -16,7 +16,7 @@
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:url" content="https://manzovince.com/web-piano.html">
-    <meta property="og:site_name" content="Vincent Manzoni Portfolio">
+    <meta property="og:site_name" content="Vincent Manzoni">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Vincent Manzoni / Octave">
@@ -25,7 +25,7 @@
     <link rel="canonical" href="https://manzovince.com/web-piano.html">
     <!-- Styles -->
     <link rel="icon" href="/assets/icons/favicon.png">
-    <link rel="stylesheet" href="/assets/css/styles.css?v=20261124k">
+    <link rel="stylesheet" href="/assets/css/styles.css?v=20261124n">
     <meta name="theme-color" content="#03121a">
     <script>
         // Saved light theme, applied before the first paint (see setTheme in script.js)
@@ -51,60 +51,60 @@
     <main id="project-page">
         <div class="project-header">
             <div class="project-infos">
-                <h4>Octave</h4>
-                <p data-i18n="webPianoIntro"></p>
+                <h1>Octave</h1>
+                <p data-i18n="webPianoIntro">Octave is a piano in the browser that has grown up: a sampled grand piano and a six-operator FM synthesizer, a mode that teaches songs and chords, and a mode to design your own sounds. It works by touch on a phone or a tablet, with the computer keyboard, or with a MIDI keyboard.</p>
                 <ul class="tag-list">
-                    <div class="tag" data-i18n="tagMusic"></div>
-                    <div class="tag" data-i18n="tagDesign"></div>
-                    <div class="tag" data-i18n="tagDev"></div>
+                    <div class="tag" data-i18n="tagMusic">Music</div>
+                    <div class="tag" data-i18n="tagDesign">Design</div>
+                    <div class="tag" data-i18n="tagDev">Dev</div>
                 </ul>
             </div>
-            <img src="/assets/img/web-piano-app.webp?v=20261109" data-i18n-alt="webPianoAppAlt"
+            <img width="2160" height="1350" src="/assets/img/web-piano-app.webp?v=20261109" data-i18n-alt="webPianoAppAlt"
                 alt="Octave's Play screen: a G major seventh chord named above rising notes, with a grand piano on the left half of the keyboard and an FM electric piano on the right">
-            <a href="./octave/" class="project-button" data-i18n="webPianoOpen"></a>
+            <a href="./octave/" class="project-button" data-i18n="webPianoOpen">Play Octave</a>
         </div>
 
-        <p data-i18n="webPianoStory"></p>
+        <p data-i18n="webPianoStory">It started with a simple idea: what if the piano keys I play could light up a strip of LEDs in real time? At the time, I had never touched an Arduino and barely knew what MIDI looked like under the hood. The first version was a single octave and a sine wave drawn on the screen. <br><br> It became a web piano that named chords, wrote them on a staff and drove an LED strip through an ESP32. Meanwhile I built Phase, an FM synthesizer for my two ROLI LUMI keyboards. Octave is both, rebuilt from scratch around one question: what should the screen show when your hands are on the keys?</p>
         <figure class="project-figure">
-            <img src="/assets/img/keyboard-project.png" data-i18n-alt="webPianoPrototypeAlt" loading="lazy"
+            <img width="2000" height="1250" src="/assets/img/keyboard-project.webp" data-i18n-alt="webPianoPrototypeAlt" loading="lazy"
                 alt="First prototype: a sine wave drawn above a one-octave keyboard">
             <figcaption data-i18n="webPianoPrototypeCaption">Octave v0.1: a sine wave over a one-octave keyboard.</figcaption>
         </figure>
 
         <div>
-            <h6 data-i18n="webPianoPlayTitle"></h6>
-            <p data-i18n="webPianoPlay"></p>
+            <h6 data-i18n="webPianoPlayTitle">Play</h6>
+            <p data-i18n="webPianoPlay">Notes rise from the keys as you play them, over a faint oscilloscope of the sound. Above, the chord is named the way a musician would spell it, with its inversion: E♭ in C minor, D♯ in B major. <br><br> The keyboard can be split in two, one sound per hand or per LUMI block, each with its own colour. An arpeggiator and a sixteen-step pattern sit one tap away, and a second view writes what you play on a grand staff, ready to download as an image or a MIDI file.</p>
         </div>
 
         <div>
-            <h6 data-i18n="webPianoLearnTitle"></h6>
-            <p data-i18n="webPianoLearn"></p>
+            <h6 data-i18n="webPianoLearnTitle">Learn</h6>
+            <p data-i18n="webPianoLearn">Open a song, from the examples or any MIDI file, and its notes fall onto the keys, left and right hand in two colours, with the staff turning above. Choose a hand: the song plays the other one and waits on each chord until you find it, at full speed or slower. <br><br> Exercises ask for chords and scales, from major triads to sevenths, and light the keys to play on screen and, if you like, on the LUMI itself.</p>
         </div>
-        <img src="/assets/img/web-piano-learn.webp?v=20261109" data-i18n-alt="webPianoLearnAlt" loading="lazy"
+        <img width="2160" height="1350" src="/assets/img/web-piano-learn.webp?v=20261109" data-i18n-alt="webPianoLearnAlt" loading="lazy"
             alt="Learning Ode to Joy: notes falling onto the keyboard below the staff, the next key to play glowing">
 
         <div>
-            <h6 data-i18n="webPianoCreateTitle"></h6>
-            <p data-i18n="webPianoCreate"></p>
+            <h6 data-i18n="webPianoCreateTitle">Create</h6>
+            <p data-i18n="webPianoCreate">The sound engine comes from Phase: six operators following the DX7's rules, thirty-two algorithms, envelopes and keyboard scaling, running in an AudioWorklet. Thirty-five original sounds, from electric pianos to bells, and DX7 banks (.syx) can be imported and exported. <br><br> The graph of operators is animated by the sound itself: each line glows with the level of the modulator feeding it, so you can see why a sound is bright or soft.</p>
         </div>
-        <img src="/assets/img/web-piano-create.webp?v=20261109" data-i18n-alt="webPianoCreateAlt" loading="lazy"
+        <img width="2160" height="1350" src="/assets/img/web-piano-create.webp?v=20261109" data-i18n-alt="webPianoCreateAlt" loading="lazy"
             alt="The FM editor: the graph of six operators on the left, the settings and envelope of operator 1 on the right">
 
         <div>
-            <h6 data-i18n="webPianoTouchTitle"></h6>
-            <p data-i18n="webPianoTouch"></p>
+            <h6 data-i18n="webPianoTouchTitle">Made for fingers</h6>
+            <p data-i18n="webPianoTouch">Everything is sized for touch: large buttons, sliders you drag anywhere along their length, a keyboard docked at the bottom of every screen that fits its width and plays with several fingers at once. On a phone, the panels fold under the stage; on a desktop, they sit beside it.</p>
         </div>
-        <img src="/assets/img/web-piano-phones.webp?v=20261109" data-i18n-alt="webPianoPhonesAlt" loading="lazy"
+        <img width="2160" height="1350" src="/assets/img/web-piano-phones.webp?v=20261109" data-i18n-alt="webPianoPhonesAlt" loading="lazy"
             alt="Octave on two phones: the Play screen with a grand piano, and a chord exercise with its notes lit on the keys">
 
         <div>
-            <h6 data-i18n="webPianoLearnedTitle"></h6>
-            <p data-i18n="webPianoLearned"></p>
+            <h6 data-i18n="webPianoLearnedTitle">What I learned</h6>
+            <p data-i18n="webPianoLearned">Merging two apps meant deciding what each screen is for, rather than adding features. Three modes, one keyboard always in the same place, and every setting that is not about playing moved into a single panel. <br><br> Octave works best in Chrome or Edge, which support Web MIDI. On an iPhone or iPad, open it in the Web MIDI Browser app to play with a keyboard. Without one, the on-screen keys and the computer keyboard work everywhere.</p>
         </div>
-        <a href="./octave/" class="project-button" data-i18n="webPianoOpen"></a>
+        <a href="./octave/" class="project-button" data-i18n="webPianoOpen">Play Octave</a>
         <a href="./index.html#featured" class="project-button back-button">
             <span aria-hidden="true">←</span>
-            <span data-i18n="backToWork"></span>
+            <span data-i18n="backToWork">Back to work</span>
         </a>
     </main>
 
@@ -116,7 +116,7 @@
     </div>
     <site-footer></site-footer>
 </body>
-<script src="/assets/js/script.js?v=20261124p"></script>
+<script src="/assets/js/script.js?v=20261124t"></script>
 <script src="/assets/js/line-animation.js?v=20261016b"></script>
 
 </html>

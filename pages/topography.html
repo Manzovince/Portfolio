@@ -16,7 +16,7 @@
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:url" content="https://manzovince.com/topography.html">
-    <meta property="og:site_name" content="Vincent Manzoni Portfolio">
+    <meta property="og:site_name" content="Vincent Manzoni">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Vincent Manzoni / Topography">
@@ -25,7 +25,7 @@
     <link rel="canonical" href="https://manzovince.com/topography.html">
     <!-- Styles -->
     <link rel="icon" href="/assets/icons/favicon.png">
-    <link rel="stylesheet" href="/assets/css/styles.css?v=20261124k">
+    <link rel="stylesheet" href="/assets/css/styles.css?v=20261124n">
     <meta name="theme-color" content="#03121a">
     <script>
         // Saved light theme, applied before the first paint (see setTheme in script.js)
@@ -51,40 +51,40 @@
     <main id="project-page">
         <div class="project-header">
             <div class="project-infos">
-                <h4>Topography</h4>
-                <p data-i18n="topographyIntro"></p>
+                <h1>Topography</h1>
+                <p data-i18n="topographyIntro">A generator of procedural topographic maps: contour lines drawn from noise, animated, with palettes, layered fills, and exports to PNG, SVG and video.</p>
                 <ul class="tag-list">
                     <div class="tag">Generative</div>
-                    <div class="tag" data-i18n="tagDesign"></div>
-                    <div class="tag" data-i18n="tagDev"></div>
+                    <div class="tag" data-i18n="tagDesign">Design</div>
+                    <div class="tag" data-i18n="tagDev">Dev</div>
                 </ul>
             </div>
             <picture>
                 <source media="(max-width: 600px)" srcset="/assets/img/topography-app-mobile.webp">
-                <img src="/assets/img/topography-app.webp" data-i18n-alt="topographyAppAlt"
+                <img width="1800" height="1160" src="/assets/img/topography-app.webp" data-i18n-alt="topographyAppAlt"
                 alt="Topography with its settings panel on the left and a sand-coloured island drawn in layered contour lines">
             </picture>
-            <a href="./topography/" class="project-button" data-i18n="topographyOpen"></a>
+            <a href="./topography/" class="project-button" data-i18n="topographyOpen">Open Topography</a>
         </div>
 
-        <p data-i18n="topographyStory"></p>
+        <p data-i18n="topographyStory">Contour lines make a beautiful pattern on their own, far from any map. Topography draws endless terrains of them, to use as backgrounds or posters, or just to watch them move.</p>
 
         <div>
-            <h6 data-i18n="topographyHowTitle"></h6>
-            <p data-i18n="topographyHow"></p>
+            <h6 data-i18n="topographyHowTitle">From noise to lines</h6>
+            <p data-i18n="topographyHow">Each map starts from a seed. Layers of simplex noise build a height field, which is shaped into hills, ridges, terraces or islands, with an optional sea level. The marching squares algorithm then traces the contour lines through that field, and they are smoothed before being drawn. <br><br> The animation moves through the noise itself: the terrain slowly morphs, drifts across the screen, or keeps still while its lines flow uphill.</p>
         </div>
 
         <div>
-            <h6 data-i18n="topographyStyleTitle"></h6>
-            <p data-i18n="topographyStyle"></p>
+            <h6 data-i18n="topographyStyleTitle">Styles and exports</h6>
+            <p data-i18n="topographyStyle">Seven palettes, from paper to neon, a layered or gradient fill with hillshading, a pixelated render, and a randomise button for happy accidents. Every map can be saved as a PNG, a vector SVG, a WebM video of the animation, or even as ASCII text.</p>
         </div>
 
-        <img src="/assets/img/topography-looks.webp" data-i18n-alt="topographyLooksAlt" loading="lazy"
+        <img width="1600" height="1600" src="/assets/img/topography-looks.webp" data-i18n-alt="topographyLooksAlt" loading="lazy"
             alt="Four maps made with Topography: a paper island, green terraced hills, purple neon lines and a blueprint">
-        <a href="./topography/" class="project-button" data-i18n="topographyOpen"></a>
+        <a href="./topography/" class="project-button" data-i18n="topographyOpen">Open Topography</a>
         <a href="./experiments.html" class="project-button back-button">
             <span aria-hidden="true">←</span>
-            <span data-i18n="backToExperiments"></span>
+            <span data-i18n="backToExperiments">Back to experiments</span>
         </a>
     </main>
 
@@ -96,7 +96,7 @@
     </div>
     <site-footer></site-footer>
 </body>
-<script src="/assets/js/script.js?v=20261124p"></script>
+<script src="/assets/js/script.js?v=20261124t"></script>
 <script src="/assets/js/line-animation.js?v=20261016b"></script>
 
 </html>

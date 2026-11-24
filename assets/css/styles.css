@@ -34,6 +34,11 @@
     list-style: none;
 }
 
+/* width/height attributes reserve space while loading; keep the ratio */
+img {
+    height: auto;
+}
+
 /* User preferences */
 
 html {
@@ -1474,6 +1479,7 @@ footer {
     width: 100%;
 }
 
+.project-infos h1,
 .project-infos h4 {
     margin: 0;
     font-size: 2rem;
@@ -1487,6 +1493,31 @@ footer {
     font-family: 'IBM Plex Serif', serif;
     line-height: 1.6;
     margin: 0;
+}
+
+/* Role, team, users… at the top of a case study */
+.project-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem 2rem;
+    margin: 0;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(var(--rgb-text), .15);
+}
+
+.project-facts dt {
+    font-family: "Unbounded", serif;
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    opacity: .6;
+    margin-bottom: .35rem;
+}
+
+.project-facts dd {
+    margin: 0;
+    font-family: 'IBM Plex Serif', serif;
+    line-height: 1.45;
 }
 
 #project-page img {
