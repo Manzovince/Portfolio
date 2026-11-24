@@ -741,4 +741,47 @@ document.addEventListener('DOMContentLoaded', () => {
       observer.observe(methodologySection);
     }
   }
+
+  // About lists: the <details> rows open and close with a short slide and fade
+  // (a CSS-only version does not animate in Safari yet)
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('.about-list details').forEach(details => {
+      const summary = details.querySelector('summary');
+      let animation = null;
+
+      summary.addEventListener('click', event => {
+        event.preventDefault();
+        const opening = !details.open || details.dataset.closing === 'true';
+        const from = details.offsetHeight;
+        if (animation) animation.cancel();
+
+        details.style.overflow = 'hidden';
+        if (opening) {
+          delete details.dataset.closing;
+          details.open = true;
+        } else {
+          details.dataset.closing = 'true';
+        }
+        const to = opening ? details.scrollHeight : summary.offsetHeight;
+
+        animation = details.animate(
+          { height: [`${from}px`, `${to}px`] },
+          { duration: 320, easing: 'cubic-bezier(.25, .8, .25, 1)' }
+        );
+        const content = [...details.children].filter(el => el !== summary);
+        content.forEach(el => el.animate(
+          { opacity: opening ? [0, 1] : [1, 0], transform: opening ? ['translateY(-4px)', 'none'] : ['none', 'translateY(-4px)'] },
+          { duration: opening ? 320 : 200, easing: 'ease-out', fill: 'both' }
+        ));
+
+        animation.onfinish = () => {
+          if (!opening) details.open = false;
+          delete details.dataset.closing;
+          details.style.overflow = '';
+          content.forEach(el => el.getAnimations().forEach(a => a.cancel()));
+          animation = null;
+        };
+      });
+    });
+  }
 });
