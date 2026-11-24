@@ -1170,10 +1170,10 @@ function construire() {
   const a = Math.atan2(50, 69);
   for (const x of [-25, 25]) for (const s of [-1, 1]) L(tj, 3, 85, 2.5, x, 34.5, s * 1.5, blancJ).rotation.x = s * a;
   L(tj, 50, 2.5, 2.5, 0, 34.5, 0, blancJ);                          // entretoise au croisement
-  tj.position.set(X(470), 0, Z(175));                               // collée au garde-corps
+  tj.position.set(X(470), 0, Z(175)); tj.rotation.y = Math.PI / 2;  // collée au garde-corps, pieds en X côté garde-corps et côté séjour
   // Deux chaises de jardin bleu turquoise très pâle, dossier plat arrondi sur le dessus (dossier côté +z local)
   const turquoise = mat.turquoise ??= M(0xcfe7e4, { roughness: 0.5 });
-  for (const [cx, cy, rot] of [[600, 174, Math.PI / 2], [470, 300, 0]]) {
+  for (const [cx, cy, rot] of [[406, 175, -Math.PI / 2], [534, 175, Math.PI / 2]]) {   // rangées sous la table, face à face, assises glissées sous le plateau
     const g = new THREE.Group(); g.userData.nom = 'Chaise de jardin'; g.name = 'Chaise de jardin';
     L(g, 44, 6, 44, 0, 43, 0, turquoise);                                           // assise (comme avant)
     for (const [a2, b2] of [[-19, -19], [19, -19], [-19, 19], [19, 19]]) L(g, 4, 40, 4, a2, 20, b2, turquoise);   // pieds
@@ -1609,7 +1609,7 @@ function basculeVisite() {
   $('joy').style.display = visite ? 'block' : 'none';
   $('aide').textContent = $('aide').dataset[visite ? 'visite' : 'orbite'];
   controls.enabled = !visite;
-  if (visite) { coupeAvant = coupe; coupe = false; pos.set(X(700), 0, Z(480)); yaw = Math.PI; pitch = -0.08; }
+  if (visite) { coupeAvant = coupe; coupe = false; pos.set(X(348), 0, Z(1820)); yaw = 0; pitch = -0.08; }   // juste derrière la porte d'entrée, face à l'appartement
   else { coupe = coupeAvant; touches.clear(); }
   camera.fov = visite ? 70 : 40; camera.near = visite ? 0.05 : 0.1; camera.updateProjectionMatrix();
   construire();
