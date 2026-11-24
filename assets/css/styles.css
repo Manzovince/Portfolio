@@ -384,18 +384,6 @@ td {
     outline-offset: 4px;
 }
 
-.nav-num {
-    display: none;
-    font-family: "IBM Plex Serif", serif;
-    font-size: .8rem;
-    font-weight: 400;
-    color: var(--color-primary);
-}
-
-#nav[data-theme="light"] .nav-num {
-    color: var(--color-secondary);
-}
-
 #nav-settings {
     display: flex;
     align-items: center;
@@ -516,10 +504,6 @@ td {
         text-transform: uppercase;
         line-height: 1.1;
         text-decoration: none;
-    }
-
-    .nav-num {
-        display: inline;
     }
 
     #nav-settings {
