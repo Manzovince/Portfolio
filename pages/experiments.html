@@ -27,15 +27,7 @@
     <link rel="icon" href="/assets/icons/favicon.png">
     <link rel="stylesheet" href="/assets/css/styles.css?v=20261124k">
     <meta name="theme-color" content="#03121a">
-    <script>
-        // Saved light theme, applied before the first paint (see setTheme in script.js)
-        try {
-            if (localStorage.getItem('theme') === 'light') {
-                document.documentElement.dataset.theme = 'light';
-                document.querySelector('meta[name="theme-color"]').content = '#e7d7c0';
-            }
-        } catch (e) {}
-    </script>
+    <!-- Always dark: the light theme saved on other pages is not applied here -->
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
