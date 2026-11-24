@@ -792,7 +792,7 @@ header {
 
 /* a wider margin of colour around the screens */
 .work-list .project-cover img {
-    width: 74%;
+    width: 64%;
 }
 
 @media (hover: hover) {
