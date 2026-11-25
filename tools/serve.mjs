@@ -25,6 +25,7 @@ async function route(path) {
   if ((m = path.match(/^\/recif-hexagonal(\/.*)?$/))) return { redirect: '/recif/' };
   if ((m = path.match(/^\/web-piano(\/.*)?$/))) return { redirect: '/octave/' };
   if ((m = path.match(/^\/dos-topo(\/.*)?$/))) return { redirect: '/arpent/' };
+  if (path !== '/faux-artiste/sw.js' && (m = path.match(/^\/faux-artiste(\/.*)?$/))) return { redirect: '/faussaire/' };
   if ((m = path.match(/^\/+(?:pages|apps|lab)\/(.*)$/))) return { redirect: '/' + m[1] };
   if (/^\/(?:tools\/|README\.md$|package\.json$|\.git)/.test(path)) return null;
 

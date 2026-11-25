@@ -1,9 +1,9 @@
-// Offline cache: network first, falling back to the cached copy.
-const C = 'faux-artiste-v28';
-self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(['./', 'index.html', 'words.js', 'icon.svg', 'manifest.webmanifest']))); self.skipWaiting(); });
-self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  e.respondWith(fetch(e.request).then(r => { const copy = r.clone(); caches.open(C).then(c => c.put(e.request, copy)); return r; })
-    .catch(() => caches.match(e.request)));
-});
+// Faux Artiste moved to /faussaire/ (2026-11-25). Everything else under
+// /faux-artiste/ 301s there; this worker only retires the old one on phones that
+// installed it: drop its cache, unregister, send open pages to the new URL.
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', e => e.waitUntil((async () => {
+  for (const k of await caches.keys()) if (k.startsWith('faux-artiste-')) await caches.delete(k);
+  await self.registration.unregister();
+  for (const c of await self.clients.matchAll({ type: 'window' })) c.navigate('/faussaire/');
+})()));
