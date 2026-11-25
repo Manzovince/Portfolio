@@ -43,8 +43,9 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Fredoka,sys
 body{min-height:100dvh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overscroll-behavior:none}
 button,input,select{font:inherit;color:inherit}
 button{touch-action:manipulation;-webkit-user-select:none;user-select:none}
-header{max-width:600px;margin:0 auto;padding:12px 16px 6px;display:flex;align-items:center;gap:8px}
-.logo{font-family:Caveat,cursive;font-size:clamp(28px, 9vw, 36px);font-weight:700;letter-spacing:.5px;flex:1;min-width:0;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header{max-width:600px;margin:0 auto;padding:6px 16px 0;display:flex;align-items:center;gap:6px}
+header .iconbtn{height:36px;min-width:36px;padding:0 8px;font-size:16px;border-radius:10px}
+.logo{font-family:Caveat,cursive;font-size:clamp(24px, 7vw, 28px);font-weight:700;letter-spacing:.5px;flex:1;min-width:0;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .logo span{color:var(--accent)}
 .iconbtn{flex:none;border:1px solid var(--line);background:transparent;border-radius:var(--r);height:48px;min-width:48px;padding:0 12px;cursor:pointer;font-weight:600;font-size:18px;display:inline-flex;align-items:center;justify-content:center}
 .iconbtn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:transparent}
@@ -82,8 +83,8 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:52px
   background-position:calc(100% - 26px) 52%,calc(100% - 19px) 52%;background-size:7px 7px;background-repeat:no-repeat}
 .players{display:flex;flex-direction:column;gap:10px}
 .flabel{display:block;font-size:16px;font-weight:600;margin-bottom:8px}
-.games{display:flex;flex-direction:column;gap:10px}
-.game{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:var(--r);min-height:78px;padding:12px 14px;cursor:pointer;transition:transform .08s,opacity .15s}
+.games{display:flex;flex-direction:column;gap:8px}
+.game{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:var(--r);min-height:70px;padding:9px 14px;cursor:pointer;transition:transform .08s,opacity .15s}
 .game:active{transform:scale(.98)}
 .game .ico{font-size:32px;line-height:1;flex:none}
 .game .gt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
@@ -142,6 +143,11 @@ body.drawing main{flex:1;min-height:0;width:100%;display:flex;flex-direction:col
 .taphint{font-size:14px;margin:8px 2px 0;text-align:center}
 .paper.view{width:min(86%, 360px);min-width:0}
 .paper.view.small{width:min(62%, 240px);margin-top:8px}
+/* Vote screens: the drawing shrinks with the screen height so names + button stay in view. */
+.paper.view.fit{width:min(86%, 360px, calc((100dvh - 510px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 3 / 5));min-width:140px}
+.vote .chip{min-height:54px;padding:8px 12px}
+h2.vh{margin:4px 0 6px}
+.vhint{font-size:15px;margin:0 0 10px}
 .chain .chs,.chain .chw{text-align:center;padding:12px 0;border-bottom:1px solid var(--line)}
 .chain .chs:last-child{border-bottom:0}
 .chain .chn{display:flex;align-items:center;justify-content:center;gap:2px;font-size:16px}
@@ -195,7 +201,7 @@ dialog h2{margin:0 0 14px}
 .emo button{aspect-ratio:1;font-size:28px;border-radius:10px;border:0;background:var(--bg);cursor:pointer;padding:0}
 .emo button.taken{opacity:.3}
 .emo button[aria-pressed="true"]{box-shadow:inset 0 0 0 3px var(--ink);opacity:1}
-.galhead{display:flex;align-items:center;gap:12px;margin:4px 0 14px}
+.galhead{display:flex;align-items:center;gap:12px;margin:0 0 8px}
 .galhead h2{flex:1;margin:0}
 .galhead .t{flex:1;min-width:0}
 .galhead .t small{color:var(--muted);font-size:15px}
@@ -253,7 +259,7 @@ dialog h2{margin:0 0 14px}
 [data-skin="enquete"] select,[data-skin="enquete"] input[type=text]{background-color:var(--card);border:0;border-bottom:1.5px solid var(--ink);border-radius:0}
 [data-skin="enquete"] .card{border-top:1.5px dashed var(--line)}
 [data-skin="enquete"] .card h3,[data-skin="enquete"] .sub{color:var(--ink);letter-spacing:.14em}
-[data-skin="enquete"] .logo{font-family:'Special Elite',monospace;font-size:clamp(20px,6vw,26px);letter-spacing:.06em;text-transform:uppercase}
+[data-skin="enquete"] .logo{font-family:'Special Elite',monospace;font-size:clamp(17px,5vw,20px);letter-spacing:.06em;text-transform:uppercase}
 [data-skin="enquete"] .logo span{color:var(--accent)}
 [data-skin="enquete"] h2,[data-skin="enquete"] .big-name,[data-skin="enquete"] .drawbar .who{font-weight:400}
 [data-skin="enquete"] .role{background:#fff;border:0;box-shadow:var(--shadow);position:relative}
@@ -1285,19 +1291,19 @@ function renderVote() {
   const g = S.game;
   if (g.secret) {
     app.innerHTML = `
-      <h2 class="center">${t('voteTitle')}</h2>
-      <p class="center muted">${t('discussHint')}</p>
-      <div class="paper view"><canvas id="cv"></canvas></div>${tapHint()}
+      <h2 class="center vh">${t('voteTitle')}</h2>
+      <p class="center muted vhint">${t('discussHint')}</p>
+      <div class="paper view fit" style="width:min(86%, 360px, calc((100dvh - 300px) * 3 / 5))"><canvas id="cv"></canvas></div>${tapHint()}
       <div class="sticky"><button class="btn accent" id="ok">${t('startVote')} →</button></div>`;
     mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color, who: whoOf });
     $('ok').onclick = () => { g.votes = {}; g.voteI = 0; go('votePass'); };
     return;
   }
   app.innerHTML = `
-    <h2 class="center">${t('voteTitle')}</h2>
-    <p class="center muted">${t('voteHint')}</p>
-    <div class="paper view"><canvas id="cv"></canvas></div>${tapHint()}
-    <div class="grid">${g.drawers.map(id => `<button class="chip" data-id="${id}" aria-pressed="false">${dotOf(id)}<span>${nameOf(id)}</span></button>`).join('')}
+    <h2 class="center vh">${t('voteTitle')}</h2>
+    <p class="center muted vhint">${t('voteHint')}</p>
+    <div class="paper view fit"><canvas id="cv"></canvas></div>${tapHint()}
+    <div class="grid vote">${g.drawers.map(id => `<button class="chip" data-id="${id}" aria-pressed="false">${dotOf(id)}<span>${nameOf(id)}</span></button>`).join('')}
       <button class="chip" data-id="tie" aria-pressed="false" style="justify-content:center">⚖️ ${t('tie')}</button></div>
     <div class="sticky"><button class="btn accent" id="ok" disabled>${t('revealVote')}</button></div>`;
   mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color, who: whoOf });
@@ -1337,8 +1343,8 @@ function renderBallot() {
   app.innerHTML = `
     <div class="center" style="font-size:20px">${dotOf(me)}<b>${nameOf(me)}</b></div>
     <p class="center muted">${t('ballotHint')}</p>
-    <div class="grid" style="margin-bottom:14px">${g.drawers.filter(id => id !== me).map(id => `<button class="chip" data-id="${id}" aria-pressed="false">${dotOf(id)}<span>${nameOf(id)}</span></button>`).join('')}</div>
-    <div class="paper view"><canvas id="cv"></canvas></div>
+    <div class="grid vote" style="margin-bottom:14px">${g.drawers.filter(id => id !== me).map(id => `<button class="chip" data-id="${id}" aria-pressed="false">${dotOf(id)}<span>${nameOf(id)}</span></button>`).join('')}</div>
+    <div class="paper view fit"><canvas id="cv"></canvas></div>
     <div class="sticky"><button class="btn accent" id="ok" disabled>${t('castVote')}</button></div>`;
   mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color, who: whoOf });
   let sel = null;
