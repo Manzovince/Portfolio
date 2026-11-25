@@ -327,7 +327,7 @@ const T = {
     chFrom: 'Mot de départ', chFromRandom: 'Au hasard', chFromOwn: 'Écrit par un joueur',
     chFromOwnHint: 'Le premier joueur écrit le mot ou la phrase de son choix.', chFromRandomHint: 'Le téléphone tire un mot de la catégorie.', chDrawToo: 'Ensuite, dessine-le toi-même : tu commences la chaîne.',
     chAgain: 'Rejouer', chWrote: 'a écrit', chDrew: 'a dessiné', chOk: 'Valider',
-    start: 'Commencer la manche', resetScores: 'Remettre les scores à zéro',
+    start: 'Commencer la manche', resetScores: 'Remettre les scores à zéro', resetAsk: 'Remettre les scores à zéro\u00a0?', resetHint: 'Tous les joueurs repartent à 0 point.', resetOk: 'Remettre à zéro',
     needPlayers: n => `Il faut au moins ${n} joueurs.`,
     gmTitle: 'Maître du jeu', gmPass: name => `Passe le téléphone à <b>${name}</b>, le maître du jeu.`,
     gmReady: 'Je suis le maître du jeu', gmCat: 'Catégorie (annoncée à tous)', gmWord: 'Mot secret',
@@ -432,7 +432,7 @@ const T = {
     chFrom: 'Starting word', chFromRandom: 'Random', chFromOwn: 'Written by a player',
     chFromOwnHint: 'The first player writes any word or phrase they like.', chFromRandomHint: 'The phone picks a word from the category.', chDrawToo: 'Then draw it yourself: you start the chain.',
     chAgain: 'Play again', chWrote: 'wrote', chDrew: 'drew', chOk: 'Confirm',
-    start: 'Start the round', resetScores: 'Reset scores',
+    start: 'Start the round', resetScores: 'Reset scores', resetAsk: 'Reset the scores?', resetHint: 'Every player goes back to 0 points.', resetOk: 'Reset',
     needPlayers: n => `You need at least ${n} players.`,
     gmTitle: 'Question master', gmPass: name => `Hand the phone to <b>${name}</b>, the question master.`,
     gmReady: 'I\'m the question master', gmCat: 'Category (told to everyone)', gmWord: 'Secret word',
@@ -1886,13 +1886,14 @@ function renderResult() {
 }
 
 // ---------- chrome ----------
-// Settings menu: gallery, rules and language (gallery and language only between rounds, as before).
+// Settings menu: gallery, rules, score reset and language (gallery and language only between rounds, as before).
 function openMenu() {
   const g = S.game, between = !g || !!view || g.phase === 'result' || g.phase === 'sameEnd' || g.phase === 'chainEnd' || g.phase === 'sabEnd' || g.phase === 'bluffEnd';
   modal(`<h2>${t('menu')}</h2>
     <div class="menu">
       ${between ? `<button class="btn" id="mGal">🖼️ ${t('gallery')}</button>` : ''}
       <button class="btn" id="mRules">📖 ${t('rulesTitle')}</button>
+      <button class="btn" id="mReset"${S.players.some(p => p.score) ? '' : ' disabled'}>🔄 ${t('resetScores')}</button>
       <div class="field"><label class="flabel">${t('skin')}</label>
         <div class="seg" id="mSkin">${Object.keys(SKINS).map(k => `<button data-v="${k}" aria-pressed="${(S.skin || 'classic') === k}">${t('skinNames')[k]}</button>`).join('')}</div></div>
       ${!g || view ? `<div class="field"><label class="flabel">${t('language')}</label>
@@ -1901,6 +1902,7 @@ function openMenu() {
     <button class="btn primary" id="mClose" style="margin-top:18px">${t('close')}</button>`);
   $('mGal')?.addEventListener('click', () => { dlg.close(); openGallery(); });
   $('mRules').onclick = showRules;
+  $('mReset').onclick = () => ask(t('resetAsk'), t('resetHint'), t('resetOk'), () => { S.players.forEach(p => p.score = 0); save(); render(); });
   $('mSkin').querySelectorAll('button').forEach(b => b.onclick = () => { S.skin = b.dataset.v; save(); render(); openMenu(); });
   $('mLang')?.querySelectorAll('button').forEach(b => b.onclick = () => { S.lang = b.dataset.v; save(); render(); openMenu(); });
   $('mClose').onclick = () => dlg.close();
