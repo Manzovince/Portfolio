@@ -679,24 +679,19 @@ function renderSetup() {
     </div>` : ''}
     ${step === 'settings' ? `<div class="card" style="border-top:0;padding-top:4px">
       <h3>${t('settingsTitle')}</h3>
-      ${S.variant === 'bluff' ? `<div class="field" style="margin-top:0"><label>${t('target')}</label>
-        <div class="seg" id="targetSeg">${[3, 5, 7, 10].map(n => `<button data-v="${n}" aria-pressed="${S.target === n}">${n}</button>`).join('')}</div></div>
+      ${S.variant === 'bluff' ? `
       ${inkF}
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
     </div>` : S.variant === 'sab' ? `<div class="field" style="margin-top:0"><label>${t('sabStrokes')}</label>
         <div class="seg" id="sabSeg">${[1, 2, 3].map(n => `<button data-v="${n}" aria-pressed="${(S.sabStrokes || 2) === n}">${n}</button>`).join('')}</div></div>
       <div class="field"><label for="catSel">${t('category')}</label>
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
-      <div class="field"><label>${t('target')}</label>
-        <div class="seg" id="targetSeg">${[3, 5, 7, 10].map(n => `<button data-v="${n}" aria-pressed="${S.target === n}">${n}</button>`).join('')}</div></div>
       ${inkF}
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
     </div>` : S.variant === 'same' ? `<div class="field" style="margin-top:0"><label>${t('sameStrokes')}</label>
         <div class="seg" id="sameSeg">${[2, 3, 4, 5].map(n => `<button data-v="${n}" aria-pressed="${(S.sameStrokes || 3) === n}">${n}</button>`).join('')}</div></div>
       <div class="field"><label for="catSel">${t('category')}</label>
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
-      <div class="field"><label>${t('target')}</label>
-        <div class="seg" id="targetSeg">${[3, 5, 7, 10].map(n => `<button data-v="${n}" aria-pressed="${S.target === n}">${n}</button>`).join('')}</div></div>
       ${inkF}
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
     </div>` : S.variant === 'chain' ? `<div class="field" style="margin-top:0"><label>${t('chFrom')}</label>
@@ -730,8 +725,6 @@ function renderSetup() {
       <div class="field"><label for="ffRange" class="rlabel"><span>${t('firstFake')}</span><b id="ffVal"></b></label>
         <div class="rrow"><button class="step" id="ffMinus" aria-label="−1">−</button><input type="range" id="ffRange" min="0" max="100" step="1"><button class="step" id="ffPlus" aria-label="+1">+</button></div>
         ${S.firstFake != null ? `<button class="link" id="ffReset" style="margin:4px 0 0 auto">${t('firstReset')}</button>` : ''}</div>
-      <div class="field"><label>${t('target')}</label>
-        <div class="seg" id="targetSeg">${[3, 5, 7, 10].map(n => `<button data-v="${n}" aria-pressed="${S.target === n}">${n}</button>`).join('')}</div></div>
       ${inkF}
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
     </div>`}` : ''}
@@ -779,7 +772,6 @@ function renderSetup() {
   seg('modeSeg', v => S.mode = v);
   seg('roundSeg', v => S.rounds = +v);
   seg('voteSeg', v => S.voteMode = v);
-  seg('targetSeg', v => S.target = +v);
   $('catSel')?.addEventListener('change', e => { S.cat = e.target.value; save(); });
   $('resetBtn')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); save(); renderSetup(); });
   $('startBtn')?.addEventListener('click', startGame);
@@ -1451,28 +1443,25 @@ function renderSameEnd() {
     g.scored = true; save();
   }
   const ranked = [...S.players].sort((a, b) => b.score - a.score);
-  const champ = ranked[0].score >= S.target && (ranked.length < 2 || ranked[1].score < ranked[0].score) ? ranked[0] : null;
   app.innerHTML = `
     <div class="verdict ${diff ? 'fake' : 'art'}"><h2>${diff ? t('endDiff') : t('endSame')}</h2></div>
     <div class="card"><ul class="scores">${g.drawers.map(id => { const bt = g.bets[id]; return `<li style="flex-wrap:wrap">${dotOf(id)}<span class="n">${nameOf(id)} <span class="muted">${t('hadWord')}</span> <b>${esc(sameWord(g, id))}</b></span>
       <span class="gain">${g.gains[id] ? '+' + g.gains[id] : ''}</span>
       <div style="flex-basis:100%;font-size:15px;color:var(--muted);padding-left:2.2em">${t('betSaid')(bt.b)} · ${bt.ok ? '✓ ' + t('betOk') : '✗ ' + t('betKo')}${bt.guess ? ` · ${bt.hit ? '✓ ' + t('guessOk')(esc(bt.guess)) : t('guessKo')(esc(bt.guess))}` : ''}</div></li>`; }).join('')}</ul>
       <p class="muted center" style="font-size:14px;margin:8px 0 0">${t('rulesSame')}</p></div>
-    ${champ ? `<div class="trophy">${t('champion')(esc(pname(champ)))}</div>` : ''}
     <div class="card">
       <div class="paper view"><canvas id="cv"></canvas></div>
       ${g.archived ? `<p class="note">${t('saved')}</p>` : ''}
       <div class="row"><button class="btn" id="replay">▶ ${t('replay')}</button><button class="btn" id="dl">⬇ ${t('save')}</button></div>
     </div>
     <div class="card"><h3>${t('scores')}</h3><ul class="scores">${ranked.map(p => `<li>${dotOf(p.id)}<span class="n">${esc(pname(p))}</span><span class="pts">${p.score}</span></li>`).join('')}</ul></div>
-    ${champ ? `<button class="btn primary" id="newGame">${t('newGame')}</button>` : `<button class="btn primary" id="next">${t('next')} →</button>`}
+    <button class="btn primary" id="next">${t('next')} →</button>
     <button class="btn" id="settings">${t('settings')}</button>`;
   const colorOf = s => P(s.id)?.color;
   const api = mountCanvas($('cv'), { strokes: () => g.strokes, colorOf });
   $('replay').onclick = replayer(api, g.strokes);
   $('dl').onclick = () => downloadPng(g.strokes, colorOf, wordText(g));
   $('next')?.addEventListener('click', startSame);
-  $('newGame')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); startSame(); });
   $('settings').onclick = () => { S.game = null; save(); goStep('settings'); };
 }
 
@@ -1567,13 +1556,11 @@ function renderSabEnd() {
   }
   const gName = nameOf(g.guesser), good = g.hit === 'word';
   const ranked = [...S.players].sort((a, b) => b.score - a.score);
-  const champ = ranked[0].score >= S.target && (ranked.length < 2 || ranked[1].score < ranked[0].score) ? ranked[0] : null;
   app.innerHTML = `
     <div class="verdict ${good ? 'art' : 'fake'}"><h2>${good ? t('sabFound')(gName) : g.hit === 'sab' ? t('sabTricked')(gName) : t('sabMissed')(gName)}</h2>
       <p>« ${esc(g.guess)} »</p></div>
     <div class="compare"><div><small>${t('sabWord')}</small><b>${esc(wordText(g))}</b></div><div><small>${t('sabHisWord')} 🤫</small><b>${esc(forgerWord(g))}</b></div></div>
     <p class="center" style="font-size:18px;margin:12px 0"><b>${caught ? t('sabCaught') : t('sabFree')}</b><br>${t('sabWas')(nameOf(sab))}</p>
-    ${champ ? `<div class="trophy">${t('champion')(esc(pname(champ)))}</div>` : ''}
     <div class="card">
       <div class="paper view"><canvas id="cv"></canvas></div>
       <div class="legend">${g.drawers.map(id => `<span>${dotOf(id)}${nameOf(id)}${roleIcon(g, id)}</span>`).join('')}</div>
@@ -1583,7 +1570,7 @@ function renderSabEnd() {
     <div class="card"><h3>${t('scores')}</h3><ul class="scores">${ranked.map(p => `<li>${dotOf(p.id)}<span class="n">${esc(pname(p))}${p.id === g.guesser ? ` · ${t('guesser')}` : ''}${roleIcon(g, p.id)}</span>
       <span class="gain">${g.gains[p.id] ? '+' + g.gains[p.id] : ''}</span><span class="pts">${p.score}</span></li>`).join('')}</ul>
       <p class="muted center" style="font-size:14px;margin:8px 0 0">${t('sabRules')}</p></div>
-    ${champ ? `<button class="btn primary" id="newGame">${t('newGame')}</button>` : `<button class="btn primary" id="next">${t('next')} →</button>`}
+    <button class="btn primary" id="next">${t('next')} →</button>
     <button class="btn" id="settings">${t('settings')}</button>`;
   // Colours come back on the result so everyone sees who drew what.
   const colorOf = s => P(s.id)?.color;
@@ -1591,7 +1578,6 @@ function renderSabEnd() {
   $('replay').onclick = replayer(api, g.strokes);
   $('dl').onclick = () => downloadPng(g.strokes, colorOf, wordText(g));
   $('next')?.addEventListener('click', startSab);
-  $('newGame')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); startSab(); });
   $('settings').onclick = () => { S.game = null; save(); goStep('settings'); };
 }
 
@@ -1727,7 +1713,6 @@ function renderBluffEnd() {
   const rows = g.titles.map((x, i) => ({ ...x, i, voters: votersOf(i) }))
     .sort((a, b) => (a.by === null ? -1 : b.by === null ? 1 : b.voters.length - a.voters.length));
   const ranked = [...S.players].sort((a, b) => b.score - a.score);
-  const champ = ranked[0].score >= S.target && (ranked.length < 2 || ranked[1].score < ranked[0].score) ? ranked[0] : null;
   app.innerHTML = `
     <div class="verdict ${found ? 'art' : 'fake'}"><h2>${found ? t('blFound')(found) : t('blNobody')}</h2></div>
     <p class="center" style="margin:6px 0 12px">${t('blReal')}<br><span class="word">${esc(g.custom.word)}</span></p>
@@ -1735,7 +1720,6 @@ function renderBluffEnd() {
       <span class="n" style="white-space:normal">${r.by === null ? '<b>' + esc(r.text) + '</b>' : '« ' + esc(r.text) + ' »'}</span>
       <span>${r.voters.map(id => dotOf(id)).join('')}</span>
       <div style="flex-basis:100%;font-size:15px;color:var(--muted)">${r.by === null ? `${t('blRealTag')} · ${dotOf(g.drawer)}${nameOf(g.drawer)}` : `${t('blBy')} ${dotOf(r.by)}${nameOf(r.by)}`}</div></li>`).join('')}</ul></div>
-    ${champ ? `<div class="trophy">${t('champion')(esc(pname(champ)))}</div>` : ''}
     <div class="card">
       <div class="paper view"><canvas id="cv"></canvas></div>
       ${g.archived ? `<p class="note">${t('saved')}</p>` : ''}
@@ -1744,14 +1728,13 @@ function renderBluffEnd() {
     <div class="card"><h3>${t('scores')}</h3><ul class="scores">${ranked.map(p => `<li>${dotOf(p.id)}<span class="n">${esc(pname(p))}</span>
       <span class="gain">${g.gains[p.id] ? '+' + g.gains[p.id] : ''}</span><span class="pts">${p.score}</span></li>`).join('')}</ul>
       <p class="muted center" style="font-size:14px;margin:8px 0 0">${t('blPts')}</p></div>
-    ${champ ? `<button class="btn primary" id="newGame">${t('newGame')}</button>` : `<button class="btn primary" id="next">${t('next')} →</button>`}
+    <button class="btn primary" id="next">${t('next')} →</button>
     <button class="btn" id="settings">${t('settings')}</button>`;
   const colorOf = s => P(s.id)?.color;
   const api = mountCanvas($('cv'), { strokes: () => g.strokes, colorOf });
   $('replay').onclick = replayer(api, g.strokes);
   $('dl').onclick = () => downloadPng(g.strokes, colorOf, g.custom.word);
   $('next')?.addEventListener('click', startBluff);
-  $('newGame')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); startBluff(); });
   $('settings').onclick = () => { S.game = null; save(); goStep('settings'); };
 }
 
@@ -1881,11 +1864,9 @@ function renderResult() {
   const reason = { tie: t('rTie')(f), wrong: t('rWrong')(a, f), guessed: t('rGuessed')(a) + more, caught: t('rCaught')(a) + more, forger: t('rForger')(a, esc(forgerWord(g))) + more }[o.reason];
   const fw = imp.some(id => roleOf(g, id) === 'forger') ? forgerWord(g) : '';
   const ranked = [...S.players].sort((a, b) => b.score - a.score);
-  const champ = ranked[0].score >= S.target && (ranked.length < 2 || ranked[1].score < ranked[0].score) ? ranked[0] : null;
   app.innerHTML = `
     <div class="verdict ${o.fakeWins ? 'fake' : 'art'}"><h2>${o.fakeWins ? (SKIN_T[S.skin]?.[S.lang]?.fakeWins ?? t(winT)) : t('artistsWin')}</h2><p>${reason}</p></div>
     <p class="center" style="margin:6px 0 12px">${t('wordWas')}<br><span class="word">${esc(wordText(g))}</span><br><span class="catpill">${esc(catText(g))}</span>${fw ? `<br><small class="muted">${t('forgerWas')}${t('colon')}<b>${esc(fw)}</b> 🥸</small>` : ''}</p>
-    ${champ ? `<div class="trophy">${t('champion')(esc(pname(champ)))}</div>` : ''}
     <div class="card">
       <div class="paper view"><canvas id="cv"></canvas></div>
       <div class="legend">${g.drawers.map(id => `<span>${dotOf(id)}${nameOf(id)}${roleIcon(g, id)}</span>`).join('')}</div>
@@ -1894,14 +1875,13 @@ function renderResult() {
     </div>
     <div class="card"><h3>${t('scores')}</h3><ul class="scores">${ranked.map(p => `<li>${dotOf(p.id)}<span class="n">${esc(pname(p))}${p.id === g.gm ? ` · ${t('gm')}` : ''}${roleIcon(g, p.id)}</span>
       <span class="gain">${g.gains[p.id] ? '+' + g.gains[p.id] : ''}</span><span class="pts">${p.score}</span></li>`).join('')}</ul></div>
-    ${champ ? `<button class="btn primary" id="newGame">${t('newGame')}</button>` : `<button class="btn primary" id="next">${t('next')} →</button>`}
+    <button class="btn primary" id="next">${t('next')} →</button>
     <button class="btn" id="settings">${t('settings')}</button>`;
   const colorOf = s => P(s.id)?.color;
   const api = mountCanvas($('cv'), { strokes: () => g.strokes, colorOf });
   $('replay').onclick = replayer(api, g.strokes);
   $('dl').onclick = () => downloadPng(g.strokes, colorOf, wordText(g));
   $('next')?.addEventListener('click', startGame);
-  $('newGame')?.addEventListener('click', () => { S.players.forEach(p => p.score = 0); startGame(); });
   $('settings').onclick = () => { S.game = null; save(); goStep('settings'); };
 }
 
