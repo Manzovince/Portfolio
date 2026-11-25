@@ -10,6 +10,7 @@
   const TREAD = 75, RISER = 70;        // staircase geometry (viewBox units)
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const desktop = window.matchMedia("(min-width: 900px)");
 
   // ----- Shapes -----
 
@@ -106,9 +107,11 @@
       const r = svg.getBoundingClientRect();
       const vh = window.innerHeight;
       const centre = r.top + r.height / 2;
-      // still tangled until the drawing's centre reaches 70% of the screen
-      // height, tidy once it reaches 30%
-      return clamp01((vh * 0.7 - centre) / (vh * 0.4));
+      // tidy once the drawing's centre reaches 30% of the screen height
+      // (on desktop: just past the middle, 45%); tangled 40% of the screen
+      // height before that
+      const end = desktop.matches ? 0.45 : 0.3;
+      return clamp01((vh * (end + 0.4) - centre) / (vh * 0.4));
     }
 
     function draw(now) {
