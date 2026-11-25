@@ -50,6 +50,33 @@ window.CATEGORIES = [
     ['soucoupe volante','flying saucer'],['baguette magique','magic wand'],['momie','mummy'],['coffre au trésor','treasure chest'],['bonhomme de neige','snowman'],['super-héros','superhero'] ] },
 ];
 
+// Word difficulty, in list order: 1 easy, 2 medium. The 6 hard words (level 3) are appended to each
+// category below, after the original 18, so saved indices (used words, gallery) stay valid.
+window.WORD_LV = {
+  animaux: '111121121211222112', nourriture: '112112112211221222', objets: '111111211222211121',
+  metiers: '211122212122122221', sports: '111121212121121222', lieux: '111111122221222222',
+  transports: '111121122211222122', nature: '111111112121222122', maison: '122211212112222212',
+  vetements: '111121112211222222', musique: '112221221221222121', fiction: '211211122121112112',
+};
+window.HARD_WORDS = {
+  animaux: [['caméléon','chameleon'],['ornithorynque','platypus'],['hippocampe','seahorse'],['paresseux','sloth'],['fourmilier','anteater'],['morse','walrus']],
+  nourriture: [['fondue','fondue'],['ratatouille','ratatouille'],['brochette','skewer'],['soupe','soup'],['omelette','omelette'],['smoothie','smoothie']],
+  objets: [['boussole','compass'],['trombone','paperclip'],['aimant','magnet'],['thermomètre','thermometer'],['télécommande','remote control'],['cintre','coat hanger']],
+  metiers: [['avocat','lawyer'],['architecte','architect'],['journaliste','journalist'],['comptable','accountant'],['plombier','plumber'],['apiculteur','beekeeper']],
+  sports: [['curling','curling'],['escrime','fencing'],['aviron','rowing'],['parapente','paragliding'],['triathlon','triathlon'],['saut à la perche','pole vault']],
+  lieux: [['musée','museum'],['hôpital','hospital'],['mairie','town hall'],['banque','bank'],['laverie','laundromat'],['cimetière','cemetery']],
+  transports: [['tandem','tandem'],['péniche','barge'],['calèche','horse carriage'],['aéroglisseur','hovercraft'],['dirigeable','airship'],['chasse-neige','snowplough']],
+  nature: [['brouillard','fog'],['aurore boréale','northern lights'],['marée','tide'],['glacier','glacier'],['écho','echo'],['tremblement de terre','earthquake']],
+  maison: [['thermostat','thermostat'],['prise électrique','power socket'],['grenier','attic'],['cave','cellar'],['paillasson','doormat'],['radiateur','radiator']],
+  vetements: [['salopette','dungarees'],['kimono','kimono'],['poncho','poncho'],['bretelles','braces'],['monocle','monocle'],['mocassins','loafers']],
+  musique: [['rap','rap'],['opéra','opera'],['silence','silence'],['métronome','metronome'],['karaoké','karaoke'],['fanfare','marching band']],
+  fiction: [['loup-garou','werewolf'],['cyclope','cyclops'],['génie de la lampe','genie'],['centaure','centaur'],['téléportation','teleportation'],['voyage dans le temps','time travel']],
+};
+CATEGORIES.forEach(c => {
+  c.lv = [...WORD_LV[c.id]].map(Number);
+  (HARD_WORDS[c.id] || []).forEach(w => { c.words.push(w); c.lv.push(3); });
+});
+
 // Close-word pairs for the forger (Faux artiste) and "Même mot ?": different words that start out
 // drawn the same way (same outline, the difference is in a detail). c = a category id from above, or
 // a [fr, en] label shared by both words when they sit in different categories (both cards show it).

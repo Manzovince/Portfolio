@@ -131,6 +131,15 @@ body.drawing{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 body.drawing header{width:100%}
 body.drawing main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;padding-bottom:10px}
 .paperhint{position:absolute;left:10px;right:10px;top:10px;z-index:2;text-align:center;font-size:14px;color:#6f675d;pointer-events:none}
+.timer{display:inline-block;margin-top:2px;padding:2px 10px;border-radius:99px;background:var(--line);color:var(--ink);font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
+.timer.low{background:#e02424;color:#fff;animation:pop .3s ease-out}
+.tgo{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(255,253,248,.45);border:0;cursor:pointer;font:inherit;color:#1f1d1a}
+.tgo b{font-size:26px;padding:16px 26px;border-radius:99px;background:var(--accent);color:#fff;box-shadow:var(--shadow)}
+.tgo small{font-size:15px;color:#6f675d}
+.whotip{position:absolute;left:0;right:0;margin:0 auto;width:max-content;top:10px;z-index:3;display:flex;align-items:center;gap:2px;max-width:calc(100% - 20px);padding:6px 12px 6px 8px;border-radius:99px;background:rgba(255,253,248,.95);color:#1f1d1a;font-size:16px;font-weight:700;white-space:nowrap;box-shadow:0 4px 14px -6px rgba(0,0,0,.45);pointer-events:none;animation:pop .2s ease-out}
+.whotip small{font-weight:400;color:#6f675d;margin-left:6px}
+.toast{position:fixed;left:16px;right:16px;margin:0 auto;width:fit-content;bottom:110px;z-index:50;padding:12px 18px;border-radius:14px;background:#1f1d1a;color:#fff;font-size:17px;font-weight:600;box-shadow:var(--shadow);animation:pop .25s ease-out;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.taphint{font-size:14px;margin:8px 2px 0;text-align:center}
 .paper.view{width:min(86%, 360px);min-width:0}
 .paper.view.small{width:min(62%, 240px);margin-top:8px}
 .chain .chs,.chain .chw{text-align:center;padding:12px 0;border-bottom:1px solid var(--line)}
@@ -270,7 +279,7 @@ dialog h2{margin:0 0 14px}
 <main id="app"></main>
 <dialog id="rules"><div class="in" id="rulesBody"></div></dialog>
 
-<script src="words.js?v=4"></script>
+<script src="words.js?v=5"></script>
 <script>
 const KEY = 'faux-artiste-v1';
 // Ordered so the first players get the most distinct hues; all readable on the cream paper.
@@ -287,6 +296,11 @@ const T = {
     modeGmHint: 'À tour de rôle, un joueur choisit le mot et ne dessine pas. Il gagne avec le faussaire.',
     category: 'Catégorie', random: 'Au hasard', rounds: 'Tours de dessin', skin: 'Ambiance', skinNames: { classic: 'Classique', atelier: 'Atelier', enquete: 'Enquête' }, firstFake: 'Chance que le faussaire dessine en premier', firstAuto: n => `hasard (${n} %)`, firstReset: 'Remettre au hasard', target: 'Points pour gagner',
     ink: 'Encre', inkHint: 'Longueur maximale d\'un trait : le trait s\'arrête quand l\'encre est vide.', inkInf: '∞ Infinie', inkLots: 'Beaucoup', inkMid: 'Moyenne', inkLow: 'Peu',
+    timer: 'Temps pour dessiner', timerOff: 'Libre', timerHintStroke: 'Chaque joueur a ce temps pour tracer son trait ; le chrono démarre quand il touche « À toi ». Temps écoulé : le tour passe.', timerHintFree: 'Le chrono démarre quand le dessinateur touche « À toi » ; à zéro, le dessin est envoyé tel quel.',
+    timerGo: s => `À toi ! ${s} s`, timerReady: 'Touchez quand vous êtes prêt', timeUp: '⏱ Temps écoulé', timeUpSkip: n => `⏱ Temps écoulé : ${n} passe son tour`,
+    level: 'Difficulté des mots', lvAll: 'Toutes', lv1: 'Facile', lv2: 'Moyen', lv3: 'Difficile', lvHint: 'Difficile ajoute des mots plus durs à dessiner (métiers, lieux, notions…).',
+    orderK: 'Ordre de passage', orderShuffle: 'Mélangé', orderTable: 'Tour de table', orderShuffleHint: 'L\'ordre des joueurs est tiré au hasard à chaque partie.', orderTableHint: 'Toujours dans l\'ordre de la liste des joueurs (seul le premier change).',
+    tapStroke: 'Touchez un trait pour voir qui l\'a tracé.', strokeN: (i, n) => `trait ${i}/${n}`,
     menu: 'Paramètres', language: 'Langue', nextStep: 'Suivant', launch: 'Lancer la partie', needMore: n => `${n} joueurs minimum`, onlyN: n => `${n} joueurs seulement`,
     howMany: 'Combien de joueurs ?', chooseGame: 'Choisis un jeu', settingsTitle: 'Réglages',
     pitchFake: 'Un imposteur se cache parmi les artistes.', pitchChain: 'Le mot passe de main en main, dessin après dessin.', pitchSame: 'Duel : avez-vous le même mot ?',
@@ -392,6 +406,11 @@ const T = {
     modeGmHint: 'Players take turns choosing the word and sit out the drawing. They win with the forger.',
     category: 'Category', random: 'Random', rounds: 'Drawing rounds', skin: 'Look', skinNames: { classic: 'Classic', atelier: 'Studio', enquete: 'Case file' }, firstFake: 'Chance the forger draws first', firstAuto: n => `random (${n} %)`, firstReset: 'Back to random', target: 'Points to win',
     ink: 'Ink', inkHint: 'Longest possible line: the line stops when the ink runs out.', inkInf: '∞ Endless', inkLots: 'Lots', inkMid: 'Medium', inkLow: 'Little',
+    timer: 'Drawing time', timerOff: 'Free', timerHintStroke: 'Each player has this long for their line; the clock starts when they tap "Your turn". Time up: the turn passes.', timerHintFree: 'The clock starts when the drawer taps "Your turn"; at zero the drawing is sent as it is.',
+    timerGo: s => `Your turn! ${s} s`, timerReady: 'Tap when you are ready', timeUp: '⏱ Time\'s up', timeUpSkip: n => `⏱ Time's up: ${n} skips this turn`,
+    level: 'Word difficulty', lvAll: 'All', lv1: 'Easy', lv2: 'Medium', lv3: 'Hard', lvHint: 'Hard adds trickier words to draw (jobs, places, ideas…).',
+    orderK: 'Turn order', orderShuffle: 'Shuffled', orderTable: 'Around the table', orderShuffleHint: 'Players are put in a random order every game.', orderTableHint: 'Always in the player list\'s order (only the first player changes).',
+    tapStroke: 'Tap a line to see who drew it.', strokeN: (i, n) => `line ${i}/${n}`,
     menu: 'Settings', language: 'Language', nextStep: 'Next', launch: 'Start the game', needMore: n => `${n} players minimum`, onlyN: n => `${n} players only`,
     howMany: 'How many players?', chooseGame: 'Pick a game', settingsTitle: 'Settings',
     pitchFake: 'An impostor hides among the artists.', pitchChain: 'The word goes round, drawing after drawing.', pitchSame: 'A duel: do you have the same word?',
@@ -553,6 +572,39 @@ const INK_LEVELS = [[0, 'inkInf'], [3, 'inkLots'], [1.6, 'inkMid'], [0.8, 'inkLo
 const inkOf = v => (S.inkBy || {})[v] || 0;
 const inkBar = g => g.ink ? '<div class="inkbar" aria-hidden="true"><i id="inkLvl"></i></div>' : '';
 const inkShow = f => { const el = $('inkLvl'); if (el) { el.style.width = Math.max(0, f) * 100 + '%'; el.parentElement.classList.toggle('dry', f <= 0); } };
+// Drawing timer: per game, seconds per stroke (stroke-by-stroke games) or per drawing (free drawing).
+const TIME_LEVELS = { stroke: [0, 5, 10, 20, 30], free: [0, 30, 60, 90, 120] };
+const timeKind = v => v === 'chain' || v === 'bluff' ? 'free' : 'stroke';
+const timeOf = v => (S.timeBy || {})[v] || 0;
+let clock = 0;
+const stopClock = () => { clearInterval(clock); clock = 0; };
+function toast(msg) {
+  document.querySelectorAll('.toast').forEach(x => x.remove());
+  const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = msg;
+  document.body.append(d); setTimeout(() => d.remove(), 2400);
+}
+const clockPill = g => g.time ? `<br><span class="timer" id="tmr">⏱ ${g.time}</span>` : '';
+const clockCover = (g, started) => g.time && !started ? `<button class="tgo" id="tgo"><b>▶ ${t('timerGo')(g.time)}</b><small>${t('timerReady')}</small></button>` : '';
+// Counts down once the player taps the cover (or at once when `started`); at zero, ends any line
+// being drawn and calls onEnd. clk.up stays true afterwards so the canvas refuses new lines.
+function runClock(g, clk, api, onEnd, started) {
+  stopClock();
+  if (!g.time) return;
+  const el = $('tmr'); let left = g.time;
+  const show = () => { el.textContent = '⏱ ' + left; el.classList.toggle('low', left <= 5); };
+  const begin = () => {
+    $('tgo')?.remove(); show();
+    clock = setInterval(() => {
+      left--;
+      if (left <= 0) { stopClock(); clk.up = true; buzz([60, 40, 60]); api.stop(); onEnd(); return; }
+      if (left <= 3) buzz(10);
+      show();
+    }, 1000);
+  };
+  if (started) begin(); else $('tgo').onclick = begin;
+}
+const whoOf = s => { const p = P(s.id); return p ? av(p.color, p.emoji) + esc(pname(p)) : '?'; };
+const tapHint = () => `<p class="muted taphint">${t('tapStroke')}</p>`;
 // At least 2 artists; returns the clamped [fakes, forgers] for the current table.
 function roleCounts() {
   const d = S.players.length - (S.mode === 'gm' ? 1 : 0), max = Math.max(1, d - 2);
@@ -568,6 +620,7 @@ function forgerWord(g) {
 }
 const dotOf = (id, cls) => av(P(id).color, P(id).emoji, cls);
 const catById = id => CATEGORIES.find(c => c.id === id);
+const lvWords = c => { const l = c.words.filter((_, i) => !S.lvl || c.lv?.[i] === S.lvl); return l.length ? l : c.words; };
 const L = () => S.lang === 'fr' ? 0 : 1;
 function wordText(g) { return g.custom ? g.custom.word : g.pw ? g.pw[0][L()] : catById(g.catId).words[g.wordIdx][L()]; }
 function catText(g) {
@@ -599,6 +652,7 @@ function goStep(s) { step = s; render(); scrollTo(0, 0); }
 function go(phase) { if (S.game) S.game.phase = phase; save(); render(); scrollTo(0, 0); }
 
 function render() {
+  stopClock();
   document.documentElement.lang = S.lang;
   applySkin();
   const g = S.game;
@@ -654,6 +708,16 @@ function renderSetup() {
   const inkF = `<div class="field"><label>${t('ink')}</label>
         <div class="seg" id="inkSeg">${INK_LEVELS.map(([v, k]) => `<button data-v="${v}" aria-pressed="${inkOf(S.variant || 'fake') === v}">${t(k)}</button>`).join('')}</div>
         <p class="muted" style="font-size:15px;margin:8px 2px 0">${t('inkHint')}</p></div>`;
+  const vk = S.variant || 'fake', tk = timeKind(vk);
+  const timeF = `<div class="field"><label>${t('timer')}</label>
+        <div class="seg" id="timeSeg">${TIME_LEVELS[tk].map(v => `<button data-v="${v}" aria-pressed="${timeOf(vk) === v}">${v ? v + ' s' : t('timerOff')}</button>`).join('')}</div>
+        <p class="muted" style="font-size:15px;margin:8px 2px 0">${tk === 'free' ? t('timerHintFree') : t('timerHintStroke')}</p></div>`;
+  const lvF = `<div class="field"><label>${t('level')}</label>
+        <div class="seg" id="lvSeg">${[0, 1, 2, 3].map(v => `<button data-v="${v}" aria-pressed="${(S.lvl || 0) === v}">${t(v ? 'lv' + v : 'lvAll')}</button>`).join('')}</div>
+        ${S.lvl === 3 ? `<p class="muted" style="font-size:15px;margin:8px 2px 0">${t('lvHint')}</p>` : ''}</div>`;
+  const orderF = `<div class="field"><label>${t('orderK')}</label>
+        <div class="seg" id="orderSeg">${['shuffle', 'table'].map(k => `<button data-v="${k}" aria-pressed="${(S.orderMode || 'shuffle') === k}">${t(k === 'table' ? 'orderTable' : 'orderShuffle')}</button>`).join('')}</div>
+        <p class="muted" style="font-size:15px;margin:8px 2px 0">${S.orderMode === 'table' ? t('orderTableHint') : t('orderShuffleHint')}</p></div>`;
   app.innerHTML = `
     ${si > 0 ? `<div class="galhead"><button class="iconbtn" id="stepBack" aria-label="${t('back')}">←</button>
       <h2>${step === 'games' ? t('chooseGame') : `${cur[1]} ${t(cur[2])}`}</h2><span class="muted">${si + 1}/3</span></div>` : ''}
@@ -680,18 +744,22 @@ function renderSetup() {
     ${step === 'settings' ? `<div class="card" style="border-top:0;padding-top:4px">
       <h3>${t('settingsTitle')}</h3>
       ${S.variant === 'bluff' ? `
+      ${timeF}
       ${inkF}
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
     </div>` : S.variant === 'sab' ? `<div class="field" style="margin-top:0"><label>${t('sabStrokes')}</label>
         <div class="seg" id="sabSeg">${[1, 2, 3].map(n => `<button data-v="${n}" aria-pressed="${(S.sabStrokes || 2) === n}">${n}</button>`).join('')}</div></div>
       <div class="field"><label for="catSel">${t('category')}</label>
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
+      ${orderF}
+      ${timeF}
       ${inkF}
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
     </div>` : S.variant === 'same' ? `<div class="field" style="margin-top:0"><label>${t('sameStrokes')}</label>
         <div class="seg" id="sameSeg">${[2, 3, 4, 5].map(n => `<button data-v="${n}" aria-pressed="${(S.sameStrokes || 3) === n}">${n}</button>`).join('')}</div></div>
       <div class="field"><label for="catSel">${t('category')}</label>
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
+      ${timeF}
       ${inkF}
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
     </div>` : S.variant === 'chain' ? `<div class="field" style="margin-top:0"><label>${t('chFrom')}</label>
@@ -701,6 +769,9 @@ function renderSetup() {
         <div class="seg" id="strokeSeg">${[0, 1, 3, 5, 10].map(n => `<button data-v="${n}" aria-pressed="${(S.chainStrokes || 0) === n}">${n || t('chUnlimited')}</button>`).join('')}</div></div>
       <div class="field"><label for="catSel">${t('category')}</label>
         <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
+      ${lvF}
+      ${orderF}
+      ${timeF}
       ${inkF}
     </div>` : `
       <label class="flabel">${t('mode')}</label>
@@ -710,9 +781,11 @@ function renderSetup() {
       </div>
       <p class="muted" style="font-size:15px;margin:10px 2px 0">${S.mode === 'auto' ? t('modeAutoHint') : t('modeGmHint')}</p>
       ${S.mode === 'auto' ? `<div class="field"><label for="catSel">${t('category')}</label>
-        <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>` : ''}
+        <select id="catSel"><option value="random">${t('random')}</option>${cats}</select></div>
+      ${lvF}` : ''}
       <div class="field"><label>${t('rounds')}</label>
         <div class="seg" id="roundSeg">${[1, 2, 3].map(n => `<button data-v="${n}" aria-pressed="${S.rounds === n}">${n}</button>`).join('')}</div></div>
+      ${orderF}
       <div class="field"><label>${t('roles')}</label>
         ${[['nFake', 0], ['nForger', 1]].map(([k, j]) => `<div class="rrow" style="margin:6px 0">
           <button class="step" data-role="${k}" data-d="-1" aria-label="− ${t(k)}" ${roleCounts()[j] <= (roleCounts()[1 - j] ? 0 : 1) ? 'disabled' : ''}>−</button>
@@ -725,6 +798,7 @@ function renderSetup() {
       <div class="field"><label for="ffRange" class="rlabel"><span>${t('firstFake')}</span><b id="ffVal"></b></label>
         <div class="rrow"><button class="step" id="ffMinus" aria-label="−1">−</button><input type="range" id="ffRange" min="0" max="100" step="1"><button class="step" id="ffPlus" aria-label="+1">+</button></div>
         ${S.firstFake != null ? `<button class="link" id="ffReset" style="margin:4px 0 0 auto">${t('firstReset')}</button>` : ''}</div>
+      ${timeF}
       ${inkF}
       ${S.players.some(p => p.score) ? `<button class="link" id="resetBtn">${t('resetScores')}</button>` : ''}
     </div>`}` : ''}
@@ -761,6 +835,9 @@ function renderSetup() {
   seg('sameSeg', v => S.sameStrokes = +v);
   seg('sabSeg', v => S.sabStrokes = +v);
   seg('inkSeg', v => { S.inkBy = { ...(S.inkBy || {}), [S.variant || 'fake']: +v }; });
+  seg('timeSeg', v => { S.timeBy = { ...(S.timeBy || {}), [S.variant || 'fake']: +v }; });
+  seg('lvSeg', v => S.lvl = +v);
+  seg('orderSeg', v => S.orderMode = v);
   seg('fromSeg', v => S.chainFrom = v);
   seg('strokeSeg', v => S.chainStrokes = +v);
   app.querySelectorAll('[data-role]').forEach(b => b.onclick = () => {
@@ -813,7 +890,7 @@ function openPicker(p) {
 
 function pickWord(catFilter) {
   const pool = [];
-  CATEGORIES.forEach(c => { if (catFilter === 'random' || c.id === catFilter) c.words.forEach((_, i) => pool.push(c.id + ':' + i)); });
+  CATEGORIES.forEach(c => { if (catFilter === 'random' || c.id === catFilter) c.words.forEach((_, i) => { if (!S.lvl || c.lv?.[i] === S.lvl) pool.push(c.id + ':' + i); }); });
   let fresh = pool.filter(k => !S.used.includes(k));
   if (!fresh.length) { S.used = S.used.filter(k => !pool.includes(k)); fresh = pool; }
   const k = pick(fresh);
@@ -834,12 +911,14 @@ function startGame() {
   const shuffled = [...drawers].sort(() => Math.random() - .5);
   shuffled.slice(0, nf).forEach(id => roles[id] = 'fake');
   shuffled.slice(nf, nf + nk).forEach(id => roles[id] = 'forger');
+  // Drawing order: shuffled every game (default) or the player list's order; only the first player is drawn at random.
+  const seq = S.orderMode === 'table' ? drawers : shuffle([...drawers]);
   // S.firstFake (0–100, or null = plain random) is the chance an impostor (a fake artist if any) opens the drawing.
-  const lead = drawers.map((_, i) => i).filter(i => roles[drawers[i]] === (nf ? 'fake' : 'forger'));
-  let start = Math.floor(Math.random() * drawers.length);
+  const lead = seq.map((_, i) => i).filter(i => roles[seq[i]] === (nf ? 'fake' : 'forger'));
+  let start = Math.floor(Math.random() * seq.length);
   if (S.firstFake != null) {
     if (Math.random() * 100 < S.firstFake) start = pick(lead);
-    else { const others = drawers.map((_, i) => i).filter(i => !lead.includes(i)); start = pick(others); }
+    else { const others = seq.map((_, i) => i).filter(i => !lead.includes(i)); start = pick(others); }
   }
   let w = gm ? { custom: null } : pickWord(S.cat);
   if (!gm && nk) {
@@ -847,11 +926,11 @@ function startGame() {
     if (pr) w = pr;
     else { const c = catById(w.catId); w.forgerIdx = pick(c.words.map((_, i) => i).filter(i => i !== w.wordIdx)); }
   }
-  const loop = drawers.slice(start).concat(drawers.slice(0, start));
+  const loop = seq.slice(start).concat(seq.slice(0, start));
   const order = [];
   for (let r = 0; r < S.rounds; r++) order.push(...loop);
   view = null;
-  S.game = { ink: inkOf('fake'),
+  S.game = { ink: inkOf('fake'), time: timeOf('fake'),
     phase: gm ? 'gm' : 'pass', gm, drawers, roles, order, turn: 0, strokes: [], pending: false,
     revealI: 0, secret: S.voteMode === 'turns', votes: {}, voteI: 0, accused: null, guessed: null, outcome: null, scored: false,
     ...w,
@@ -887,7 +966,7 @@ function renderGm() {
   gw.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); gf ? gf.focus() : gw.blur(); } };
   if (gf) gf.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); gf.blur(); } };
   $('sug').onclick = () => {
-    const c = pick(CATEGORIES), [a, b] = [...c.words].sort(() => Math.random() - .5);
+    const c = pick(CATEGORIES), [a, b] = shuffle([...lvWords(c)]);
     gc.value = c[S.lang]; gw.value = a[L()]; if (gf) gf.value = b[L()]; upd();
   };
   goB.onclick = () => { g.custom = { cat: gc.value.trim(), word: gw.value.trim(), forger: gf ? gf.value.trim() : '' }; delete g.gmOpen; go('pass'); };
@@ -919,24 +998,33 @@ function renderReveal() {
 // ---------- drawing surface ----------
 const PAPER = '#fffdf8', MAXZ = 6;
 // Paints strokes in "world" units (w × h); the caller sets the view transform.
-function paint(ctx, w, h, strokes, colorOf, limit = Infinity, under) {
+// With `focus` (one of the strokes), the others are faded and it is drawn again on top.
+const lineW = w => Math.max(2.5, w * 0.011);
+function paint(ctx, w, h, strokes, colorOf, limit = Infinity, under, focus) {
   ctx.fillStyle = PAPER; ctx.fillRect(0, 0, w, h);
   under?.(ctx, w, h);
   ctx.lineCap = ctx.lineJoin = 'round';
-  ctx.lineWidth = Math.max(2.5, w * 0.011);
-  let budget = limit;
-  for (const s of strokes) {
-    if (budget <= 0) break;
-    const pts = s.pts.slice(0, Math.max(1, Math.min(s.pts.length, budget)));
-    budget -= s.pts.length;
+  ctx.lineWidth = lineW(w);
+  const one = (s, pts) => {
     ctx.strokeStyle = ctx.fillStyle = colorOf(s) || '#222';
-    if (pts.length === 1) { ctx.beginPath(); ctx.arc(pts[0][0] * w, pts[0][1] * h, ctx.lineWidth / 2, 0, 7); ctx.fill(); continue; }
+    if (pts.length === 1) { ctx.beginPath(); ctx.arc(pts[0][0] * w, pts[0][1] * h, ctx.lineWidth / 2, 0, 7); ctx.fill(); return; }
     ctx.beginPath(); ctx.moveTo(pts[0][0] * w, pts[0][1] * h);
     for (let i = 1; i < pts.length - 1; i++) {
       const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2;
       ctx.quadraticCurveTo(pts[i][0] * w, pts[i][1] * h, mx * w, my * h);
     }
     const l = pts[pts.length - 1]; ctx.lineTo(l[0] * w, l[1] * h); ctx.stroke();
+  };
+  let budget = limit;
+  if (focus) ctx.globalAlpha = .16;
+  for (const s of strokes) {
+    if (budget <= 0) break;
+    one(s, s.pts.slice(0, Math.max(1, Math.min(s.pts.length, budget))));
+    budget -= s.pts.length;
+  }
+  ctx.globalAlpha = 1;
+  if (focus && strokes.includes(focus)) {
+    ctx.lineWidth = lineW(w) * 1.6; one(focus, focus.pts); ctx.lineWidth = lineW(w);
   }
 }
 function paintStatic(cv, strokes, colorOf) { paint(cv.getContext('2d'), cv.width, cv.height, strokes, colorOf); }
@@ -964,11 +1052,40 @@ function mountCanvas(cv, o) {
   };
   const showLvl = () => { lvl.textContent = `×${v.s.toFixed(1)}`; lvl.style.opacity = 1; clearTimeout(lvlTimer); lvlTimer = setTimeout(() => lvl.style.opacity = 0, 900); };
 
+  // o.who(stroke, index) → label HTML: tapping a line on a view-only canvas highlights it and names its author.
+  let focus = null, tip = null;
+  const setFocus = (s) => {
+    focus = s; tip?.remove(); tip = null;
+    if (s) {
+      const all = o.strokes(), i = all.indexOf(s);
+      tip = document.createElement('div'); tip.className = 'whotip';
+      tip.innerHTML = o.who(s) + `<small>${t('strokeN')(i + 1, all.length)}</small>`;
+      wrap.append(tip); buzz(8);
+    }
+    draw();
+  };
   const draw = (limit = Infinity) => {
+    if (limit !== Infinity && focus) { focus = null; tip?.remove(); tip = null; } // replay clears the highlight
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = PAPER; ctx.fillRect(0, 0, cv.width, cv.height);
     ctx.setTransform(dpr * v.s, 0, 0, dpr * v.s, dpr * v.x, dpr * v.y);
-    paint(ctx, w, h, o.strokes(), o.colorOf, limit, o.under);
+    paint(ctx, w, h, o.strokes(), o.colorOf, limit, o.under, focus);
     ui();
+  };
+  // Nearest stroke to a screen point (topmost wins on ties), within a finger's reach.
+  const hit = ([px, py]) => {
+    const x = (px - v.x) / v.s, y = (py - v.y) / v.s, reach = Math.max(16 / v.s, lineW(w));
+    let best = null, bd = reach;
+    const all = o.strokes();
+    for (let k = all.length - 1; k >= 0; k--) {
+      const P2 = all[k].pts.map(([a, b]) => [a * w, b * h]);
+      for (let i = 0; i < P2.length; i++) {
+        const A = P2[i], B = P2[Math.min(i + 1, P2.length - 1)], dx = B[0] - A[0], dy = B[1] - A[1], L2 = dx * dx + dy * dy;
+        const u = L2 ? Math.min(1, Math.max(0, ((x - A[0]) * dx + (y - A[1]) * dy) / L2)) : 0;
+        const d = Math.hypot(x - A[0] - u * dx, y - A[1] - u * dy);
+        if (d < bd) { bd = d; best = all[k]; }
+      }
+    }
+    return best;
   };
   const fit = () => {
     const r = cv.getBoundingClientRect(); if (!r.width) return;
@@ -1073,11 +1190,14 @@ function mountCanvas(cv, o) {
       return;
     }
     if (!pts.size) mode = null;
-    // Double-tap toggles zoom on view-only canvases.
+    // Double-tap toggles zoom on view-only canvases; a single tap on a line names its author.
     if (!o.draw && tap && e.type === 'pointerup' && performance.now() - tap.t < 300) {
       const now = performance.now();
       if (now - lastTap.t < 320 && dist(lastTap.p, tap.p) < 30) { v.s > 1.01 ? reset() : zoomAt(tap.p[0], tap.p[1], 2.5); lastTap.t = 0; }
-      else lastTap = { t: now, p: tap.p };
+      else {
+        lastTap = { t: now, p: tap.p };
+        if (o.who) { const s = hit(tap.p); if (s !== focus) setFocus(s); }
+      }
     }
     tap = null;
   };
@@ -1092,9 +1212,16 @@ function mountCanvas(cv, o) {
   cv.addEventListener('gesturestart', e => { e.preventDefault(); gs0 = v.s; });
   cv.addEventListener('gesturechange', e => { e.preventDefault(); if (pts.size) return; const [px, py] = local(e); zoomAt(px, py, gs0 * e.scale); });
 
+  // Ends the line being drawn right now (time up), as if the finger had lifted.
+  const stop = () => {
+    if (mode !== 'draw' || !stroke) return;
+    const s = stroke; ignored.add(strokeId); pts.delete(strokeId);
+    mode = null; stroke = null; strokeId = null; o.draw.end(s); draw();
+  };
+
   new ResizeObserver(fit).observe(cv);
   fit();
-  return { draw, reset };
+  return { draw, reset, stop };
 }
 
 // Replay animation + PNG export, shared by the result screen and the gallery.
@@ -1123,20 +1250,20 @@ function renderDraw() {
   app.innerHTML = `
     <div class="drawbar">
       <div class="who">${dotOf(id)}<span>${nameOf(id)}</span></div>
-      <div class="meta">${t('turn')(Math.floor(g.turn / R) + 1, g.rounds || S.rounds)} · ${t('stroke')(g.turn + 1, g.order.length)}</div>
+      <div class="meta">${t('turn')(Math.floor(g.turn / R) + 1, g.rounds || S.rounds)} · ${t('stroke')(g.turn + 1, g.order.length)}${g.pending ? '' : clockPill(g)}</div>
     </div>
     ${inkBar(g)}
-    <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.turn < R && !g.pending ? `<div class="paperhint" id="phint">${t('drawHint')}</div>` : ''}</div></div>
+    <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.turn < R && !g.pending ? `<div class="paperhint" id="phint">${t('drawHint')}</div>` : ''}${g.pending ? '' : clockCover(g)}</div></div>
     <div class="row">
       <button class="btn" id="undo">↺ ${t('undo')}</button>
       <button class="btn primary" id="ok">${t('validate')} →</button>
     </div>`;
-  const undo = $('undo'), ok = $('ok');
+  const undo = $('undo'), ok = $('ok'), clk = { up: false };
   const sync = () => { undo.disabled = ok.disabled = !g.pending; };
   const api = mountCanvas($('cv'), {
     strokes: () => g.strokes, colorOf: s => g.kind === 'sab' ? INK : P(s.id)?.color,
     draw: {
-      can: () => !g.pending,
+      can: () => !g.pending && !clk.up,
       ink: () => g.ink, onInk: inkShow,
       start: p => { $('phint')?.remove(); const s = { id, pts: [p] }; g.strokes.push(s); return s; },
       cancel: () => { g.strokes.pop(); inkShow(1); },
@@ -1145,11 +1272,12 @@ function renderDraw() {
   });
   sync();
   undo.onclick = () => { if (!g.pending) return; g.strokes.pop(); g.pending = false; save(); sync(); api.draw(); inkShow(1); };
-  ok.onclick = () => {
-    if (!g.pending) return;
-    g.pending = false; g.turn++; buzz(15);
-    if (g.turn >= g.order.length) go(g.kind === 'same' ? 'betPass' : g.kind === 'sab' ? 'sabPass' : 'vote'); else { save(); renderDraw(); }
-  };
+  const next = () => { g.pending = false; g.turn++; buzz(15); if (g.turn >= g.order.length) go(g.kind === 'same' ? 'betPass' : g.kind === 'sab' ? 'sabPass' : 'vote'); else { save(); renderDraw(); } };
+  ok.onclick = () => { if (g.pending) next(); };
+  // Time up: a line already drawn is validated as it is; no line at all means the turn is skipped.
+  if (!g.pending) runClock(g, clk, api, () => { toast(g.pending ? t('timeUp') : t('timeUpSkip')(nameOf(id))); next(); });
+  // Back from a reload with a line waiting: show what ink it left.
+  else if (g.ink) { const s = g.strokes[g.strokes.length - 1]; if (s?.len != null) inkShow(1 - s.len / g.ink); }
 }
 
 // ---------- vote ----------
@@ -1159,20 +1287,20 @@ function renderVote() {
     app.innerHTML = `
       <h2 class="center">${t('voteTitle')}</h2>
       <p class="center muted">${t('discussHint')}</p>
-      <div class="paper view"><canvas id="cv"></canvas></div>
+      <div class="paper view"><canvas id="cv"></canvas></div>${tapHint()}
       <div class="sticky"><button class="btn accent" id="ok">${t('startVote')} →</button></div>`;
-    mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color });
+    mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color, who: whoOf });
     $('ok').onclick = () => { g.votes = {}; g.voteI = 0; go('votePass'); };
     return;
   }
   app.innerHTML = `
     <h2 class="center">${t('voteTitle')}</h2>
     <p class="center muted">${t('voteHint')}</p>
-    <div class="paper view"><canvas id="cv"></canvas></div>
+    <div class="paper view"><canvas id="cv"></canvas></div>${tapHint()}
     <div class="grid">${g.drawers.map(id => `<button class="chip" data-id="${id}" aria-pressed="false">${dotOf(id)}<span>${nameOf(id)}</span></button>`).join('')}
       <button class="chip" data-id="tie" aria-pressed="false" style="justify-content:center">⚖️ ${t('tie')}</button></div>
     <div class="sticky"><button class="btn accent" id="ok" disabled>${t('revealVote')}</button></div>`;
-  mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color });
+  mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color, who: whoOf });
   let sel = null;
   const ok = $('ok');
   app.querySelectorAll('.chip').forEach(b => b.onclick = () => {
@@ -1212,7 +1340,7 @@ function renderBallot() {
     <div class="grid" style="margin-bottom:14px">${g.drawers.filter(id => id !== me).map(id => `<button class="chip" data-id="${id}" aria-pressed="false">${dotOf(id)}<span>${nameOf(id)}</span></button>`).join('')}</div>
     <div class="paper view"><canvas id="cv"></canvas></div>
     <div class="sticky"><button class="btn accent" id="ok" disabled>${t('castVote')}</button></div>`;
-  mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color });
+  mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color, who: whoOf });
   let sel = null;
   const ok = $('ok');
   app.querySelectorAll('.chip').forEach(b => b.onclick = () => {
@@ -1252,6 +1380,7 @@ function renderTally() {
 // With "random" and an odd count, the first player gets a random word pre-filled, which they may keep or change.
 function startChain() {
   const ids = S.players.map(p => p.id), st = Math.floor(Math.random() * ids.length);
+  if (S.orderMode !== 'table') shuffle(ids);
   let order = ids.slice(st).concat(ids.slice(0, st));
   const pw = pickWord(S.cat), dealt = catById(pw.catId).words[pw.wordIdx][L()];
   const own = S.chainFrom === 'own', even = order.length % 2 === 0;
@@ -1261,7 +1390,7 @@ function startChain() {
   else if (even) order = [order[0], ...order];
   const kinds = order.map((_, i) => start == null && i === 0 ? 'start' : (i + (start == null ? 1 : 0)) % 2 === 0 ? 'draw' : 'word');
   view = null;
-  S.game = { kind: 'chain', ink: inkOf('chain'), phase: 'chainPass', order, kinds, max: S.chainStrokes || 0, i: 0, steps: [], cur: [], start, prefill };
+  S.game = { kind: 'chain', ink: inkOf('chain'), time: timeOf('chain'), phase: 'chainPass', order, kinds, max: S.chainStrokes || 0, i: 0, steps: [], cur: [], start, prefill };
   save(); render(); scrollTo(0, 0);
 }
 // Kind of step i: 'start' (write the starting word), 'draw' or 'word'.
@@ -1292,15 +1421,15 @@ function renderChainStep() {
     app.innerHTML = `
       <div class="drawbar">
         <div class="who">${dotOf(id)}<span>${nameOf(id)}</span></div>
-        <div class="meta">${t('chDraw')}${t('colon')}<b>${esc(chainWord(g))}</b>${g.max ? `<br><span id="left">${t('chLeft')(Math.min(g.cur.length + 1, g.max), g.max)}</span>` : ''}</div>
+        <div class="meta">${t('chDraw')}${t('colon')}<b>${esc(chainWord(g))}</b>${g.max ? `<br><span id="left">${t('chLeft')(Math.min(g.cur.length + 1, g.max), g.max)}</span>` : ''}${clockPill(g)}</div>
       </div>
       ${inkBar(g)}
-      <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.cur.length ? '' : `<div class="paperhint" id="phint">${g.max ? t('chDrawHintN')(g.max) : t('chDrawHint')}</div>`}</div></div>
+      <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.cur.length ? '' : `<div class="paperhint" id="phint">${g.max ? t('chDrawHintN')(g.max) : t('chDrawHint')}</div>`}${clockCover(g, g.cur.length > 0)}</div></div>
       <div class="row">
         <button class="btn" id="undo">↺ ${t('chUndo')}</button>
         <button class="btn primary" id="ok">${t('chOk')} →</button>
       </div>`;
-    const undo = $('undo'), ok = $('ok');
+    const undo = $('undo'), ok = $('ok'), clk = { up: false };
     const sync = () => {
       undo.disabled = ok.disabled = !g.cur.length;
       if ($('left')) $('left').textContent = t('chLeft')(Math.min(g.cur.length + (g.cur.length < g.max ? 1 : 0), g.max), g.max);
@@ -1308,16 +1437,18 @@ function renderChainStep() {
     const api = mountCanvas($('cv'), {
       strokes: () => g.cur, colorOf: () => P(id)?.color,
       draw: {
-        can: () => !g.max || g.cur.length < g.max,
+        can: () => (!g.max || g.cur.length < g.max) && !clk.up,
         ink: () => g.ink, onInk: inkShow,
         start: p => { $('phint')?.remove(); const s = { id, pts: [p] }; g.cur.push(s); return s; },
-        cancel: () => { g.cur.pop(); },
+        cancel: () => { g.cur.pop(); inkShow(1); },
         end: () => { save(); sync(); },
       },
     });
     sync();
-    undo.onclick = () => { g.cur.pop(); save(); sync(); api.draw(); };
+    // Erasing a line gives its ink back (the gauge showed the last line's ink until the next one).
+    undo.onclick = () => { g.cur.pop(); save(); sync(); api.draw(); inkShow(1); };
     ok.onclick = () => { if (g.cur.length) chainNext({ id, kind, strokes: g.cur }); };
+    runClock(g, clk, api, () => { toast(t('timeUp')); chainNext({ id, kind, strokes: g.cur }); }, g.cur.length > 0);
     return;
   }
   const prev = chainPrev(g), start = kind === 'start';
@@ -1336,7 +1467,7 @@ function renderChainStep() {
   wi.oninput = upd;
   wi.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); if (wi.value.trim()) ok.click(); } };
   $('sug')?.addEventListener('click', () => {
-    const c = S.cat === 'random' ? pick(CATEGORIES) : catById(S.cat); wi.value = pick(c.words)[L()]; upd();
+    const c = S.cat === 'random' ? pick(CATEGORIES) : catById(S.cat); wi.value = pick(lvWords(c))[L()]; upd();
   });
   ok.onclick = () => { const v = wi.value.trim(); if (v) chainNext({ id, kind, text: v }); };
 }
@@ -1379,7 +1510,7 @@ function startSame() {
   const n = S.sameStrokes || 3, first = Math.floor(Math.random() * 2), loop = [ids[first], ids[1 - first]], order = [];
   for (let r = 0; r < n; r++) order.push(...loop);
   view = null;
-  S.game = { kind: 'same', ink: inkOf('same'), phase: 'pass', gm: null, drawers: ids, roles, order, rounds: n, turn: 0, strokes: [], pending: false,
+  S.game = { kind: 'same', ink: inkOf('same'), time: timeOf('same'), phase: 'pass', gm: null, drawers: ids, roles, order, rounds: n, turn: 0, strokes: [], pending: false,
     revealI: 0, bets: {}, betI: 0, outcome: null, scored: false, ...w };
   save(); render(); scrollTo(0, 0);
 }
@@ -1409,7 +1540,7 @@ function renderBet() {
     <div id="gwrap" hidden><label for="gi" class="muted" style="display:block;margin:0 2px 6px;font-size:15px">${t('betGuess')}</label>
       <input type="text" id="gi" placeholder="${t('betGuessPh')}" autocomplete="off" maxlength="40" enterkeyhint="done"></div>
     <div class="sticky"><button class="btn accent" id="ok" disabled>${t('betGo')}</button></div>`;
-  mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color });
+  mountCanvas($('cv'), { strokes: () => g.strokes, colorOf: s => P(s.id)?.color, who: whoOf });
   let sel = null;
   const ok = $('ok'), gi = $('gi');
   app.querySelectorAll('[data-b]').forEach(b => b.onclick = () => {
@@ -1458,7 +1589,7 @@ function renderSameEnd() {
     <button class="btn primary" id="next">${t('next')} →</button>
     <button class="btn" id="settings">${t('settings')}</button>`;
   const colorOf = s => P(s.id)?.color;
-  const api = mountCanvas($('cv'), { strokes: () => g.strokes, colorOf });
+  const api = mountCanvas($('cv'), { strokes: () => g.strokes, colorOf, who: whoOf });
   $('replay').onclick = replayer(api, g.strokes);
   $('dl').onclick = () => downloadPng(g.strokes, colorOf, wordText(g));
   $('next')?.addEventListener('click', startSame);
@@ -1471,10 +1602,11 @@ function startSab() {
   const ids = S.players.map(p => p.id), guesser = ids[(S.sabPtr = (S.sabPtr || 0) + 1) % ids.length];
   const drawers = ids.filter(id => id !== guesser), roles = { [pick(drawers)]: 'saboteur' };
   const w = pickPair(S.cat) || pickPair('random');
-  const n = S.sabStrokes || 2, st = Math.floor(Math.random() * drawers.length), loop = drawers.slice(st).concat(drawers.slice(0, st)), order = [];
+  const seq = S.orderMode === 'table' ? drawers : shuffle([...drawers]);
+  const n = S.sabStrokes || 2, st = Math.floor(Math.random() * seq.length), loop = seq.slice(st).concat(seq.slice(0, st)), order = [];
   for (let r = 0; r < n; r++) order.push(...loop);
   view = null;
-  S.game = { kind: 'sab', ink: inkOf('sab'), phase: 'sabIntro', guesser, gm: null, drawers, roles, order, rounds: n, turn: 0, strokes: [], pending: false,
+  S.game = { kind: 'sab', ink: inkOf('sab'), time: timeOf('sab'), phase: 'sabIntro', guesser, gm: null, drawers, roles, order, rounds: n, turn: 0, strokes: [], pending: false,
     revealI: 0, guess: '', hit: null, accused: null, outcome: null, scored: false, ...w };
   save(); render(); scrollTo(0, 0);
 }
@@ -1563,7 +1695,7 @@ function renderSabEnd() {
     <p class="center" style="font-size:18px;margin:12px 0"><b>${caught ? t('sabCaught') : t('sabFree')}</b><br>${t('sabWas')(nameOf(sab))}</p>
     <div class="card">
       <div class="paper view"><canvas id="cv"></canvas></div>
-      <div class="legend">${g.drawers.map(id => `<span>${dotOf(id)}${nameOf(id)}${roleIcon(g, id)}</span>`).join('')}</div>
+      <div class="legend">${g.drawers.map(id => `<span>${dotOf(id)}${nameOf(id)}${roleIcon(g, id)}</span>`).join('')}</div>${tapHint()}
       ${g.archived ? `<p class="note">${t('saved')}</p>` : ''}
       <div class="row"><button class="btn" id="replay">▶ ${t('replay')}</button><button class="btn" id="dl">⬇ ${t('save')}</button></div>
     </div>
@@ -1574,7 +1706,7 @@ function renderSabEnd() {
     <button class="btn" id="settings">${t('settings')}</button>`;
   // Colours come back on the result so everyone sees who drew what.
   const colorOf = s => P(s.id)?.color;
-  const api = mountCanvas($('cv'), { strokes: () => g.strokes, colorOf });
+  const api = mountCanvas($('cv'), { strokes: () => g.strokes, colorOf, who: whoOf });
   $('replay').onclick = replayer(api, g.strokes);
   $('dl').onclick = () => downloadPng(g.strokes, colorOf, wordText(g));
   $('next')?.addEventListener('click', startSab);
@@ -1588,7 +1720,7 @@ function startBluff() {
   const ids = S.players.map(p => p.id), drawer = ids[(S.bluffPtr = (S.bluffPtr || 0) + 1) % ids.length];
   const prompt = bluffPrompt();
   view = null;
-  S.game = { kind: 'bluff', ink: inkOf('bluff'), phase: 'bluffPass', drawer, others: ids.filter(id => id !== drawer),
+  S.game = { kind: 'bluff', ink: inkOf('bluff'), time: timeOf('bluff'), phase: 'bluffPass', drawer, others: ids.filter(id => id !== drawer),
     drawers: [drawer], roles: {}, gm: null, custom: { word: prompt, cat: t('gameBluff') }, strokes: [], fakes: {}, votes: {}, i: 0,
     titles: null, outcome: null, scored: false };
   save(); render(); scrollTo(0, 0);
@@ -1617,22 +1749,22 @@ function renderBluffDraw() {
   app.innerHTML = `
     <div class="drawbar">
       <div class="who">${dotOf(id)}<span>${nameOf(id)}</span></div>
-      <div class="meta">${t('blDraw')}${t('colon')}<b>${esc(g.custom.word)}</b>${g.strokes.length ? '' : `<br><button class="link" id="reroll" style="margin:2px 0 0 auto">${t('blReroll')}</button>`}</div>
+      <div class="meta">${t('blDraw')}${t('colon')}<b>${esc(g.custom.word)}</b>${g.strokes.length ? '' : `<br><button class="link" id="reroll" style="margin:2px 0 0 auto">${t('blReroll')}</button>`}${clockPill(g)}</div>
     </div>
     ${inkBar(g)}
-    <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.strokes.length ? '' : `<div class="paperhint" id="phint">${t('blDrawHint')}</div>`}</div></div>
+    <div class="stage"><div class="paper"><canvas id="cv"></canvas>${g.strokes.length ? '' : `<div class="paperhint" id="phint">${t('blDrawHint')}</div>`}${clockCover(g, g.strokes.length > 0)}</div></div>
     <div class="row">
       <button class="btn" id="undo">↺ ${t('chUndo')}</button>
       <button class="btn primary" id="ok">${t('chOk')} →</button>
     </div>`;
-  const undo = $('undo'), ok = $('ok');
+  const undo = $('undo'), ok = $('ok'), clk = { up: false };
   const sync = () => { undo.disabled = ok.disabled = !g.strokes.length; };
   const api = mountCanvas($('cv'), {
     strokes: () => g.strokes, colorOf: () => P(id)?.color,
     draw: {
-      can: () => true, ink: () => g.ink, onInk: inkShow,
+      can: () => !clk.up, ink: () => g.ink, onInk: inkShow,
       start: p => { $('phint')?.remove(); $('reroll')?.remove(); const s = { id, pts: [p] }; g.strokes.push(s); return s; },
-      cancel: () => { g.strokes.pop(); },
+      cancel: () => { g.strokes.pop(); inkShow(1); },
       end: () => { save(); sync(); },
     },
   });
@@ -1640,6 +1772,7 @@ function renderBluffDraw() {
   $('reroll')?.addEventListener('click', () => { g.custom.word = bluffPrompt(); save(); renderBluffDraw(); });
   undo.onclick = () => { g.strokes.pop(); save(); sync(); api.draw(); inkShow(1); };
   ok.onclick = () => { if (!g.strokes.length) return; g.i = 0; buzz(15); go('bluffWPass'); };
+  runClock(g, clk, api, () => { toast(t('timeUp')); g.i = 0; go('bluffWPass'); }, g.strokes.length > 0);
 }
 
 function renderBluffWrite() {
@@ -1827,11 +1960,11 @@ function renderShot() {
     <div class="galhead"><button class="iconbtn" id="back" aria-label="${t('back')}">←</button>
       <div class="t"><div class="word">${esc(gWord(e))}</div><small>${esc(gCat(e))} · ${gDate(e.at)} · ${e.fakeWins ? t('fakeWins') : t('artistsWin')}</small></div></div>
     <div class="paper"><canvas id="cv"></canvas></div>
-    <div class="legend">${e.players.map(p => `<span>${av(p.color, p.emoji)}${esc(p.name)}${p.fake ? ' 🎭' : p.forger ? ' 🥸' : p.sab ? ' 🤫' : ''}</span>`).join('')}</div>
+    <div class="legend">${e.players.map(p => `<span>${av(p.color, p.emoji)}${esc(p.name)}${p.fake ? ' 🎭' : p.forger ? ' 🥸' : p.sab ? ' 🤫' : ''}</span>`).join('')}</div>${e.players.length > 1 ? tapHint() : ''}
     <div class="row"><button class="btn" id="replay">▶ ${t('replay')}</button><button class="btn" id="dl">⬇ ${t('save')}</button></div>
     <div class="row"><button class="btn" id="prev" ${i <= 0 ? 'disabled' : ''}>‹ ${t('prev')}</button><button class="btn" id="nxt" ${i >= list.length - 1 ? 'disabled' : ''}>${t('next2')} ›</button></div>
     <button class="link" id="del">🗑 ${t('del')}</button>`;
-  const api = mountCanvas($('cv'), { strokes: () => e.strokes, colorOf: gColor(e) });
+  const api = mountCanvas($('cv'), { strokes: () => e.strokes, colorOf: gColor(e), who: s => { const p = e.players[s.i]; return p ? av(p.color, p.emoji) + esc(p.name) : '?'; } });
   $('back').onclick = () => openGallery();
   $('replay').onclick = replayer(api, e.strokes);
   $('dl').onclick = () => downloadPng(e.strokes, gColor(e), gWord(e));
@@ -1869,7 +2002,7 @@ function renderResult() {
     <p class="center" style="margin:6px 0 12px">${t('wordWas')}<br><span class="word">${esc(wordText(g))}</span><br><span class="catpill">${esc(catText(g))}</span>${fw ? `<br><small class="muted">${t('forgerWas')}${t('colon')}<b>${esc(fw)}</b> 🥸</small>` : ''}</p>
     <div class="card">
       <div class="paper view"><canvas id="cv"></canvas></div>
-      <div class="legend">${g.drawers.map(id => `<span>${dotOf(id)}${nameOf(id)}${roleIcon(g, id)}</span>`).join('')}</div>
+      <div class="legend">${g.drawers.map(id => `<span>${dotOf(id)}${nameOf(id)}${roleIcon(g, id)}</span>`).join('')}</div>${tapHint()}
       ${g.archived ? `<p class="note">${t('saved')}</p>` : ''}
       <div class="row"><button class="btn" id="replay">▶ ${t('replay')}</button><button class="btn" id="dl">⬇ ${t('save')}</button></div>
     </div>
@@ -1878,7 +2011,7 @@ function renderResult() {
     <button class="btn primary" id="next">${t('next')} →</button>
     <button class="btn" id="settings">${t('settings')}</button>`;
   const colorOf = s => P(s.id)?.color;
-  const api = mountCanvas($('cv'), { strokes: () => g.strokes, colorOf });
+  const api = mountCanvas($('cv'), { strokes: () => g.strokes, colorOf, who: whoOf });
   $('replay').onclick = replayer(api, g.strokes);
   $('dl').onclick = () => downloadPng(g.strokes, colorOf, wordText(g));
   $('next')?.addEventListener('click', startGame);
