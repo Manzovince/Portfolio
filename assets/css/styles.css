@@ -584,6 +584,21 @@ header {
     font-size: .85em;
 }
 
+/* Line break after "écoute les gens," only when the screen has room */
+#introduction .br-wide {
+    display: none;
+}
+
+@media (min-width: 700px) {
+    #introduction .br-wide {
+        display: inline;
+    }
+
+    #introduction .dict-def {
+        max-width: none;
+    }
+}
+
 #introduction .intro-fields {
     display: block;
     margin-top: 1em;
