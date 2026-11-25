@@ -48,6 +48,8 @@ const translations = {
     caseOutcome: "Outcome",
     caseLearned: "What I learned",
     caseHindsight: "Looking back",
+    popinNote: "Pop-in started in 2019, at the very start of the first language models. Today, a general AI assistant answers these questions better than our scripted chatbot did. What still holds is the approach: answers backed by science, a conversation people can trust, and knowing when to hand over to a human expert.",
+    popinNoteLink: "Read the full thoughts ↓",
     caseResearch: "Research",
     caseDesignBuild: "Design and build",
     caseBeyond: "Beyond the chatbot",
@@ -60,7 +62,7 @@ const translations = {
     sgmDesignOutcome: "The new page was well received: it was complimented on social networks, and the team saw spontaneous applications go up after it went live. <br><br> To see it in motion, visit <a href='https://design.sgmarkets.com/' target='_blank' rel='noopener' class='link'>SG Markets Design</a>.",
     popinRole: "UX designer and developer",
     popinTeam: "An entrepreneur, a psychologist and me",
-    popinHindsight: "Pop-in was built in 2019, before large language models. AI has progressed so much since then that a general assistant now answers these questions better than our scripted chatbot ever could. <br><br> Some of the work still holds, though: grounding every answer in science, designing a conversation people can trust, and knowing when to hand over to a human expert. These are exactly the questions designers face with AI assistants today.",
+    popinHindsight: "Pop-in was built in 2019, at the very start of large language models. AI has progressed so much since then that a general assistant now answers these questions better than our scripted chatbot ever could. <br><br> Some of the work still holds, though: grounding every answer in science, designing a conversation people can trust, and knowing when to hand over to a human expert. These are exactly the questions designers face with AI assistants today.",
     sealensRole: "UX design and development",
     sealensArt: "Agathe Couturier",
     aboutTitle: "About me",
@@ -222,6 +224,8 @@ const translations = {
     caseOutcome: "Résultats",
     caseLearned: "Ce que j'ai appris",
     caseHindsight: "Avec le recul",
+    popinNote: "Pop-in a démarré en 2019, au tout début des premiers modèles de langage. Aujourd'hui, un assistant IA généraliste répond mieux à ces questions que notre chatbot scripté. Ce qui reste valable, c'est la démarche : des réponses appuyées sur la science, une conversation digne de confiance, et savoir passer la main à un expert humain.",
+    popinNoteLink: "Lire la réflexion complète ↓",
     caseResearch: "Recherche",
     caseDesignBuild: "Conception et développement",
     caseBeyond: "Au-delà du chatbot",
@@ -234,7 +238,7 @@ const translations = {
     sgmDesignOutcome: "La nouvelle page a été bien accueillie : elle a reçu des compliments sur les réseaux sociaux, et l'équipe a vu les candidatures spontanées augmenter après sa mise en ligne. <br><br> Pour la voir en mouvement, rendez-vous sur <a href='https://design.sgmarkets.com/' target='_blank' rel='noopener' class='link'>SG Markets Design</a>.",
     popinRole: "UX designer et développeur",
     popinTeam: "Une entrepreneuse, une psychologue et moi",
-    popinHindsight: "Pop-in a été conçu en 2019, avant les grands modèles de langage. L'IA a tellement progressé depuis qu'un assistant généraliste répond aujourd'hui mieux à ces questions que notre chatbot scripté ne l'a jamais fait. <br><br> Une partie du travail reste pourtant valable : appuyer chaque réponse sur la science, concevoir une conversation à laquelle on peut faire confiance, et savoir quand passer la main à un expert humain. Ce sont exactement les questions que se posent aujourd'hui les designers d'assistants IA.",
+    popinHindsight: "Pop-in a été conçu en 2019, au tout début des grands modèles de langage. L'IA a tellement progressé depuis qu'un assistant généraliste répond aujourd'hui mieux à ces questions que notre chatbot scripté ne l'a jamais fait. <br><br> Une partie du travail reste pourtant valable : appuyer chaque réponse sur la science, concevoir une conversation à laquelle on peut faire confiance, et savoir quand passer la main à un expert humain. Ce sont exactement les questions que se posent aujourd'hui les designers d'assistants IA.",
     sealensRole: "UX design et développement",
     sealensArt: "Agathe Couturier",
     aboutTitle: "A propos de moi",
@@ -425,7 +429,7 @@ class NavComponent extends HTMLElement {
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('/assets/css/styles.css?v=20261125h');
+        @import url('/assets/css/styles.css?v=20261125i');
       </style>
       <nav id="nav">
         <div class="page-path">
@@ -607,7 +611,7 @@ class FooterComponent extends HTMLElement {
     // HTML content for the footer
     this.shadowRoot.innerHTML = `     
       <style>
-        @import url('/assets/css/styles.css?v=20261125h');
+        @import url('/assets/css/styles.css?v=20261125i');
       </style>
       <footer>
         <div class="footer-item">

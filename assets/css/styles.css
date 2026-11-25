@@ -1588,13 +1588,62 @@ footer {
     line-height: 1.5;
 }
 
+/* Short aside at the top of a case study (e.g. Pop-in's note on hindsight) */
+.project-note {
+    width: 100%;
+    max-width: 900px;
+    box-sizing: border-box;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid rgba(var(--rgb-text), .12);
+    border-left: 2px solid rgba(var(--rgb-text), .45);
+    border-radius: 4px;
+    background-color: rgba(var(--rgb-text), .035);
+}
+
+.project-note strong {
+    display: block;
+    font-family: "Unbounded", serif;
+    font-size: .68rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    opacity: .55;
+    margin-bottom: .6rem;
+}
+
+.project-note p {
+    max-width: none;
+    margin: 0;
+    font-family: 'IBM Plex Serif', serif;
+    font-size: .95rem;
+    line-height: 1.6;
+}
+
+.project-note a {
+    display: inline-block;
+    margin-top: .75rem;
+    font-family: 'IBM Plex Serif', serif;
+    font-size: .85rem;
+    opacity: .75;
+}
+
+.project-note a:hover,
+.project-note a:focus-visible {
+    opacity: 1;
+}
+
+/* Sections a link can jump to: clear the fixed nav */
+#project-page [id] {
+    scroll-margin-top: 6rem;
+}
+
 /* Tags under a case study's intro: a little roomier than on the home tiles */
-.project-infos .tag-list {
+.project-header .tag-list {
     gap: .6rem;
     margin: .25rem 0 1rem;
 }
 
-.project-infos .tag {
+.project-header .tag {
     font-size: .78rem;
     padding: .4rem .95rem;
     letter-spacing: .01em;
