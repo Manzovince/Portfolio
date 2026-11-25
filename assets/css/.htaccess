@@ -1,0 +1,5 @@
+# Every file here is loaded with a ?v= version (bumped on each change), so
+# browsers and the CDN can keep it for a year
+<IfModule mod_headers.c>
+    Header set Cache-Control "public, max-age=31536000, immutable"
+</IfModule>

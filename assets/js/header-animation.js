@@ -302,8 +302,21 @@
   function init() {
     canvas = document.getElementById("header-canvas");
     if (!canvas) return;
-    gl = canvas.getContext("webgl", { antialias: false, alpha: true, premultipliedAlpha: true });
-    if (!gl) return; // no WebGL: the hero keeps its plain background
+    // failIfMajorPerformanceCaveat: no context when Chrome would render on the CPU
+    gl = canvas.getContext("webgl", {
+      antialias: false, alpha: true, premultipliedAlpha: true,
+      failIfMajorPerformanceCaveat: true,
+    });
+    if (!gl) return; // no (hardware) WebGL: the hero keeps its plain background
+
+    // Software renderers (SwiftShader, llvmpipe: headless test robots, machines
+    // without GPU acceleration) take hundreds of ms per frame on this shader and
+    // freeze the page: keep the plain background there too
+    try {
+      const info = gl.getExtension("WEBGL_debug_renderer_info");
+      const renderer = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+      if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(renderer)) return;
+    } catch (e) {}
 
     const vs = compile(gl.VERTEX_SHADER, VERT);
     const fs = compile(gl.FRAGMENT_SHADER, FRAG);
@@ -366,5 +379,13 @@
     syncLoop();
   }
 
-  window.addEventListener("DOMContentLoaded", init);
+  // Start once the page has loaded and the browser is idle, so compiling the
+  // shader and the first frames never compete with the first render (the canvas
+  // fades in over 2 s anyway)
+  function start() {
+    if ("requestIdleCallback" in window) requestIdleCallback(init, { timeout: 1500 });
+    else setTimeout(init, 200);
+  }
+  if (document.readyState === "complete") start();
+  else window.addEventListener("load", start, { once: true });
 })();
