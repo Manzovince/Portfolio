@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Progrès — course & apnée</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#111110">
+<link rel="manifest" href="manifest.webmanifest?v=1">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=1">
+<link rel="apple-touch-icon" href="icon-180.png?v=1">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <h1>Progrès</h1>
+    <p class="sub" id="sub"></p>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="course" aria-selected="true">Course</button>
+    <button role="tab" data-tab="apnee">Apnée</button>
+    <button role="tab" data-tab="carnet">Carnet</button>
+  </nav>
+</header>
+
+<main>
+<!-- =========================================================== COURSE -->
+<section id="course" class="tab on">
+  <div class="tiles" id="runTiles"></div>
+
+  <div class="card">
+    <div class="card-h">
+      <h2>Records personnels</h2>
+      <p class="hint">Meilleur segment trouvé dans chaque fichier FIT (glissant, pas seulement les tours). « Potentiel » = ton niveau actuel selon Garmin (prédiction 5 km, extrapolée par Riegel). Plus l'écart est grand, plus le record est facile à battre.</p>
+    </div>
+    <div class="table-wrap"><table class="pr" id="prTable"></table></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><h2 id="progTitle">Progression</h2><p class="hint">Chaque point = meilleur segment d'une sortie. Ligne = record du moment. Clique une distance dans le tableau.</p></div>
+      <div class="legend" id="progLegend"></div>
+      <div class="chart" id="progChart"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Records battus par mois</h2><p class="hint">Nombre de distances (400 m → semi) où une sortie a amélioré le record.</p></div>
+      <div class="chart" id="prMonth"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h2>Pistes pour battre des records</h2></div>
+    <ul class="advice" id="runAdvice"></ul>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><h2>Volume hebdomadaire</h2><p class="hint">km par semaine (survol : D+, temps, sorties).</p></div>
+      <div class="chart" id="weekly"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Intensité des sorties</h2><p class="hint">Temps passé par zone cardio, 8 dernières semaines vs avant.</p></div>
+      <div class="chart" id="zones"></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><h2>VO2max</h2><p class="hint">Estimation Garmin.</p></div>
+      <div class="chart" id="vo2"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Prédiction Garmin 5 km</h2><p class="hint">Temps prédit (plus bas = mieux). Pointillé : ton record réel.</p></div>
+      <div class="chart" id="pred"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h2>Efficacité aérobie</h2><p class="hint">Mètres parcourus par battement cardiaque (vitesse ajustée à la pente ÷ FC moyenne). Ça monte = tu cours plus vite pour le même effort.</p></div>
+    <div class="chart" id="eff"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h2>Sorties</h2><p class="hint">Clique une sortie pour voir son profil.</p></div>
+    <div class="table-wrap"><table class="runs" id="runTable"></table></div>
+  </div>
+
+  <div class="card" id="runDetail" hidden>
+    <div class="card-h"><h2 id="rdTitle"></h2><p class="hint" id="rdSub"></p></div>
+    <div class="grid2">
+      <div><h3>Allure (min/km)</h3><div class="chart" id="rdPace"></div></div>
+      <div><h3>Altitude (m) & FC</h3><div class="chart" id="rdAlt"></div><div class="chart" id="rdHr"></div></div>
+    </div>
+    <h3>Splits au km</h3>
+    <div class="chart" id="rdSplits"></div>
+  </div>
+</section>
+
+<!-- =========================================================== APNÉE -->
+<section id="apnee" class="tab">
+  <div class="tiles" id="diveTiles"></div>
+  <div class="note">L'export Garmin ne contient que tes sessions en mer (poids constant, chasse). Le statique et le dynamique en piscine n'y sont pas : note-les dans l'onglet <a href="#carnet" data-go="carnet">Carnet STA / DYN</a>.</div>
+
+  <div class="card">
+    <div class="card-h"><h2>Durée des apnées par session</h2><p class="hint">Plus longue apnée et 90ᵉ centile (tes « bonnes » apnées habituelles) de chaque session.</p></div>
+    <div class="legend" id="durLegend"></div>
+    <div class="chart" id="durChart"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><h2>Profondeur max par session</h2></div>
+      <div class="chart" id="depthChart"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Répartition des profondeurs</h2><p class="hint">Nombre de plongées par tranche de 2 m.</p></div>
+      <div class="chart" id="depthHist"></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><h2>Répartition des durées</h2><p class="hint">Nombre de plongées par tranche de 10 s.</p></div>
+      <div class="chart" id="durHist"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Récupération en surface</h2><p class="hint">Médiane par session du repos ÷ durée de l'apnée précédente. Règle classique : ≥ 2×, davantage en profondeur.</p></div>
+      <div class="chart" id="ratioChart"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h2>Pistes pour progresser</h2></div>
+    <ul class="advice" id="diveAdvice"></ul>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><h2>Tes 10 plus longues apnées</h2></div>
+      <div class="table-wrap"><table id="topDur"></table></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Tes 10 plus profondes</h2></div>
+      <div class="table-wrap"><table id="topDepth"></table></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h2>Sessions</h2><p class="hint">Clique une session pour voir chaque plongée.</p></div>
+    <div class="table-wrap"><table class="runs" id="diveTable"></table></div>
+  </div>
+  <div class="card" id="diveDetail" hidden>
+    <div class="card-h"><h2 id="ddTitle"></h2><p class="hint" id="ddSub"></p></div>
+    <div class="legend" id="ddLegend"></div>
+    <div class="chart" id="ddChart"></div>
+  </div>
+</section>
+
+<!-- =========================================================== CARNET -->
+<section id="carnet" class="tab">
+  <div class="tiles" id="logTiles"></div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><h2>Ajouter une performance</h2><p class="hint">Enregistré dans ce navigateur. Pense à exporter de temps en temps.</p></div>
+      <form id="logForm" class="form">
+        <label>Date <input type="date" name="date" required></label>
+        <label>Discipline
+          <select name="disc">
+            <option value="STA">Statique (STA)</option>
+            <option value="DYN">Dynamique monopalme (DYN)</option>
+            <option value="DYNB">Dynamique bipalmes (DYNB)</option>
+            <option value="DNF">Dynamique sans palmes (DNF)</option>
+            <option value="CWT">Profondeur (CWT / FIM)</option>
+            <option value="DRY">Statique à sec (table)</option>
+          </select>
+        </label>
+        <label><span id="valLabel">Durée (m:ss)</span> <input name="val" required placeholder="3:15" autocomplete="off"></label>
+        <label>Lieu <input name="where" placeholder="Piscine, club…" autocomplete="off"></label>
+        <label class="wide">Notes <input name="note" placeholder="Sensations, contractions à 2:10…" autocomplete="off"></label>
+        <div class="row wide">
+          <button type="submit" class="btn">Ajouter</button>
+          <button type="button" class="btn ghost" id="logExport">Exporter</button>
+          <label class="btn ghost file">Importer <input type="file" id="logImport" accept="application/json" hidden></label>
+        </div>
+        <p class="err" id="logErr" role="alert"></p>
+      </form>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Progression</h2></div>
+      <div class="seg" id="logSeg"></div>
+      <div class="chart" id="logChart"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h2>Historique</h2></div>
+    <div class="table-wrap"><table class="runs" id="logTable"></table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h2>Tables à sec CO2 / O2</h2>
+      <p class="hint">Calculées à partir de ton record de statique. <strong>Uniquement à sec, allongé, jamais dans l'eau seul, jamais en conduisant.</strong> Une table par jour au maximum, pas deux jours de table O2 d'affilée.</p></div>
+    <div class="row">
+      <label class="inline">Record STA de référence <input id="staRef" placeholder="3:00" size="6" autocomplete="off"></label>
+      <div class="seg" id="tableSeg"></div>
+    </div>
+    <div class="tablegrid">
+      <div class="table-wrap"><table id="coTable"></table></div>
+      <div class="timer">
+        <div class="t-phase" id="tPhase">Prêt</div>
+        <div class="t-clock" id="tClock">0:00</div>
+        <div class="t-round" id="tRound"></div>
+        <div class="row center">
+          <button class="btn" id="tStart">Démarrer</button>
+          <button class="btn ghost" id="tStop">Arrêter</button>
+        </div>
+        <p class="hint">Bip à 10 s de la fin de chaque phase, double bip au changement. Appuie sur « Contraction » pendant l'apnée pour noter quand elles arrivent.</p>
+        <button class="btn ghost" id="tContr" disabled>Contraction</button>
+        <p class="hint" id="tContrLog"></p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="tip" id="tip" role="status"></div>
+<footer>Données : export Garmin RGPD · généré le <span id="gen"></span> · <code>python3 tools/extract.py &lt;export&gt;</code> pour mettre à jour.</footer>
+
+<script src="data.js?v=1"></script>
+<script src="charts.js?v=1"></script>
+<script src="app.js?v=1"></script>
+</body>
+</html>
