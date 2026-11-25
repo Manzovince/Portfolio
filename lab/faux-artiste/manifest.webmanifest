@@ -1,6 +1,6 @@
 {
-  "name": "Faux Artiste",
-  "short_name": "Faux Artiste",
+  "name": "Faussaire",
+  "short_name": "Faussaire",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
