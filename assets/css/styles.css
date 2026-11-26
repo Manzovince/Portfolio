@@ -57,6 +57,7 @@ html {
 /* General styles */
 
 body {
+    text-wrap: pretty;
     color: var(--text-color);
     background-color: var(--bg-color);
     font-family: 'IBM Plex Serif', serif;
@@ -1016,6 +1017,14 @@ header {
     font-size: 24px;
     font-weight: 200;
     max-width: 44ch;
+}
+
+/* Wide screens: the work lead stays on a single line */
+@media (min-width: 1200px) {
+    #featured .section-head .lead {
+        max-width: none;
+        white-space: nowrap;
+    }
 }
 
 /* Three columns of pictures in tiles of different sizes (see the areas below).
