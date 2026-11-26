@@ -587,6 +587,16 @@ header {
     gap: 48px;
 }
 
+/* First visit: the entry stays hidden until the intro writes it
+   (header-animation.js) */
+html.intro .intro-desc {
+    opacity: 0;
+}
+
+.intro-ch {
+    display: inline-block;
+}
+
 .intro-desc {
     display: flex;
     flex-direction: column;

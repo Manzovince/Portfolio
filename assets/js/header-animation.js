@@ -27,6 +27,7 @@
     uniform vec3 uShadow;
     uniform float uGain;   // strength of the bright lines
     uniform float uDip;    // strength of the slow shadows
+    uniform float uDepth;  // first-visit intro: 0 = deep and dark, 1 = surface
     uniform float uClock;  // seconds since start, for the pointer ripples
     uniform vec4 uDrops[DROPS]; // x, y (centred, aspect-corrected), birth time, strength
 
@@ -119,9 +120,9 @@
       float mask = 1.0 - smoothstep(0.0, 0.95, d);
       mask = pow(mask, 1.4);
 
-      vec3 col = uBase;
-      col *= mix(vec3(1.0), uShadow, s * uDip * mask);
-      col += uHi * c * uGain * mask;
+      vec3 col = uBase * mix(0.35, 1.0, uDepth);
+      col *= mix(vec3(1.0), uShadow, s * uDip * mask * mix(1.5, 1.0, uDepth));
+      col += uHi * c * uGain * mask * mix(0.15, 1.0, uDepth);
       col *= 1.0 - (1.0 - c.g) * 0.035 * mask;
 
       // melt into the page at the bottom of the hero
@@ -129,7 +130,24 @@
       gl_FragColor = vec4(col * alpha, alpha);
     }`;
 
-  let canvas, gl, uni = {}, frameId = null, visible = true, lastWidth = 0;
+  let canvas, gl, uni = {}, frameId = null, visible = true, lastWidth = 0, ready = false;
+
+  // First visit: the hero rises from the deep (dark, blurred, the light
+  // moving faster) while the dictionary entry writes itself
+  const RISE = 1.4;          // s
+  let rise = null;           // { t0 } while rising
+  const easeOut = x => 1 - Math.pow(1 - x, 3);
+  function riseK(now) {
+    if (!rise) return 1;
+    const k = easeOut(Math.min(1, (now - rise.t0) / 1000 / RISE));
+    if (k >= 1) {
+      rise = null;
+      canvas.style.filter = `blur(${BLUR}px)`;
+    } else {
+      canvas.style.filter = `blur(${BLUR + 14 * (1 - k)}px)`;
+    }
+    return k;
+  }
   const t0 = performance.now();
 
   // Palette, derived from the theme colours
@@ -279,7 +297,9 @@
     applyPalette(now);
     gl.uniform1f(uni.uClock, clock(now));
     gl.uniform4fv(uni.uDrops, drops);
-    gl.uniform1f(uni.uTime, 12.0 + clock(now) * SPEED);
+    const k = riseK(now);
+    gl.uniform1f(uni.uDepth, k);
+    gl.uniform1f(uni.uTime, 12.0 + clock(now) * SPEED + 0.3 * k);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 
@@ -337,7 +357,7 @@
     const loc = gl.getAttribLocation(prog, "p");
     gl.enableVertexAttribArray(loc);
     gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-    for (const name of ["uRes", "uTime", "uBase", "uHi", "uShadow", "uGain", "uDip", "uClock", "uDrops"]) {
+    for (const name of ["uRes", "uTime", "uBase", "uHi", "uShadow", "uGain", "uDip", "uClock", "uDrops", "uDepth"]) {
       uni[name] = gl.getUniformLocation(prog, name);
     }
 
@@ -377,14 +397,112 @@
     reduceMotion.addEventListener?.("change", () => { syncLoop(); draw(performance.now()); });
 
     syncLoop();
+    ready = true;
+  }
+
+  // ----- First-visit intro -----
+  // <head> adds html.intro on the first visit to the home page (unless the
+  // visitor prefers reduced motion), which hides the entry until it starts
+  const seg = (t, a, b) => Math.max(0, Math.min(1, (t - a) / (b - a)));
+
+  function show(el, k, dy) {
+    el.style.opacity = k;
+    el.style.filter = k < 1 ? `blur(${(1 - k) * 4}px)` : "";
+    if (dy) el.style.transform = k < 1 ? `translateY(${(1 - k) * dy}px)` : "";
+  }
+
+  // Wrap the nodes of el before / after the first <br> in two spans
+  function splitAtBreak(el) {
+    const parts = [document.createElement("span"), document.createElement("span")];
+    let i = 0;
+    [...el.childNodes].forEach(node => {
+      if (node.nodeName === "BR" && i === 0) { i = 1; return; }
+      parts[i].appendChild(node);
+    });
+    const br = el.querySelector("br");
+    el.prepend(parts[0]);
+    el.append(parts[1]);
+    if (br) el.insertBefore(br, parts[1]);
+    return parts.filter(p => p.childNodes.length);
+  }
+
+  function runIntro() {
+    const root = document.documentElement;
+    const p = document.querySelector('#introduction [data-i18n="introText"]');
+    if (!p || !root.classList.contains("intro")) return;
+    const original = p.innerHTML;
+
+    const word = p.querySelector(".dict-word");
+    const meta = p.querySelector(".dict-meta");
+    const def = p.querySelector(".dict-def");
+    const fields = p.querySelector(".intro-fields");
+    const sea = fields && fields.querySelector("em");
+    if (!word || !meta || !def || !fields || !sea) { root.classList.remove("intro"); return; }
+
+    word.innerHTML = [...word.textContent].map(ch => `<span class="intro-ch">${ch}</span>`).join("");
+    const chars = [...word.children];
+    const lines = splitAtBreak(def);
+    const rest = document.createElement("span");
+    [...fields.childNodes].filter(n => n !== sea).forEach(n => rest.appendChild(n));
+    fields.prepend(rest);
+
+    const pieces = [...chars, meta, ...lines, rest, sea];
+    pieces.forEach(el => { el.style.opacity = 0; });
+    root.classList.remove("intro");
+
+    const t0 = performance.now();
+    if (ready) {
+      canvas.style.transition = "none";
+      canvas.style.opacity = 1;
+      rise = { t0 };
+      draw(t0);
+    }
+    const lead = ready ? 0.6 : 0;   // the entry starts while the light comes up
+    let seaDrop = false, done = false, raf = 0;
+
+    function finish() {
+      if (done) return;
+      done = true;
+      cancelAnimationFrame(raf);
+      ["pointerdown", "keydown", "wheel", "touchstart"].forEach(e => window.removeEventListener(e, finish));
+      if (rise) { rise = null; canvas.style.filter = `blur(${BLUR}px)`; }
+      // back to the plain markup, unless the language changed meanwhile
+      if (p.contains(chars[0])) p.innerHTML = original;
+    }
+
+    function step(now) {
+      const t = (now - t0) / 1000 - lead;
+      chars.forEach((c, i) => show(c, easeOut(seg(t, i * 0.065, i * 0.065 + 0.2)), 6));
+      show(meta, easeOut(seg(t, 0.55, 0.8)));
+      lines.forEach((l, i) => show(l, easeOut(seg(t, 0.75 + i * 0.22, 1.1 + i * 0.22))));
+      show(rest, easeOut(seg(t, 1.3, 1.6)));
+      show(sea, easeOut(seg(t, 1.75, 2.0)));
+      if (t >= 1.8 && !seaDrop) {
+        seaDrop = true;
+        const r = sea.getBoundingClientRect();
+        if (ready && frameId !== null) addDrop(r.left + r.width / 2, r.top + r.height / 2, 1.1);
+      }
+      if (t >= 2.05) finish();
+      else raf = requestAnimationFrame(step);
+    }
+    raf = requestAnimationFrame(step);
+
+    // Any click, key or scroll skips to the end
+    ["pointerdown", "keydown", "wheel", "touchstart"].forEach(e => window.addEventListener(e, finish, { passive: true }));
+  }
+
+  function boot() {
+    init();
+    runIntro();
   }
 
   // Start once the page has loaded and the browser is idle, so compiling the
   // shader and the first frames never compete with the first render (the canvas
   // fades in over 2 s anyway)
   function start() {
-    if ("requestIdleCallback" in window) requestIdleCallback(init, { timeout: 1500 });
-    else setTimeout(init, 200);
+    const intro = document.documentElement.classList.contains("intro");
+    if ("requestIdleCallback" in window) requestIdleCallback(boot, { timeout: intro ? 300 : 1500 });
+    else setTimeout(boot, 200);
   }
   if (document.readyState === "complete") start();
   else window.addEventListener("load", start, { once: true });

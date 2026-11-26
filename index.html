@@ -31,7 +31,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png">
     <link rel="manifest" href="/assets/icons/site.webmanifest">
     <!-- Styles -->
-    <link rel="stylesheet" href="/assets/css/styles.css?v=20261126c">
+    <link rel="stylesheet" href="/assets/css/styles.css?v=20261126d">
     <meta name="theme-color" content="#03121a">
     <script>
         // Saved light theme, applied before the first paint (see setTheme in script.js)
@@ -39,6 +39,15 @@
             if (localStorage.getItem('theme') === 'light') {
                 document.documentElement.dataset.theme = 'light';
                 document.querySelector('meta[name="theme-color"]').content = '#e7d7c0';
+            }
+        } catch (e) {}
+        // First visit: the hero plays a short intro (header-animation.js).
+        // Safety net: never leave the text hidden if that script fails.
+        try {
+            if (!localStorage.getItem('introSeen') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                localStorage.setItem('introSeen', '1');
+                document.documentElement.classList.add('intro');
+                setTimeout(function () { document.documentElement.classList.remove('intro'); }, 5000);
             }
         } catch (e) {}
     </script>
@@ -317,7 +326,7 @@
 
     <!-- Scripts -->
     <script src="/assets/js/script.js?v=20261126b" defer></script>
-    <script src="/assets/js/header-animation.js?v=20261125a" defer></script>
+    <script src="/assets/js/header-animation.js?v=20261126a" defer></script>
     <script src="/assets/js/untangle.js?v=20261125" defer></script>
     <script src="/assets/js/line-animation.js?v=20261016b" defer></script>
 
