@@ -1434,7 +1434,7 @@ function goToBiome(bi) {
   }
   teleport(bx, bz);
 }
-window.canopee = { goToBiome, renderer, scene, U, sun, get PRESETS() { return PRESETS; }, setPlanche: on => setPlanche(on), get cur() { return cur; },
+window.canopee = { goToBiome, renderer, scene, U, sun, get player() { return player; }, pathX: z => pathX(z), get PRESETS() { return PRESETS; }, setPlanche: on => setPlanche(on), get cur() { return cur; },
   stats() { let n = 0, inst = 0, tris = 0; scene.traverse(o => { if (o.isMesh) { n++; if (o.isInstancedMesh) { inst += o.count; } } }); return { meshes: n, instances: inst, calls: renderer.info.render.calls, tris: renderer.info.render.triangles }; } };
 mini.addEventListener('click', e => {
   const b = mini.getBoundingClientRect();
@@ -2085,7 +2085,7 @@ function renderView(p, x, y, w, h, t) {
 //  Déplacements
 // ════════════════════════════════════════════════════════════════════
 const keys = new Set();
-let moveTo = null, walkT = 0;
+let moveTo = null, walkT = 0, stroll = false, strollDir = -1, avoidSide = 1, avoidT = 0, steerX = 0, steerZ = 0;
 addEventListener('keydown', e => { if (e.target.tagName === 'INPUT') return; keys.add(e.code); if (e.code.startsWith('Arrow')) e.preventDefault(); });
 addEventListener('keyup', e => keys.delete(e.code));
 canvas.addEventListener('wheel', e => { camDistT = clamp(camDistT * (1 + e.deltaY * 0.001), 18, 75); e.preventDefault(); }, { passive: false });
@@ -2125,7 +2125,7 @@ function endPtr(e) {
       ndc.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
       ray.setFromCamera(ndc, camera);
       const hit = ray.intersectObject(ground, false)[0];
-      if (hit) { moveTo = hit.point.clone(); follow(); }
+      if (hit) { moveTo = hit.point.clone(); follow(); if (stroll) setStroll(false); }
     }
     drag = null; canvas.style.cursor = '';
   }
@@ -2159,9 +2159,15 @@ function updatePlayer(dt) {
   if (keys.has('KeyD') || keys.has('ArrowRight')) mx += 1;
   let dx = 0, dz = 0;
   if (mx || mz) {
-    moveTo = null; if (camFree) follow();
+    moveTo = null; if (camFree) follow(); if (stroll) setStroll(false);
     const c = Math.cos(camYaw), s = Math.sin(camYaw);
     dx = mx * c + mz * s; dz = -mx * s + mz * c;
+  } else if (stroll) {
+    // balade : on vise un point du sentier un peu plus loin ; demi-tour au bout du monde
+    const pz = player.position.z, lim = HALF - 18;
+    if ((strollDir > 0 && pz > lim) || (strollDir < 0 && pz < -lim)) strollDir = -strollDir;
+    const tz = pz + strollDir * 2.5, tx = pathX(tz) + Math.sin(tz * 0.37) * 0.35;   // léger zigzag naturel
+    dx = tx - player.position.x; dz = tz - pz;
   } else if (moveTo) {
     dx = moveTo.x - player.position.x; dz = moveTo.z - player.position.z;
     if (Math.hypot(dx, dz) < 0.2) { moveTo = null; dx = dz = 0; }
@@ -2169,11 +2175,31 @@ function updatePlayer(dt) {
   const L = Math.hypot(dx, dz);
   if (L > 0) {
     dx /= L; dz /= L;
-    const sp = 4.2 * dt, nx = player.position.x + dx * sp, nz = player.position.z + dz * sp;
+    // évitement : on regarde un peu devant ; si un tronc ou un rocher barre la route, on essaie des directions
+    // de plus en plus écartées, en gardant de préférence le même côté pour ne pas osciller
+    const sp = (stroll ? 3.2 : 4.2) * dt, px = player.position.x, pz = player.position.z;
+    const free = (ax, az) => !blocked(px + ax * sp, pz + az * sp) && !blocked(px + ax * 0.9, pz + az * 0.9);
+    let sx = dx, sz = dz, ok = free(dx, dz);
+    if (!ok) {
+      for (const a of [0.35, 0.7, 1.05, 1.4, 1.75]) {
+        for (const sg of [avoidSide, -avoidSide]) {
+          const c = Math.cos(a * sg), sn = Math.sin(a * sg), rx = dx * c - dz * sn, rz = dx * sn + dz * c;
+          if (free(rx, rz)) { sx = rx; sz = rz; ok = true; avoidSide = sg; break; }
+        }
+        if (ok) break;
+      }
+    }
+    avoidT = ok && (sx !== dx) ? 0.6 : Math.max(0, avoidT - dt);
+    if (!avoidT) avoidSide = 1;
+    // lissage du cap pour une déviation douce
+    steerX += (sx - steerX) * Math.min(1, dt * 10); steerZ += (sz - steerZ) * Math.min(1, dt * 10);
+    const sl = Math.hypot(steerX, steerZ) || 1, mx2 = steerX / sl, mz2 = steerZ / sl;
+    const nx = px + mx2 * sp, nz = pz + mz2 * sp;
     if (!blocked(nx, nz)) { player.position.x = nx; player.position.z = nz; }
-    else if (!blocked(nx, player.position.z)) player.position.x = nx;
-    else if (!blocked(player.position.x, nz)) player.position.z = nz;
-    else moveTo = null;
+    else if (!blocked(nx, pz)) player.position.x = nx;
+    else if (!blocked(px, nz)) player.position.z = nz;
+    else if (!ok) moveTo = null;
+    dx = mx2; dz = mz2;
     const ang = Math.atan2(-dx, -dz);
     let da = ang - player.rotation.y; da = Math.atan2(Math.sin(da), Math.cos(da));
     player.rotation.y += da * Math.min(1, dt * 12);
@@ -2196,10 +2222,11 @@ function updatePlayer(dt) {
 //  Interface
 // ════════════════════════════════════════════════════════════════════
 const $ = id => document.getElementById(id);
-const SLIDERS = [
-  ['pixel', 'Pixel', 1, 6, 1], ['tilt', 'Tilt-shift', 0, 2, 0.05], ['sunAz', 'Soleil ↻', 0, 360, 1], ['sunEl', 'Soleil ↑', 4, 85, 1],
-  ['sunInt', 'Soleil', 0, 8, 0.1], ['hemiInt', 'Ciel', 0, 3, 0.05], ['exposure', 'Exposition', 0.4, 2, 0.01],
-  ['outline', 'Contours', 0, 1, 0.05], ['dither', 'Dithering', 0, 1.5, 0.05], ['levels', 'Niveaux', 0, 32, 1], ['cloud', 'Nuages', 0, 0.8, 0.05], ['bloom', 'Halo', 0, 2, 0.05], ['rays', 'Rayons', 0, 3, 0.05], ['reveal', 'Transparence', 0, 1, 0.05], ['bump', 'Relief sol', 0, 3, 0.05],
+const SLIDERS = [   // [clé, libellé, min, max, pas, section]
+  ['sunAz', 'Soleil ↻', 0, 360, 1, 'light'], ['sunEl', 'Soleil ↑', 4, 85, 1, 'light'], ['sunInt', 'Soleil', 0, 8, 0.1, 'light'], ['hemiInt', 'Ciel', 0, 3, 0.05, 'light'],
+  ['exposure', 'Exposition', 0.4, 2, 0.01, 'light'], ['cloud', 'Nuages', 0, 0.8, 0.05, 'light'], ['rays', 'Rayons', 0, 3, 0.05, 'light'], ['bloom', 'Halo', 0, 2, 0.05, 'light'],
+  ['pixel', 'Pixel', 1, 6, 1, 'render'], ['tilt', 'Tilt-shift', 0, 2, 0.05, 'render'], ['outline', 'Contours', 0, 1, 0.05, 'render'], ['dither', 'Dithering', 0, 1.5, 0.05, 'render'],
+  ['levels', 'Niveaux', 0, 32, 1, 'render'], ['reveal', 'Transparence', 0, 1, 0.05, 'render'], ['bump', 'Relief sol', 0, 3, 0.05, 'render'],
 ];
 function buildUI() {
   $('presets').innerHTML = ''; $('labels').innerHTML = '';
@@ -2211,24 +2238,41 @@ function buildUI() {
     d.onclick = () => { cur = p; setPlanche(false); syncSliders(); buildUI(); };
     $('labels').appendChild(d);
   });
-  $('planche').className = planche ? 'on' : '';
+  $('planche').classList.toggle('on', planche);
+  $('sumStyle').textContent = planche ? 'planche' : cur.name;
 }
 function syncSliders() {
-  $('sliders').innerHTML = '';
-  for (const [k, label, mn, mx, st] of SLIDERS) {
+  $('sl-light').innerHTML = ''; $('sl-render').innerHTML = '';
+  for (const [k, label, mn, mx, st, grp] of SLIDERS) {
     const row = document.createElement('label'); row.className = 'row';
     row.innerHTML = `<span>${label}</span><input type="range" min="${mn}" max="${mx}" step="${st}" value="${cur[k]}"><span>${+(+cur[k]).toFixed(2)}</span>`;
     const inp = row.querySelector('input'), out = row.lastChild;
     inp.oninput = () => { cur[k] = +inp.value; out.textContent = +(+inp.value).toFixed(2); };
-    $('sliders').appendChild(row);
+    $('sl-' + grp).appendChild(row);
   }
 }
 function setPlanche(on) { planche = on; $('labels').classList.toggle('on', on); buildUI(); }
 $('planche').onclick = () => setPlanche(!planche);
-$('title').onclick = () => $('ui').classList.toggle('closed');
+$('title').onclick = $('fold').onclick = () => { const c = $('ui').classList.toggle('closed'); try { localStorage.setItem('lisiere.ui.closed', c ? '1' : '0'); } catch (e) {} };
+// sections pliables : leur état est mémorisé ; tout est replié par défaut (et le panneau entier sur téléphone)
+try {
+  const st = JSON.parse(localStorage.getItem('lisiere.ui.open') || '{}'), cl = localStorage.getItem('lisiere.ui.closed');
+  document.querySelectorAll('#ui details').forEach(d => { d.open = !!st[d.dataset.k]; });
+  if (cl === '1' || (cl === null && innerWidth < 700)) $('ui').classList.add('closed');
+} catch (e) { if (innerWidth < 700) $('ui').classList.add('closed'); }
+document.querySelectorAll('#ui details').forEach(d => d.addEventListener('toggle', () => {
+  const st = {}; document.querySelectorAll('#ui details').forEach(x => { st[x.dataset.k] = x.open; });
+  try { localStorage.setItem('lisiere.ui.open', JSON.stringify(st)); } catch (e) {}
+}));
 $('reset').onclick = () => { const i = PRESETS.indexOf(cur); Object.assign(cur, structuredClone(BASE[i]), { palette: cur.palette }); syncSliders(); };
 let seed = (Math.random() * 1e6) | 0;
 $('follow').onclick = () => follow();
+function setStroll(on) {
+  stroll = on; $('stroll').classList.toggle('on', on);
+  if (on) { moveTo = null; strollDir = Math.cos(camYaw) > 0 ? -1 : 1; }   // part dans la direction où regarde la caméra
+}
+$('stroll').onclick = () => setStroll(!stroll);
+addEventListener('keydown', e => { if (e.code === 'KeyB' && e.target.tagName !== 'INPUT') setStroll(!stroll); });
 BIOMES.forEach((b, i) => { const o = document.createElement('option'); o.value = i; o.textContent = b.name; $('goBiome').appendChild(o); });
 CHARS.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.name; $('charSel').appendChild(o); });
 $('charSel').value = charId;
@@ -2239,7 +2283,8 @@ const fmtH = h => `${String(Math.floor(h)).padStart(2, '0')}:${String(Math.floor
 let dayLabelT = 0;
 function syncDay(force) {
   const now = performance.now(); if (!force && now - dayLabelT < 200) return; dayLabelT = now;
-  $('dayOn').className = cycle.on ? 'on' : ''; $('dayRun').textContent = cycle.run ? '⏸' : '▶';
+  $('dayOn').classList.toggle('on', cycle.on); $('dayRun').textContent = cycle.run ? '⏸' : '▶';
+  $('sumTime').textContent = cycle.on ? fmtH(cycle.hour) + (cycle.run ? ' ▸' : '') : 'style';
   $('dayH').value = cycle.hour; $('dayHv').textContent = fmtH(cycle.hour);
   $('ui').classList.toggle('cycling', cycle.on);
 }
