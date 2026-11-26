@@ -78,9 +78,14 @@ function height(x, z) {
   const hills = w[BI.lande] * 1.9 + w[BI.pinede] * 1.1;                       // collines dans les biomes froids
   if (hills > 0.02) h += hills * (fbm(x * 0.035 + 5, z * 0.035, 3) * 2.4 + 0.6);
   const ws = w[BI.littoral];
-  if (ws > 0.05) {
-    const coast = WL + 1.3 - smooth(0.4, 0.85, ws + noise(x * 0.05 + 77, z * 0.05) * 0.12) * 6.5;   // > WL : plage et garrigue ; < WL : la mer
-    h = lerp(h, Math.min(h * 0.6 + WL + 1.6, coast), smooth(0.05, 0.4, ws));
+  if (ws > 0.03) {
+    const t = coastT(x, z, ws), bch = beachiness(x, z);
+    // terre basse qui monte doucement, plage presque plate au fond des criques, plateau sous-marin en pente douce
+    let ch = WL + 0.2 - clamp(t, -0.45, 0.6) * 4.2;
+    if (t < 0.02 && t > -0.12) ch = lerp(ch, WL + 0.25 + (t + 0.12) * -1.5, smooth(0, 0.6, bch) * 0.8);   // replat de la plage
+    if (bch < 0 && t > -0.15 && t < 0.08) ch += smooth(0, -0.5, bch) * 0.35 * smooth(0.08, -0.02, t);      // pointes rocheuses un peu plus hautes
+    ch += noise(x * 0.3, z * 0.3) * 0.06;
+    h = lerp(h, ch, smooth(0.03, 0.28, ws));
   }
   const m = smooth(0.2, 0.62, w[BI.marais]);                                   // marais : cuvette basse + étangs
   if (m > 0) {
@@ -91,7 +96,10 @@ function height(x, z) {
   return h * (0.55 + 0.45 * flat) - 0.2 * (1 - smooth(0.6, 2.4, pd));     // le chemin forme une digue au-dessus de l'eau
 }
 let chalets = [];
-const onBeach = (x, z, h) => h < WL + 1.5 && biomeW(x, z)[BI.littoral] > 0.12;
+// côte : champ dont le zéro est le trait de côte (t > 0 : la mer) ; le bruit à moyenne échelle découpe des criques
+const coastT = (x, z, ws = biomeW(x, z)[BI.littoral]) => ws - 0.6 + fbm(x * 0.03 + 77, z * 0.03, 3) * 0.16 + noise(x * 0.09 + 3, z * 0.09 - 8) * 0.07;
+const beachiness = (x, z) => noise(x * 0.045 + 140, z * 0.045 - 60) + 0.15;    // > 0 : crique sableuse, < 0 : pointe rocheuse
+const onBeach = (x, z, h) => h < WL + 1.0 && biomeW(x, z)[BI.littoral] > 0.12;
 function nearChalet(x, z, r = 3.9) { for (const c of chalets) if ((x - c.x) ** 2 + (z - c.z) ** 2 < r * r) return true; return false; }
 function chaletClear(x, z) { let k = 1; for (const c of chalets) k = Math.min(k, smooth(5.5, 10, Math.hypot(x - c.x, z - c.z))); return k; }
 function forestDensity(x, z, h = height(x, z)) {
@@ -242,8 +250,8 @@ function patch(mat, { wind = 0, flutter = false, fakeNormal = false, reveal = fa
         { // couleur et transparence selon la profondeur, écume le long des rives
           float dd = smoothstep(0., 1.3, wDepth);
           float seaK = texture2D(tWDepth, (vWP.xz + ${HALF.toFixed(1)}) / ${SIZE.toFixed(1)}).g;
-          diffuseColor.rgb = mix(mix(vec3(0.11, 0.25, 0.19), vec3(0.025, 0.08, 0.1), dd), mix(vec3(0.16, 0.62, 0.6), vec3(0.02, 0.16, 0.32), smoothstep(0., 2.2, wDepth)), seaK);
-          diffuseColor.a = mix(0.22, 0.9, smoothstep(0., 0.9 + seaK * 1.2, wDepth));
+          diffuseColor.rgb = mix(mix(vec3(0.11, 0.25, 0.19), vec3(0.025, 0.08, 0.1), dd), mix(vec3(0.05, 0.56, 0.58), vec3(0.02, 0.17, 0.36), smoothstep(0.3, 2.4, wDepth)), seaK);
+          diffuseColor.a = mix(0.22 + seaK * 0.2, 0.9 - seaK * 0.05, smoothstep(0., 0.9 + seaK * 1.6, wDepth));
           float fn = vn(vWP.xz * 2.2 + vec2(uTime * 0.25, -uTime * 0.2)) * 0.5 + vn(vWP.xz * 5.3 - uTime * 0.3) * 0.5;
           float foam = smoothstep(0.12, 0.0, wDepth + (fn - 0.5) * 0.14) * smoothstep(-0.05, 0.02, wDepth);
           foam *= smoothstep(0.5, 0.62, fn + (0.12 - wDepth) * 1.2);
@@ -1003,6 +1011,12 @@ function generate(seed) {
     const h = height(x, z); if (h < WL + 0.2) continue;
     addTree(rnd() < 0.72 ? 'heather' : 'gorse', x, z, h, 0.7, 1.5);
   }
+  for (let i = 0; i < 3000; i++) {   // pins penchés au-dessus des criques
+    const x = R(-HALF + 2, HALF - 2), z = R(-HALF + 2, HALF - 2), ws = biomeW(x, z)[BI.littoral]; if (ws < 0.2) continue;
+    const t = coastT(x, z, ws); if (t < -0.32 || t > -0.1 || rnd() > 0.12 || pathDist(x, z) < 3) continue;
+    const h = height(x, z); if (h < WL + 0.4) continue;
+    addTree('parasol', x, z, h, 0.8, 1.15);
+  }
   for (let i = 0; i < 6000; i++) {
     const x = R(-HALF + 2, HALF - 2), z = R(-HALF + 2, HALF - 2), ws = biomeW(x, z)[BI.littoral];
     if (ws < 0.15 || rnd() > ws * 0.8 || pathDist(x, z) < 2) continue;
@@ -1021,6 +1035,13 @@ function generate(seed) {
   ground = buildGround();
   world.add(ground);
   for (const c of chalets) { const g = makeChalet(c.vi); g.position.set(c.x, c.y, c.z); g.rotation.y = c.ry; world.add(g); addSmoke(g); }
+  boats.length = 0;
+  for (let tries = 0; tries < 4000 && boats.length < 6; tries++) {
+    const x = R(-HALF + 15, HALF - 15), z = R(-HALF + 15, HALF - 15), ws = biomeW(x, z)[BI.littoral]; if (ws < 0.3) continue;
+    const t = coastT(x, z, ws), d = WL - height(x, z);
+    if (t < 0.04 || t > 0.22 || d < 0.45 || beachiness(x, z) < 0 || boats.some(b => b.position.distanceTo(V(x, WL, z)) < 14)) continue;
+    const b = makeBoat(boats.length); b.position.set(x, WL, z); b.rotation.y = R(0, 6.28); b.userData.ph = R(0, 6.28); world.add(b); boats.push(b);
+  }
   { // profondeur d'eau (WL - relief) encodée sur 8 bits : 0 → -0,5 m, 1 → 2,5 m
     const WR = 512, data = new Uint8Array(WR * WR * 4);
     for (let j = 0; j < WR; j++) for (let i = 0; i < WR; i++) {
@@ -1122,12 +1143,14 @@ function generate(seed) {
   }
   // calcaire blanc du littoral : rochers au bord de l'eau et dans la garrigue
   const paleP = RSH.map(sh => makeRock(sh, false, true)), paleSets = paleP.map(() => []);
-  for (let i = 0; i < 5000; i++) {
-    const x = RX(), z = RX(), ws = biomeW(x, z)[BI.littoral]; if (ws < 0.2) continue;
-    const h = height(x, z), shore = smooth(WL + 2.5, WL + 0.2, h) * smooth(WL - 1.2, WL - 0.2, h);
-    if (rnd() > 0.04 + shore * 0.35 || pathDist(x, z) < 2) continue;
-    const vi = rnd() * 4 | 0, pr = paleP[vi], sc = R(0.3, 1.1) * (rnd() < 0.15 + shore * 0.3 ? R(1.8, 3) : 1);
-    paleSets[vi].push({ x, z, y: h + pr.base * sc - 0.1 * sc, s: sc, ry: R(0, 6.28), rx: R(-0.1, 0.1), rz: R(-0.1, 0.1), c: new THREE.Color().setScalar(R(0.92, 1.05)) });
+  for (let i = 0; i < 9000; i++) {
+    const x = RX(), z = RX(), ws = biomeW(x, z)[BI.littoral]; if (ws < 0.15) continue;
+    const t = coastT(x, z, ws), bc = beachiness(x, z), h = height(x, z);
+    const point = smooth(0.05, -0.25, bc) * smooth(-0.3, -0.12, t) * smooth(0.14, 0.02, t);   // pointes rocheuses
+    if (rnd() > 0.01 + point * 0.5 || pathDist(x, z) < 2) continue;
+    const vi = point > 0.3 && rnd() < 0.65 ? 1 : rnd() * 4 | 0, pr = paleP[vi];       // surtout des dalles (indice 1)
+    const sc = R(0.4, 1.2) * (rnd() < point * 0.3 ? R(1.6, 2.6) : 1);
+    paleSets[vi].push({ x, z, y: h + pr.base * sc - 0.18 * sc, s: sc, ry: R(0, 6.28), rx: R(-0.06, 0.06), rz: R(-0.06, 0.06), c: new THREE.Color().setScalar(R(0.92, 1.05)) });
     if (sc > 1.1 && h > WL - 0.3) { const k = key(x, z); if (!treeGrid.has(k)) treeGrid.set(k, []); treeGrid.get(k).push({ x, z, r: sc * pr.foot * 0.75 }); }
   }
   paleP.forEach((r, i) => paleSets[i].length && instanced(r.geo, M.stone, paleSets[i]));
@@ -1264,7 +1287,7 @@ function buildGround() {
   const PA = BIOMES.map(b => C(GP[b.id].A)), PB = BIOMES.map(b => C(GP[b.id].B)), PM = BIOMES.map(b => C(GP[b.id].M));
   // champs lents en demi-résolution
   const N = MR * MR, cA = new Uint8ClampedArray(N * 3), cB = new Uint8ClampedArray(N * 3), cM = new Uint8ClampedArray(N * 3);
-  const dens = new Float32Array(N), dry = new Float32Array(N), hgt = new Float32Array(N), lit = new Float32Array(N), rock = new Float32Array(N), n1a = new Float32Array(N), wpin = new Float32Array(N), wsea = new Float32Array(N);
+  const dens = new Float32Array(N), dry = new Float32Array(N), hgt = new Float32Array(N), lit = new Float32Array(N), rock = new Float32Array(N), n1a = new Float32Array(N), wpin = new Float32Array(N), wsea = new Float32Array(N), cT = new Float32Array(N), bchA = new Float32Array(N), posi = new Float32Array(N);
   const w = new Float32Array(NB);
   for (let j = 0; j < MR; j++) for (let i = 0; i < MR; i++) {
     const x = i / MR * SIZE - HALF, z = j / MR * SIZE - HALF, q = j * MR + i;
@@ -1276,8 +1299,8 @@ function buildGround() {
     const h = height(x, z); hgt[q] = h;
     dens[q] = forestDensity(x, z, h); dry[q] = fbm(x * 0.04 + 70, z * 0.04 - 33, 3) + w[BI.prairie] * 0.2;
     lit[q] = litter(x, z); n1a[q] = fbm(x * 0.06, z * 0.06, 3);
-    const wsl = w[BI.littoral]; wsea[q] = wsl;
-    rock[q] = (wl > 0.05 ? wl * smooth(0.0, 0.3, fbm(x * 0.08 + 500, z * 0.08, 3)) : 0) + (wsl > 0.05 ? wsl * 0.6 * smooth(0.1, 0.4, fbm(x * 0.09 + 520, z * 0.09, 3)) : 0);
+    const wsl = w[BI.littoral]; wsea[q] = wsl; cT[q] = wsl > 0.03 ? coastT(x, z, wsl) : -1; bchA[q] = beachiness(x, z); posi[q] = fbm(x * 0.07 + 300, z * 0.07 - 90, 3);
+    rock[q] = (wl > 0.05 ? wl * smooth(0.0, 0.3, fbm(x * 0.08 + 500, z * 0.08, 3)) : 0) + (wsl > 0.05 ? smooth(0.0, -0.25, beachiness(x, z)) * smooth(-0.3, -0.1, cT[q]) * smooth(0.0, -0.02, cT[q] - 0.02) * 0.9 : 0);
   }
   const mc = document.createElement('canvas'); mc.width = mc.height = MR;
   const mg = mc.getContext('2d'), mimg = mg.createImageData(MR, MR), MD = mimg.data;
@@ -1285,7 +1308,8 @@ function buildGround() {
   const sr = mulberry32(7);
   const mix3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
   const gDry = C('#93a94c'), dA = C('#8a5a34'), dB = C('#6a4128'), pa = C('#a8835a'), pb = C('#7a573a'), pRut = C('#5c4330'), pEdge = C('#5f5a32');
-  const sandA = C('#ecdcb0'), sandB = C('#dcc796'), sandW = C('#b59f72'), sandBed = C('#d8cfa2'), needleG = C('#7a5c3a'), rockC = C('#8c8a7e'), wet = C('#33402c'), bed = C('#3c4a3a');
+  const pebA = C('#b8b0a0'), pebB = C('#8c8578'), limA = C('#ddd6c4'), limB = C('#bdb5a2'), wrackC = C('#5a4632'), posA = C('#24413a'), posB = C('#2f5244');
+  const sandA = C('#ecdcb0'), sandB = C('#dcc796'), sandW = C('#b59f72'), sandBed = C('#b8b48a'), needleG = C('#7a5c3a'), rockC = C('#8c8a7e'), wet = C('#33402c'), bed = C('#3c4a3a');
   const leafs = [C('#c8752e'), C('#9c4d22'), C('#e0a040'), C('#5a3420'), C('#b8862f')];
   for (let j = 0; j < RES; j++) for (let i = 0; i < RES; i++) {
     const x = i / RES * SIZE - HALF, z = j / RES * SIZE - HALF;
@@ -1310,11 +1334,24 @@ function buildGround() {
     // rives humides et fond des étangs
     const Wt = smooth(WL + 0.5, WL + 0.02, h + n2 * 0.06);
     const sea = smooth(0.12, 0.35, wsea[q]);
-    if (sea > 0) {   // plage : sable clair au-dessus de l'eau, sable mouillé au bord, fond sableux turquoise
-      const beach = smooth(WL + 1.6, WL + 0.9, h + n2 * 0.25) * sea;
-      col3 = mix3(col3, mix3(sandA, sandB, clamp(0.5 + n2 * 0.8 + (fine - 0.5) * 0.3)), beach);
+    if (sea > 0) {
+      const t = cT[q], bc = bchA[q];
+      // plage de sable au fond des criques, galets à la limite, dalles calcaires sur les pointes
+      const sandK = smooth(-0.16, -0.06, t + n2 * 0.02) * smooth(-0.05, 0.12, bc) * sea;
+      col3 = mix3(col3, mix3(sandA, sandB, clamp(0.5 + n2 * 0.8 + (fine - 0.5) * 0.3)), sandK);
+      const pebK = smooth(-0.2, -0.1, t) * smooth(0.12, -0.02, Math.abs(bc - 0.0)) * sea;
+      if (pebK > 0) col3 = mix3(col3, mix3(pebA, pebB, fine), pebK * 0.8);
+      const rockK = smooth(-0.22, -0.05, t) * smooth(0.0, -0.2, bc) * sea;
+      if (rockK > 0) col3 = mix3(col3, mix3(limA, limB, clamp(0.5 + n2)), rockK);
+      // laisses de posidonie : bandes brunes sur le sable, juste au-dessus de l'eau
+      const wrack = Math.exp(-(((h - WL - 0.22) / 0.06) ** 2)) * sandK * smooth(0.1, 0.4, noise(x * 0.4, z * 0.4) + 0.3);
+      if (wrack > 0) col3 = mix3(col3, wrackC, wrack * 0.8);
     }
     if (Wt > 0) { col3 = mix3(col3, mix3(wet, sandW, sea), Wt * 0.7); col3 = mix3(col3, mix3(bed, sandBed, sea), smooth(WL, WL - 0.4, h)); }
+    if (sea > 0 && h < WL - 0.4) {   // herbiers de posidonie : taches sombres sur le fond sableux
+      const pk = smooth(0.05, 0.2, posi[q] + n2 * 0.05) * smooth(WL - 0.4, WL - 1.0, h) * sea;
+      col3 = mix3(col3, mix3(posA, posB, fine), pk);
+    }
     // sentier : bord sombre et humide, centre clair, deux ornières, bande d'herbe au milieu
     const sx = x - pathX(z), pd = Math.abs(sx) + n2 * 0.7;
     const P = 1 - smooth(0.9, 2.3, pd);
@@ -1393,7 +1430,7 @@ function goToBiome(bi) {
   let best = -1, bx = 0, bz = 0;
   for (let z = -HALF + 20; z < HALF - 20; z += 4) for (let x = -HALF + 22; x < HALF - 22; x += 4) {
     const w = biomeW(x, z)[bi] - Math.hypot(x - player.position.x, z - player.position.z) / 2000;
-    if (w > best && height(x, z) > WL + 0.4) { best = w; bx = x; bz = z; }
+    if (w > best && height(x, z) > WL + 0.4 && pathDist(x, z) > 6) { best = w; bx = x; bz = z; }
   }
   teleport(bx, bz);
 }
@@ -1644,6 +1681,32 @@ function makeChalet(vi) {
   g.userData.chimney = new THREE.Vector3(cx, ch + 0.15, cz);
   g.userData.size = [W, D];
   return g;
+}
+// ── barques (pointus) amarrées dans les criques
+const boats = [];
+function makeBoat(vi) {
+  const g = new THREE.BoxGeometry(2.4, 0.46, 0.92, 16, 3, 4), p = g.attributes.position, cols = new Float32Array(p.count * 3);
+  const band = [col('#2f6db0'), col('#c8442e'), col('#2f8a6a')][vi % 3], white = col('#f2efe6'), red = col('#a83a2a'), wood = col('#9a6a42');
+  for (let i = 0; i < p.count; i++) {
+    let x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    const e = Math.abs(x) / 1.2, k = 1 - Math.pow(e, 2.2);
+    const keel = y < 0 ? 0.35 + 0.65 * (y + 0.23) / 0.23 : 1;
+    z *= Math.max(0.02, k) * keel;
+    if (y > 0) y += Math.pow(e, 3) * 0.28;          // tonture : la proue et la poupe se relèvent
+    p.setXYZ(i, x, y, z);
+    const c = y > 0.13 ? band : y < -0.12 ? red : white;
+    cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(cols, 3)); g.computeVertexNormals();
+  const grp = new THREE.Group(), m = cMat('boat', '#ffffff', {}, { vertexColors: true });
+  const hull = new THREE.Mesh(g, m); hull.castShadow = hull.receiveShadow = true; grp.add(hull);
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.04, 0.6), cMat('plank', '#9a6a42', { proc: 'plank' })); deck.position.y = 0.2; deck.castShadow = deck.receiveShadow = true; grp.add(deck);
+  const bench = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.05, 0.7), cMat('plank', '#7a5234', { proc: 'plank' })); bench.position.set(0.2, 0.26, 0); grp.add(bench);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 1.2, 6), cMat('mast', '#6a4a30')); mast.position.set(0.55, 0.75, 0); mast.castShadow = true; grp.add(mast);
+  return grp;
+}
+function updateBoats(t) {
+  for (const b of boats) { const ph = b.userData.ph; b.rotation.z = Math.sin(t * 0.9 + ph) * 0.04; b.rotation.x = Math.sin(t * 0.7 + ph * 2) * 0.05; b.position.y = WL - 0.02 + Math.sin(t * 1.1 + ph) * 0.03; }
 }
 const smokes = [];
 function addSmoke(g) {
@@ -2236,6 +2299,7 @@ function buildAssets(sd) {
     ['Méditerranée', 'Olivier', 16, 1.8, (x, z) => one(makeOlive(), x, z)],
     ['Méditerranée', 'Cyprès', 24, 3.5, (x, z) => one(makeCypress(), x, z)],
     ['Méditerranée', 'Lavande & maquis', 8, 0.4, (x, z) => { const lv = soft(makeBush(PAL.lavender, 0.32, 0.5)), mq = soft(makeBush(PAL.maquis, 0.4, 0.8)); scatter(5, 1.8, (a, b, i) => one(i < 3 ? lv : mq, x + a, z + b, R(0.8, 1.3))); }],
+    ['Méditerranée', 'Barque', 7, 0.2, (x, z) => { const b = makeBoat(0); b.position.set(x, 0.05, z); b.rotation.y = 0.6; world.add(b); }],
     ['Méditerranée', 'Calcaire', 10, 0.5, (x, z) => ['boulder', 'slab', 'spire', 'round'].forEach((sh, i) => { const r = makeRock(sh, false, true); instanced(r.geo, M.stone, [{ x: x - 3.3 + i * 2.2, z: z + (i % 2) * 0.8, y: r.base * 0.9 - 0.05, s: 0.9, ry: R(0, 6.28), c: new THREE.Color(1, 1, 1) }]); })],
     ['Arbustes', 'Buisson', 9, 0.6, (x, z) => one(soft(makeBush()), x, z)],
     ['Arbustes', 'Bruyère', 8, 0.4, (x, z) => { const pr = soft(makeBush(PAL.heather, 0.42, 0.55)); scatter(4, 1.6, (a, b) => one(pr, x + a, z + b, R(0.8, 1.3))); }],
@@ -2335,7 +2399,7 @@ function frame(now) {
   if (cycle.on && cycle.run) { cycle.hour = (cycle.hour + dt * 24 / (cycle.minutes * 60)) % 24; syncDay(); }
   U.uTime.value = t;
   if (!world) { requestAnimationFrame(frame); return; }
-  updateSmoke(t, winMat.emissiveIntensity > 0.6);
+  updateSmoke(t, winMat.emissiveIntensity > 0.6); updateBoats(t);
   if (ASSETS) { assetsFrame(dt, t); requestAnimationFrame(frame); return; }
   updatePlayer(dt);
   drawMinimap(now);

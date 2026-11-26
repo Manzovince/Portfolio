@@ -41,6 +41,7 @@
   #biome { position:fixed; right:12px; top:190px; width:170px; text-align:center; font-weight:600; letter-spacing:.04em; text-shadow:0 1px 4px rgba(0,0,0,.6); }
   #biome.flash { animation:flash 2.4s ease; }
   @keyframes flash { 0% { transform:scale(1.35); color:var(--acc); } 100% { transform:scale(1); } }
+  @media (max-width:700px) { #minimap { width:96px; height:96px; right:8px; top:8px; border-radius:9px; } #biome { top:108px; right:8px; width:96px; font-size:10.5px; } }
   #fps { position:fixed; right:10px; bottom:8px; font-size:11px; opacity:.5; font-variant-numeric:tabular-nums; }
   #loading { position:fixed; inset:0; display:grid; place-items:center; background:#1c2616; font-size:14px; letter-spacing:.1em; }
 </style>
@@ -82,6 +83,6 @@
 <div id="biome"></div>
 <div id="fps"></div>
 <div id="loading">GÉNÉRATION…</div>
-<script type="module" src="main.js?v=1"></script>
+<script type="module" src="main.js?v=2"></script>
 </body>
 </html>
