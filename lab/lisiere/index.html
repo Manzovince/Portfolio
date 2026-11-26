@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1c2616">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon.svg">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lisière</title>
+<style>
+  :root { --ink:#f3efe2; --bg:rgba(18,24,16,.72); --line:rgba(255,255,255,.14); --acc:#d9e27a; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; overflow:hidden; background:#1c2616; font:13px/1.35 ui-rounded, "SF Pro Rounded", system-ui, sans-serif; color:var(--ink); }
+  canvas { display:block; width:100vw; height:100vh; touch-action:none; }
+  #ui { position:fixed; left:12px; top:12px; width:250px; background:var(--bg); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+        border:1px solid var(--line); border-radius:14px; padding:12px; user-select:none; }
+  #ui.closed .body { display:none; }
+  h1 { margin:0; font-size:15px; letter-spacing:.04em; display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
+  h1 small { font-weight:400; opacity:.6; font-size:11px; }
+  .chips { display:flex; flex-wrap:wrap; gap:5px; margin:10px 0 8px; }
+  button { font:inherit; color:var(--ink); background:rgba(255,255,255,.07); border:1px solid var(--line); border-radius:999px; padding:4px 10px; cursor:pointer; }
+  button:hover { background:rgba(255,255,255,.14); }
+  button.on { background:var(--acc); color:#1b2210; border-color:var(--acc); }
+  .row { display:grid; grid-template-columns:78px 1fr 30px; align-items:center; gap:6px; margin:4px 0; font-size:12px; }
+  .row span:last-child { text-align:right; opacity:.7; font-variant-numeric:tabular-nums; }
+  select { font:inherit; color:var(--ink); background:rgba(255,255,255,.07); border:1px solid var(--line); border-radius:999px; padding:4px 8px; }
+  select option { color:#000; }
+  input[type=range] { width:100%; accent-color:var(--acc); }
+  .tools { display:flex; gap:5px; margin-top:8px; flex-wrap:wrap; }
+  .hint { margin-top:8px; font-size:11px; opacity:.55; }
+  #labels { position:fixed; inset:0; display:none; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(2,1fr); pointer-events:none; }
+  #labels.on { display:grid; }
+  #labels div { border:1px solid rgba(0,0,0,.35); pointer-events:auto; cursor:pointer; position:relative; }
+  #labels div:hover { outline:2px solid var(--acc); outline-offset:-2px; }
+  #labels b { position:absolute; left:50%; bottom:12px; transform:translateX(-50%); background:var(--bg); padding:4px 12px; border-radius:999px; font-weight:600; white-space:nowrap; }
+  #labels.on ~ #ui .sliders { opacity:.35; pointer-events:none; }
+  .day { padding:6px 0 8px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); margin-bottom:8px; }
+  #minimap { cursor:crosshair; position:fixed; right:12px; top:12px; width:170px; height:170px; border-radius:12px; border:1px solid var(--line); box-shadow:0 4px 18px rgba(0,0,0,.35); image-rendering:pixelated; }
+  #biome { position:fixed; right:12px; top:190px; width:170px; text-align:center; font-weight:600; letter-spacing:.04em; text-shadow:0 1px 4px rgba(0,0,0,.6); }
+  #biome.flash { animation:flash 2.4s ease; }
+  @keyframes flash { 0% { transform:scale(1.35); color:var(--acc); } 100% { transform:scale(1); } }
+  #fps { position:fixed; right:10px; bottom:8px; font-size:11px; opacity:.5; font-variant-numeric:tabular-nums; }
+  #loading { position:fixed; inset:0; display:grid; place-items:center; background:#1c2616; font-size:14px; letter-spacing:.1em; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="labels"></div>
+<div id="ui">
+  <h1 id="title">Lisière <small>▾</small></h1>
+  <div class="tools" style="margin:6px 0 0"><a href="assets.html" style="color:var(--acc)">Voir les assets →</a></div>
+  <div class="body">
+    <div class="chips" id="presets"></div>
+    <div class="tools" style="margin:0 0 8px">
+      <button id="planche">▦ Planche des styles</button>
+    </div>
+    <div class="day">
+      <div class="tools" style="margin:0 0 4px"><button id="dayOn">☀ Cycle jour / nuit</button><button id="dayRun">⏸</button></div>
+      <label class="row"><span>Heure</span><input id="dayH" type="range" min="0" max="23.99" step="0.05" value="9"><span id="dayHv">09:00</span></label>
+      <label class="row"><span>Un jour =</span><input id="dayM" type="range" min="1" max="20" step="1" value="4"><span id="dayMv">4 min</span></label>
+    </div>
+    <div class="sliders" id="sliders"></div>
+    <div class="tools">
+      <button id="reset">Réinit. style</button>
+      <button id="world">Nouveau monde</button>
+      <select id="charSel" title="Personnage"></select>
+      <select id="goBiome"><option value="">Aller au biome…</option></select>
+    </div>
+    <div class="hint">ZQSD / flèches marcher · clic aller · glisser pour tourner / incliner la caméra · clic sur la carte pour s’y rendre · A/E tourner · R/F incliner · molette ou pincer zoom</div>
+  </div>
+</div>
+<button id="follow" style="display:none;position:fixed;left:50%;bottom:18px;transform:translateX(-50%)">◎ Revenir au personnage (Espace)</button>
+<canvas id="minimap" width="170" height="170"></canvas>
+<div id="biome"></div>
+<div id="fps"></div>
+<div id="loading">GÉNÉRATION…</div>
+<script type="module" src="main.js?v=1"></script>
+</body>
+</html>
