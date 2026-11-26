@@ -290,27 +290,41 @@ td {
     outline-offset: 2px;
 }
 
-#nav-icon:active {
-    transform: rotate(90deg);
+/* Closed: a filled triangle; hovering slides its bottom corner from right
+   to left into a filled square. Clicking turns the button a quarter and
+   leaves only the outline; with the button turned, the path's 3rd point is
+   the bottom-left corner on screen, folded onto the bottom-right one, so the
+   open triangle still points to the top right and hovering slides that
+   corner the same way. */
+#nav-icon {
+    transition: opacity .2s ease, transform .35s cubic-bezier(.2, .8, .2, 1);
 }
 
 #nav.open #nav-icon {
-    transform: rotate(135deg);
+    transform: rotate(90deg);
+}
+
+#nav-icon svg {
+    overflow: hidden;
 }
 
 #nav-icon svg path {
-    transition: all 0.2s ease-in;
-}
-
-#nav-icon:hover svg path {
-    d: path('M0 0 L16 0 L16 16 L0 16 Z');
+    stroke: transparent;
+    stroke-width: 2px;
+    transition: d .3s cubic-bezier(.2, .8, .2, 1), fill .25s ease, stroke .25s ease;
 }
 
 #nav.open #nav-icon svg path {
-    d: path('M0 0 L16 0 L16 16 L0 16 Z');
+    d: path('M0 0 L16 0 L16 0 L0 16 Z');
     stroke: var(--text-color);
-    stroke-width: 2px;
     fill: transparent;
+}
+
+@media (hover: hover) {
+    #nav-icon:hover svg path,
+    #nav.open #nav-icon:hover svg path {
+        d: path('M0 0 L16 0 L16 16 L0 16 Z');
+    }
 }
 
 /* Menu, compact version: on wide screens the triangle slides the links,
@@ -356,6 +370,28 @@ td {
     opacity: 1;
     transform: none;
     transition-delay: calc(60ms + var(--i, 3) * 50ms);
+}
+
+/* Wide screens: they come out of the triangle's corner, nearest first */
+@media (min-width: 900px) {
+    #nav-list li,
+    #nav-settings {
+        transform: translateX(14px);
+        transition: opacity .25s ease, transform .35s cubic-bezier(.2, .8, .2, 1);
+    }
+
+    #nav-list li:first-child {
+        --j: 2;
+    }
+
+    #nav-list li:nth-child(2) {
+        --j: 1;
+    }
+
+    #nav.open #nav-list li,
+    #nav.open #nav-settings {
+        transition-delay: calc(var(--j, 0) * 40ms);
+    }
 }
 
 #nav-list a {
@@ -521,7 +557,9 @@ td {
     #nav.open #nav-list li,
     #nav-settings,
     #nav.open #nav-settings,
-    #page-name-container {
+    #page-name-container,
+    #nav-icon,
+    #nav-icon svg path {
         transition: none;
     }
 
