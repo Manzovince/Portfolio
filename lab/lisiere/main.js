@@ -2769,7 +2769,7 @@ const camTarget = new THREE.Vector3(), camFocus = new THREE.Vector3();
 const _r = new THREE.Vector3(), _u = new THREE.Vector3();
 function placeCamera(lh) {
   const off = V(Math.sin(camYaw) * Math.cos(camPitch), Math.sin(camPitch), Math.cos(camYaw) * Math.cos(camPitch)).multiplyScalar(camDist);
-  camera.position.copy(camTarget).add(off); camera.lookAt(camTarget); camera.updateMatrixWorld();
+  camera.position.copy(camTarget).add(off); if (!ASSETS) camera.position.y = Math.max(camera.position.y, height(camera.position.x, camera.position.z) + 1.2); camera.lookAt(camTarget); camera.updateMatrixWorld();
   _r.setFromMatrixColumn(camera.matrixWorld, 0); _u.setFromMatrixColumn(camera.matrixWorld, 1);
   const wpp = 2 * camDist * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / lh;
   const pr = camera.position.dot(_r), pu = camera.position.dot(_u);
@@ -2863,13 +2863,13 @@ canvas.addEventListener('pointermove', e => {
     pp.x = e.clientX; pp.y = e.clientY;
     const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
     if (pinch0 > 0) camDistT = clamp(camDistT * pinch0 / d, 14, 80); pinch0 = d;
-    camYawT -= dx * 0.004; camPitchT = clamp(camPitchT + dy * 0.003, 0.6, 1.45);
+    camYawT -= dx * 0.004; camPitchT = clamp(camPitchT + dy * 0.003, 0.18, 1.45);
     return;
   }
   pp.x = e.clientX; pp.y = e.clientY;
   if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 5) return;
   drag.moved = true; canvas.style.cursor = 'grabbing';
-  camYawT -= dx * 0.006; camPitchT = clamp(camPitchT + dy * 0.004, 0.6, 1.45);
+  camYawT -= dx * 0.006; camPitchT = clamp(camPitchT + dy * 0.004, 0.18, 1.45);
 });
 function endPtr(e) {
   if (!ptrs.has(e.pointerId)) return;
@@ -2979,8 +2979,8 @@ function updateWake(dt) {
 function updatePlayer(dt) {
   if (keys.has('KeyQ')) camYawT += dt * 1.6;
   if (keys.has('KeyE')) camYawT -= dt * 1.6;
-  if (keys.has('KeyR')) camPitchT = clamp(camPitchT + dt * 0.8, 0.6, 1.45);
-  if (keys.has('KeyF')) camPitchT = clamp(camPitchT - dt * 0.8, 0.6, 1.45);
+  if (keys.has('KeyR')) camPitchT = clamp(camPitchT + dt * 0.8, 0.18, 1.45);
+  if (keys.has('KeyF')) camPitchT = clamp(camPitchT - dt * 0.8, 0.18, 1.45);
   camYaw += (camYawT - camYaw) * Math.min(1, dt * 8);
   camPitch += (camPitchT - camPitch) * Math.min(1, dt * 8);
   camDist += (camDistT - camDist) * Math.min(1, dt * 8);
