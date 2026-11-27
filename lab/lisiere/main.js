@@ -67,13 +67,16 @@ function ridgeMaskRaw(x, z) {     // ≈ 1 sur l'arête d'une chaîne, 0 dans le
 }
 // multifractale à crêtes (Musgrave) sur des coordonnées déformées : arêtes, cols et vallons
 function mountainH(x, z) {
-  const wx = x + fbm(x * 0.009 + 5, z * 0.009, 2) * 28, wz = z + fbm(x * 0.009 - 9, z * 0.009 + 3, 2) * 28;
-  let sum = 0, amp = 0.62, f = 0.0075, wgt = 1;
-  for (let i = 0; i < 5; i++) {
-    let n = 1 - Math.abs(noise(wx * f + i * 17.3, wz * f - i * 11.1) * 1.4); n = n * n * wgt;
-    wgt = clamp(n * 1.7); sum += n * amp; amp *= 0.47; f *= 2.07;
+  // relief alpin : arêtes vives (multifractale ridged), crêtes qui serpentent (déformation), sommets
+  // plus hauts au cœur du massif, vallées en auge adoucies (pow), éboulis en pied de pente
+  const wx = x + fbm(x * 0.006 + 5, z * 0.006, 3) * 42, wz = z + fbm(x * 0.006 - 9, z * 0.006 + 3, 3) * 42;
+  let sum = 0, amp = 0.6, f = 0.0062, wgt = 1;
+  for (let i = 0; i < 6; i++) {
+    let n = 1 - Math.abs(noise(wx * f + i * 17.3, wz * f - i * 11.1) * 1.35); n = n * n * wgt;
+    wgt = clamp(n * 1.9); sum += n * amp; amp *= 0.46; f *= 2.11;
   }
-  return sum;
+  const peak = 0.75 + 0.5 * clamp(0.5 + fbm(x * 0.0021 + 41, z * 0.0021 - 7, 2));   // massifs plus ou moins hauts
+  return Math.pow(sum, 1.35) * peak * 1.25;
 }
 function climateWeights(x, z, out) {
   const c = continent(x, z), rm = ridgeMaskRaw(x, z), sd = -c * 300;
@@ -159,7 +162,7 @@ function heightRaw(x, z, raw = false) {
   const w = raw ? (climateWeights(x, z, _rw), _rw) : biomeW(x, z);
   let h = fbm(x * 0.014, z * 0.014, 3) * 2.2 + noise(x * 0.09 + 50, z * 0.09) * 0.3;
   const mk = raw ? _mt : mountainK(x, z);
-  if (mk > 0.01) h += mk * mk * 3.5 + Math.pow(mk, 1.6) * mountainH(x, z) * 25;   // contreforts puis massif à arêtes
+  if (mk > 0.01) h += mk * mk * 3.5 + Math.pow(mk, 1.4) * mountainH(x, z) * 46;   // contreforts puis massif à arêtes
   const wd = w[BI.desert];
   if (wd > 0.02) {
     const k = smooth(0.05, 0.55, wd), dn = dunes(x, z), bt = butte(x, z);
