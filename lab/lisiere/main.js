@@ -28,7 +28,8 @@ function fbm(x, y, o = 4) { let s = 0, a = 0.5, f = 1; for (let i = 0; i < o; i+
 // ════════════════════════════════════════════════════════════════════
 //  Monde : biomes (climat procédural), relief, eau, sentier
 // ════════════════════════════════════════════════════════════════════
-const SIZE = 260, HALF = SIZE / 2;
+const SIZE = 340, HALF = SIZE / 2;
+const AK = (SIZE / 260) ** 2;   // facteur de densité : les quantités d'objets suivent la surface
 const WL = -3.6; // niveau de l'eau
 let pathPh = [0, 0], clearing = new THREE.Vector2();
 const pathX = z => 15 * Math.sin(z * 0.03 + pathPh[0]) + 7 * Math.sin(z * 0.083 + pathPh[1]);
@@ -43,22 +44,59 @@ const BIOMES = [
   { id: 'marais',  name: 'Marais',          t: 0.62, h: 0.92, trees: 0.3,  map: '#4f7a62', grass: 1.3, flowers: 0.5, tint: [0.85, 0.95, 0.85] },
   { id: 'automne', name: "Bois d'automne",  t: 0.30, h: 0.82, trees: 0.95, map: '#c8742e', grass: 0.7, flowers: 0.4, tint: [1.15, 1.0, 0.7] },
   { id: 'lande',   name: 'Lande rocheuse',  t: 0.24, h: 0.10, trees: 0.15, map: '#8a7a92', grass: 0.7, flowers: 0.5, tint: [1.1, 1.0, 0.75] },
-  { id: 'littoral', name: 'Bord de mer',    t: 0.96, h: 0.14, trees: 0.4,  map: '#e6d29c', grass: 0.45, flowers: 0.35, tint: [1.15, 1.05, 0.7] },
+  { id: 'montagne', name: 'Montagne',       special: true, t: 0.03, h: 0.74, trees: 0.95, map: '#8d949c', grass: 0.55, flowers: 0.3, tint: [0.92, 1.0, 0.95] },
+  { id: 'littoral', name: 'Bord de mer',    special: true, t: 0.96, h: 0.14, trees: 0.4,  map: '#b9ae74', grass: 0.45, flowers: 0.35, tint: [1.15, 1.05, 0.7] },
 ];
+const TREELINE = 9, SNOWLINE = 14.5;   // étages de montagne (altitude absolue)
+// crêtes : bruit « ridged » (1 - |n|)², plusieurs octaves
+function ridged(x, z) { let s = 0, a = 0.55, f = 0.011; for (let i = 0; i < 4; i++) { const n = 1 - Math.abs(noise(x * f + 31 * i, z * f - 17 * i) * 1.35); s += n * n * a; a *= 0.5; f *= 2.1; } return s / 1.03; }
 const NB = BIOMES.length, BI = Object.fromEntries(BIOMES.map((b, i) => [b.id, i]));
 let climOff = [0, 0, 0, 0];
-function climateWeights(x, z, out) {
-  const t = clamp(0.5 + fbm(x * 0.0068 + climOff[0], z * 0.0068 + climOff[1], 2) * 1.6);
-  const h = clamp(0.5 + fbm(x * 0.0068 + climOff[2], z * 0.0068 + climOff[3], 2) * 1.6);
-  let s = 0;
-  for (let i = 0; i < NB; i++) { const b = BIOMES[i], d2 = (t - b.t) ** 2 + (h - b.h) ** 2, w = Math.exp(-d2 / 0.01); out[i] = w; s += w; }
-  for (let i = 0; i < NB; i++) out[i] = s > 0 ? out[i] / s : 1 / NB;
+// ── Géographie : la mer borde un côté du monde, une chaîne de montagnes longe le côté opposé.
+// u ∈ [-1, 1] traverse le monde de la montagne (u < 0) vers la mer (u > 0) ; v suit l'axe de la côte.
+const geo = { dx: 1, dz: 0, o1: 0, o2: 0 };
+const geoU = (x, z) => (x * geo.dx + z * geo.dz) / HALF;
+const geoV = (x, z) => (-x * geo.dz + z * geo.dx) / HALF;
+const coastU = v => 0.62 + noise(v * 1.7 + geo.o1, 4.2) * 0.13 + noise(v * 4.6 + geo.o1, 9.1) * 0.05;
+const seaDist = (x, z) => (geoU(x, z) - coastU(geoV(x, z))) * HALF;          // mètres, > 0 en mer
+const spineU = v => -0.58 + noise(v * 1.4 + geo.o2, 2.7) * 0.16;
+function ridgeMaskRaw(x, z) {     // 1 sur l'épine dorsale de la chaîne, 0 dans les plaines
+  const u = geoU(x, z), v = geoV(x, z);
+  return smooth(0.46, 0.08, Math.abs(u - spineU(v)) + noise(x * 0.012 + 40, z * 0.012) * 0.08) * (0.8 + 0.2 * noise(v * 2.3 + 7, 1.3));
 }
+// multifractale à crêtes (Musgrave) sur des coordonnées déformées : arêtes, cols et vallons
+function mountainH(x, z) {
+  const wx = x + fbm(x * 0.009 + 5, z * 0.009, 2) * 28, wz = z + fbm(x * 0.009 - 9, z * 0.009 + 3, 2) * 28;
+  let sum = 0, amp = 0.62, f = 0.0075, wgt = 1;
+  for (let i = 0; i < 5; i++) {
+    let n = 1 - Math.abs(noise(wx * f + i * 17.3, wz * f - i * 11.1) * 1.4); n = n * n * wgt;
+    wgt = clamp(n * 1.7); sum += n * amp; amp *= 0.47; f *= 2.07;
+  }
+  return sum;
+}
+function climateWeights(x, z, out) {
+  const u = geoU(x, z), rm = ridgeMaskRaw(x, z), sd = seaDist(x, z);
+  // plus chaud vers la mer, plus frais vers la montagne ; humidité en grandes nappes
+  const t = clamp(0.5 + u * 0.32 - rm * 0.25 + fbm(x * 0.0048 + climOff[0], z * 0.0048 + climOff[1], 2) * 1.7);
+  const h = clamp(0.5 + fbm(x * 0.0048 + climOff[2], z * 0.0048 + climOff[3], 2) * 2.0);
+  let s = 0;
+  for (let i = 0; i < NB; i++) {
+    const b = BIOMES[i]; if (b.special) { out[i] = 0; continue; }
+    const d2 = (t - b.t) ** 2 + (h - b.h) ** 2, w = Math.exp(-d2 / 0.012); out[i] = w; s += w;
+  }
+  for (let i = 0; i < NB; i++) out[i] = s > 0 ? out[i] / s : 0;
+  const mL = smooth(-62, -22, sd), mM = smooth(0.22, 0.55, rm);
+  const keep = 1 - Math.max(mL, mM);
+  for (let i = 0; i < NB; i++) out[i] *= keep;
+  out[BI.littoral] = mL * (1 - mM); out[BI.montagne] = mM;
+  _mt = rm;
+}
+let _mt = 0;
 const BG = SIZE + 1;
-const bCache = new Float32Array(BG * BG * NB);
+const bCache = new Float32Array(BG * BG * NB), mCache = new Float32Array(BG * BG);
 function buildBiomeCache() {
   const tmp = new Float32Array(NB);
-  for (let j = 0; j < BG; j++) for (let i = 0; i < BG; i++) { climateWeights(i - HALF, j - HALF, tmp); bCache.set(tmp, (j * BG + i) * NB); }
+  for (let j = 0; j < BG; j++) for (let i = 0; i < BG; i++) { climateWeights(i - HALF, j - HALF, tmp); bCache.set(tmp, (j * BG + i) * NB); mCache[j * BG + i] = _mt; }
 }
 const _bw = new Float32Array(NB);
 function biomeW(x, z, out = _bw) {
@@ -68,24 +106,46 @@ function biomeW(x, z, out = _bw) {
   for (let k = 0; k < NB; k++) out[k] = (bCache[a + k] * (1 - u) + bCache[b + k] * u) * (1 - v) + (bCache[c + k] * (1 - u) + bCache[d + k] * u) * v;
   return out;
 }
+// « montagnité » lissée : monte progressivement bien avant la frontière du biome (contreforts)
+function mountainK(x, z) {
+  const fx = clamp(x + HALF, 0, SIZE - 1e-3), fz = clamp(z + HALF, 0, SIZE - 1e-3);
+  const i = Math.floor(fx), j = Math.floor(fz), u = fx - i, v = fz - j, a = j * BG + i;
+  const d = (mCache[a] * (1 - u) + mCache[a + 1] * u) * (1 - v) + (mCache[a + BG] * (1 - u) + mCache[a + BG + 1] * u) * v;
+  return d;
+}
 function biomeArgmax(x, z) { const w = biomeW(x, z); let m = 0; for (let k = 1; k < NB; k++) if (w[k] > w[m]) m = k; return m; }
 function pickBiome(x, z) { const w = biomeW(x, z); let r = rnd(); for (let k = 0; k < NB; k++) { r -= w[k]; if (r <= 0) return k; } return NB - 1; }
 const bMix = (x, z, key) => { const w = biomeW(x, z); let s = 0; for (let k = 0; k < NB; k++) s += w[k] * BIOMES[k][key]; return s; };
 
+const HR = 2, HG = SIZE * HR + 1;
+let hCache = null;
+function buildHeightCache() {
+  hCache = null; const c = new Float32Array(HG * HG);
+  for (let j = 0; j < HG; j++) for (let i = 0; i < HG; i++) c[j * HG + i] = heightRaw(i / HR - HALF, j / HR - HALF);
+  hCache = c;
+}
 function height(x, z) {
+  if (!hCache) return heightRaw(x, z);
+  const fx = clamp((x + HALF) * HR, 0, HG - 1.001), fz = clamp((z + HALF) * HR, 0, HG - 1.001);
+  const i = Math.floor(fx), j = Math.floor(fz), u = fx - i, v = fz - j, a = j * HG + i, c = hCache;
+  return (c[a] * (1 - u) + c[a + 1] * u) * (1 - v) + (c[a + HG] * (1 - u) + c[a + HG + 1] * u) * v;
+}
+function heightRaw(x, z) {
   const w = biomeW(x, z);
-  let h = fbm(x * 0.018, z * 0.018, 3) * 2.6 + noise(x * 0.09 + 50, z * 0.09) * 0.35;
+  let h = fbm(x * 0.014, z * 0.014, 3) * 2.2 + noise(x * 0.09 + 50, z * 0.09) * 0.3;
+  const mk = mountainK(x, z);
+  if (mk > 0.01) h += mk * mk * 3.5 + Math.pow(mk, 1.6) * mountainH(x, z) * 25;   // contreforts puis massif à arêtes
   const hills = w[BI.lande] * 1.9 + w[BI.pinede] * 1.1;                       // collines dans les biomes froids
   if (hills > 0.02) h += hills * (fbm(x * 0.035 + 5, z * 0.035, 3) * 2.4 + 0.6);
-  const ws = w[BI.littoral];
-  if (ws > 0.03) {
-    const t = coastT(x, z, ws), bch = beachiness(x, z);
+  const t = coastT(x, z);
+  if (t > -0.75) {
+    const bch = beachiness(x, z);
     // terre basse qui monte doucement, plage presque plate au fond des criques, plateau sous-marin en pente douce
     let ch = WL + 0.2 - clamp(t, -0.45, 0.6) * 4.2;
     if (t < 0.02 && t > -0.12) ch = lerp(ch, WL + 0.25 + (t + 0.12) * -1.5, smooth(0, 0.6, bch) * 0.8);   // replat de la plage
     if (bch < 0 && t > -0.15 && t < 0.08) ch += smooth(0, -0.5, bch) * 0.35 * smooth(0.08, -0.02, t);      // pointes rocheuses un peu plus hautes
     ch += noise(x * 0.3, z * 0.3) * 0.06;
-    h = lerp(h, ch, smooth(0.03, 0.28, ws));
+    h = lerp(h, ch, smooth(-0.75, -0.35, t));
   }
   const m = smooth(0.2, 0.62, w[BI.marais]);                                   // marais : cuvette basse + étangs
   if (m > 0) {
@@ -97,7 +157,7 @@ function height(x, z) {
 }
 let chalets = [];
 // côte : champ dont le zéro est le trait de côte (t > 0 : la mer) ; le bruit à moyenne échelle découpe des criques
-const coastT = (x, z, ws = biomeW(x, z)[BI.littoral]) => ws - 0.6 + fbm(x * 0.03 + 77, z * 0.03, 3) * 0.16 + noise(x * 0.09 + 3, z * 0.09 - 8) * 0.07;
+const coastT = (x, z) => seaDist(x, z) / 40 + fbm(x * 0.03 + 77, z * 0.03, 3) * 0.12 + noise(x * 0.09 + 3, z * 0.09 - 8) * 0.06;
 const beachiness = (x, z) => noise(x * 0.045 + 140, z * 0.045 - 60) + 0.15;    // > 0 : crique sableuse, < 0 : pointe rocheuse
 const onBeach = (x, z, h) => h < WL + 1.0 && biomeW(x, z)[BI.littoral] > 0.12;
 function nearChalet(x, z, r = 3.9) { for (const c of chalets) if ((x - c.x) ** 2 + (z - c.z) ** 2 < r * r) return true; return false; }
@@ -107,7 +167,7 @@ function forestDensity(x, z, h = height(x, z)) {
   d *= smooth(6, 12, Math.hypot(x - clearing.x, z - clearing.y));
   if (chalets.length) d *= chaletClear(x, z);
   d *= smooth(1.6, 4.5, pathDist(x, z));
-  d *= smooth(WL + 0.1, WL + 0.6, h);
+  d *= smooth(WL + 0.1, WL + 0.6, h) * smooth(TREELINE + 1.2, TREELINE - 1.2, h);   // limite des arbres en altitude
   return clamp(d);
 }
 const birchness = (x, z) => fbm(x * 0.035 - 30, z * 0.035 + 21, 2);
@@ -169,7 +229,9 @@ const windGLSL = (amp, flutter) => /* glsl */`
   float sw = (sin(uTime*1.1 + ph)*0.6 + sin(uTime*2.3 + ph*1.7 + transformed.x*0.8)*0.4) * gust + gust * 0.5;
   transformed.x += sw * hh * ${amp.toFixed(4)} * uWind;
   transformed.z += cos(uTime*0.9 + ph*1.3) * 0.5 * hh * ${amp.toFixed(4)} * uWind;
-  ${flutter ? 'transformed += normal * sin(uTime*3.7 + dot(transformed, vec3(3.1,2.3,1.7))) * 0.035 * uWind;' : ''}
+  ${flutter === 'weep' ? `float dg = clamp(5.2 - transformed.y, 0., 5.);
+  transformed.x += sin(uTime*1.25 + ph + transformed.y*0.6) * (0.6 + gust * 0.6) * dg * 0.05 * uWind;
+  transformed.z += cos(uTime*1.05 + ph*1.4 + transformed.y*0.45) * dg * 0.035 * uWind;` : flutter ? 'transformed += normal * sin(uTime*3.7 + dot(transformed, vec3(3.1,2.3,1.7))) * 0.035 * uWind;' : ''}
 `;
 function patch(mat, { wind = 0, flutter = false, fakeNormal = false, reveal = false, ground = null, water = false, stone = false, proc = '' } = {}) {
   mat.onBeforeCompile = (sh) => {
@@ -226,7 +288,8 @@ function patch(mat, { wind = 0, flutter = false, fakeNormal = false, reveal = fa
           gM = texture2D(tMask, (vWP.xz + ${HALF.toFixed(1)}) / ${SIZE.toFixed(1)});`)
       .replace('#include <map_fragment>', `#include <map_fragment>
           float gh = gH(vWP.xz);
-          diffuseColor.rgb *= 0.66 + gh * 0.68;
+          float lumG = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
+          diffuseColor.rgb *= mix(0.66 + gh * 0.68, 0.94 + gh * 0.1, smoothstep(0.55, 0.8, lumG));
           diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.1, 1.07, 0.82), smoothstep(0.55, 0.9, gh) * (1. - gM.r) * (1. - gM.g));
           diffuseColor.rgb *= mix(vec3(1.), vec3(0.8, 0.92, 1.02), gM.b);`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
@@ -388,6 +451,19 @@ const needleTex = canvasTex(128, 128, (g, w) => {
     }
   }
 });
+const willowTex = canvasTex(32, 256, (g, w, h) => {
+  const r = mulberry32(61);
+  g.strokeStyle = 'rgb(150,150,140)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(16, 0);
+  for (let y = 0; y <= h; y += 16) g.lineTo(16 + Math.sin(y * 0.05) * 2, y); g.stroke();
+  for (let y = 4; y < h - 4; y += 3.2) {
+    for (const sd of [-1, 1]) {
+      if (r() < 0.05) continue;
+      const v = 165 + r() * 90 | 0, L = 10 + r() * 8;
+      g.fillStyle = `rgb(${v},${v},${v - 8})`;
+      leafShape(g, 16 + Math.sin(y * 0.05) * 2, y, L, 3.2, sd * (0.3 + r() * 0.45));   // pointe vers le bas, légèrement écartée
+    }
+  }
+});
 const birchTex = canvasTex(64, 256, (g, w, h) => {
   const r = mulberry32(17);
   g.fillStyle = '#ebe7dc'; g.fillRect(0, 0, w, h);
@@ -523,6 +599,27 @@ function card(gb, p, cn, nrm, s, c) {
   gb.quad(p, rt.multiplyScalar(s), up.multiplyScalar(s), nrm, c);
 }
 function palCol(pal, t) { const [a, b, c] = pal.map(col); t = clamp(t); return t < 0.5 ? a.lerp(b, t * 2) : b.lerp(c, (t - 0.5) * 2); }
+// sapin : flèche étroite et sombre, étages serrés aux branches tombantes ; version enneigée = dessus des cartes blanchis
+function makeFir(snowy) {
+  const gb = new GB(), H = R(6.5, 9.5);
+  const trunk = cylBetween(V(0, -0.3, 0), V(0, H + 0.5, 0), 0.22, 0.04, col('#3e2e22'), 6);
+  const tiers = 11 + (rnd() * 4 | 0), dk = col('#10241c'), md = col('#1e3e2e'), lt = col('#4a7050'), snow = col('#eef2f6');
+  for (let k = 0; k < tiers; k++) {
+    const f = k / (tiers - 1), y = 0.9 + f * (H - 0.6), rad = 1.55 * Math.pow(1 - f, 0.95) * R(0.9, 1.08) + 0.12;
+    const n = Math.round(7 + rad * 12);
+    for (let i = 0; i < n; i++) {
+      const a = R(0, 6.28), rr = rad * Math.sqrt(R(0.15, 1));
+      const p = V(Math.cos(a) * rr, y + R(-0.15, 0.1) - rr * 0.38, Math.sin(a) * rr);
+      const nrm = V(Math.cos(a) * 0.6, 0.8, Math.sin(a) * 0.6).normalize();
+      const cn = V(Math.cos(a) * 0.45 + R(-.25, .25), 1, Math.sin(a) * 0.45 + R(-.25, .25)).normalize();
+      const t = 0.12 + 0.45 * (rr / rad) + 0.2 * f + R(-0.1, 0.1);
+      let c = t < 0.5 ? dk.clone().lerp(md, t * 2) : md.clone().lerp(lt, (t - 0.5) * 2);
+      if (snowy && rr / rad > 0.45 && nrm.y > 0.6 && rnd() < 0.45) c = c.lerp(snow, R(0.35, 0.65));
+      card(gb, p, cn, nrm, 0.55 * R(0.8, 1.2), c);
+    }
+  }
+  return { trunk, leaves: gb.build(), birch: false, r: 0.3, ao: 2.2, needles: true };
+}
 function makePine() {
   const gb = new GB(), H = R(5.5, 7.8);
   const trunk = cylBetween(V(0, -0.3, 0), V(R(-.15, .15), H + 0.6, R(-.15, .15)), 0.24, 0.05, col('#4a3426'), 6);
@@ -579,24 +676,62 @@ function makeCypress() {   // cyprès : colonne sombre et effilée
   canopy(gb, clumps, PAL.cypress, 0.42, 30);
   return { trunk, leaves: gb.build(), birch: false, r: 0.25, ao: 1.6 };
 }
+// Saule pleureur : tronc court et noueux, grosses charpentières, puis des centaines de rameaux souples
+// qui montent en arche au-dessus de la couronne et retombent en rideau presque jusqu'au sol.
+function ribbon(gb, pts, w, c0, c1) {
+  const b = gb.p.length / 3, n = pts.length;
+  for (let k = 0; k < n; k++) {
+    const p = pts[k], q = pts[Math.min(n - 1, k + 1)], o = pts[Math.max(0, k - 1)];
+    const dir = q.clone().sub(o).normalize();
+    let side = V(0, 1, 0).cross(dir); if (side.lengthSq() < 1e-4) side = V(1, 0, 0); side.normalize();
+    const nrm = dir.clone().cross(side).normalize(); if (nrm.y < 0) nrm.negate();
+    const f = k / (n - 1), c = c0.clone().lerp(c1, f), ww = w * (1 - f * 0.35);
+    for (const sg of [-1, 1]) {
+      const v = p.clone().addScaledVector(side, sg * ww / 2);
+      gb.p.push(v.x, v.y, v.z);
+      const nn = nrm.clone().multiplyScalar(0.6).add(V(dir.z, 0.5, -dir.x).multiplyScalar(0.0)).add(V(0, 0.45, 0)).normalize();
+      gb.n.push(nn.x, nn.y, nn.z); gb.uv.push(sg < 0 ? 0 : 1, 1 - f); gb.c.push(c.r, c.g, c.b);
+    }
+  }
+  for (let k = 0; k < n - 1; k++) { const a = b + k * 2; gb.i.push(a, a + 1, a + 3, a, a + 3, a + 2); }
+}
 function makeWillow() {
-  const gb = new GB(), parts = [], bark = col('#54402e');
-  const H = R(2.3, 2.9), top = V(R(-.4, .4), H, R(-.4, .4));
-  parts.push(cylBetween(V(0, -0.3, 0), top, 0.34, 0.2, bark, 7));
-  const clumps = [{ c: top.clone().add(V(0, 1.3, 0)), r: 1.7 }];
-  for (let i = 0; i < 4; i++) {
-    const a = i / 4 * 6.28 + R(-.3, .3), c = top.clone().add(V(Math.cos(a) * 1.6, 0.9, Math.sin(a) * 1.6));
-    clumps.push({ c, r: R(1.1, 1.4) }); parts.push(cylBetween(top.clone().multiplyScalar(0.8), c.clone().multiplyScalar(0.85), 0.12, 0.05, bark, 5));
+  const gb = new GB(), parts = [], bark = col('#5a4a3a');
+  const H = R(1.7, 2.3), top = V(R(-.3, .3), H, R(-.3, .3));
+  parts.push(cylBetween(V(0, -0.4, 0), V(top.x * 0.5, H * 0.5, top.z * 0.5), 0.52, 0.4, bark, 9));
+  parts.push(cylBetween(V(top.x * 0.5, H * 0.5, top.z * 0.5), top, 0.4, 0.34, bark, 9));
+  const crownY = H + R(1.6, 2.1), anchors = [];
+  const nl = 3 + (rnd() * 2 | 0);
+  for (let i = 0; i < nl; i++) {             // charpentières qui montent en éventail
+    const a = i / nl * 6.28 + R(-.35, .35), rr = R(0.9, 1.5);
+    const mid = top.clone().add(V(Math.cos(a) * rr * 0.45, R(0.7, 1.0), Math.sin(a) * rr * 0.45));
+    const end = top.clone().add(V(Math.cos(a) * rr, crownY - H - R(0.35, 0.6), Math.sin(a) * rr));
+    parts.push(cylBetween(top, mid, 0.24, 0.16, bark, 7), cylBetween(mid, end, 0.16, 0.07, bark, 6));
+    anchors.push(end, mid.clone().lerp(end, 0.5));
   }
-  canopy(gb, clumps, PAL.willow, 0.85, 14);
-  const lo = palCol(PAL.willow, 0.25), hi = palCol(PAL.willow, 0.85);
-  for (let i = 0; i < 110; i++) {   // rideaux de branches pendantes
-    const a = R(0, 6.28), d = R(1.3, 2.9), yTop = H + 1.9 - d * 0.45, L = R(0.8, 1.4);
-    const out = V(Math.cos(a), 0, Math.sin(a)), tan = V(-Math.sin(a), 0, Math.cos(a)).multiplyScalar(R(0.18, 0.3));
-    const c = V(top.x + out.x * d, yTop - L, top.z + out.z * d);
-    gb.quad(c, tan, V(out.x * 0.08, L, out.z * 0.08), V(out.x * 0.6, 0.55, out.z * 0.6).normalize(), [lo, lo, hi, hi]);
+  const dark = col('#4f6e2a'), light = col('#c3d27a'), mid = col('#86a444');
+  const N = 300;
+  for (let s = 0; s < N; s++) {
+    const fromTop = s < 70;   // une partie part du cœur de la couronne pour la couvrir
+    const an = fromTop ? top.clone().add(V(R(-.5, .5), crownY - H - 0.2, R(-.5, .5))) : anchors[rnd() * anchors.length | 0].clone().add(V(R(-.35, .35), R(-.15, .2), R(-.35, .35)));
+    const a = Math.atan2(an.z - top.z, an.x - top.x) + R(-0.9, 0.9);
+    const out = V(Math.cos(a), 0, Math.sin(a)), tan = V(-out.z, 0, out.x);
+    const r0 = Math.hypot(an.x - top.x, an.z - top.z), R1 = R(2.3, 3.3), rise = R(0.5, 0.95), curl = R(-0.3, 0.3);
+    const groundY = R(0.25, 0.9) + (rnd() < 0.25 ? R(0.6, 1.4) : 0);   // certains rideaux s'arrêtent plus haut
+    const pts = [];
+    for (let k = 0; k <= 5; k++) {           // arche au-dessus de la couronne
+      const t = k / 5, rad = r0 + (R1 - r0) * Math.sin(t * Math.PI / 2);
+      pts.push(V(top.x + out.x * rad + tan.x * curl * t, an.y + rise * Math.sin(t * Math.PI) - t * 0.5, top.z + out.z * rad + tan.z * curl * t));
+    }
+    const last = pts[pts.length - 1], drop = last.y - groundY;
+    for (let k = 1; k <= 7; k++) {           // chute verticale, un peu évasée
+      const t = k / 7;
+      pts.push(V(last.x + out.x * 0.25 * t + tan.x * curl * 0.3 * t, last.y - drop * t, last.z + out.z * 0.25 * t + tan.z * curl * 0.3 * t));
+    }
+    const shade = R(0, 1), c0 = dark.clone().lerp(mid, shade * 0.6), c1 = mid.clone().lerp(light, 0.4 + shade * 0.6);
+    ribbon(gb, pts, R(0.36, 0.5), c0, c1);
   }
-  return { trunk: mergeGeometries(parts), leaves: gb.build(), birch: false, r: 0.42, ao: 3.2 };
+  return { trunk: mergeGeometries(parts), leaves: gb.build(), birch: false, r: 0.55, ao: 3.4, willow: true };
 }
 function makeReeds() {
   const gb = new GB(), lo = col('#ffffff').multiplyScalar(0.7), hi = col('#ffffff'), up = V(0, 1, 0);
@@ -609,7 +744,7 @@ function makeLily() {
 }
 // Rochers : icosaèdre déformé par du bruit puis « taillé » par des plans aléatoires (facettes nettes),
 // base aplatie et enterrée ; couleurs par facette : mousse sur le dessus, lichen, pied plus sombre.
-function makeRock(shape, mossy, pale = false) {
+function makeRock(shape, mossy, pale = false, snowy = false) {
   let g = new THREE.IcosahedronGeometry(1, 4);
   g.deleteAttribute('normal'); g.deleteAttribute('uv');
   g = mergeVertices(g);
@@ -666,6 +801,7 @@ function makeRock(shape, mossy, pale = false) {
       const k = smooth(0, 0.08, mz);
       if (k > 0) { const t2 = noise(x * 7, z * 7 + o); c.lerp(t2 > 0.2 ? mossL : t2 < -0.2 ? mossD : moss, k * 0.92); }
     }
+    if (snowy) { const sk = smooth(0.25, 0.5, ny + noise(x * 3 + o, z * 3) * 0.25); if (sk > 0) c.lerp(col('#f2f5f9'), sk * 0.95); }
     const li = noise(x * 4.3 - o, z * 4.3 + y * 2), lt = mossy ? 0.36 : 0.18;
     if (li > lt && concave < 0.4) c.lerp(lich[(Math.abs(Math.floor(li * 9)) % 3)], smooth(lt, lt + 0.08, li) * 0.75);
     cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b;
@@ -861,11 +997,13 @@ const M = {
   flora: patch(new THREE.MeshLambertMaterial({ map: floraTex, alphaTest: 0.5, side: THREE.DoubleSide, vertexColors: true }), { wind: 0.1, fakeNormal: true }),
   mush: patch(new THREE.MeshLambertMaterial({ vertexColors: true })),
 };
+M.willow = patch(new THREE.MeshLambertMaterial({ map: willowTex, alphaTest: 0.4, side: THREE.DoubleSide, vertexColors: true }), { wind: 0.006, flutter: 'weep', fakeNormal: true, reveal: true });
 M.needles = patch(new THREE.MeshLambertMaterial({ map: needleTex, alphaTest: ALPHA, side: THREE.DoubleSide, vertexColors: true }), { wind: 0.008, flutter: true, fakeNormal: true, reveal: true });
 M.water = patch(new THREE.MeshPhongMaterial({ color: 0x2a5a5c, specular: 0x5c5a52, shininess: 260, transparent: true, opacity: 1, depthWrite: false }), { water: true });
-M.leaves.shadowSide = M.bush.shadowSide = M.needles.shadowSide = THREE.DoubleSide;
+M.leaves.shadowSide = M.bush.shadowSide = M.needles.shadowSide = M.willow.shadowSide = THREE.DoubleSide;
 const DM = {
   leaves: depthMat(leafTex, ALPHA, 0.011, true),
+  willow: depthMat(willowTex, 0.4, 0.006, 'weep'),
   needles: depthMat(needleTex, ALPHA, 0.008, true),
   bush: depthMat(leafTex, ALPHA, 0.03, true),
   fern: depthMat(fernTex, 0.5, 0.06, false),
@@ -909,6 +1047,7 @@ const GROUND_PAL = {
   marais:  { A: '#3c6836', B: '#567e3e', M: '#3a4430' },
   automne: { A: '#788a3a', B: '#a29a48', M: '#7a5430' },
   lande:   { A: '#74764a', B: '#8e8a58', M: '#6a5272' },
+  montagne: { A: '#5a7448', B: '#748a52', M: '#3a4e32' },
   littoral: { A: '#a89c62', B: '#c4b47a', M: '#8a7e52' },
 };
 const _ga = new THREE.Color(), _gb = new THREE.Color();
@@ -925,9 +1064,10 @@ const TREE_TABLE = {
   marais:  [['willow', 0.6], ['birch', 0.2], ['bush', 0.2]],
   automne: [['red', 0.5], ['gold', 0.32], ['oak', 0.08], ['birch', 0.1]],
   lande:   [['pine', 0.35], ['heather', 0.35], ['gorse', 0.3]],
+  montagne: [['fir', 0.86], ['pine', 0.08], ['birch', 0.06]],
   littoral: [['parasol', 0.38], ['olive', 0.34], ['cypress', 0.18], ['maquis', 0.1]],
 };
-const SHRUB = { foret: 'bush', pinede: 'bush', prairie: 'bush', marais: 'bush', automne: 'bush', lande: 'heather', littoral: 'lavender' };
+const SHRUB = { foret: 'bush', pinede: 'bush', prairie: 'bush', marais: 'bush', automne: 'bush', lande: 'heather', littoral: 'lavender', montagne: 'bush' };
 const SOFT = new Set(['bush', 'heather', 'gorse', 'lavender', 'maquis']); // pas de collision
 function rollKind(table) { let r = rnd(); for (const [k, p] of table) { r -= p; if (r <= 0) return k; } return table[0][0]; }
 
@@ -937,7 +1077,10 @@ function generate(seed) {
   rnd = mulberry32(seed); seedNoise(seed);
   pathPh = [R(0, 6.28), R(0, 6.28)];
   climOff = [R(-500, 500), R(-500, 500), R(-500, 500), R(-500, 500)];
+  { const side = rnd() < 0.5 ? -1 : 1, a = R(-0.3, 0.3); geo.dx = side * Math.cos(a); geo.dz = side * Math.sin(a); geo.o1 = R(0, 100); geo.o2 = R(0, 100); }
+  hCache = null;
   buildBiomeCache();
+  buildHeightCache();
   // départ : sur le sentier, dans une forêt tempérée si possible, au plus près du centre
   let sz = 0, best = -1;
   for (let z = -HALF + 30; z < HALF - 30; z += 3) {
@@ -948,7 +1091,7 @@ function generate(seed) {
   trees = []; treeGrid.clear();
   // ── chalets : au bord du sentier, sur terrain plat et sec, tournés vers le chemin
   chalets = []; smokes.length = 0;
-  for (let tries = 0; tries < 900 && chalets.length < 8; tries++) {
+  for (let tries = 0; tries < 900 * AK && chalets.length < 12; tries++) {
     const z = R(-HALF + 24, HALF - 24), side = rnd() < 0.5 ? -1 : 1, x = pathX(z) + side * R(7, 10);
     if (Math.abs(x) > HALF - 24) continue;
     const w = biomeW(x, z); if (w[BI.marais] > 0.25) continue;
@@ -965,21 +1108,23 @@ function generate(seed) {
   }
 
   // ── arbres
-  const protos = { oak: [], red: [], gold: [], birch: [], bush: [], pine: [], willow: [], heather: [], gorse: [], parasol: [], olive: [], cypress: [], lavender: [], maquis: [] };
-  for (let i = 0; i < 4; i++) protos.oak.push(makeOak(false));
-  for (let i = 0; i < 3; i++) protos.red.push(makeOak(true));
-  for (let i = 0; i < 3; i++) protos.gold.push(makeOak(false, PAL.gold));
-  for (let i = 0; i < 3; i++) protos.birch.push(makeBirch());
-  for (let i = 0; i < 3; i++) protos.bush.push(makeBush());
-  for (let i = 0; i < 4; i++) protos.pine.push(makePine());
-  for (let i = 0; i < 2; i++) protos.willow.push(makeWillow());
-  for (let i = 0; i < 3; i++) protos.heather.push(makeBush(PAL.heather, 0.42, 0.55));
-  for (let i = 0; i < 2; i++) protos.gorse.push(makeBush(PAL.gorse, 0.45, 0.75));
-  for (let i = 0; i < 3; i++) protos.parasol.push(makeParasol());
-  for (let i = 0; i < 3; i++) protos.olive.push(makeOlive());
-  for (let i = 0; i < 2; i++) protos.cypress.push(makeCypress());
-  for (let i = 0; i < 2; i++) protos.lavender.push(makeBush(PAL.lavender, 0.32, 0.5));
-  for (let i = 0; i < 2; i++) protos.maquis.push(makeBush(PAL.maquis, 0.4, 0.8));
+  const protos = { fir: [], firSnow: [], oak: [], red: [], gold: [], birch: [], bush: [], pine: [], willow: [], heather: [], gorse: [], parasol: [], olive: [], cypress: [], lavender: [], maquis: [] };
+  for (let i = 0; i < 4 * AK; i++) protos.oak.push(makeOak(false));
+  for (let i = 0; i < 3 * AK; i++) protos.red.push(makeOak(true));
+  for (let i = 0; i < 3 * AK; i++) protos.gold.push(makeOak(false, PAL.gold));
+  for (let i = 0; i < 3 * AK; i++) protos.birch.push(makeBirch());
+  for (let i = 0; i < 3 * AK; i++) protos.bush.push(makeBush());
+  for (let i = 0; i < 4 * AK; i++) protos.pine.push(makePine());
+  for (let i = 0; i < 2 * AK; i++) protos.willow.push(makeWillow());
+  for (let i = 0; i < 3 * AK; i++) protos.heather.push(makeBush(PAL.heather, 0.42, 0.55));
+  for (let i = 0; i < 2 * AK; i++) protos.gorse.push(makeBush(PAL.gorse, 0.45, 0.75));
+  for (let i = 0; i < 3 * AK; i++) protos.parasol.push(makeParasol());
+  for (let i = 0; i < 3 * AK; i++) protos.olive.push(makeOlive());
+  for (let i = 0; i < 2 * AK; i++) protos.cypress.push(makeCypress());
+  for (let i = 0; i < 2 * AK; i++) protos.lavender.push(makeBush(PAL.lavender, 0.32, 0.5));
+  for (let i = 0; i < 2 * AK; i++) protos.maquis.push(makeBush(PAL.maquis, 0.4, 0.8));
+  for (let i = 0; i < 4 * AK; i++) protos.fir.push(makeFir(false));
+  for (let i = 0; i < 3 * AK; i++) protos.firSnow.push(makeFir(true));
   const place = Object.fromEntries(Object.entries(protos).map(([k, v]) => [k, v.map(() => [])]));
   const tint = () => new THREE.Color(R(0.85, 1.12), R(0.9, 1.1), R(0.8, 1.05));
   const addTree = (kind, x, z, h, sMin, sMax) => {
@@ -994,30 +1139,31 @@ function generate(seed) {
     if (rnd() > d * 0.95) continue;
     const bi = pickBiome(x, z), bid = BIOMES[bi].id;
     let kind = rollKind(TREE_TABLE[bid]);
+    if (kind === 'fir' && h > TREELINE - 0.9 + noise(x * 0.1, z * 0.1) * 0.6) kind = 'firSnow';
     if (bid === 'foret') kind = birchness(x, z) > 0.22 && rnd() < 0.8 ? 'birch' : kind === 'birch' ? 'oak' : kind;
     if (d < 0.45 && rnd() < 0.35 && !SOFT.has(kind)) kind = SHRUB[bid];
     addTree(kind, x, z, h, SOFT.has(kind) ? 0.8 : 0.8, SOFT.has(kind) ? 1.3 : 1.25);
   }
   // arbustes de lisière + bruyère et ajoncs de la lande
-  for (let i = 0; i < 2800; i++) {
+  for (let i = 0; i < 2800 * AK; i++) {
     const x = R(-HALF + 2, HALF - 2), z = R(-HALF + 2, HALF - 2), h = height(x, z), d = forestDensity(x, z, h);
     if (h < WL + 0.2 || d < 0.12 || d > 0.75 || rnd() > 0.55) continue;
     addTree(SHRUB[BIOMES[pickBiome(x, z)].id], x, z, h, 0.6, 1.2);
   }
-  for (let i = 0; i < 9000; i++) {
+  for (let i = 0; i < 9000 * AK; i++) {
     const x = R(-HALF + 2, HALF - 2), z = R(-HALF + 2, HALF - 2), wl = biomeW(x, z)[BI.lande];
     if (wl < 0.15 || rnd() > wl * 0.7 || pathDist(x, z) < 2) continue;
     if (fbm(x * 0.09 + 700, z * 0.09, 2) < -0.05) continue;
     const h = height(x, z); if (h < WL + 0.2) continue;
     addTree(rnd() < 0.72 ? 'heather' : 'gorse', x, z, h, 0.7, 1.5);
   }
-  for (let i = 0; i < 3000; i++) {   // pins penchés au-dessus des criques
+  for (let i = 0; i < 3000 * AK; i++) {   // pins penchés au-dessus des criques
     const x = R(-HALF + 2, HALF - 2), z = R(-HALF + 2, HALF - 2), ws = biomeW(x, z)[BI.littoral]; if (ws < 0.2) continue;
     const t = coastT(x, z, ws); if (t < -0.32 || t > -0.1 || rnd() > 0.12 || pathDist(x, z) < 3) continue;
     const h = height(x, z); if (h < WL + 0.4) continue;
     addTree('parasol', x, z, h, 0.8, 1.15);
   }
-  for (let i = 0; i < 6000; i++) {
+  for (let i = 0; i < 6000 * AK; i++) {
     const x = R(-HALF + 2, HALF - 2), z = R(-HALF + 2, HALF - 2), ws = biomeW(x, z)[BI.littoral];
     if (ws < 0.15 || rnd() > ws * 0.8 || pathDist(x, z) < 2) continue;
     if (fbm(x * 0.07 + 611, z * 0.07, 2) < 0.05) continue;
@@ -1028,7 +1174,7 @@ function generate(seed) {
     const items = place[kind][i]; if (!items.length) return;
     if (pr.trunk) instanced(pr.trunk, pr.birch ? M.birch : M.bark, items, { chunk: 18 });
     const soft = SOFT.has(kind);
-    instanced(pr.leaves, pr.needles ? M.needles : soft ? M.bush : M.leaves, items, { depth: pr.needles ? DM.needles : soft ? DM.bush : DM.leaves, cast: !['heather', 'gorse', 'lavender'].includes(kind), chunk: 18 });
+    instanced(pr.leaves, pr.willow ? M.willow : pr.needles ? M.needles : soft ? M.bush : M.leaves, items, { depth: pr.willow ? DM.willow : pr.needles ? DM.needles : soft ? DM.bush : DM.leaves, cast: !['heather', 'gorse', 'lavender'].includes(kind), chunk: 18 });
   });
 
   // ── sol (texture peinte + AO des arbres) et eau
@@ -1036,7 +1182,7 @@ function generate(seed) {
   world.add(ground);
   for (const c of chalets) { const g = makeChalet(c.vi); g.position.set(c.x, c.y, c.z); g.rotation.y = c.ry; world.add(g); addSmoke(g); }
   boats.length = 0;
-  for (let tries = 0; tries < 4000 && boats.length < 6; tries++) {
+  for (let tries = 0; tries < 4000 * AK && boats.length < 6; tries++) {
     const x = R(-HALF + 15, HALF - 15), z = R(-HALF + 15, HALF - 15), ws = biomeW(x, z)[BI.littoral]; if (ws < 0.3) continue;
     const t = coastT(x, z, ws), d = WL - height(x, z);
     if (t < 0.04 || t > 0.22 || d < 0.45 || beachiness(x, z) < 0 || boats.some(b => b.position.distanceTo(V(x, WL, z)) < 14)) continue;
@@ -1059,21 +1205,21 @@ function generate(seed) {
   const RX = () => R(-HALF + 1, HALF - 1);
   const grass = [], ferns = [], puffs = [], rocks = [], logs = [];
   const gcol = [col('#6aa23a'), col('#8cbc48'), col('#5a9236'), col('#aacb58')];
-  for (let i = 0; i < 120000; i++) {
+  for (let i = 0; i < 120000 * AK; i++) {
     const x = RX(), z = RX(), w = biomeW(x, z);
     let gm = 0;
     for (let k = 0; k < NB; k++) gm += w[k] * BIOMES[k].grass;
     if (rnd() * 2 > gm) continue;
-    const h = height(x, z); if (h < WL + 0.05 || onBeach(x, z, h)) continue;
+    const h = height(x, z); if (h < WL + 0.05 || onBeach(x, z, h) || h > SNOWLINE - 0.5 || (h > TREELINE + 1 && rnd() < 0.6)) continue;
     const pd = pathDist(x, z), d = forestDensity(x, z, h), cl = fbm(x * 0.12, z * 0.12, 2);
     if (pd < 1.8 || litter(x, z) > 0.38) continue;
     if (cl < -0.2 + d * 0.25 - w[BI.prairie] * 0.4) continue;
     const tall = 1 + w[BI.prairie] * 0.9 + w[BI.marais] * 0.5;
     grass.push({ x, z, y: h - 0.03, s: R(0.8, 1.5), sy: R(0.7, 1.5) * tall, ry: R(0, 3.14), c: grassColorAt(x, z, d) });
   }
-  for (let i = 0; i < 9000; i++) {
+  for (let i = 0; i < 9000 * AK; i++) {
     const x = RX(), z = RX(), h = height(x, z), d = forestDensity(x, z, h), w = biomeW(x, z);
-    if (d < 0.5 || rnd() > d - 0.2 - w[BI.lande] - w[BI.automne] * 0.5 || pathDist(x, z) < 2.2) continue;
+    if (d < 0.5 || rnd() > d - 0.2 - w[BI.lande] - w[BI.automne] * 0.5 || pathDist(x, z) < 2.2 || h > TREELINE + 0.5) continue;
     ferns.push({ x, z, y: h, s: R(0.8, 1.5), ry: R(0, 6.28), c: col('#4f8a2c').lerp(col('#86b043'), rnd()) });
   }
   // fleurs en massifs : chaque espèce suit son propre champ de bruit
@@ -1082,10 +1228,10 @@ function generate(seed) {
     { k: 3, off: 113, open: true }, { k: 4, off: 157, open: true },
   ];
   const flowerSets = FL.map(() => []);
-  for (let i = 0; i < 90000; i++) {
+  for (let i = 0; i < 90000 * AK; i++) {
     const x = RX(), z = RX(), fm = bMix(x, z, 'flowers');
     if (rnd() * 3.2 > fm) continue;
-    const h = height(x, z); if (h < WL + 0.1 || onBeach(x, z, h)) continue;
+    const h = height(x, z); if (h < WL + 0.1 || onBeach(x, z, h) || h > TREELINE + 2) continue;
     const d = forestDensity(x, z, h);
     if (pathDist(x, z) < 1.7 || litter(x, z) > 0.34) continue;
     let best = -1, bf = 0.08;
@@ -1098,9 +1244,9 @@ function generate(seed) {
     flowerSets[best].push({ x, z, y: h - 0.02, s: R(1.1, 1.8), ry: R(0, 6.28), c: new THREE.Color(wv, wv, wv) });
   }
   const rosettes = [], rc = [col('#5f9b3a'), col('#7cab42'), col('#4b8034'), col('#93ba4c'), col('#6a8f3a')];
-  for (let i = 0; i < 18000; i++) {
+  for (let i = 0; i < 18000 * AK; i++) {
     const x = RX(), z = RX(), h = height(x, z);
-    if (h < WL + 0.05 || onBeach(x, z, h) || pathDist(x, z) < 1.5 || rnd() > 0.35 + fbm(x * 0.1 + 200, z * 0.1, 2)) continue;
+    if (h < WL + 0.05 || onBeach(x, z, h) || h > SNOWLINE - 1 || pathDist(x, z) < 1.5 || rnd() > 0.35 + fbm(x * 0.1 + 200, z * 0.1, 2)) continue;
     const d = forestDensity(x, z, h);
     rosettes.push({ x, z, y: h, s: R(0.7, 1.5), ry: R(0, 6.28), c: rc[rnd() * 5 | 0].clone().multiplyScalar(R(0.85, 1.1) * (1 - d * 0.15)) });
   }
@@ -1113,7 +1259,7 @@ function generate(seed) {
       (red ? mushR : mushB).push({ x, z, y: height(x, z) - 0.02, s: R(0.7, 1.4), ry: R(0, 6.28), rx: R(-0.15, 0.15), c: new THREE.Color().setScalar(R(0.85, 1.1)) });
     }
   }
-  for (let i = 0; i < 1600; i++) {
+  for (let i = 0; i < 1600 * AK; i++) {
     const x = RX(), z = RX(), wp = biomeW(x, z)[BI.prairie];
     if (rnd() > 0.12 + wp * 0.5) continue;
     const h = height(x, z);
@@ -1123,7 +1269,7 @@ function generate(seed) {
   // rochers : variantes moussues (forêts, marais) et nues à lichen (lande), amas dans la lande
   const RSH = ['boulder', 'slab', 'spire', 'round'];
   const rockProtos = [];
-  for (let i = 0; i < 12; i++) rockProtos.push(makeRock(RSH[i % 4], i < 6));
+  for (let i = 0; i < 12 * AK; i++) rockProtos.push(makeRock(RSH[i % 4], i < 6));
   const rockSets = rockProtos.map(() => []);
   const addRock = (x, z, s, mossy, shape) => {
     const cand = rockProtos.map((r, i) => i).filter(i => (i < 6) === mossy && (!shape || RSH[i % 4] === shape));
@@ -1132,7 +1278,7 @@ function generate(seed) {
     rockSets[vi].push({ x, z, y: h + pr.base * s - 0.06 * s, s, ry: R(0, 6.28), rx: R(-0.08, 0.08), rz: R(-0.08, 0.08), c: new THREE.Color(R(.9, 1.06), R(.92, 1.05), R(.9, 1.04)) });
     if (s > 1.1) { const k = key(x, z); if (!treeGrid.has(k)) treeGrid.set(k, []); treeGrid.get(k).push({ x, z, r: s * pr.foot * 0.75 }); }
   };
-  for (let i = 0; i < 2600; i++) {
+  for (let i = 0; i < 2600 * AK; i++) {
     const x = RX(), z = RX(), w = biomeW(x, z), wl = w[BI.lande] + w[BI.pinede] * 0.3;
     if (rnd() > 0.12 + wl * 0.9 || pathDist(x, z) < 1.6) continue;
     const mossy = w[BI.lande] < 0.45 && rnd() < 0.9;
@@ -1143,7 +1289,7 @@ function generate(seed) {
   }
   // calcaire blanc du littoral : rochers au bord de l'eau et dans la garrigue
   const paleP = RSH.map(sh => makeRock(sh, false, true)), paleSets = paleP.map(() => []);
-  for (let i = 0; i < 9000; i++) {
+  for (let i = 0; i < 9000 * AK; i++) {
     const x = RX(), z = RX(), ws = biomeW(x, z)[BI.littoral]; if (ws < 0.15) continue;
     const t = coastT(x, z, ws), bc = beachiness(x, z), h = height(x, z);
     const point = smooth(0.05, -0.25, bc) * smooth(-0.3, -0.12, t) * smooth(0.14, 0.02, t);   // pointes rocheuses
@@ -1154,27 +1300,40 @@ function generate(seed) {
     if (sc > 1.1 && h > WL - 0.3) { const k = key(x, z); if (!treeGrid.has(k)) treeGrid.set(k, []); treeGrid.get(k).push({ x, z, r: sc * pr.foot * 0.75 }); }
   }
   paleP.forEach((r, i) => paleSets[i].length && instanced(r.geo, M.stone, paleSets[i]));
+  // montagne : éboulis gris au-dessus de la forêt, blocs coiffés de neige plus haut
+  const mtP = RSH.map(sh => makeRock(sh, false)), mtSnowP = RSH.map(sh => makeRock(sh, false, false, true));
+  const mtSets = mtP.map(() => []), mtSnowSets = mtSnowP.map(() => []);
+  for (let i = 0; i < 14000 * AK; i++) {
+    const x = RX(), z = RX(), wm = biomeW(x, z)[BI.montagne]; if (wm < 0.2) continue;
+    const h = height(x, z); if (h < TREELINE - 1.5 || rnd() > 0.35 || pathDist(x, z) < 2) continue;
+    const snowy = h > SNOWLINE - 0.5 + noise(x * 0.2, z * 0.2), vi = rnd() * 4 | 0, pr = (snowy ? mtSnowP : mtP)[vi];
+    const sc = R(0.3, 1.0) * (rnd() < 0.12 ? R(1.8, 3.2) : 1);
+    (snowy ? mtSnowSets : mtSets)[vi].push({ x, z, y: h + pr.base * sc - 0.12 * sc, s: sc, ry: R(0, 6.28), rx: R(-0.1, 0.1), rz: R(-0.1, 0.1), c: new THREE.Color().setScalar(R(0.88, 1.05)) });
+    if (sc > 1.2) { const k = key(x, z); if (!treeGrid.has(k)) treeGrid.set(k, []); treeGrid.get(k).push({ x, z, r: sc * pr.foot * 0.75 }); }
+  }
+  mtP.forEach((r, i) => mtSets[i].length && instanced(r.geo, M.stone, mtSets[i]));
+  mtSnowP.forEach((r, i) => mtSnowSets[i].length && instanced(r.geo, M.stone, mtSnowSets[i]));
   // chaos rocheux (tors) de la lande : un gros bloc, des dalles empilées autour
-  for (let i = 0; i < 900; i++) {
+  for (let i = 0; i < 900 * AK; i++) {
     const x = RX(), z = RX(), wl = biomeW(x, z)[BI.lande];
     if (wl < 0.4 || rnd() > 0.09 || pathDist(x, z) < 4) continue;
     const s = R(2.2, 3.6); addRock(x, z, s, false, rnd() < 0.5 ? 'spire' : 'boulder');
     for (let k = 0, n = 2 + (rnd() * 3 | 0); k < n; k++) { const a = R(0, 6.28), d = s * R(0.8, 1.3); addRock(x + Math.cos(a) * d, z + Math.sin(a) * d, s * R(0.4, 0.75), false, rnd() < 0.6 ? 'slab' : 'boulder'); }
   }
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < 200 * AK; i++) {
     const x = R(-HALF + 3, HALF - 3), z = R(-HALF + 3, HALF - 3), h = height(x, z);
     if (forestDensity(x, z, h) < 0.4 || pathDist(x, z) < 3) continue;
     logs.push({ x, z, y: h + 0.16, s: R(0.9, 1.2), sy: R(2.5, 4.5), rz: Math.PI / 2, ry: R(0, 6.28), rx: 0, c: new THREE.Color().setScalar(R(0.85, 1.1)) });
   }
   // marais et rives : roseaux, nénuphars
   const reeds = [], lilies = [];
-  for (let i = 0; i < 40000; i++) {
+  for (let i = 0; i < 40000 * AK; i++) {
     const x = RX(), z = RX(), h = height(x, z);
     if (h > WL + 0.45 || h < WL - 0.4 || biomeW(x, z)[BI.littoral] > 0.12) continue;
     if (rnd() > 0.55 || fbm(x * 0.12 + 900, z * 0.12, 2) < -0.1) continue;
     reeds.push({ x, z, y: h - 0.05, s: R(0.8, 1.3), sy: R(0.8, 1.5), ry: R(0, 3.14), c: new THREE.Color().setScalar(R(0.8, 1.1)) });
   }
-  for (let i = 0; i < 30000; i++) {
+  for (let i = 0; i < 30000 * AK; i++) {
     const x = RX(), z = RX(), h = height(x, z);
     if (h > WL - 0.3 || rnd() > 0.5 || fbm(x * 0.1 + 950, z * 0.1, 2) < 0 || biomeW(x, z)[BI.littoral] > 0.12) continue;
     lilies.push({ x, z, y: WL + 0.015, s: R(0.6, 1.3), ry: R(0, 6.28), c: new THREE.Color(R(0.85, 1.1), R(0.9, 1.1), R(0.8, 1)) });
@@ -1189,7 +1348,7 @@ function generate(seed) {
   const deadLeaves = [], pebbles = [];
   const lc = [col('#c8752e'), col('#9c4d22'), col('#e0a040'), col('#6a3c22'), col('#b8862f'), col('#8a9a3a')];
   const needleC = [col('#7a5a36'), col('#8a6a40'), col('#5e4630')];
-  for (let i = 0; i < 60000; i++) {
+  for (let i = 0; i < 60000 * AK; i++) {
     const x = RX(), z = RX(), lt = litter(x, z), d = forestDensity(x, z);
     const pr = lt > 0.3 ? 0.9 : d > 0.55 ? 0.12 : pathDist(x, z) < 2 ? 0.05 : 0.015;
     if (rnd() > pr) continue;
@@ -1197,7 +1356,7 @@ function generate(seed) {
     const pine = biomeW(x, z)[BI.pinede] > 0.5;
     deadLeaves.push({ x, z, y: h + 0.01, s: R(0.8, 1.4), ry: R(0, 6.28), rx: R(-0.25, 0.25), c: (pine ? needleC[rnd() * 3 | 0] : lc[rnd() * 6 | 0]).clone().multiplyScalar(R(0.8, 1.15)) });
   }
-  for (let i = 0; i < 1900; i++) {
+  for (let i = 0; i < 1900 * AK; i++) {
     const z = RX(), x = pathX(z) + R(-1.9, 1.9) * Math.sqrt(rnd());
     const s = R(0.04, 0.1) * (rnd() < 0.06 ? 2 : 1);
     pebbles.push({ x, z, y: height(x, z) + s * 0.1, s, sy: s * R(0.4, 0.7), ry: R(0, 6.28), c: new THREE.Color(R(0.75, 1.0), R(0.68, 0.9), R(0.55, 0.72)) });
@@ -1230,7 +1389,7 @@ const groundDetail = (() => {
   const N = 256, r = mulberry32(77), H = [new Float32Array(N * N), new Float32Array(N * N), new Float32Array(N * N)];
   const W = (x, y) => ((y % N + N) % N) * N + ((x % N + N) % N);
   // brins : traits courts, souvent inclinés dans le même sens (herbe couchée)
-  for (let i = 0; i < 2600; i++) {
+  for (let i = 0; i < 2600 * AK; i++) {
     const cx = r() * N, cy = r() * N, len = 8 + r() * 16, ang = -1.9 + (r() - 0.5) * 1.6, amp = 0.35 + r() * 0.65;
     for (let t = 0; t < len; t += 0.6) {
       const x = Math.round(cx + Math.cos(ang) * t), y = Math.round(cy + Math.sin(ang) * t), v = amp * (0.4 + 0.6 * t / len);
@@ -1238,12 +1397,12 @@ const groundDetail = (() => {
     }
   }
   // touffes plus sombres (creux) pour casser la régularité
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 40 * AK; i++) {
     const cx = r() * N, cy = r() * N, rad = 6 + r() * 14;
     for (let y = -rad; y <= rad; y++) for (let x = -rad; x <= rad; x++) { const d = Math.hypot(x, y) / rad; if (d < 1) H[0][W(cx + x | 0, cy + y | 0)] *= 0.55 + 0.45 * d; }
   }
   // gravier : cailloux arrondis
-  for (let i = 0; i < 420; i++) {
+  for (let i = 0; i < 420 * AK; i++) {
     const cx = r() * N, cy = r() * N, rad = 2.5 + r() * r() * 9, amp = 0.5 + r() * 0.5, sq = 0.6 + r() * 0.4, rot = r() * 3.14;
     const cr = Math.cos(rot), sn = Math.sin(rot);
     for (let y = -rad; y <= rad; y++) for (let x = -rad; x <= rad; x++) {
@@ -1252,7 +1411,7 @@ const groundDetail = (() => {
     }
   }
   // feuilles mortes : ellipses pointues empilées
-  for (let i = 0; i < 520; i++) {
+  for (let i = 0; i < 520 * AK; i++) {
     const cx = r() * N, cy = r() * N, L = 6 + r() * 10, Wd = L * (0.3 + r() * 0.2), rot = r() * 6.28, base = r();
     const cr = Math.cos(rot), sn = Math.sin(rot);
     for (let y = -L; y <= L; y++) for (let x = -L; x <= L; x++) {
@@ -1287,7 +1446,7 @@ function buildGround() {
   const PA = BIOMES.map(b => C(GP[b.id].A)), PB = BIOMES.map(b => C(GP[b.id].B)), PM = BIOMES.map(b => C(GP[b.id].M));
   // champs lents en demi-résolution
   const N = MR * MR, cA = new Uint8ClampedArray(N * 3), cB = new Uint8ClampedArray(N * 3), cM = new Uint8ClampedArray(N * 3);
-  const dens = new Float32Array(N), dry = new Float32Array(N), hgt = new Float32Array(N), lit = new Float32Array(N), rock = new Float32Array(N), n1a = new Float32Array(N), wpin = new Float32Array(N), wsea = new Float32Array(N), cT = new Float32Array(N), bchA = new Float32Array(N), posi = new Float32Array(N);
+  const dens = new Float32Array(N), dry = new Float32Array(N), hgt = new Float32Array(N), lit = new Float32Array(N), rock = new Float32Array(N), n1a = new Float32Array(N), wpin = new Float32Array(N), wsea = new Float32Array(N), wmt = new Float32Array(N), slope = new Float32Array(N), cT = new Float32Array(N), bchA = new Float32Array(N), posi = new Float32Array(N);
   const w = new Float32Array(NB);
   for (let j = 0; j < MR; j++) for (let i = 0; i < MR; i++) {
     const x = i / MR * SIZE - HALF, z = j / MR * SIZE - HALF, q = j * MR + i;
@@ -1299,6 +1458,7 @@ function buildGround() {
     const h = height(x, z); hgt[q] = h;
     dens[q] = forestDensity(x, z, h); dry[q] = fbm(x * 0.04 + 70, z * 0.04 - 33, 3) + w[BI.prairie] * 0.2;
     lit[q] = litter(x, z); n1a[q] = fbm(x * 0.06, z * 0.06, 3);
+    wmt[q] = w[BI.montagne]; if (wmt[q] > 0.05) slope[q] = Math.min(1, Math.hypot(height(x + 0.6, z) - h, height(x, z + 0.6) - h) / 0.6 * 0.5);
     const wsl = w[BI.littoral]; wsea[q] = wsl; cT[q] = wsl > 0.03 ? coastT(x, z, wsl) : -1; bchA[q] = beachiness(x, z); posi[q] = fbm(x * 0.07 + 300, z * 0.07 - 90, 3);
     rock[q] = (wl > 0.05 ? wl * smooth(0.0, 0.3, fbm(x * 0.08 + 500, z * 0.08, 3)) : 0) + (wsl > 0.05 ? smooth(0.0, -0.25, beachiness(x, z)) * smooth(-0.3, -0.1, cT[q]) * smooth(0.0, -0.02, cT[q] - 0.02) * 0.9 : 0);
   }
@@ -1308,6 +1468,7 @@ function buildGround() {
   const sr = mulberry32(7);
   const mix3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
   const gDry = C('#93a94c'), dA = C('#8a5a34'), dB = C('#6a4128'), pa = C('#a8835a'), pb = C('#7a573a'), pRut = C('#5c4330'), pEdge = C('#5f5a32');
+  const scrA = C('#8e8c86'), scrB = C('#6c6b68'), snowA = C('#f4f6f8'), snowB = C('#dde4ee');
   const pebA = C('#b8b0a0'), pebB = C('#8c8578'), limA = C('#ddd6c4'), limB = C('#bdb5a2'), wrackC = C('#5a4632'), posA = C('#24413a'), posB = C('#2f5244');
   const sandA = C('#ecdcb0'), sandB = C('#dcc796'), sandW = C('#b59f72'), sandBed = C('#b8b48a'), needleG = C('#7a5c3a'), rockC = C('#8c8a7e'), wet = C('#33402c'), bed = C('#3c4a3a');
   const leafs = [C('#c8752e'), C('#9c4d22'), C('#e0a040'), C('#5a3420'), C('#b8862f')];
@@ -1322,6 +1483,13 @@ function buildGround() {
     col3 = mix3(col3, gDry, smooth(0.1, 0.45, dry[q]) * (1 - d) * 0.75);
     col3 = mix3(col3, Mo, smooth(0.35, 0.9, d) * 0.6);
     // affleurements rocheux (lande)
+    const wmq = wmt[q];
+    if (wmq > 0.05) {   // étages : alpage au-dessus de la forêt, éboulis gris, puis neige (moins sur les pentes raides)
+      const scree = smooth(TREELINE - 0.8, TREELINE + 1.6, h + n2 * 0.8) * smooth(0.05, 0.3, wmq);
+      if (scree > 0) col3 = mix3(col3, mix3(scrA, scrB, clamp(0.5 + n2 + (fine - 0.5) * 0.6)), scree * clamp(0.35 + slope[q] * 1.6 + n1 * 0.4));
+      const sn = smooth(SNOWLINE - 0.6, SNOWLINE + 0.8, h + n2 * 1.1 + n1 * 1.5) * (1 - smooth(0.45, 0.8, slope[q]) * 0.8);
+      if (sn > 0) col3 = mix3(col3, mix3(snowA, snowB, clamp(0.5 + n2 * 0.6)), sn);
+    }
     const Rk = smooth(0.25, 0.55, rock[q] + n2 * 0.1);
     if (Rk > 0) col3 = mix3(col3, rockC, Rk * (0.85 + (fine - 0.5) * 0.2));
     // litière de feuilles
@@ -1383,7 +1551,7 @@ function buildGround() {
   g.putImageData(img, 0, 0); mg.putImageData(mimg, 0, 0);
   const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
   const mask = new THREE.CanvasTexture(mc); mask.flipY = false;
-  const geo = new THREE.PlaneGeometry(SIZE, SIZE, 360, 360); geo.rotateX(-Math.PI / 2);
+  const geo = new THREE.PlaneGeometry(SIZE, SIZE, 440, 440); geo.rotateX(-Math.PI / 2);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i++) pos.setY(i, height(pos.getX(i), pos.getZ(i)));
   geo.computeVertexNormals();
@@ -1406,6 +1574,7 @@ function buildMinimap() {
     let r = 0, gg = 0, b = 0; for (let k = 0; k < NB; k++) { r += w[k] * mc[k].r; gg += w[k] * mc[k].g; b += w[k] * mc[k].b; }
     const sh = 1 - forestDensity(x, z, h) * 0.35 + (h - WL) * 0.015;
     let c3 = [r * sh, gg * sh, b * sh];
+    if (h > SNOWLINE + 0.3) c3 = [0.93, 0.95, 0.97];
     if (h < WL) c3 = [0.24, 0.48, 0.56];
     if (pathDist(x, z) < 1.3) c3 = [0.75, 0.6, 0.42];
     const k = (j * S + i) * 4;
@@ -1468,10 +1637,6 @@ const CHARS = [
   { id: 'lapin', name: 'Petit lapin' },
   { id: 'corbeau', name: 'Corbeau' },
   { id: 'pelerin', name: 'Pèlerin au chapeau' },
-  { id: 'lanterniere', name: 'Lanternière' },
-  { id: 'totem', name: 'Totem' },
-  { id: 'masque', name: "Masque d'oiseau" },
-  { id: 'moine', name: 'Moine au halo' },
 ];
 const charMat = (hex, glow = 0) => patch(new THREE.MeshLambertMaterial({ color: hex, emissive: hex, emissiveIntensity: glow }), { reveal: false });
 const lathe = (pts, seg = 24) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
@@ -1556,41 +1721,6 @@ function makeCharacter(id) {
     add(new THREE.ConeGeometry(0.13, 0.2, 24), charMat('#d8b46e'), 0, 1.18, 0);
     add(new THREE.TorusGeometry(0.12, 0.018, 6, 20).rotateX(Math.PI / 2), charMat('#7a9e9f'), 0, 1.1, 0);
     anims.push((t, w) => { tail.rotation.x = 0.25 + Math.sin(w * 0.5) * 0.15; });
-  } else if (id === 'lanterniere') {
-    add(lathe([[0, 0], [0.31, 0], [0.33, 0.08], [0.25, 0.4], [0.16, 0.7], [0, 0.76]]), charMat('#5eaaa0'));
-    add(lathe([[0, 0], [0.34, 0], [0.32, 0.04], [0, 0.05]]), charMat('#3f8079'), 0, 0.02, 0);
-    add(new THREE.SphereGeometry(0.2, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.62), charMat('#3f8079'), 0, 0.82, 0.01);
-    add(new THREE.SphereGeometry(0.115, 14, 10), charMat('#f5e2cf'), 0, 0.83, -0.115);
-    const stick = new THREE.Group(); stick.position.set(0.22, 0.45, -0.12); group.add(stick);
-    add(new THREE.CylinderGeometry(0.015, 0.015, 0.9, 6), charMat('#6b4e3a'), 0, 0.42, 0, stick).rotation.z = -0.2;
-    const lamp = new THREE.Group(); lamp.position.set(0.1, 0.86, 0); stick.add(lamp);
-    add(new THREE.OctahedronGeometry(0.1, 0), charMat('#ffd27a', 1.4), 0, -0.12, 0, lamp);
-    add(new THREE.ConeGeometry(0.06, 0.05, 4), charMat('#3f8079'), 0, -0.02, 0, lamp);
-    anims.push((t, w) => { lamp.rotation.z = Math.sin(t * 2 + w * 0.5) * 0.25; });
-  } else if (id === 'totem') {
-    add(new THREE.CylinderGeometry(0.18, 0.24, 0.62, 6), charMat('#e9c46a'), 0, 0.31, 0);
-    add(new THREE.CylinderGeometry(0.25, 0.25, 0.08, 6), charMat('#2a9d8f'), 0, 0.5, 0);
-    const head = add(new THREE.BoxGeometry(0.28, 0.28, 0.28), charMat('#f4a261'), 0, 0.82, 0);
-    head.rotation.set(0.62, Math.PI / 4, 0);
-    add(new THREE.ConeGeometry(0.17, 0.34, 4), charMat('#264653'), 0, 1.15, 0).rotation.y = Math.PI / 4;
-    for (const sx of [-1, 1]) add(new THREE.BoxGeometry(0.05, 0.05, 0.02), charMat('#264653'), sx * 0.07, 0.84, -0.2);
-    anims.push((t, w) => { head.rotation.y = Math.PI / 4 + Math.sin(t * 0.7) * 0.2; });
-  } else if (id === 'masque') {
-    add(lathe([[0, 0], [0.27, 0], [0.25, 0.1], [0.14, 0.62], [0.09, 0.8], [0, 0.82]]), charMat('#3d405b'));
-    const cape = add(lathe([[0.3, 0.3], [0.22, 0.55], [0.12, 0.75], [0, 0.78]], 24), charMat('#81b29a'));
-    add(new THREE.SphereGeometry(0.15, 16, 12), charMat('#3d405b'), 0, 0.93, 0);
-    add(new THREE.ConeGeometry(0.075, 0.3, 16).rotateX(-Math.PI / 2), charMat('#f4f1de'), 0, 0.91, -0.24);
-    add(new THREE.SphereGeometry(0.09, 12, 8), charMat('#f4f1de'), 0, 0.93, -0.09).scale.set(1.3, 1, 0.6);
-    for (const sx of [-1, 1]) add(new THREE.SphereGeometry(0.022, 8, 6), charMat('#1d1d2b'), sx * 0.06, 0.96, -0.14);
-    add(new THREE.CylinderGeometry(0.17, 0.17, 0.05, 20), charMat('#81b29a'), 0, 1.07, 0);
-    anims.push((t, w) => { cape.rotation.y = Math.sin(w * 0.5) * 0.12; });
-  } else { // moine
-    add(lathe([[0, 0], [0.36, 0], [0.34, 0.1], [0.26, 0.55], [0.17, 0.78], [0, 0.8]], 8), charMat('#c9a27e'));
-    add(new THREE.TorusGeometry(0.2, 0.035, 6, 8).rotateX(Math.PI / 2), charMat('#8c5e3c'), 0, 0.45, 0);
-    add(new THREE.SphereGeometry(0.14, 16, 12), charMat('#f2d0b5'), 0, 0.92, 0);
-    const halo = add(new THREE.TorusGeometry(0.17, 0.02, 6, 28), charMat('#ffe39a', 0.9), 0, 1.16, 0.02);
-    halo.rotation.x = Math.PI / 2 - 0.25; halo.castShadow = false;
-    anims.push((t, w) => { halo.position.y = 1.16 + Math.sin(t * 1.8) * 0.025; halo.rotation.z = t * 0.6; });
   }
   group.traverse(o => { if (o.isMesh) o.userData.char = true; });
   return { group, gait, anim: (t, w) => anims.forEach(f => f(t, w)) };
@@ -1740,8 +1870,8 @@ const moteMat = new THREE.PointsMaterial({ size: 1, sizeAttenuation: false, vert
 const motes = new THREE.Points(moteGeo, moteMat); motes.frustumCulled = false;
 scene.add(motes);
 function updateMotes(t, p) {
-  const n = Math.round(MOTES * p.motes.amount); moteGeo.setDrawRange(0, n);
-  moteMat.size = p.motes.size * Math.max(1, Math.round(3 / p.pixel)); moteMat.color.set(p.motes.color);
+  const n = Math.round(MOTES * p.motes.amount * 0.45); moteGeo.setDrawRange(0, n);
+  moteMat.size = p.motes.size * Math.max(1, Math.round(1.6 / p.pixel)); moteMat.color.set(p.motes.color);
   const fire = p.motes.kind === 'fireflies';
   for (let i = 0; i < n; i++) {
     const s = moteSeed.subarray(i * 4, i * 4 + 4);
@@ -1751,7 +1881,7 @@ function updateMotes(t, p) {
     const y = height(x, z) + (fire ? 0.4 + s[2] * 2.2 : 0.6 + s[3] * 6) + Math.sin(t * 0.5 + s[0] * 30) * 0.4;
     moteP[i * 3] = x; moteP[i * 3 + 1] = y; moteP[i * 3 + 2] = z;
     const b = fire ? Math.pow(Math.max(0, Math.sin(t * (0.6 + s[3]) + s[1] * 40)), 6) : 0.35 + 0.65 * Math.pow(Math.max(0, Math.sin(t * (0.8 + s[2] * 1.5) + s[0] * 50)), 3);
-    moteC[i * 3] = moteC[i * 3 + 1] = moteC[i * 3 + 2] = b;
+    moteC[i * 3] = moteC[i * 3 + 1] = moteC[i * 3 + 2] = b * 0.6;
   }
   moteGeo.attributes.position.needsUpdate = true; moteGeo.attributes.color.needsUpdate = true;
 }
@@ -1991,8 +2121,7 @@ function applyPreset(p) {
   scene.background = scene.fog.color;
   U.uCloud.value = p.cloud; U.uWind.value = p.wind;
   winMat.emissiveIntensity = clamp((2.2 - p.sunInt) / 1.6) * 1.8;
-  lantern.intensity = p.lantern; lanternGlow.visible = p.lantern > 0 && charId !== 'lanterniere';
-  if (charId === 'lanterniere') lantern.position.set(0.38, 1.25, -0.12); else lantern.position.set(0.35, 0.75, -0.25);
+  lantern.intensity = p.lantern; lanternGlow.visible = p.lantern > 0;
   const G = gradeMat.uniforms;
   G.exposure.value = p.exposure; G.contrast.value = p.contrast; G.saturation.value = p.saturation;
   G.shadowTint.value.copy(p.shadowTint); G.highTint.value.copy(p.highTint);
@@ -2326,7 +2455,7 @@ function buildAssets(sd) {
   const one = (pr, x, z, s = 1) => {
     const it = [{ x, z, y: 0, s, ry: R(0, 6.28), c: W1() }];
     if (pr.trunk) instanced(pr.trunk, pr.birch ? M.birch : M.bark, it);
-    instanced(pr.leaves, pr.needles ? M.needles : pr.soft ? M.bush : M.leaves, it, { depth: pr.needles ? DM.needles : pr.soft ? DM.bush : DM.leaves });
+    instanced(pr.leaves, pr.willow ? M.willow : pr.needles ? M.needles : pr.soft ? M.bush : M.leaves, it, { depth: pr.willow ? DM.willow : pr.needles ? DM.needles : pr.soft ? DM.bush : DM.leaves });
   };
   const scatter = (n, r, f) => { const a = []; for (let i = 0; i < n; i++) { const ang = R(0, 6.28), d = r * Math.sqrt(rnd()); a.push(f(Math.cos(ang) * d, Math.sin(ang) * d, i)); } return a; };
   const soft = pr => (pr.soft = true, pr);
@@ -2340,6 +2469,9 @@ function buildAssets(sd) {
     ['Arbres', 'Bouleau', 24, 3.5, (x, z) => one(makeBirch(), x, z)],
     ['Arbres', 'Pin', 24, 3.5, (x, z) => one(makePine(), x, z)],
     ['Arbres', 'Saule pleureur', 22, 2.5, (x, z) => one(makeWillow(), x, z)],
+    ['Montagne', 'Sapin', 26, 4, (x, z) => one(makeFir(false), x, z)],
+    ['Montagne', 'Sapin enneigé', 26, 4, (x, z) => one(makeFir(true), x, z)],
+    ['Montagne', 'Blocs enneigés', 10, 0.5, (x, z) => ['boulder', 'slab', 'spire', 'round'].forEach((sh, i) => { const r = makeRock(sh, false, false, true); instanced(r.geo, M.stone, [{ x: x - 3.3 + i * 2.2, z: z + (i % 2) * 0.8, y: r.base * 0.9 - 0.05, s: 0.9, ry: R(0, 6.28), c: new THREE.Color(1, 1, 1) }]); })],
     ['Méditerranée', 'Pin parasol', 26, 3.5, (x, z) => one(makeParasol(), x, z)],
     ['Méditerranée', 'Olivier', 16, 1.8, (x, z) => one(makeOlive(), x, z)],
     ['Méditerranée', 'Cyprès', 24, 3.5, (x, z) => one(makeCypress(), x, z)],
