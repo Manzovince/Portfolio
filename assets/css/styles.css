@@ -503,7 +503,7 @@ td {
         top: -32px;
         right: auto;
         left: 0;
-        width: 100vw;
+        width: 100%;
         padding: 96px 32px 36px;
         z-index: -1;
         flex-direction: column;
@@ -680,7 +680,7 @@ html.intro .intro-desc {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100vw;
+    width: 100%;
     height: 100vh;
     opacity: 0.8;
     z-index: 0;

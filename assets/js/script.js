@@ -429,7 +429,7 @@ class NavComponent extends HTMLElement {
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('/assets/css/styles.css?v=20261126d');
+        @import url('/assets/css/styles.css?v=20261127a');
       </style>
       <nav id="nav">
         <div class="page-path">
@@ -611,7 +611,7 @@ class FooterComponent extends HTMLElement {
     // HTML content for the footer
     this.shadowRoot.innerHTML = `     
       <style>
-        @import url('/assets/css/styles.css?v=20261126d');
+        @import url('/assets/css/styles.css?v=20261127a');
       </style>
       <footer>
         <div class="footer-item">

@@ -230,7 +230,8 @@
   }
 
   function resize() {
-    const width = window.innerWidth;
+    // clientWidth excludes the classic scrollbar (Windows), innerWidth does not
+    const width = document.documentElement.clientWidth;
     const height = window.innerHeight;
     lastWidth = width;
     canvas.style.width = width + "px";
@@ -248,7 +249,7 @@
 
   function onWindowResize() {
     // On phones the address bar changes the height while scrolling: ignore it
-    if (coarsePointer.matches && window.innerWidth === lastWidth) return;
+    if (coarsePointer.matches && document.documentElement.clientWidth === lastWidth) return;
     resize();
     if (frameId === null) draw(performance.now());
   }
