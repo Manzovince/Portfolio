@@ -54,17 +54,17 @@
   #labels div:hover { outline:2px solid var(--acc); outline-offset:-2px; }
   #labels b { position:absolute; left:50%; bottom:12px; transform:translateX(-50%); background:var(--bg); padding:4px 12px; border-radius:999px; font-weight:600; white-space:nowrap; }
   #labels.on ~ #ui .sliders { opacity:.35; pointer-events:none; }
-  #minimap { cursor:crosshair; position:fixed; right:12px; top:12px; width:170px; height:170px; border-radius:12px; border:1px solid var(--line); box-shadow:0 4px 18px rgba(0,0,0,.35); image-rendering:pixelated; }
+  #minimap { cursor:crosshair; position:fixed; right:12px; top:12px; width:124px; height:124px; border-radius:12px; border:1px solid var(--line); box-shadow:0 4px 18px rgba(0,0,0,.35); image-rendering:pixelated; }
   #bigmap { position:fixed; inset:0; display:none; place-items:center; background:rgba(10,14,8,.55); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); z-index:20; }
   #bigmap.on { display:grid; }
   #bigmap .bigwrap { text-align:center; }
   #bigcv { width:min(86vmin, 760px); height:min(86vmin, 760px); border-radius:14px; box-shadow:0 10px 40px rgba(0,0,0,.5); cursor:crosshair; image-rendering:auto; }
   #bigmap p { margin:10px 0 0; font-size:12px; opacity:.8; }
   #minimap { cursor:zoom-in !important; }
-  #biome { position:fixed; right:12px; top:190px; width:170px; text-align:center; font-weight:600; letter-spacing:.04em; text-shadow:0 1px 4px rgba(0,0,0,.6); }
+  #biome { position:fixed; right:12px; top:142px; width:124px; font-size:12px; text-align:center; font-weight:600; letter-spacing:.04em; text-shadow:0 1px 4px rgba(0,0,0,.6); }
   #biome.flash { animation:flash 2.4s ease; }
   @keyframes flash { 0% { transform:scale(1.35); color:var(--acc); } 100% { transform:scale(1); } }
-  @media (max-width:700px) { #minimap { width:96px; height:96px; right:8px; top:8px; border-radius:9px; } #biome { top:108px; right:8px; width:96px; font-size:10.5px; } }
+  @media (max-width:700px) { #minimap { width:80px; height:80px; right:8px; top:8px; border-radius:9px; } #biome { top:92px; right:8px; width:80px; font-size:10.5px; } }
   #fps { position:fixed; right:10px; bottom:8px; font-size:11px; opacity:.5; font-variant-numeric:tabular-nums; }
   #loading { position:fixed; inset:0; display:grid; place-items:center; background:#1c2616; font-size:14px; letter-spacing:.1em; }
 </style>
@@ -118,6 +118,6 @@
 <button id="jumpBtn" style="display:none;position:fixed;right:16px;bottom:28px;width:62px;height:62px;border-radius:50%;font-size:13px;background:rgba(18,24,16,.75)">Saut</button>
 <div id="fps"></div>
 <div id="loading">GÉNÉRATION…</div>
-<script type="module" src="main.js?v=25"></script>
+<script type="module" src="main.js?v=26"></script>
 </body>
 </html>
