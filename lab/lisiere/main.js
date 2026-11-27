@@ -2167,6 +2167,7 @@ const CHARS = [
   { id: 'lapin', name: 'Petit lapin' },
   { id: 'corbeau', name: 'Corbeau' },
   { id: 'pelerin', name: 'Pèlerin au chapeau' },
+  { id: 'explorateur', name: 'Explorateur' },
 ];
 const charMat = (hex, glow = 0) => patch(new THREE.MeshLambertMaterial({ color: hex, emissive: hex, emissiveIntensity: glow }), { reveal: false });
 const lathe = (pts, seg = 24) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
@@ -2251,6 +2252,23 @@ function makeCharacter(id) {
     add(new THREE.ConeGeometry(0.13, 0.2, 24), charMat('#d8b46e'), 0, 1.18, 0);
     add(new THREE.TorusGeometry(0.12, 0.018, 6, 20).rotateX(Math.PI / 2), charMat('#7a9e9f'), 0, 1.1, 0);
     anims.push((t, w) => { tail.rotation.x = 0.25 + Math.sin(w * 0.5) * 0.15; });
+  } else if (id === 'explorateur') {
+    // veste saharienne kaki, casque colonial, foulard rouge, gros sac à dos + tapis de sol roulé, bâton de marche
+    add(lathe([[0, 0], [0.3, 0], [0.29, 0.1], [0.22, 0.55], [0.12, 0.82], [0, 0.84]]), charMat('#b9a67a'));
+    add(new THREE.CylinderGeometry(0.235, 0.25, 0.05, 20), charMat('#6b5436'), 0, 0.42, 0);   // ceinture
+    add(new THREE.TorusGeometry(0.11, 0.05, 8, 20).rotateX(Math.PI / 2), charMat('#c8553d'), 0, 0.8, 0);   // foulard
+    add(new THREE.SphereGeometry(0.13, 16, 12), charMat('#f3d9c0'), 0, 0.96, 0);
+    add(new THREE.SphereGeometry(0.15, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), charMat('#e9dcb8'), 0, 1.02, 0);   // casque
+    add(new THREE.CylinderGeometry(0.24, 0.24, 0.02, 24), charMat('#e9dcb8'), 0, 1.03, 0);
+    add(new THREE.TorusGeometry(0.15, 0.016, 6, 20).rotateX(Math.PI / 2), charMat('#6b5436'), 0, 1.05, 0);
+    const pack = new THREE.Group(); pack.position.set(0, 0.55, 0.2); group.add(pack);
+    const pk = (g, m, x, y, z) => { const o = new THREE.Mesh(g, m); o.position.set(x, y, z); o.castShadow = true; pack.add(o); return o; };
+    pk(new THREE.BoxGeometry(0.3, 0.36, 0.16), charMat('#7a5a3a'), 0, 0, 0.02);
+    pk(new THREE.BoxGeometry(0.31, 0.12, 0.17), charMat('#5e4329'), 0, 0.14, 0.03);
+    pk(new THREE.CylinderGeometry(0.07, 0.07, 0.42, 12).rotateZ(Math.PI / 2), charMat('#4f7a6a'), 0, 0.25, 0.04);   // tapis roulé
+    pk(new THREE.CylinderGeometry(0.05, 0.05, 0.12, 10), charMat('#9aa3a0'), 0.19, -0.08, 0.03);   // gourde
+    const stick = add(new THREE.CylinderGeometry(0.018, 0.022, 1.05, 6), charMat('#8a6a44'), 0.3, 0.5, -0.06); stick.rotation.x = -0.15;
+    anims.push((t, w) => { pack.position.y = 0.55 + Math.abs(Math.sin(w)) * 0.02; stick.rotation.x = -0.15 + Math.sin(w) * 0.25; });
   }
   group.traverse(o => { if (o.isMesh) o.userData.char = true; });
   return { group, gait, anim: (t, w) => anims.forEach(f => f(t, w)) };
