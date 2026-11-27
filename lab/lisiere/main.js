@@ -3060,6 +3060,7 @@ function updatePlayer(dt) {
     ch.group.rotation.x = -0.06 * mv;
     ch.group.scale.y = 1 - Math.abs(Math.cos(walkT)) * 0.04 * mv;
     ch.anim(performance.now() / 1000, walkT); } }
+  if (stroll && !drag) camYawT += dt * 0.025;   // balade : la caméra tourne très lentement autour du perso
   if (!camFree) camTarget.lerp(player.position, Math.min(1, dt * 4));
 }
 
