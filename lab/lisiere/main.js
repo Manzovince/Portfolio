@@ -2276,15 +2276,15 @@ function makeCharacter(id) {
   return { group, gait, anim: (t, w) => anims.forEach(f => f(t, w)) };
 }
 const player = new THREE.Group();
-let charId = 'lapin';
-try { charId = localStorage.getItem('canopee.char2') || charId; } catch (e) {}
+let charId = 'corbeau';
+try { charId = localStorage.getItem('canopee.char3') || charId; } catch (e) {}
 function setCharacter(id) {
   if (!CHARS.some(c => c.id === id)) id = CHARS[0].id;
   charId = id;
   if (player.userData.char) player.remove(player.userData.char.group);
   player.userData.char = makeCharacter(id);
   player.add(player.userData.char.group);
-  try { localStorage.setItem('canopee.char2', id); } catch (e) {}
+  try { localStorage.setItem('canopee.char3', id); } catch (e) {}
 }
 setCharacter(charId);
 // ════════════════════════════════════════════════════════════════════
