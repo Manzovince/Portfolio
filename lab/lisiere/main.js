@@ -1563,11 +1563,15 @@ function* populateChunk(ch) {
   buildBridgeIn(ch); yield;
   stage(5);
   ch.boats = [];
-  for (let t = 0; t < 60 && ch.boats.length < 1; t++) {
-    const x = RX(), z = RZ(), ws = biomeW(x, z)[BI.littoral]; if (ws < 0.3 || rnd() > 0.35) continue;
-    const ct = coastT(x, z), d = WL - height(x, z);
-    if (ct < 0.04 || ct > 0.22 || d < 0.45 || beachiness(x, z) < 0) continue;
-    const b = makeBoat((cx * 7 + cz) & 3); b.position.set(x, WL, z); b.rotation.y = R(0, 6.28); b.userData.ph = R(0, 6.28); ch.group.add(b); boats.push(b); ch.boats.push(b);
+  if (rnd() < 0.85) for (let t = 0; t < 200 && !ch.boats.length; t++) {
+    const x = RX(), z = RZ(), d = WL - height(x, z);
+    if (d < 0.4 || d > 2.6 || nearRiver(x, z, 3)) continue;
+    // une rive à moins de 4 m : l'avant regarde vers le large
+    let sx = 0, sz = 0, nLand = 0;
+    for (let a = 0; a < 6.28; a += 0.785) for (const rr of [4, 8]) { const hx = x + Math.cos(a) * rr, hz = z + Math.sin(a) * rr; if (height(hx, hz) > WL + 0.1) { sx += Math.cos(a); sz += Math.sin(a); nLand++; break; } }
+    if (!nLand || nLand > 6) continue;
+    const b = makeSailboat((cx * 7 + cz) & 7); b.position.set(x, WL, z); b.rotation.y = Math.atan2(sx, sz) + R(-0.3, 0.3);   // -z (avant) opposé à la rive
+    ch.group.add(b); boats.push(b); ch.boats.push(b);
   }
   ch.state = 'ready';
 }
@@ -2097,7 +2101,7 @@ function goToBiome(bi) {
   }
   teleport(bx, bz);
 }
-window.canopee = { goToBiome, height: (x, z) => height(x, z), heightRaw: (x, z) => heightRaw(x, z, true), riverAt: (x, z) => riverAt(x, z), get bridges() { return bridges; }, renderer, scene, U, sun, get player() { return player; }, pathX: z => pathX(z), get PRESETS() { return PRESETS; }, setPlanche: on => setPlanche(on), get cur() { return cur; }, get chunks() { return chunks; },
+window.canopee = { get camera() { return camera; }, get sail() { return sail; }, goToBiome, height: (x, z) => height(x, z), heightRaw: (x, z) => heightRaw(x, z, true), riverAt: (x, z) => riverAt(x, z), get bridges() { return bridges; }, renderer, scene, U, sun, get player() { return player; }, pathX: z => pathX(z), get PRESETS() { return PRESETS; }, setPlanche: on => setPlanche(on), get cur() { return cur; }, get chunks() { return chunks; },
   stats() { let n = 0, inst = 0; scene.traverse(o => { if (o.isMesh) { n++; if (o.isInstancedMesh) { inst += o.count; } } }); return { meshes: n, instances: inst, chunks: chunks.size }; } };
 // grande carte : un clic sur la mini-carte l'ouvre ; double-clic sur un endroit pour s'y rendre ; Échap ou clic à côté pour fermer
 const BIG = { S: 640, span: 720, G: 181, img: null, cx: 0, cz: 0, job: null, open: false };
@@ -2403,8 +2407,58 @@ function makeBoat(vi) {
   const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 1.2, 6), cMat('mast', '#6a4a30')); mast.position.set(0.55, 0.75, 0); mast.castShadow = true; grp.add(mast);
   return grp;
 }
+// Voilier : coque bleu nuit à bande bordeaux, pont en planches, mât, bôme, voile triangulaire, fanion jaune à la poupe.
+// L'avant regarde vers -z, comme le personnage.
+function makeSailboat(vi = 0) {
+  const grp = new THREE.Group(), L = 3.4, B = 1.2;
+  const g = new THREE.BoxGeometry(B, 0.62, L, 6, 3, 18), p = g.attributes.position, cols = new Float32Array(p.count * 3);
+  const navy = col(['#23314a', '#2c3a2e', '#3a2430'][vi % 3]), band = col('#7a2c2c'), rail = col('#9a7048');
+  for (let i = 0; i < p.count; i++) {
+    let x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    const t = z / (L / 2), bow = t < 0 ? 1 - Math.pow(-t, 1.7) : 1 - 0.32 * t * t;     // proue effilée, poupe à tableau
+    const keel = y < 0 ? 0.3 + 0.7 * (y + 0.31) / 0.31 : 1;
+    x *= Math.max(0.03, bow) * keel;
+    if (y > 0) y += Math.pow(Math.max(0, -t), 2) * 0.22 + Math.max(0, t) * 0.04;            // tonture
+    p.setXYZ(i, x, y, z);
+    const c = y > 0.24 ? rail : y < -0.1 ? band : navy;
+    cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(cols, 3)); g.computeVertexNormals();
+  const add = (geo, m, x = 0, y = 0, z = 0, parent = grp) => { const me = new THREE.Mesh(geo, m); me.position.set(x, y, z); me.castShadow = me.receiveShadow = true; parent.add(me); return me; };
+  add(g, cMat('boat', '#ffffff', {}, { vertexColors: true }));
+  // pont : planches épousant la forme de la coque
+  const dg = new THREE.BoxGeometry(B * 0.86, 0.05, L * 0.9, 4, 1, 16), dp = dg.attributes.position;
+  for (let i = 0; i < dp.count; i++) { const t = dp.getZ(i) / (L / 2), bow = t < 0 ? 1 - Math.pow(-t, 1.7) : 1 - 0.32 * t * t; dp.setX(i, dp.getX(i) * Math.max(0.05, bow)); }
+  dg.computeVertexNormals();
+  add(dg, cMat('plank', '#a87c50', { proc: 'plank' }), 0, 0.26, 0);
+  add(new THREE.BoxGeometry(B * 0.7, 0.12, 0.22), cMat('plank', '#8a6040', { proc: 'plank' }), 0, 0.36, 0.55);   // banc
+  const dark = cMat('mast', '#2a2622');
+  add(new THREE.CylinderGeometry(0.045, 0.06, 3.4, 7), dark, 0, 1.95, -0.55);                                     // mât
+  const pivot = new THREE.Group(); pivot.position.set(0, 0, -0.55); grp.add(pivot);                                // la voile et la bôme pivotent autour du mât
+  add(new THREE.CylinderGeometry(0.035, 0.035, 1.9, 6).rotateX(Math.PI / 2), dark, 0, 0.62, 0.95, pivot);       // bôme
+  // voile : triangle légèrement gonflé
+  const sg = new THREE.BufferGeometry(), verts = [], idx = [], N = 6;
+  for (let i = 0; i <= N; i++) for (let j = 0; j <= N - i; j++) {
+    const a = i / N, b = j / N, y = 0.65 + a * 2.95, z = 0.02 + b * 1.85 * (1 - a * 0.05), bulge = Math.sin(Math.PI * b) * (1 - a) * 0.22;
+    verts.push(bulge, y, z);
+  }
+  let o = 0; const row = []; for (let i = 0; i <= N; i++) { row.push(o); o += N - i + 1; }
+  for (let i = 0; i < N; i++) for (let j = 0; j < N - i; j++) {
+    const a = row[i] + j, b = row[i] + j + 1, c = row[i + 1] + j; idx.push(a, b, c);
+    if (j < N - i - 1) idx.push(b, row[i + 1] + j + 1, c);
+  }
+  sg.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3)); sg.setIndex(idx); sg.computeVertexNormals();
+  const sail = add(sg, cMat('sail', '#e8e4d8', {}, { side: THREE.DoubleSide }), 0, 0, 0, pivot);
+  // fanion jaune sur un petit mât de poupe, safran et barre
+  add(new THREE.CylinderGeometry(0.02, 0.02, 0.9, 5), dark, 0.35, 0.75, 1.5);
+  const flag = add(new THREE.PlaneGeometry(0.24, 0.16).translate(0.12, 0, 0), cMat('flag', '#e8b830', {}, { side: THREE.DoubleSide }), 0.35, 1.12, 1.5);
+  add(new THREE.BoxGeometry(0.05, 0.5, 0.35), dark, 0, -0.1, 1.78);
+  add(new THREE.CylinderGeometry(0.02, 0.02, 0.7, 5).rotateX(Math.PI / 2 - 0.2), cMat('plank', '#8a6040', { proc: 'plank' }), 0, 0.42, 1.45);
+  grp.userData = { pivot, flag, sail, ph: R(0, 6.28), sailing: false };
+  return grp;
+}
 function updateBoats(t) {
-  for (const b of boats) { const ph = b.userData.ph; b.rotation.z = Math.sin(t * 0.9 + ph) * 0.04; b.rotation.x = Math.sin(t * 0.7 + ph * 2) * 0.05; b.position.y = WL - 0.02 + Math.sin(t * 1.1 + ph) * 0.03; }
+  for (const b of boats) { if (b.userData.sailing) continue; const ph = b.userData.ph; if (b.userData.flag) b.userData.flag.rotation.y = Math.sin(t * 3 + ph) * 0.4; b.rotation.z = Math.sin(t * 0.9 + ph) * 0.04; b.rotation.x = Math.sin(t * 0.7 + ph * 2) * 0.05; b.position.y = WL - 0.02 + Math.sin(t * 1.1 + ph) * 0.03; }
 }
 const smokes = [];
 function addSmoke(g) {
@@ -2822,7 +2876,7 @@ function endPtr(e) {
       ndc.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
       ray.setFromCamera(ndc, camera);
       const hit = ray.intersectObjects(groundMeshes, false)[0];
-      if (hit) { moveTo = hit.point.clone(); follow(); if (stroll) setStroll(false); }
+      if (hit && !sail.boat) { moveTo = hit.point.clone(); follow(); if (stroll) setStroll(false); }
     }
     drag = null; canvas.style.cursor = '';
   }
@@ -2841,6 +2895,81 @@ function blocked(x, z) {
   }
   return false;
 }
+// ── navigation : monter à bord, barrer, débarquer
+const sail = { boat: null, speed: 0, turn: 0, wakeT: 0 };
+const wakeRings = [];
+const wakeMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, depthWrite: false, fog: false });
+const boatBtn = document.getElementById('boatBtn');
+function nearestBoat(r = 3.2) { let best = null, bd = r; for (const b of boats) { const d = Math.hypot(b.position.x - player.position.x, b.position.z - player.position.z); if (d < bd) { bd = d; best = b; } } return best; }
+function landNear(x, z, rMax = 9) {
+  for (let r = 1.5; r <= rMax; r += 0.75) for (let a = 0; a < 6.28; a += 0.4) { const tx = x + Math.cos(a) * r, tz = z + Math.sin(a) * r; if (height(tx, tz) > WL + 0.12 && !blocked(tx, tz)) return [tx, tz]; }
+  return null;
+}
+function toggleBoat() {
+  if (sail.boat) {   // débarquer
+    const b = sail.boat, land = landNear(b.position.x, b.position.z); if (!land) return;
+    b.userData.sailing = false; sail.boat = null; sail.speed = 0;
+    player.position.set(land[0], height(land[0], land[1]), land[1]); player.rotation.x = player.rotation.z = 0;
+    return;
+  }
+  const b = nearestBoat(); if (!b) return;
+  // le bateau quitte son tronçon : il ne sera plus déchargé, on peut l'emmener partout
+  if (b.parent !== scene) { const wp = new THREE.Vector3(); b.getWorldPosition(wp); b.parent.remove(b); scene.add(b); b.position.copy(wp); }
+  for (const ch of chunks.values()) if (ch.boats) { const i = ch.boats.indexOf(b); if (i >= 0) ch.boats.splice(i, 1); }
+  b.userData.sailing = true; sail.boat = b; sail.speed = 0; moveTo = null; if (stroll) setStroll(false);
+}
+boatBtn.onclick = toggleBoat;
+addEventListener('keydown', e => { if ((e.code === 'Enter' || e.code === 'NumpadEnter') && e.target.tagName !== 'INPUT') toggleBoat(); });
+function updateSailing(dt, ix, iz) {
+  const b = sail.boat, ud = b.userData;
+  let heading = b.rotation.y;
+  // cap voulu : la direction pressée, relative à la caméra ; vitesse avec inertie
+  if (ix || iz) {
+    const want = Math.atan2(-ix, -iz);   // rotation.y telle que -z (l'avant) pointe vers (ix, iz)
+    let da = want - heading; da = Math.atan2(Math.sin(da), Math.cos(da));
+    // le bateau se tourne franchement vers la flèche pressée, puis accélère une fois aligné
+    sail.turn += (clamp(da * 3, -2.4, 2.4) - sail.turn) * Math.min(1, dt * 6);
+    sail.speed = Math.min(5.5, sail.speed + dt * 3 * Math.max(0, Math.cos(da)));
+    sail.push = true;
+  } else { sail.turn *= Math.pow(0.02, dt); sail.push = false; }
+  sail.speed *= Math.pow(0.55, dt);
+  heading += sail.turn * dt;
+  const fx = -Math.sin(heading), fz = -Math.cos(heading);
+  const nx = b.position.x + fx * sail.speed * dt, nz = b.position.z + fz * sail.speed * dt;
+  // échouage : on s'arrête si l'avant touche le fond
+  if (height(nx + fx * 1.7, nz + fz * 1.7) > WL - 0.28) {
+    // on touche le rivage en poussant vers la terre : on débarque tout seul
+    if (sail.push && (sail.land || landNear(b.position.x, b.position.z))) { sail.speed = 0; toggleBoat(); return; }
+    sail.speed *= -0.25;
+  }
+  else { b.position.x = nx; b.position.z = nz; }
+  const t = performance.now() / 1000;
+  b.rotation.set(Math.sin(t * 1.1 + ud.ph) * 0.03 - sail.speed * 0.008, heading, -sail.turn * 0.12 + Math.sin(t * 0.8 + ud.ph) * 0.03, 'YXZ');
+  b.position.y = WL - 0.03 + Math.sin(t * 1.3 + ud.ph) * 0.04;
+  ud.pivot.rotation.y = clamp(-sail.turn * 0.6, -0.9, 0.9) + Math.sin(t * 0.7) * 0.05;
+  ud.flag.rotation.y = 0.6 + Math.sin(t * 6) * 0.25;
+  // le personnage est assis à la barre
+  const sx = Math.sin(heading), sz = Math.cos(heading);
+  player.position.set(b.position.x + sx * 0.95, b.position.y + 0.34, b.position.z + sz * 0.95);
+  player.rotation.set(0, heading, b.rotation.z * 0.8, 'YXZ');
+  // sillage : des ronds qui s'élargissent derrière la poupe
+  sail.wakeT -= dt;
+  if (sail.speed > 0.8 && sail.wakeT <= 0) {
+    sail.wakeT = 0.18;
+    let r = wakeRings.find(w => w.life <= 0);
+    if (!r) { if (wakeRings.length < 40) { const m = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.52, 28).rotateX(-Math.PI / 2), wakeMat.clone()); scene.add(m); r = { m, life: 0 }; wakeRings.push(r); } else r = wakeRings[0]; }
+    r.life = 1; r.m.position.set(b.position.x + sx * 1.8, WL + 0.03, b.position.z + sz * 1.8); r.m.visible = true;
+  }
+  U.uPW.value.set(b.position.x, b.position.z, Math.min(1, sail.speed / 3), 0);
+}
+function updateWake(dt) {
+  for (const r of wakeRings) {
+    if (r.life <= 0) continue;
+    r.life -= dt / 2.6; const k = 1 - Math.max(0, r.life);
+    r.m.scale.setScalar(1 + k * 4.5); r.m.material.opacity = Math.max(0, r.life) * 0.55;
+    if (r.life <= 0) r.m.visible = false;
+  }
+}
 function updatePlayer(dt) {
   if (keys.has('KeyQ')) camYawT += dt * 1.6;
   if (keys.has('KeyE')) camYawT -= dt * 1.6;
@@ -2854,6 +2983,22 @@ function updatePlayer(dt) {
   if (keys.has('KeyS') || keys.has('ArrowDown')) mz += 1;
   if (keys.has('KeyA') || keys.has('ArrowLeft')) mx -= 1;
   if (keys.has('KeyD') || keys.has('ArrowRight')) mx += 1;
+  updateWake(dt);
+  if (sail.boat) {   // à bord : les touches barrent le bateau
+    const c = Math.cos(camYaw), s = Math.sin(camYaw);
+    updateSailing(dt, mx * c + mz * s, -mx * s + mz * c);
+  }
+  if (sail.boat) {
+    sail.landT = (sail.landT || 0) - dt;
+    if (sail.landT <= 0) { sail.landT = 0.25; sail.land = landNear(sail.boat.position.x, sail.boat.position.z); }
+    const land = sail.land;
+    boatBtn.style.display = ''; boatBtn.style.opacity = land ? 1 : 0.6;
+    boatBtn.textContent = land ? '⚓ Débarquer (Entrée)' : '⚓ Approche-toi du rivage pour débarquer';
+    player.userData.char.anim(performance.now() / 1000, 0);
+    if (!camFree) camTarget.lerp(player.position, Math.min(1, dt * 4));
+    return;
+  }
+  { const nb = nearestBoat(); boatBtn.style.display = nb ? '' : 'none'; boatBtn.style.opacity = 1; boatBtn.textContent = '⛵ Monter à bord (Entrée)'; }
   let dx = 0, dz = 0;
   if (mx || mz) {
     moveTo = null; if (camFree) follow(); if (stroll) setStroll(false);
@@ -3064,7 +3209,7 @@ function buildAssets(sd) {
     ['Méditerranée', 'Olivier', 16, 1.8, (x, z) => one(makeOlive(), x, z)],
     ['Méditerranée', 'Cyprès', 24, 3.5, (x, z) => one(makeCypress(), x, z)],
     ['Méditerranée', 'Lavande & maquis', 8, 0.4, (x, z) => { const lv = soft(makeBush(PAL.lavender, 0.32, 0.5)), mq = soft(makeBush(PAL.maquis, 0.4, 0.8)); scatter(5, 1.8, (a, b, i) => one(i < 3 ? lv : mq, x + a, z + b, R(0.8, 1.3))); }],
-    ['Méditerranée', 'Barque', 7, 0.2, (x, z) => { const b = makeBoat(0); b.position.set(x, 0.05, z); b.rotation.y = 0.6; world.add(b); }],
+    ['Eau', 'Voilier', 9, 1.2, (x, z) => { const b = makeSailboat(0); b.position.set(x, 0.05, z); b.rotation.y = 0.9; world.add(b); }],
     ['Méditerranée', 'Calcaire', 10, 0.5, (x, z) => ['boulder', 'slab', 'spire', 'round'].forEach((sh, i) => { const r = makeRock(sh, false, true); instanced(r.geo, M.stone, [{ x: x - 3.3 + i * 2.2, z: z + (i % 2) * 0.8, y: r.base * 0.9 - 0.05, s: 0.9, ry: R(0, 6.28), c: new THREE.Color(1, 1, 1) }]); })],
     ['Arbustes', 'Buisson', 9, 0.6, (x, z) => one(soft(makeBush()), x, z)],
     ['Arbustes', 'Bruyère', 8, 0.4, (x, z) => { const pr = soft(makeBush(PAL.heather, 0.42, 0.55)); scatter(4, 1.6, (a, b) => one(pr, x + a, z + b, R(0.8, 1.3))); }],

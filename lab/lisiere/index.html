@@ -106,7 +106,7 @@
       <div class="tools"><button id="world">Nouveau monde</button><a class="link" href="assets.html">Assets →</a></div>
     </details>
     <details data-k="aide"><summary>Commandes</summary>
-      <div class="hint">ZQSD / flèches : marcher · clic : aller · glisser : tourner / incliner la caméra · A/E tourner · R/F incliner · molette ou pincer : zoom · B : balade · clic sur la carte : s’y rendre</div>
+      <div class="hint">ZQSD / flèches : marcher · clic : aller · glisser : tourner / incliner la caméra · A/E tourner · R/F incliner · molette ou pincer : zoom · B : balade · Entrée : monter dans un voilier / débarquer (ou fonce vers le rivage) · clic sur la carte : s’y rendre</div>
     </details>
   </div>
 </div>
@@ -114,8 +114,9 @@
 <canvas id="minimap" width="170" height="170" title="Ouvrir la carte"></canvas>
 <div id="bigmap"><div class="bigwrap"><canvas id="bigcv" width="640" height="640"></canvas><p>Double-clic sur un endroit pour s’y rendre · Échap pour fermer</p></div></div>
 <div id="biome"></div>
+<button id="boatBtn" style="display:none;position:fixed;left:50%;bottom:22px;transform:translateX(-50%);font-size:14px;padding:8px 16px;background:rgba(18,24,16,.8)">⛵ Monter à bord (Entrée)</button>
 <div id="fps"></div>
 <div id="loading">GÉNÉRATION…</div>
-<script type="module" src="main.js?v=8"></script>
+<script type="module" src="main.js?v=9"></script>
 </body>
 </html>
