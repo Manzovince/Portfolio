@@ -37,11 +37,11 @@ const pathX = z => 15 * Math.sin(z * 0.03 + pathPh[0]) + 7 * Math.sin(z * 0.083 
 // zéro d'un bruit auquel on ajoute le relief de fond : ils serpentent en suivant à peu près les courbes de niveau.
 const trailF = (i, x, z) => i === 1 ? fbm(x * 0.003 + 61, z * 0.003 - 17, 2) + baseRelief(x, z) * 0.11
                                      : fbm(x * 0.006 - 29, z * 0.006 + 44, 2) * 0.8 + baseRelief(x, z) * 0.09 + 0.12;
-const TRAIL_HW = [1.9, 1.25, 0.7];
+const TRAIL_HW = [1.2, 1.25, 0.7];
 const TRAILS_ON = false;   // chemins secondaires désactivés : seul le grand sentier reste
 const trailOn = (i, x, z) => TRAILS_ON && fbm(x * 0.0022 + i * 53, z * 0.0022 - i * 31, 2) > (i === 1 ? 0 : 0.12);   // les chemins ne parcourent que certaines régions
 function trailInfo(x, z) {
-  let d0 = Math.abs(x - pathX(z)), best = { d: d0, hw: 1.9, s: 0 };
+  let d0 = Math.abs(x - pathX(z)), best = { d: d0, hw: 1.2, s: 0 };
   if (ridgeMaskRaw(x, z) > 0.5) return best;
   for (let i = 1; i <= 2; i++) {
     if (!trailOn(i, x, z)) continue;
@@ -1692,7 +1692,7 @@ function* populateDetail(ch) {
     if (i % 700 === 699) { yield; rnd = crngL; world = g; }
   }
   for (let i = 0; i < Nn(1900); i++) {
-    const z = RZ(), x = pathX(z) + R(-1.9, 1.9) * Math.sqrt(rnd()); if (x < x0 || x > x0 + CHK) continue;
+    const z = RZ(), x = pathX(z) + R(-1.2, 1.2) * Math.sqrt(rnd()); if (x < x0 || x > x0 + CHK) continue;
     const sc = R(0.04, 0.1) * (rnd() < 0.06 ? 2 : 1);
     pebbles.push({ x, z, y: height(x, z) + sc * 0.1, s: sc, sy: sc * R(0.4, 0.7), ry: R(0, 6.28), c: new THREE.Color(R(0.75, 1.0), R(0.68, 0.9), R(0.55, 0.72)) });
   }
