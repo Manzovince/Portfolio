@@ -33,7 +33,22 @@ const AK = (SIZE / 260) ** 2;   // facteur de densité : les quantités d'objets
 const WL = -3.6; // niveau de l'eau
 let pathPh = [0, 0], clearing = new THREE.Vector2();
 const pathX = z => 15 * Math.sin(z * 0.03 + pathPh[0]) + 7 * Math.sin(z * 0.083 + pathPh[1]);
-const pathDist = (x, z) => Math.abs(x - pathX(z));
+// réseau : le grand sentier (pathX) + chemins de gravier + sentes étroites. Les deux derniers sont les lignes de niveau
+// zéro d'un bruit auquel on ajoute le relief de fond : ils serpentent en suivant à peu près les courbes de niveau.
+const trailF = (i, x, z) => i === 1 ? fbm(x * 0.0042 + 61, z * 0.0042 - 17, 2) + baseRelief(x, z) * 0.11
+                                     : fbm(x * 0.0085 - 29, z * 0.0085 + 44, 2) * 0.8 + baseRelief(x, z) * 0.09 + 0.12;
+const TRAIL_HW = [1.9, 1.25, 0.7];
+function trailInfo(x, z) {
+  let d0 = Math.abs(x - pathX(z)), best = { d: d0, hw: 1.9, s: 0 };
+  if (ridgeMaskRaw(x, z) > 0.5) return best;
+  for (let i = 1; i <= 2; i++) {
+    const f = trailF(i, x, z); if (Math.abs(f) > 0.07) continue;
+    const d = Math.abs(f) / (Math.hypot(trailF(i, x + 1, z) - f, trailF(i, x, z + 1) - f) + 1e-5), hw = TRAIL_HW[i];
+    if (d - hw < best.d - best.hw) best = { d, hw, s: i };
+  }
+  return best;
+}
+const pathDist = (x, z) => { const t = trailInfo(x, z); return t.d + 1.9 - t.hw; };
 
 // Chaque biome occupe une région du plan (température, humidité) ; deux champs de bruit
 // à grande échelle donnent le climat en tout point, les poids sont un « soft-Voronoï ».
@@ -158,13 +173,16 @@ function butte(x, z) {
   const n = fbm(x * 0.017 + 600, z * 0.017 - 200, 3);
   return smooth(0.3, 0.36, n) * 0.6 + smooth(0.42, 0.47, n) * 0.4;
 }
-function heightRaw(x, z, raw = false) {
-  const w = raw ? (climateWeights(x, z, _rw), _rw) : biomeW(x, z);
-  // relief de fond : régions de plaines ou de collines, ondulations déformées, vallons évasés, petites bosses
+function baseRelief(x, z) {
   const qx = x + fbm(x * 0.004 + 21, z * 0.004, 2) * 60, qz = z + fbm(x * 0.004, z * 0.004 - 33, 2) * 60;
   const hilly = smooth(-0.25, 0.35, fbm(x * 0.0017 + 90, z * 0.0017 - 40, 2));
   const roll = fbm(qx * 0.009, qz * 0.009, 4), vale = 1 - Math.abs(noise(qx * 0.0045 + 7, qz * 0.0045 + 3));
-  let h = roll * (1.6 + hilly * 4.2) + (vale * vale - 0.5) * (1 + hilly * 2.5) + fbm(x * 0.04 + 13, z * 0.04, 2) * 0.45 + noise(x * 0.09 + 50, z * 0.09) * 0.25;
+  return roll * (1.6 + hilly * 4.2) + (vale * vale - 0.5) * (1 + hilly * 2.5) + fbm(x * 0.04 + 13, z * 0.04, 2) * 0.45 + noise(x * 0.09 + 50, z * 0.09) * 0.25;
+}
+function heightRaw(x, z, raw = false) {
+  const w = raw ? (climateWeights(x, z, _rw), _rw) : biomeW(x, z);
+  // relief de fond : régions de plaines ou de collines, ondulations déformées, vallons évasés, petites bosses
+  let h = baseRelief(x, z);
   const mk = raw ? _mt : mountainK(x, z);
   if (mk > 0.01) h += smooth(0, 1, mk) * 5 + Math.pow(mk, 1.4) * mountainH(x, z) * 46;   // contreforts puis massif à arêtes
   const wd = w[BI.desert];
@@ -207,7 +225,7 @@ function heightRaw(x, z, raw = false) {
   if (lk > 0) h = lerp(h, Math.min(h, WL + 0.9 - lk * 3.4 + noise(x * 0.08, z * 0.08) * 0.45 + fbm(x * 0.03 + 5, z * 0.03, 2) * 0.9), smooth(0, 0.35, lk));
   const sd = seaDist(x, z);
   const pd = pathDist(x, z), flat = smooth(0, 5, pd), pk = (1 - smooth(0.2, 0.6, rk)) * (1 - smooth(0.1, 0.4, lk)) * smooth(4, -14, sd);   // ni digue ni chaussée : le sentier s'arrête à l'eau
-  return lerp(h, h * (0.55 + 0.45 * flat) - 0.2 * (1 - smooth(0.6, 2.4, pd)), pk);
+  return h - 0.08 * (1 - smooth(0.3, 2.2, pd)) * pk;   // le chemin épouse le relief, à peine tassé
 }
 // La rivière naît au pied de la chaîne et rejoint la mer : son axe suit u (montagne → mer) en méandres.
 const river = { on: false, o: [0, 0] };
@@ -1570,6 +1588,16 @@ function* populateChunk(ch) {
   }
   buildBridgeIn(ch); yield;
   stage(5);
+  ch.signs = [];
+  for (let gx = x0 + 2; gx < x0 + CHK && ch.signs.length < 2; gx += 2.5) for (let gz = z0 + 2; gz < z0 + CHK && ch.signs.length < 2; gz += 2.5) {
+    let n = 0; const t0 = Math.abs(gx - pathX(gz)) < 1.4 ? 1 : 0; n += t0;
+    if (ridgeMaskRaw(gx, gz) > 0.5) continue;
+    for (let i = 1; i <= 2; i++) { const f = trailF(i, gx, gz); if (Math.abs(f) < 0.012) n++; }
+    if (n < 2 || height(gx, gz) < WL + 0.3 || ch.signs.some(s => Math.hypot(s[0] - gx, s[1] - gz) < 14)) continue;
+    const a = rnd() * 6.28, sx = gx + Math.cos(a) * 2.6, sz = gz + Math.sin(a) * 2.6;
+    const sg = makeSignpost(); sg.position.set(sx, height(sx, sz), sz); sg.rotation.y = R(0, 6.28); ch.group.add(sg); addCollider(ch, sx, sz, 0.3);
+    ch.signs.push([gx, gz]);
+  }
   ch.boats = [];
   if (rnd() < 0.85) for (let t = 0; t < 200 && !ch.boats.length; t++) {
     const x = RX(), z = RZ(), d = WL - height(x, z);
@@ -1849,7 +1877,7 @@ function* buildGroundChunk(cx, cz) {
   const mg = mc.getContext('2d'), mimg = mg.createImageData(MR, MR), MD = mimg.data;
   const sr = mulberry32(hash3(cx, cz, 13));
   const mix3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
-  const gDry = C('#93a94c'), dA = C('#8a5a34'), dB = C('#6a4128'), pa = C('#a8835a'), pb = C('#7a573a'), pRut = C('#5c4330'), pEdge = C('#5f5a32');
+  const gDry = C('#93a94c'), dA = C('#8a5a34'), dB = C('#6a4128'), pa = C('#a8835a'), pb = C('#7a573a'), pRut = C('#5c4330'), pEdge = C('#5f5a32'), gravel = C('#b9ab92');
   const sandD1 = C('#e4c790'), sandD2 = C('#d2a86a'), grA = C('#b86e46'), grB = C('#d49a66');
   const strawA = C('#c8b46a'), strawB = C('#9a8648');
   const scrA = C('#8e8c86'), scrB = C('#6c6b68'), snowA = C('#f4f6f8'), snowB = C('#dde4ee');
@@ -1906,13 +1934,15 @@ function* buildGroundChunk(cx, cz) {
       const pk = smooth(0.05, 0.2, posi[q] + n2 * 0.05) * smooth(WL - 0.4, WL - 1.0, h) * sea;
       col3 = mix3(col3, mix3(posA, posB, fine), pk);
     }
-    const sx = x - pathX(z), pd = Math.abs(sx) + n2 * 0.7;
+    const ti = trailInfo(x, z), sx = ti.d * 1.9 / ti.hw, pd = sx + n2 * (ti.s === 2 ? 0.35 : 0.7);
     const P0 = (1 - smooth(0.9, 2.3, pd)) * smooth(WL + 0.1, WL + 0.5, h);
     if (P0 > 0) {
       const pt = clamp(0.5 + n2 * 0.9 + (fine - 0.5) * 0.4);
       let pc = mix3(pa, pb, pt);
       const rut = Math.exp(-(((Math.abs(sx) - 0.62) / 0.2) ** 2)) * (0.6 + 0.4 * noise(z * 0.5, 3));
-      pc = mix3(pc, pRut, rut * 0.55);
+      pc = mix3(pc, pRut, rut * 0.55 * (ti.s ? 0.3 : 1));
+      if (ti.s === 1) pc = mix3(pc, gravel, 0.6 * clamp(0.6 + fine * 0.5));   // gravier clair
+      else if (ti.s === 2) pc = mix3(pc, col3, 0.3 + 0.3 * clamp(0.5 + n2));   // sente : herbe qui reprend
       pc = mix3(pc, B, Math.exp(-((sx / 0.22) ** 2)) * clamp(0.3 + noise(z * 0.3, 9) * 0.8) * 0.7);
       col3 = mix3(col3, pc, P0);
       col3 = mix3(col3, pEdge, Math.exp(-(((pd - 1.9) / 0.35) ** 2)) * 0.35 * smooth(WL + 0.1, WL + 0.5, h));
@@ -2067,6 +2097,20 @@ function* buildTopo(cx, cz, out = TOPO) {
     if (!pen) { g.moveTo(px, pz); pen = true; } else g.lineTo(px, pz);
   }
   g.stroke(); g.setLineDash([]);
+  // chemins secondaires : points le long des lignes zéro (gravier brun, sentes plus fines)
+  { const st = S > 300 ? 2 : 1, m = span / S;
+    for (let py = 0; py < S; py += st) {
+      for (let px = 0; px < S; px += st) {
+        const x = cx - span / 2 + px * m, z = cz - span / 2 + py * m;
+        if (sample(hs, px * k, py * k) < WL + 0.2 || ridgeMaskRaw(x, z) > 0.5) continue;
+        for (let i = 1; i <= 2; i++) {
+          const f = trailF(i, x, z), e = m * st * (i === 1 ? 0.0042 : 0.0075);
+          if (Math.abs(f) < e) { g.fillStyle = i === 1 ? '#9a5a36' : '#b07a52'; g.fillRect(px, py, i === 1 ? 1.4 : 1, i === 1 ? 1.4 : 1); }
+        }
+      }
+      if (py % 32 === 0) yield;
+    }
+  }
   // chalets et ponts connus
   g.fillStyle = '#3a2a1e';
   const nc = Math.ceil(span / CHK / 2) + 1;
@@ -2437,6 +2481,19 @@ function makeBoat(vi) {
 }
 // Voilier : coque bleu nuit à bande bordeaux, pont en planches, mât, bôme, voile triangulaire, fanion jaune à la poupe.
 // L'avant regarde vers -z, comme le personnage.
+function makeSignpost() {   // poteau et flèches de bois aux croisements
+  const g = new THREE.Group(), wood = cMat('beam', '#6a4a30'), board = cMat('plank', '#b08658', { proc: 'plank' }), tip = cMat('tip', '#e8e0cc');
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 1.7, 7), wood); post.position.y = 0.85; post.castShadow = true; g.add(post);
+  const cap = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.1, 7), wood); cap.position.y = 1.74; g.add(cap);
+  const n = 2 + (Math.random() * 2 | 0);
+  for (let i = 0; i < n; i++) {
+    const arm = new THREE.Group(); arm.position.y = 1.5 - i * 0.22; arm.rotation.y = i * 2.1 + Math.random() * 0.8; g.add(arm);
+    const b = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.15, 0.035), board); b.position.x = 0.33; b.castShadow = true; arm.add(b);
+    const p = new THREE.Mesh(new THREE.CylinderGeometry(0, 0.105, 0.14, 3).rotateZ(-Math.PI / 2).rotateX(Math.PI / 6), board); p.position.x = 0.71; arm.add(p);
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.035, 0.04), tip); stripe.position.set(0.3, 0, 0); arm.add(stripe);
+  }
+  return g;
+}
 function makeSailboat(vi = 0) {
   const grp = new THREE.Group(), L = 3.4, B = 1.2;
   const g = new THREE.BoxGeometry(B, 0.62, L, 6, 3, 18), p = g.attributes.position, cols = new Float32Array(p.count * 3);
