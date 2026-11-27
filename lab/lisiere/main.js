@@ -32,7 +32,33 @@ const SIZE = 340, HALF = SIZE / 2;
 const AK = (SIZE / 260) ** 2;   // facteur de densité : les quantités d'objets suivent la surface
 const WL = -3.6; // niveau de l'eau
 let pathPh = [0, 0], clearing = new THREE.Vector2();
-const pathX = z => 15 * Math.sin(z * 0.03 + pathPh[0]) + 7 * Math.sin(z * 0.083 + pathPh[1]);
+const pathBase = z => 15 * Math.sin(z * 0.03 + pathPh[0]) + 7 * Math.sin(z * 0.083 + pathPh[1]);
+// Le sentier se construit pas à pas depuis z = 0 : à chaque pas de 2 m il choisit le décalage latéral qui monte
+// le moins (relief de fond + montagnes, sans la rivière ni le sentier lui-même), tout en restant près de son tracé de base.
+const PSTEP = 2, pathNodes = new Map(), pathOff = new Map();
+function pathRelief(x, z) {
+  let h = baseRelief(x, z); const rm = ridgeMaskRaw(x, z);
+  if (rm > 0.01) h += smooth(0, 1, rm) * 5 + Math.pow(rm, 1.4) * mountainH(x, z) * 46;
+  return h;
+}
+function pathNode(k) {
+  if (k === 0) return pathBase(0);
+  let v = pathNodes.get(k); if (v !== undefined) return v;
+  const sg = k > 0 ? 1 : -1; let j = k - sg; while (j !== 0 && !pathNodes.has(j)) j -= sg;
+  let x = j === 0 ? pathBase(0) : pathNodes.get(j), po = pathOff.get(j) || 0;
+  for (let i = j + sg; ; i += sg) {
+    const z0 = (i - sg) * PSTEP, z1 = i * PSTEP, h0 = pathRelief(x, z0), b = pathBase(z1);
+    let best = x, bo = 0, bc = 1e9;
+    for (let o = -1.8; o <= 1.81; o += 0.45) {
+      const nx = x + o, c = Math.abs(pathRelief(nx, z1) - h0) * 3 + (nx - b) ** 2 * 0.0015 + (o - po) ** 2 * 0.25;
+      if (c < bc) { bc = c; best = nx; bo = o; }
+    }
+    x = best; po = bo; pathNodes.set(i, x); pathOff.set(i, po);
+    if (i === k) return x;
+  }
+}
+const pathX = z => { const f = z / PSTEP, k = Math.floor(f), t = f - k, a = pathNode(k - 1), b = pathNode(k), c = pathNode(k + 1), d = pathNode(k + 2);
+  return lerp((a + 2 * b + c) / 4, (b + 2 * c + d) / 4, t); };
 // réseau : le grand sentier (pathX) + chemins de gravier + sentes étroites. Les deux derniers sont les lignes de niveau
 // zéro d'un bruit auquel on ajoute le relief de fond : ils serpentent en suivant à peu près les courbes de niveau.
 const trailF = (i, x, z) => i === 1 ? fbm(x * 0.003 + 61, z * 0.003 - 17, 2) + baseRelief(x, z) * 0.11
@@ -1776,7 +1802,7 @@ function initWorld(seed) {
   if (worldRoot) scene.remove(worldRoot);
   worldRoot = new THREE.Group(); scene.add(worldRoot); world = worldRoot;
   rnd = mulberry32(worldSeed); seedNoise(worldSeed);
-  pathPh = [R(0, 6.28), R(0, 6.28)];
+  pathPh = [R(0, 6.28), R(0, 6.28)]; pathNodes.clear(); pathOff.clear();
   climOff = [R(-500, 500), R(-500, 500), R(-500, 500), R(-500, 500)];
   gOff.c = [R(-900, 900), R(-900, 900)]; gOff.r = [R(-900, 900), R(-900, 900)]; gOff.l = [R(-900, 900), R(-900, 900)];
   river.on = !ASSETS; river.o = [R(-900, 900), R(-900, 900)];
@@ -3263,7 +3289,7 @@ function buildAssets(sd) {
   hAssetsFn = hAssets;
   if (world) { world.traverse(o => { if (o.isInstancedMesh) o.dispose(); if (o.geometry) o.geometry.dispose(); }); scene.remove(world); }
   world = new THREE.Group(); scene.add(world);
-  rnd = mulberry32(sd); seedNoise(sd); pathPh = [0, 0]; climOff = [0, 0, 0, 0]; bCaches.clear(); hCaches.clear();
+  rnd = mulberry32(sd); seedNoise(sd); pathPh = [0, 0]; pathNodes.clear(); pathOff.clear(); climOff = [0, 0, 0, 0]; bCaches.clear(); hCaches.clear();
   chalets = []; smokes.length = 0;
   trees = [];
   const W1 = () => new THREE.Color(1, 1, 1);
