@@ -193,13 +193,14 @@ function heightRaw(x, z, raw = false) {
   if (rv) {
     rk = smooth(rv.w + 7, rv.w, rv.d) * rv.fade;
     if (rk > 0) {
-      const ch = rv.d < rv.w ? WL - 0.35 - 0.9 * (1 - (rv.d / rv.w) ** 2) : WL + 0.3 + (rv.d - rv.w) * 0.35;
+      const bank = 0.18 + 0.4 * clamp(0.5 + noise(x * 0.025 + rv.side * 50, z * 0.025) * 1.2);   // rive douce (grève) ou rive raide (berge)
+      const ch = rv.d < rv.w ? WL - 0.3 - 0.95 * (1 - (rv.d / rv.w) ** 1.6) : WL + 0.1 + (rv.d - rv.w) * bank + noise(x * 0.3, z * 0.3) * 0.08;
       h = lerp(h, Math.min(h, ch), rk);
     }
   }
   // lacs : grandes cuvettes d'eau douce dans les plaines (de quoi naviguer)
   const lk = lakeK(x, z, mk);
-  if (lk > 0) h = lerp(h, Math.min(h, WL + 0.9 - lk * 3.4 + noise(x * 0.08, z * 0.08) * 0.2), smooth(0, 0.35, lk));
+  if (lk > 0) h = lerp(h, Math.min(h, WL + 0.9 - lk * 3.4 + noise(x * 0.08, z * 0.08) * 0.45 + fbm(x * 0.03 + 5, z * 0.03, 2) * 0.9), smooth(0, 0.35, lk));
   const sd = seaDist(x, z);
   const pd = pathDist(x, z), flat = smooth(0, 5, pd), pk = (1 - smooth(0.2, 0.6, rk)) * (1 - smooth(0.1, 0.4, lk)) * smooth(4, -14, sd);   // ni digue ni chaussée : le sentier s'arrête à l'eau
   return lerp(h, h * (0.55 + 0.45 * flat) - 0.2 * (1 - smooth(0.6, 2.4, pd)), pk);
@@ -208,14 +209,14 @@ function heightRaw(x, z, raw = false) {
 const river = { on: false, o: [0, 0] };
 const lakeK = (x, z, mk) => smooth(-0.34, -0.5, fbm(x * 0.0042 + gOff.l[0], z * 0.0042 + gOff.l[1], 2)) * smooth(0.06, 0.22, continent(x, z)) * (1 - smooth(0.15, 0.45, mk));
 // rivières : lignes de niveau zéro d'un bruit à grande échelle ; elles naissent au pied des montagnes et s'élargissent vers la mer
-const riverN = (x, z) => fbm(x * 0.0021 + river.o[0], z * 0.0021 + river.o[1], 2);
+const riverN = (x, z) => { const wx = x + noise(x * 0.011 + 31, z * 0.011) * 22, wz = z + noise(x * 0.011, z * 0.011 - 47) * 22; return fbm(wx * 0.0021 + river.o[0], wz * 0.0021 + river.o[1], 2); };
 function riverAt(x, z) {
   if (!river.on) return null;
   const n = riverN(x, z); if (Math.abs(n) > 0.05) return null;
   const gx = (riverN(x + 2, z) - n) / 2, gz = (riverN(x, z + 2) - n) / 2, g = Math.hypot(gx, gz) + 1e-5;
   const c = continent(x, z), fade = smooth(-0.02, 0.06, c) * (1 - smooth(0.32, 0.65, ridgeMaskRaw(x, z)));
   if (fade <= 0) return null;
-  return { d: Math.abs(n) / g, w: 1.2 + 2.3 * smooth(0.45, 0.04, c), fade };
+  return { d: Math.max(0, Math.abs(n) / g + noise(x * 0.16, z * 0.16) * 0.55), w: (1.2 + 2.3 * smooth(0.45, 0.04, c)) * (0.7 + 0.6 * clamp(0.5 + noise(x * 0.018 + 9, z * 0.018 - 4))), fade, side: n > 0 ? 1 : -1 };
 }
 const nearRiver = (x, z, pad = 3) => { const r = riverAt(x, z); return !!r && r.fade > 0.3 && r.d < r.w + pad; };
 let chalets = [];
@@ -1344,12 +1345,12 @@ const TREE_TABLE = {
   marais:  [['willow', 0.6], ['birch', 0.2], ['bush', 0.2]],
   bambou:  [['bamboo', 0.92], ['bush', 0.08]],
   savane:  [['acacia', 0.76], ['baobab', 0.12], ['bush', 0.12]],
-  tropic:  [['jungle', 0.55], ['treefern', 0.3], ['bush', 0.15]],
+  tropic:  [['jungle', 0.45], ['palm', 0.17], ['treefern', 0.25], ['bush', 0.13]],
   desert:  [['cactus', 0.5], ['sage', 0.35], ['deadtree', 0.15]],
   automne: [['red', 0.5], ['gold', 0.32], ['oak', 0.08], ['birch', 0.1]],
   lande:   [['pine', 0.35], ['heather', 0.35], ['gorse', 0.3]],
   montagne: [['fir', 0.86], ['pine', 0.08], ['birch', 0.06]],
-  littoral: [['parasol', 0.38], ['olive', 0.34], ['cypress', 0.18], ['maquis', 0.1]],
+  littoral: [['parasol', 0.32], ['olive', 0.28], ['palm', 0.14], ['cypress', 0.16], ['maquis', 0.1]],
 };
 const SHRUB = { foret: 'bush', pinede: 'bush', prairie: 'bush', marais: 'bush', automne: 'bush', lande: 'heather', littoral: 'lavender', montagne: 'bush', bambou: 'bush', desert: 'sage', savane: 'bush', tropic: 'bush' };
 const SOFT = new Set(['bush', 'heather', 'gorse', 'lavender', 'maquis', 'sage']); // pas de collision
