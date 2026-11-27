@@ -2693,7 +2693,7 @@ const hexPal = (arr) => arr.map(h => { const c = new THREE.Color(h); c.convertLi
 const PRESETS = [
   { id: 'clairiere', name: 'Clairière', sunAz: 140, sunEl: 52, sunCol: '#fff0cf', sunInt: 3.4, sky: '#a4cdf5', gnd: '#6f8040', hemiInt: 1.7,
     fog: '#a9c3b0', fogD: 0, exposure: 0.92, contrast: 1.05, saturation: 0.95, shadowTint: v3(-0.03, 0.015, 0.045), highTint: v3(0.05, 0.035, -0.02),
-    pixel: 1, levels: 0, dither: 0, outline: 0.55, tilt: 1, cloud: 0.3, wind: 1, bloom: 0, vig: 0.25,
+    pixel: 1, levels: 0, dither: 0, outline: 0.8, tilt: 1, cloud: 0.3, wind: 1, bloom: 0, vig: 0.25,
     motes: { amount: 0.35, color: '#fff2b8', size: 1, kind: 'dust' }, lantern: 0, rays: 0.6 },
   { id: 'doree', name: 'Heure dorée', sunAz: 245, sunEl: 24, sunCol: '#ffb465', sunInt: 5.2, sky: '#8a9ee0', gnd: '#6a5034', hemiInt: 1.25,
     fog: '#e6b88a', fogD: 0.003, exposure: 1.05, contrast: 1.08, saturation: 1.2, shadowTint: v3(0.0, -0.01, 0.05), highTint: v3(0.08, 0.03, -0.05),
@@ -2717,7 +2717,7 @@ const PRESETS = [
     pixel: 1, levels: 0, dither: 0, outline: 0.4, tilt: 1, cloud: 0, wind: 0.5, bloom: 1.0, vig: 0.5,
     motes: { amount: 0.6, color: '#d6ff6a', size: 1, kind: 'fireflies' }, lantern: 9, rays: 0.8 },
 ];
-PRESETS.forEach(p => { p.reveal = 0.55; p.bump = 1.3; });
+PRESETS.forEach(p => { p.reveal = 1; p.bump = 1.3; });
 const BASE = PRESETS.map(p => structuredClone({ ...p, palette: undefined }));
 let cur = PRESETS[0], planche = false;
 
