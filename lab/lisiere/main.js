@@ -42,6 +42,8 @@ const BIOMES = [
   { id: 'pinede',  name: 'Pinède',          t: 0.12, h: 0.50, trees: 0.95, map: '#2a5546', grass: 0.45, flowers: 0.2, tint: [0.85, 0.95, 0.9] },
   { id: 'prairie', name: 'Prairie fleurie', t: 0.86, h: 0.36, trees: 0.08, map: '#a6c85c', grass: 2.0, flowers: 3.2, tint: [1.08, 1.08, 0.85] },
   { id: 'marais',  name: 'Marais',          t: 0.62, h: 0.92, trees: 0.3,  map: '#4f7a62', grass: 1.3, flowers: 0.5, tint: [0.85, 0.95, 0.85] },
+  { id: 'savane', name: 'Savane',           t: 0.90, h: 0.24, trees: 0.22, map: '#c8b45a', grass: 2.2, flowers: 0.2, tint: [1.45, 1.15, 0.45] },
+  { id: 'tropic', name: 'Forêt tropicale',  t: 0.88, h: 0.97, trees: 1.25, map: '#2f6a2c', grass: 0.4, flowers: 0.3, tint: [0.8, 1.0, 0.75] },
   { id: 'desert', name: 'Désert',           t: 0.95, h: 0.05, trees: 0.24, map: '#e2c286', grass: 0.12, flowers: 0.0, tint: [1.3, 1.1, 0.55] },
   { id: 'bambou', name: 'Bambouseraie',    t: 0.80, h: 0.72, trees: 0.55, map: '#8cbc4c', grass: 0.25, flowers: 0.1, tint: [1.05, 1.05, 0.85] },
   { id: 'automne', name: "Bois d'automne",  t: 0.30, h: 0.82, trees: 0.95, map: '#c8742e', grass: 0.7, flowers: 0.4, tint: [1.15, 1.0, 0.7] },
@@ -175,9 +177,29 @@ function heightRaw(x, z) {
     const pond = smooth(-0.08, 0.22, fbm(x * 0.05 + 300, z * 0.05, 3));
     h = lerp(h, WL + 0.3 - pond * 1.3 + noise(x * 0.2, z * 0.2) * 0.15, m);
   }
-  const pd = pathDist(x, z), flat = smooth(0, 5, pd);
-  return h * (0.55 + 0.45 * flat) - 0.2 * (1 - smooth(0.6, 2.4, pd));     // le chemin forme une digue au-dessus de l'eau
+  // rivière : lit creusé sous le niveau de l'eau, berges en pente, gorge en montagne
+  const rv = riverAt(x, z); let rk = 0;
+  if (rv) {
+    rk = smooth(rv.w + 7, rv.w, rv.d) * rv.fade;
+    if (rk > 0) {
+      const ch = rv.d < rv.w ? WL - 0.35 - 0.9 * (1 - (rv.d / rv.w) ** 2) : WL + 0.3 + (rv.d - rv.w) * 0.35;
+      h = lerp(h, Math.min(h, ch), rk);
+    }
+  }
+  const pd = pathDist(x, z), flat = smooth(0, 5, pd), pk = 1 - smooth(0.2, 0.6, rk);   // pas de digue à travers la rivière : il y a un pont
+  return lerp(h, h * (0.55 + 0.45 * flat) - 0.2 * (1 - smooth(0.6, 2.4, pd)), pk);
 }
+// La rivière naît au pied de la chaîne et rejoint la mer : son axe suit u (montagne → mer) en méandres.
+const river = { on: false, v0: 0, o: 0 };
+function riverAt(x, z) {
+  if (!river.on) return null;
+  const u = geoU(x, z), v = geoV(x, z), src = spineU(v) + 0.24;
+  if (u < src - 0.06) return null;
+  const cv = river.v0 + 0.11 * Math.sin(u * 4.6 + river.o) + noise(u * 2.6 + river.o, 2.2) * 0.07;
+  const t = clamp((u - src) / 0.8);
+  return { d: Math.abs(v - cv) * HALF, w: 0.9 + t * 2.6, fade: smooth(src - 0.04, src + 0.08, u) };
+}
+const nearRiver = (x, z, pad = 3) => { const r = riverAt(x, z); return !!r && r.fade > 0.3 && r.d < r.w + pad; };
 let chalets = [];
 // côte : champ dont le zéro est le trait de côte (t > 0 : la mer) ; le bruit à moyenne échelle découpe des criques
 const coastT = (x, z) => seaDist(x, z) / 40 + fbm(x * 0.03 + 77, z * 0.03, 3) * 0.12 + noise(x * 0.09 + 3, z * 0.09 - 8) * 0.06;
@@ -582,6 +604,10 @@ function canopy(gb, clumps, pal, cardSize, density) {
 }
 
 const PAL = {
+  acacia: ['#3a5226', '#6a8240', '#a8b462'],
+  baobab: ['#3a5a26', '#6a8a3a', '#a8b85a'],
+  tropic: ['#0f3018', '#2a6228', '#6aa83a'],
+  poplar: ['#2e5a26', '#6a9a3e', '#c8d68a'],
   sage: ['#5a6450', '#8c9478', '#c2c6a8'],
   bamboo: ['#2e4e1e', '#5f8e2e', '#b8d064'],
   gold: ['#5a4214', '#c2902a', '#f6d662'],
@@ -678,6 +704,12 @@ function makeCactus(vi) {
   return { trunk: mergeGeometries(parts.map(q => q.index ? q.toNonIndexed() : q)), leaves: null, r: r + 0.15, ao: 1.4, trunkMat: M.cactus };
 }
 // arbre mort : branches nues, grises, tordues
+function makeMound() {   // termitière : cône irrégulier de terre rouge, aux cheminées multiples
+  const g = lathe([[0, 0], [0.55, 0], [0.5, 0.3], [0.34, 0.7], [0.22, 1.0], [0.1, 1.2], [0, 1.25]], 9);
+  const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const k = 1 + noise(p.getX(i) * 4, p.getY(i) * 3 + p.getZ(i) * 4) * 0.25; p.setX(i, p.getX(i) * k); p.setZ(i, p.getZ(i) * k); }
+  g.computeVertexNormals();
+  return prep(g, '#a8643e');
+}
 function makeDeadTree() {
   const parts = [], wood = col('#8a7e70');
   const grow = (a, dir, len, r, depth) => {
@@ -707,6 +739,79 @@ function makePalm() {
     ribbon(gb, pts, R(0.7, 0.9), dk.clone().lerp(lt, 0.3), lt.clone());
   }
   return { trunk: mergeGeometries(parts), leaves: gb.build(), r: 0.3, ao: 2.4, leafMat: M.palm, leafDepth: DM.palm };
+}
+// Acacia : tronc fin qui se divise en fourche, couronne large et plate comme un parasol
+function makeAcacia() {
+  const gb = new GB(), parts = [], bark = col('#5a4632'), H = R(2.6, 3.6);
+  const fork = V(R(-.3, .3), H * 0.55, R(-.3, .3));
+  parts.push(cylBetween(V(0, -0.3, 0), fork, 0.2, 0.15, bark, 6));
+  const tops = [];
+  for (let k = 0; k < 3; k++) {
+    const a = k * 2.1 + R(-.4, .4), end = V(Math.cos(a) * R(1.4, 2.2), H + R(0, 0.5), Math.sin(a) * R(1.4, 2.2));
+    parts.push(cylBetween(fork, end, 0.12, 0.05, bark, 5)); tops.push(end);
+  }
+  const clumps = tops.map(t => ({ c: t.clone().add(V(0, 0.3, 0)), r: R(1.5, 2.0) }));
+  clumps.push({ c: V(0, H + 0.5, 0), r: 1.8 });
+  const before = gb.p.length; canopy(gb, clumps, PAL.acacia, 0.5, 22);
+  const cy = H + 0.45; for (let j = before; j < gb.p.length; j += 3) gb.p[j + 1] = cy + (gb.p[j + 1] - cy) * 0.18;   // aplatie
+  return { trunk: mergeGeometries(parts), leaves: gb.build(), r: 0.3, ao: 3.4 };
+}
+// Baobab : tronc-bouteille énorme, branches courtes et noueuses, feuillage clairsemé
+function makeBaobab() {
+  const gb = new GB(), parts = [], bark = col('#8a7a68'), H = R(4.2, 5.4), R0 = R(0.9, 1.2);
+  const trunk = lathe([[0, -0.4], [R0, -0.4], [R0 * 1.02, H * 0.25], [R0 * 0.9, H * 0.6], [R0 * 0.62, H * 0.9], [R0 * 0.5, H], [0, H]], 14);
+  parts.push(prep(trunk, '#8a7a68'));
+  const clumps = [];
+  for (let k = 0; k < 7; k++) {
+    const a = k / 7 * 6.28 + R(-.3, .3), s0 = V(Math.cos(a) * R0 * 0.4, H - 0.1, Math.sin(a) * R0 * 0.4), e = V(Math.cos(a) * R(1.6, 2.4), H + R(0.6, 1.4), Math.sin(a) * R(1.6, 2.4));
+    parts.push(prep(cylBetween(s0, e, 0.22, 0.08, bark, 6), '#8a7a68'));
+    if (rnd() < 0.7) clumps.push({ c: e.clone().add(V(0, 0.2, 0)), r: R(0.6, 0.9) });
+  }
+  canopy(gb, clumps, PAL.baobab, 0.45, 18);
+  return { trunk: mergeGeometries(parts), leaves: gb.build(), r: R0 + 0.2, ao: 3.2 };
+}
+// Géant tropical : fût droit, contreforts en lames à la base, branches hautes, canopée dense, lianes pendantes
+function makeJungleTree() {
+  const gb = new GB(), parts = [], bark = col('#7a6a56'), liana = col('#3e5a2a'), H = R(9, 13);
+  parts.push(cylBetween(V(0, -0.3, 0), V(R(-.3, .3), H, R(-.3, .3)), 0.5, 0.32, bark, 8));
+  for (let k = 0; k < 5; k++) {   // contreforts : lames triangulaires rayonnantes
+    const a = k / 5 * 6.28 + R(-.2, .2), sh = new THREE.Shape(); sh.moveTo(0.3, 0); sh.quadraticCurveTo(R(0.5, 0.7), 0.25, R(0.9, 1.3), 0); sh.lineTo(0.3, R(1.1, 1.6)); sh.closePath();
+    const fin = new THREE.ExtrudeGeometry(sh, { depth: 0.1, bevelEnabled: false }); fin.translate(0, -0.25, -0.05); fin.rotateY(-a);
+    parts.push(colorize(fin.index ? fin : fin, bark));
+  }
+  const top = V(0, H, 0), clumps = [{ c: V(0, H + 1.6, 0), r: R(2.4, 2.9) }], ends = [];
+  for (let k = 0; k < 5; k++) {
+    const a = k / 5 * 6.28 + R(-.3, .3), e = V(Math.cos(a) * R(2.2, 3.2), H + R(0.4, 1.4), Math.sin(a) * R(2.2, 3.2));
+    parts.push(cylBetween(V(0, H * 0.82, 0), e, 0.22, 0.08, bark, 6)); clumps.push({ c: e.clone().add(V(0, 0.5, 0)), r: R(1.8, 2.3) }); ends.push(e);
+  }
+  for (const e of ends) for (let k = 0; k < 2; k++) {   // lianes : tombent en légère courbe jusqu'au sol
+    const s0 = e.clone().add(V(R(-.6, .6), 0, R(-.6, .6))), g0 = V(s0.x * R(0.6, 1.1), -0.2, s0.z * R(0.6, 1.1));
+    let prev = s0;
+    for (let j = 1; j <= 5; j++) { const t = j / 5, p = s0.clone().lerp(g0, t).add(V(Math.sin(t * Math.PI) * R(0.2, 0.5), 0, 0)); parts.push(cylBetween(prev, p, 0.035, 0.03, liana, 4)); prev = p; }
+  }
+  canopy(gb, clumps, PAL.tropic, 1.25, 13);
+  return { trunk: mergeGeometries(parts.map(q => q.index ? q.toNonIndexed() : q)), leaves: gb.build(), r: 0.8, ao: 4 };
+}
+// Fougère arborescente : stipe fibreux et une couronne de grandes frondes arquées
+function makeTreeFern() {
+  const gb = new GB(), H = R(2.4, 4.2), c = col('#ffffff');
+  const trunk = cylBetween(V(0, -0.3, 0), V(R(-.3, .3), H, R(-.3, .3)), 0.16, 0.12, col('#4a3a2c'), 6);
+  const top = V(0, H, 0), k = 12;
+  for (let i = 0; i < k; i++) {
+    const a = i / k * 6.28 + R(-.2, .2), L = R(1.4, 2.0), out = V(Math.cos(a), 0, Math.sin(a)), side = V(-Math.sin(a), 0, Math.cos(a)).multiplyScalar(0.32);
+    const mid = top.clone().addScaledVector(out, L * 0.5).add(V(0, R(0.1, 0.35), 0)), dir = out.clone().multiplyScalar(L * 0.5).add(V(0, -0.15, 0));
+    gb.quad(mid, side, dir, V(Math.cos(a) * 0.4, 0.9, Math.sin(a) * 0.4).normalize(), [c.clone().multiplyScalar(0.6), c.clone().multiplyScalar(0.6), c, c]);
+  }
+  return { trunk, leaves: gb.build(), r: 0.25, ao: 1.8, leafMat: M.fernTree, leafDepth: DM.fern };
+}
+// Peuplier des berges : colonne étroite et haute, feuillage clair qui frémit
+function makePoplar() {
+  const gb = new GB(), H = R(8, 11);
+  const trunk = cylBetween(V(0, -0.3, 0), V(0, H * 0.85, 0), 0.22, 0.08, col('#8a8070'), 6);
+  const clumps = [];
+  for (let y = 1.6; y < H; y += 0.7) { const f = y / H; clumps.push({ c: V(R(-.1, .1), y, R(-.1, .1)), r: 0.95 * Math.sin(Math.PI * Math.pow(f, 0.7)) + 0.25 }); }
+  canopy(gb, clumps, PAL.poplar, 0.6, 26);
+  return { trunk, leaves: gb.build(), r: 0.25, ao: 1.6 };
 }
 function makeBamboo() {
   const gb = new GB(), parts = [];
@@ -1140,6 +1245,8 @@ M.bambooLeaf = patch(new THREE.MeshLambertMaterial({ map: bambooTex, alphaTest: 
 M.bambooLeaf.shadowSide = THREE.DoubleSide;
 M.palm = patch(new THREE.MeshLambertMaterial({ map: palmTex, alphaTest: ALPHA, side: THREE.DoubleSide, vertexColors: true }), { wind: 0.012, flutter: true, fakeNormal: true, reveal: true });
 M.palm.shadowSide = THREE.DoubleSide;
+M.fernTree = patch(new THREE.MeshLambertMaterial({ map: fernTex, alphaTest: 0.5, side: THREE.DoubleSide, vertexColors: true, color: 0x4f8a2c }), { wind: 0.03, flutter: true, fakeNormal: true, reveal: true });
+M.fernTree.shadowSide = THREE.DoubleSide;
 M.needles = patch(new THREE.MeshLambertMaterial({ map: needleTex, alphaTest: ALPHA, side: THREE.DoubleSide, vertexColors: true }), { wind: 0.008, flutter: true, fakeNormal: true, reveal: true });
 M.water = patch(new THREE.MeshPhongMaterial({ color: 0x2a5a5c, specular: 0x5c5a52, shininess: 260, transparent: true, opacity: 1, depthWrite: false }), { water: true });
 M.leaves.shadowSide = M.bush.shadowSide = M.needles.shadowSide = M.willow.shadowSide = THREE.DoubleSide;
@@ -1189,6 +1296,8 @@ const GROUND_PAL = {
   pinede:  { A: '#4a6434', B: '#64763e', M: '#5c4a32' },
   prairie: { A: '#6a9c3a', B: '#9ebe52', M: '#4a7a34' },
   marais:  { A: '#3c6836', B: '#567e3e', M: '#3a4430' },
+  savane:  { A: '#b8a24e', B: '#d4ba62', M: '#a0763e' },
+  tropic:  { A: '#3a6428', B: '#4c7a2e', M: '#2e3a1e' },
   desert:  { A: '#d8b47a', B: '#e6c890', M: '#c49a62' },
   bambou:  { A: '#6e8a3a', B: '#8e9c48', M: '#a08a48' },
   automne: { A: '#788a3a', B: '#a29a48', M: '#7a5430' },
@@ -1209,13 +1318,15 @@ const TREE_TABLE = {
   prairie: [['oak', 0.7], ['bush', 0.3]],
   marais:  [['willow', 0.6], ['birch', 0.2], ['bush', 0.2]],
   bambou:  [['bamboo', 0.92], ['bush', 0.08]],
+  savane:  [['acacia', 0.76], ['baobab', 0.12], ['bush', 0.12]],
+  tropic:  [['jungle', 0.55], ['treefern', 0.3], ['bush', 0.15]],
   desert:  [['cactus', 0.5], ['sage', 0.35], ['deadtree', 0.15]],
   automne: [['red', 0.5], ['gold', 0.32], ['oak', 0.08], ['birch', 0.1]],
   lande:   [['pine', 0.35], ['heather', 0.35], ['gorse', 0.3]],
   montagne: [['fir', 0.86], ['pine', 0.08], ['birch', 0.06]],
   littoral: [['parasol', 0.38], ['olive', 0.34], ['cypress', 0.18], ['maquis', 0.1]],
 };
-const SHRUB = { foret: 'bush', pinede: 'bush', prairie: 'bush', marais: 'bush', automne: 'bush', lande: 'heather', littoral: 'lavender', montagne: 'bush', bambou: 'bush', desert: 'sage' };
+const SHRUB = { foret: 'bush', pinede: 'bush', prairie: 'bush', marais: 'bush', automne: 'bush', lande: 'heather', littoral: 'lavender', montagne: 'bush', bambou: 'bush', desert: 'sage', savane: 'bush', tropic: 'bush' };
 const SOFT = new Set(['bush', 'heather', 'gorse', 'lavender', 'maquis', 'sage']); // pas de collision
 function rollKind(table) { let r = rnd(); for (const [k, p] of table) { r -= p; if (r <= 0) return k; } return table[0][0]; }
 
@@ -1226,6 +1337,7 @@ function generate(seed) {
   pathPh = [R(0, 6.28), R(0, 6.28)];
   climOff = [R(-500, 500), R(-500, 500), R(-500, 500), R(-500, 500)];
   { const side = rnd() < 0.5 ? -1 : 1, a = R(-0.3, 0.3); geo.dx = side * Math.cos(a); geo.dz = side * Math.sin(a); geo.o1 = R(0, 100); geo.o2 = R(0, 100); }
+  river.on = !ASSETS; river.v0 = R(-0.45, 0.45); river.o = R(0, 100);
   hCache = null;
   buildBiomeCache();
   buildHeightCache();
@@ -1242,7 +1354,7 @@ function generate(seed) {
   for (let tries = 0; tries < 900 * AK && chalets.length < 12; tries++) {
     const z = R(-HALF + 24, HALF - 24), side = rnd() < 0.5 ? -1 : 1, x = pathX(z) + side * R(7, 10);
     if (Math.abs(x) > HALF - 24) continue;
-    const w = biomeW(x, z); if (w[BI.marais] > 0.25 || w[BI.desert] > 0.2 || w[BI.littoral] > 0.25 || w[BI.bambou] > 0.4) continue;
+    const w = biomeW(x, z); if (nearRiver(x, z, 12) || w[BI.marais] > 0.25 || w[BI.desert] > 0.2 || w[BI.littoral] > 0.25 || w[BI.bambou] > 0.4) continue;
     const hs = [[0, 0], [3, 3], [-3, 3], [3, -3], [-3, -3]].map(([a, b]) => height(x + a, z + b));
     if (Math.min(...hs) < WL + 1 || Math.max(...hs) - Math.min(...hs) > 0.9) continue;
     if (chalets.some(c => Math.hypot(c.x - x, c.z - z) < 38) || Math.hypot(x - clearing.x, z - clearing.y) < 14) continue;
@@ -1256,7 +1368,7 @@ function generate(seed) {
   }
 
   // ── arbres
-  const protos = { cactus: [], sage: [], deadtree: [], palm: [], bamboo: [], fir: [], firSnow: [], oak: [], red: [], gold: [], birch: [], bush: [], pine: [], willow: [], heather: [], gorse: [], parasol: [], olive: [], cypress: [], lavender: [], maquis: [] };
+  const protos = { acacia: [], baobab: [], jungle: [], treefern: [], poplar: [], cactus: [], sage: [], deadtree: [], palm: [], bamboo: [], fir: [], firSnow: [], oak: [], red: [], gold: [], birch: [], bush: [], pine: [], willow: [], heather: [], gorse: [], parasol: [], olive: [], cypress: [], lavender: [], maquis: [] };
   for (let i = 0; i < 4; i++) protos.oak.push(makeOak(false));
   for (let i = 0; i < 3; i++) protos.red.push(makeOak(true));
   for (let i = 0; i < 3; i++) protos.gold.push(makeOak(false, PAL.gold));
@@ -1278,6 +1390,11 @@ function generate(seed) {
   for (let i = 0; i < 3; i++) protos.sage.push(makeBush(PAL.sage, 0.34, 0.55));
   for (let i = 0; i < 3; i++) protos.deadtree.push(makeDeadTree());
   for (let i = 0; i < 3; i++) protos.palm.push(makePalm());
+  for (let i = 0; i < 4; i++) protos.acacia.push(makeAcacia());
+  for (let i = 0; i < 2; i++) protos.baobab.push(makeBaobab());
+  for (let i = 0; i < 4; i++) protos.jungle.push(makeJungleTree());
+  for (let i = 0; i < 3; i++) protos.treefern.push(makeTreeFern());
+  for (let i = 0; i < 3; i++) protos.poplar.push(makePoplar());
   const place = Object.fromEntries(Object.entries(protos).map(([k, v]) => [k, v.map(() => [])]));
   const tint = () => new THREE.Color(R(0.85, 1.12), R(0.9, 1.1), R(0.8, 1.05));
   const addTree = (kind, x, z, h, sMin, sMax) => {
@@ -1323,6 +1440,12 @@ function generate(seed) {
     const h = height(x, z); if (h < WL + 1.0) continue;
     addTree(rnd() < 0.7 ? 'lavender' : 'maquis', x, z, h, 0.7, 1.4);
   }
+  for (let i = 0; i < 9000 * AK; i++) {   // peupliers en cordon sur les berges de la rivière
+    const x = R(-HALF + 2, HALF - 2), z = R(-HALF + 2, HALF - 2), r = riverAt(x, z);
+    if (!r || r.fade < 0.6 || r.d < r.w + 1.2 || r.d > r.w + 5 || rnd() > 0.35 || pathDist(x, z) < 3) continue;
+    const h = height(x, z); if (h < WL + 0.3 || h > TREELINE) continue;
+    if (biomeW(x, z)[BI.desert] > 0.4) addTree('palm', x, z, h, 0.8, 1.1); else addTree('poplar', x, z, h, 0.85, 1.2);
+  }
   for (let i = 0; i < 6000 * AK; i++) {   // palmiers autour des points d'eau du désert
     const x = R(-HALF + 2, HALF - 2), z = R(-HALF + 2, HALF - 2); if (biomeW(x, z)[BI.desert] < 0.3) continue;
     const h = height(x, z); if (h < WL + 0.15 || h > WL + 1.6 || rnd() > 0.5) continue;
@@ -1340,6 +1463,7 @@ function generate(seed) {
   ground = buildGround();
   world.add(ground);
   for (const c of chalets) { const g = makeChalet(c.vi); g.position.set(c.x, c.y, c.z); g.rotation.y = c.ry; world.add(g); addSmoke(g); }
+  buildBridge();
   boats.length = 0;
   for (let tries = 0; tries < 4000 * AK && boats.length < 6; tries++) {
     const x = R(-HALF + 15, HALF - 15), z = R(-HALF + 15, HALF - 15), ws = biomeW(x, z)[BI.littoral]; if (ws < 0.3) continue;
@@ -1373,7 +1497,7 @@ function generate(seed) {
     const pd = pathDist(x, z), d = forestDensity(x, z, h), cl = fbm(x * 0.12, z * 0.12, 2);
     if (pd < 1.8 || litter(x, z) > 0.38) continue;
     if (cl < -0.2 + d * 0.25 - w[BI.prairie] * 0.4) continue;
-    const tall = 1 + w[BI.prairie] * 0.9 + w[BI.marais] * 0.5;
+    const tall = 1 + w[BI.prairie] * 0.9 + w[BI.marais] * 0.5 + w[BI.savane] * 1.6;
     grass.push({ x, z, y: h - 0.03, s: R(0.8, 1.5), sy: R(0.7, 1.5) * tall, ry: R(0, 3.14), c: grassColorAt(x, z, d) });
   }
   for (let i = 0; i < 9000 * AK; i++) {
@@ -1495,6 +1619,22 @@ function generate(seed) {
     logs.push({ x, z, y: h + 0.16, s: R(0.9, 1.2), sy: R(2.5, 4.5), rz: Math.PI / 2, ry: R(0, 6.28), rx: 0, c: new THREE.Color().setScalar(R(0.85, 1.1)) });
   }
   // marais et rives : roseaux, nénuphars
+  // termitières de la savane
+  const mounds = [];
+  for (let i = 0; i < 2500 * AK; i++) {
+    const x = RX(), z = RX(); if (biomeW(x, z)[BI.savane] < 0.4 || rnd() > 0.06 || pathDist(x, z) < 3) continue;
+    const s = R(0.6, 1.3); mounds.push({ x, z, y: height(x, z) - 0.1, s, sy: s * R(1.2, 2.2), ry: R(0, 6.28), c: new THREE.Color().setScalar(R(0.85, 1.05)) });
+    const k = key(x, z); if (!treeGrid.has(k)) treeGrid.set(k, []); treeGrid.get(k).push({ x, z, r: s * 0.5 });
+  }
+  instanced(makeMound(), M.mush, mounds);
+  // sous-bois tropical : grandes feuilles « oreilles d'éléphant »
+  const ears = [];
+  for (let i = 0; i < 9000 * AK; i++) {
+    const x = RX(), z = RX(); if (biomeW(x, z)[BI.tropic] < 0.35 || rnd() > 0.5 || pathDist(x, z) < 2) continue;
+    const h = height(x, z); if (h < WL + 0.1) continue;
+    ears.push({ x, z, y: h, s: R(2.2, 3.6), ry: R(0, 6.28), c: col(['#2e6a2a', '#3e7e30', '#4e8a34'][rnd() * 3 | 0]) });
+  }
+  instanced(makeRosette(), M.flora, ears, { cast: true });
   const reeds = [], lilies = [];
   for (let i = 0; i < 40000 * AK; i++) {
     const x = RX(), z = RX(), h = height(x, z);
@@ -1504,7 +1644,7 @@ function generate(seed) {
   }
   for (let i = 0; i < 30000 * AK; i++) {
     const x = RX(), z = RX(), h = height(x, z);
-    if (h > WL - 0.3 || rnd() > 0.5 || fbm(x * 0.1 + 950, z * 0.1, 2) < 0 || biomeW(x, z)[BI.littoral] > 0.12) continue;
+    if (h > WL - 0.3 || rnd() > 0.5 || fbm(x * 0.1 + 950, z * 0.1, 2) < 0 || biomeW(x, z)[BI.littoral] > 0.12 || nearRiver(x, z, 2)) continue;
     lilies.push({ x, z, y: WL + 0.015, s: R(0.6, 1.3), ry: R(0, 6.28), c: new THREE.Color(R(0.85, 1.1), R(0.9, 1.1), R(0.8, 1)) });
   }
   instanced(makeGrass(), M.grass, grass, { cast: false });
@@ -1800,10 +1940,10 @@ function drawMinimap(now) {
   miniCtx.restore();
   miniCtx.fillStyle = '#fff'; miniCtx.strokeStyle = '#2a1a10'; miniCtx.lineWidth = 2;
   miniCtx.beginPath(); miniCtx.arc(px, pz, 4, 0, 7); miniCtx.fill(); miniCtx.stroke();
-  const b = biomeArgmax(player.position.x, player.position.z);
+  const b = nearRiver(player.position.x, player.position.z, 4) ? -2 : biomeArgmax(player.position.x, player.position.z);
   if (b !== lastBiome) {
     lastBiome = b; const el = document.getElementById('biome');
-    el.textContent = BIOMES[b].name; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+    el.textContent = b === -2 ? 'Rivière' : BIOMES[b].name; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
   }
 }
 
@@ -1989,6 +2129,46 @@ function makeChalet(vi) {
   g.userData.chimney = new THREE.Vector3(cx, ch + 0.15, cz);
   g.userData.size = [W, D];
   return g;
+}
+// ── pont de bois là où le sentier franchit la rivière
+let bridge = null;
+function buildBridge() {
+  bridge = null; if (!river.on) return;
+  let best = 1e9, bz = 0;
+  for (let z = -HALF + 22; z < HALF - 22; z += 0.5) { const r = riverAt(pathX(z), z); if (r && r.fade > 0.8 && r.d < best) { best = r.d; bz = z; } }
+  if (best > 1) return;
+  const w = riverAt(pathX(bz), bz).w, half = w + 4.5;
+  const dir = V(pathX(bz + 0.5) - pathX(bz - 0.5), 0, 1).normalize(), side = V(dir.z, 0, -dir.x);
+  const c = V(pathX(bz), 0, bz), a = c.clone().addScaledVector(dir, -half), b = c.clone().addScaledVector(dir, half);
+  const ya = height(a.x, a.z), yb = height(b.x, b.z), top = Math.max(ya, yb, WL + 1.1) + 0.35;
+  const deckY = t => lerp(ya, yb, t) * (1 - Math.sin(Math.PI * t)) + top * Math.sin(Math.PI * t) + 0.08;
+  const g = new THREE.Group(), plank = cMat('plank', '#9a7048', { proc: 'plank' }), beam = cMat('beam', '#6a4a30');
+  const n = Math.round(half * 2 / 0.32);
+  for (let i = 0; i <= n; i++) {
+    const t = i / n, p = a.clone().lerp(b, t), y = deckY(t), m = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.08, 0.28), plank);
+    m.position.set(p.x, y, p.z); m.rotation.y = Math.atan2(side.x, side.z) + Math.PI / 2; m.castShadow = m.receiveShadow = true; g.add(m);
+    if (i % 5 === 0) for (const sg of [-1, 1]) {   // poteaux et garde-corps
+      const q = p.clone().addScaledVector(side, sg * 1.05), post = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, 0.1), beam);
+      post.position.set(q.x, y + 0.45, q.z); post.castShadow = true; g.add(post);
+    }
+  }
+  for (const sg of [-1, 1]) for (let i = 0; i < n; i += 5) {
+    const t0 = i / n, t1 = Math.min(1, (i + 5) / n), p0 = a.clone().lerp(b, t0).addScaledVector(side, sg * 1.05), p1 = a.clone().lerp(b, t1).addScaledVector(side, sg * 1.05);
+    p0.y = deckY(t0) + 0.85; p1.y = deckY(t1) + 0.85;
+    const rail = new THREE.Mesh(cylBetween(p0, p1, 0.04, 0.04, col('#6a4a30'), 5), M.bark); rail.castShadow = true; g.add(rail);
+  }
+  for (const t of [0.3, 0.7]) {   // piles dans l'eau
+    const p = a.clone().lerp(b, t);
+    for (const sg of [-1, 1]) { const q = p.clone().addScaledVector(side, sg * 0.8); const pile = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, deckY(t) - WL + 1.5, 7), beam); pile.position.set(q.x, (deckY(t) + WL - 1.5) / 2, q.z); g.add(pile); }
+  }
+  world.add(g);
+  bridge = { a, b, dir, side, half, deckY };
+}
+function onBridge(x, z) {   // hauteur du tablier si (x, z) est sur le pont
+  if (!bridge) return null;
+  const rel = V(x - bridge.a.x, 0, z - bridge.a.z), along = rel.dot(bridge.dir), across = rel.dot(bridge.side);
+  if (along < -0.3 || along > bridge.half * 2 + 0.3 || Math.abs(across) > 1.0) return null;
+  return bridge.deckY(clamp(along / (bridge.half * 2)));
 }
 // ── barques (pointus) amarrées dans les criques
 const boats = [];
@@ -2444,6 +2624,7 @@ function showFollow() { const b = document.getElementById('follow'); if (b) b.st
 addEventListener('keydown', e => { if (e.code === 'Space' && e.target.tagName !== 'INPUT') { follow(); e.preventDefault(); } });
 function blocked(x, z) {
   if (Math.abs(x) > HALF - 18 || Math.abs(z) > HALF - 14) return true;
+  if (onBridge(x, z) !== null) return false;
   if (height(x, z) < WL - 0.35) return true; // eau trop profonde
   for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
     const l = treeGrid.get(`${Math.floor(x / 4) + i},${Math.floor(z / 4) + j}`); if (!l) continue;
@@ -2512,7 +2693,7 @@ function updatePlayer(dt) {
     player.rotation.y += da * Math.min(1, dt * 12);
     walkT += dt * 10;
   } else walkT *= 0.9;
-  player.position.y = height(player.position.x, player.position.z);
+  { const by = onBridge(player.position.x, player.position.z); player.position.y = by !== null ? Math.max(by, height(player.position.x, player.position.z)) : height(player.position.x, player.position.z); }
   { const wade = smooth(WL + 0.05, WL - 0.15, player.position.y), mv = L > 0 ? 1 : 0.35;
     U.uPW.value.set(player.position.x, player.position.z, lerp(U.uPW.value.z, wade * mv, Math.min(1, dt * 4)), 0); }
   { const ch = player.userData.char, mv = L > 0 ? 1 : 0;
@@ -2584,7 +2765,8 @@ BIOMES.forEach((b, i) => { const o = document.createElement('option'); o.value =
 CHARS.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.name; $('charSel').appendChild(o); });
 $('charSel').value = charId;
 $('charSel').onchange = () => setCharacter($('charSel').value);
-$('goBiome').onchange = () => { if ($('goBiome').value !== '') goToBiome(+$('goBiome').value); $('goBiome').value = ''; };
+{ const o = document.createElement('option'); o.value = 'pont'; o.textContent = 'Le pont sur la rivière'; $('goBiome').appendChild(o); }
+$('goBiome').onchange = () => { if ($('goBiome').value === 'pont') { if (bridge) teleport(bridge.a.x - bridge.dir.x * 1.5, bridge.a.z - bridge.dir.z * 1.5); } else if ($('goBiome').value !== '') goToBiome(+$('goBiome').value); $('goBiome').value = ''; };
 // cycle jour/nuit
 const fmtH = h => `${String(Math.floor(h)).padStart(2, '0')}:${String(Math.floor(h % 1 * 60)).padStart(2, '0')}`;
 let dayLabelT = 0;
@@ -2647,6 +2829,13 @@ function buildAssets(sd) {
     ['Arbres', 'Bouleau', 24, 3.5, (x, z) => one(makeBirch(), x, z)],
     ['Arbres', 'Pin', 24, 3.5, (x, z) => one(makePine(), x, z)],
     ['Arbres', 'Saule pleureur', 22, 2.5, (x, z) => one(makeWillow(), x, z)],
+    ['Savane', 'Acacia', 20, 3, (x, z) => one(makeAcacia(), x, z)],
+    ['Savane', 'Baobab', 20, 3, (x, z) => one(makeBaobab(), x, z)],
+    ['Savane', 'Termitières', 7, 0.6, (x, z) => instanced(makeMound(), M.mush, [0, 1, 2].map(k => ({ x: x + (k - 1) * 1.8, z, y: -0.1, s: 0.9, sy: 1.4 + k * 0.4, ry: k, c: new THREE.Color(1, 1, 1) })))],
+    ['Forêt tropicale', 'Arbre géant', 30, 5, (x, z) => one(makeJungleTree(), x, z)],
+    ['Forêt tropicale', 'Fougère arborescente', 12, 2.5, (x, z) => one(makeTreeFern(), x, z)],
+    ['Forêt tropicale', "Oreilles d'éléphant", 7, 0.4, (x, z) => instanced(makeRosette(), M.flora, scatter(5, 1.6, (a, b) => ({ x: x + a, z: z + b, y: 0, s: R(2.4, 3.4), ry: R(0, 6.28), c: col('#3e7e30') })))],
+    ['Rivière', 'Peuplier', 24, 4, (x, z) => one(makePoplar(), x, z)],
     ['Désert', 'Cactus', 12, 1.5, (x, z) => [0, 1, 2].forEach(k => one(makeCactus(k), x + (k - 1) * 2.4, z + (k % 2) * 0.8))],
     ['Désert', 'Palmier', 20, 3, (x, z) => one(makePalm(), x, z)],
     ['Désert', 'Arbre mort & armoise', 10, 1, (x, z) => { one(makeDeadTree(), x - 1, z); const sg = soft(makeBush(PAL.sage, 0.34, 0.55)); scatter(3, 1.5, (a, b) => one(sg, x + 1.2 + a, z + b, R(0.8, 1.2))); }],
