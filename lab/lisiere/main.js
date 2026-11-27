@@ -35,13 +35,15 @@ let pathPh = [0, 0], clearing = new THREE.Vector2();
 const pathX = z => 15 * Math.sin(z * 0.03 + pathPh[0]) + 7 * Math.sin(z * 0.083 + pathPh[1]);
 // réseau : le grand sentier (pathX) + chemins de gravier + sentes étroites. Les deux derniers sont les lignes de niveau
 // zéro d'un bruit auquel on ajoute le relief de fond : ils serpentent en suivant à peu près les courbes de niveau.
-const trailF = (i, x, z) => i === 1 ? fbm(x * 0.0042 + 61, z * 0.0042 - 17, 2) + baseRelief(x, z) * 0.11
-                                     : fbm(x * 0.0085 - 29, z * 0.0085 + 44, 2) * 0.8 + baseRelief(x, z) * 0.09 + 0.12;
+const trailF = (i, x, z) => i === 1 ? fbm(x * 0.003 + 61, z * 0.003 - 17, 2) + baseRelief(x, z) * 0.11
+                                     : fbm(x * 0.006 - 29, z * 0.006 + 44, 2) * 0.8 + baseRelief(x, z) * 0.09 + 0.12;
 const TRAIL_HW = [1.9, 1.25, 0.7];
+const trailOn = (i, x, z) => fbm(x * 0.0022 + i * 53, z * 0.0022 - i * 31, 2) > (i === 1 ? 0 : 0.12);   // les chemins ne parcourent que certaines régions
 function trailInfo(x, z) {
   let d0 = Math.abs(x - pathX(z)), best = { d: d0, hw: 1.9, s: 0 };
   if (ridgeMaskRaw(x, z) > 0.5) return best;
   for (let i = 1; i <= 2; i++) {
+    if (!trailOn(i, x, z)) continue;
     const f = trailF(i, x, z); if (Math.abs(f) > 0.07) continue;
     const d = Math.abs(f) / (Math.hypot(trailF(i, x + 1, z) - f, trailF(i, x, z + 1) - f) + 1e-5), hw = TRAIL_HW[i];
     if (d - hw < best.d - best.hw) best = { d, hw, s: i };
@@ -1592,7 +1594,7 @@ function* populateChunk(ch) {
   for (let gx = x0 + 2; gx < x0 + CHK && ch.signs.length < 2; gx += 2.5) for (let gz = z0 + 2; gz < z0 + CHK && ch.signs.length < 2; gz += 2.5) {
     let n = 0; const t0 = Math.abs(gx - pathX(gz)) < 1.4 ? 1 : 0; n += t0;
     if (ridgeMaskRaw(gx, gz) > 0.5) continue;
-    for (let i = 1; i <= 2; i++) { const f = trailF(i, gx, gz); if (Math.abs(f) < 0.012) n++; }
+    for (let i = 1; i <= 2; i++) { if (!trailOn(i, gx, gz)) continue; const f = trailF(i, gx, gz); if (Math.abs(f) < 0.012) n++; }
     if (n < 2 || height(gx, gz) < WL + 0.3 || ch.signs.some(s => Math.hypot(s[0] - gx, s[1] - gz) < 14)) continue;
     const a = rnd() * 6.28, sx = gx + Math.cos(a) * 2.6, sz = gz + Math.sin(a) * 2.6;
     const sg = makeSignpost(); sg.position.set(sx, height(sx, sz), sz); sg.rotation.y = R(0, 6.28); ch.group.add(sg); addCollider(ch, sx, sz, 0.3);
@@ -2104,7 +2106,8 @@ function* buildTopo(cx, cz, out = TOPO) {
         const x = cx - span / 2 + px * m, z = cz - span / 2 + py * m;
         if (sample(hs, px * k, py * k) < WL + 0.2 || ridgeMaskRaw(x, z) > 0.5) continue;
         for (let i = 1; i <= 2; i++) {
-          const f = trailF(i, x, z), e = m * st * (i === 1 ? 0.0042 : 0.0075);
+          if (!trailOn(i, x, z)) continue;
+          const f = trailF(i, x, z), e = m * st * (i === 1 ? 0.003 : 0.0053);
           if (Math.abs(f) < e) { g.fillStyle = i === 1 ? '#9a5a36' : '#b07a52'; g.fillRect(px, py, i === 1 ? 1.4 : 1, i === 1 ? 1.4 : 1); }
         }
       }
