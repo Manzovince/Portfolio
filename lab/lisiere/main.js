@@ -2885,7 +2885,10 @@ canvas.addEventListener('pointerup', endPtr);
 canvas.addEventListener('pointercancel', endPtr);
 function follow() { camFree = false; showFollow(); }
 function showFollow() { const b = document.getElementById('follow'); if (b) b.style.display = camFree ? '' : 'none'; }
-addEventListener('keydown', e => { if (e.code === 'Space' && e.target.tagName !== 'INPUT') { follow(); e.preventDefault(); } });
+const jump = { y: 0, v: 0 };
+function doJump() { if (jump.y === 0 && !sail.boat) jump.v = 5.2; }
+addEventListener('keydown', e => { if (e.code === 'Space' && e.target.tagName !== 'INPUT') { follow(); doJump(); e.preventDefault(); } });
+{ const jb = document.getElementById('jumpBtn'); if (jb) { if (matchMedia('(pointer:coarse)').matches) jb.style.display = ''; jb.onpointerdown = e => { e.preventDefault(); doJump(); }; } }
 function blocked(x, z) {
   if (onBridge(x, z) !== null) return false;
   if (height(x, z) < WL - 0.35) return true; // eau trop profonde
@@ -3018,7 +3021,7 @@ function updatePlayer(dt) {
     dx /= L; dz /= L;
     // évitement : on regarde un peu devant ; si un tronc ou un rocher barre la route, on essaie des directions
     // de plus en plus écartées, en gardant de préférence le même côté pour ne pas osciller
-    const sp = (stroll ? 3.2 : 4.2) * dt, px = player.position.x, pz = player.position.z;
+    const run = !stroll && (keys.has('ShiftLeft') || keys.has('ShiftRight')), sp = (stroll ? 3.2 : run ? 7.8 : 4.2) * dt, px = player.position.x, pz = player.position.z;
     const free = (ax, az) => !blocked(px + ax * sp, pz + az * sp) && !blocked(px + ax * 0.9, pz + az * 0.9);
     let sx = dx, sz = dz, ok = free(dx, dz);
     if (!ok) {
@@ -3044,9 +3047,10 @@ function updatePlayer(dt) {
     const ang = Math.atan2(-dx, -dz);
     let da = ang - player.rotation.y; da = Math.atan2(Math.sin(da), Math.cos(da));
     player.rotation.y += da * Math.min(1, dt * 12);
-    walkT += dt * 10;
+    walkT += dt * (sp > 6 * dt ? 16 : 10);
   } else walkT *= 0.9;
-  { const by = onBridge(player.position.x, player.position.z); player.position.y = by !== null ? Math.max(by, height(player.position.x, player.position.z)) : height(player.position.x, player.position.z); }
+  { const by = onBridge(player.position.x, player.position.z); player.position.y = by !== null ? Math.max(by, height(player.position.x, player.position.z)) : height(player.position.x, player.position.z);
+    if (jump.v || jump.y) { jump.v -= 16 * dt; jump.y = Math.max(0, jump.y + jump.v * dt); if (!jump.y) jump.v = 0; player.position.y += jump.y; } }
   { const wade = smooth(WL + 0.05, WL - 0.15, player.position.y), mv = L > 0 ? 1 : 0.35;
     U.uPW.value.set(player.position.x, player.position.z, lerp(U.uPW.value.z, wade * mv, Math.min(1, dt * 4)), 0); }
   { const ch = player.userData.char, mv = L > 0 ? 1 : 0;
