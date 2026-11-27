@@ -319,9 +319,9 @@ function patch(mat, { wind = 0, flutter = false, fakeNormal = false, reveal = fa
         float dpx = length(gl_FragCoord.xy - uPlayerS.xy);
         if (dpx < uRevealR && vViewD < uPlayerS.z - 1.2) {
           float k = 1. - smoothstep(uRevealR * 0.45, uRevealR, dpx);
-          ivec2 ip = ivec2(mod(gl_FragCoord.xy, 4.));
-          float b = (RB[ip.x + ip.y * 4] + 0.5) / 16.;
-          if (b < k * uReveal) discard;
+          // bruit à gradient entrelacé (pas de trame régulière → pas de moiré une fois flouté / agrandi)
+          float b = fract(52.9829189 * fract(dot(floor(gl_FragCoord.xy), vec2(0.06711056, 0.00583715))));
+          if (b < smoothstep(0., 0.85, k * uReveal)) discard;
         }
       }`);
     if (ground) fs = fs
