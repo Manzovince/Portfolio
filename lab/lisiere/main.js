@@ -242,9 +242,9 @@ function heightRaw(x, z, raw = false) {
   // rivière : lit creusé sous le niveau de l'eau, berges en pente, gorge en montagne
   const rv = riverAt(x, z); let rk = 0;
   if (rv) {
-    rk = smooth(rv.w + 7, rv.w, rv.d) * rv.fade;
+    rk = smooth(rv.w + 16, rv.w, rv.d) * rv.fade;   // berges plus larges et plus douces
     if (rk > 0) {
-      const bank = 0.18 + 0.4 * clamp(0.5 + noise(x * 0.025 + rv.side * 50, z * 0.025) * 1.2);   // rive douce (grève) ou rive raide (berge)
+      const bank = 0.08 + 0.18 * clamp(0.5 + noise(x * 0.025 + rv.side * 50, z * 0.025) * 1.2);   // rive douce (grève) ou rive raide (berge)
       const ch = rv.d < rv.w ? WL - 0.3 - 0.95 * (1 - (rv.d / rv.w) ** 1.6) : WL + 0.1 + (rv.d - rv.w) * bank + noise(x * 0.3, z * 0.3) * 0.08;
       h = lerp(h, Math.min(h, ch), rk);
     }
