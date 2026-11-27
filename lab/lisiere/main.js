@@ -160,9 +160,13 @@ function butte(x, z) {
 }
 function heightRaw(x, z, raw = false) {
   const w = raw ? (climateWeights(x, z, _rw), _rw) : biomeW(x, z);
-  let h = fbm(x * 0.014, z * 0.014, 3) * 2.2 + noise(x * 0.09 + 50, z * 0.09) * 0.3;
+  // relief de fond : régions de plaines ou de collines, ondulations déformées, vallons évasés, petites bosses
+  const qx = x + fbm(x * 0.004 + 21, z * 0.004, 2) * 60, qz = z + fbm(x * 0.004, z * 0.004 - 33, 2) * 60;
+  const hilly = smooth(-0.25, 0.35, fbm(x * 0.0017 + 90, z * 0.0017 - 40, 2));
+  const roll = fbm(qx * 0.009, qz * 0.009, 4), vale = 1 - Math.abs(noise(qx * 0.0045 + 7, qz * 0.0045 + 3));
+  let h = roll * (1.6 + hilly * 4.2) + (vale * vale - 0.5) * (1 + hilly * 2.5) + fbm(x * 0.04 + 13, z * 0.04, 2) * 0.45 + noise(x * 0.09 + 50, z * 0.09) * 0.25;
   const mk = raw ? _mt : mountainK(x, z);
-  if (mk > 0.01) h += mk * mk * 3.5 + Math.pow(mk, 1.4) * mountainH(x, z) * 46;   // contreforts puis massif à arêtes
+  if (mk > 0.01) h += smooth(0, 1, mk) * 5 + Math.pow(mk, 1.4) * mountainH(x, z) * 46;   // contreforts puis massif à arêtes
   const wd = w[BI.desert];
   if (wd > 0.02) {
     const k = smooth(0.05, 0.55, wd), dn = dunes(x, z), bt = butte(x, z);
@@ -1535,7 +1539,7 @@ function* populateChunk(ch) {
   }
   for (let i = 0; i < Nn(14000); i++) {   // éboulis et blocs enneigés
     const x = RX(), z = RZ(); if (biomeW(x, z)[BI.montagne] < 0.2) continue;
-    const h = height(x, z); if (h < TREELINE - 1.5 || rnd() > 0.2 || pathDist(x, z) < 2) continue;
+    const h = height(x, z); if (h < TREELINE - 1.5 || rnd() > 0.11 || pathDist(x, z) < 2) continue;
     const snowy = h > SNOWLINE - 0.5 + noise(x * 0.2, z * 0.2);
     addRockTo(snowy ? mtSnowSets : mtSets, snowy ? P.mtSnow : P.mt, x, z, R(0.3, 1.0) * (rnd() < 0.12 ? R(1.8, 3.2) : 1), rnd() * 4 | 0, 0.12);
   }
