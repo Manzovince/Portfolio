@@ -68,6 +68,8 @@
   .card canvas { display:block; width:100%; height:auto; aspect-ratio:4/3; image-rendering:pixelated; }
   .card figcaption { padding:7px 10px; font-size:12px; font-weight:600; }
   .card:hover { outline:2px solid var(--acc); }
+  .card canvas { cursor:grab; } .card canvas:active { cursor:grabbing; }
+  .card.active { outline:2px solid var(--acc); } .card.active canvas { touch-action:none; }
   @media (max-width:700px) { #gallery { margin-left:0; padding-top:70px; } }
 </style>
 <script type="importmap">
@@ -99,7 +101,7 @@
     <details data-k="temps"><summary>Temps <em id="sumTime"></em></summary>
       <label class="row"><span>Heure</span><input id="dayH" type="range" min="0" max="23.99" step="0.05" value="9"><span id="dayHv">09:00</span></label>
       <label class="row"><span>Un jour =</span><input id="dayM" type="range" min="1" max="20" step="1" value="4"><span id="dayMv">4 min</span></label>
-      <div class="tools"><button id="dayRun">⏸</button><span class="muted">le temps passe tout seul quand ☀ est actif</span></div>
+      <div class="tools"><button id="dayRun">⏸</button><button id="dayReal" title="Suivre l’heure de l’appareil">🕰 Heure réelle</button></div>
     </details>
     <details data-k="lumiere"><summary>Lumière</summary><div class="sliders" id="sl-light"></div></details>
     <details data-k="rendu"><summary>Rendu</summary><div class="sliders" id="sl-render"></div></details>
@@ -121,6 +123,6 @@
 <button id="jumpBtn" style="display:none;position:fixed;right:16px;bottom:28px;width:62px;height:62px;border-radius:50%;font-size:13px;background:rgba(18,24,16,.75)">Saut</button>
 <div id="fps"></div>
 <div id="loading">GÉNÉRATION…</div>
-<script type="module" src="main.js?v=36"></script>
+<script type="module" src="main.js?v=37"></script>
 </body>
 </html>
