@@ -2763,7 +2763,7 @@ const PRESETS = [
   { id: 'doree', name: 'Heure dorée', sunAz: 245, sunEl: 24, sunCol: '#ffb465', sunInt: 5.2, sky: '#8a9ee0', gnd: '#6a5034', hemiInt: 1.25,
     fog: '#e6b88a', fogD: 0.003, exposure: 1.05, contrast: 1.08, saturation: 1.2, shadowTint: v3(0.0, -0.01, 0.05), highTint: v3(0.08, 0.03, -0.05),
     pixel: 1, levels: 0, dither: 0, outline: 0.5, tilt: 1, cloud: 0, wind: 0.7, bloom: 0.6, vig: 0.35,
-    motes: { amount: 0.4, color: '#ffd27a', size: 1, kind: 'dust' }, lantern: 0, rays: 1.5 },
+    motes: { amount: 0.4, color: '#ffd27a', size: 1, kind: 'dust' }, lantern: 0, rays: 0.45 },
   { id: 'brume', name: 'Brume du matin', sunAz: 100, sunEl: 28, sunCol: '#fff6e6', sunInt: 1.9, sky: '#d2e2ec', gnd: '#6f7d5a', hemiInt: 1.7,
     fog: '#cbdbd6', fogD: 0.0085, exposure: 1.05, contrast: 0.9, saturation: 0.82, shadowTint: v3(0.0, 0.02, 0.05), highTint: v3(0.03, 0.03, 0.02),
     pixel: 1, levels: 20, dither: 0.7, outline: 0.25, tilt: 1.25, cloud: 0, wind: 0.4, bloom: 0.3, vig: 0.2,
