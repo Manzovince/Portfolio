@@ -3189,7 +3189,14 @@ function updatePlayer(dt) {
     ch.group.rotation.x = -0.06 * mv;
     ch.group.scale.y = 1 - Math.abs(Math.cos(walkT)) * 0.04 * mv;
     ch.anim(performance.now() / 1000, walkT); } }
-  if (stroll && !drag) camYawT += dt * 0.025;   // balade : la caméra tourne très lentement autour du perso
+  if (stroll && !drag) {
+    camYawT += dt * 0.025;   // balade : la caméra tourne très lentement autour du perso
+    // relief entre la caméra et le perso : la caméra se redresse ; une fois dégagée, elle revient doucement à son inclinaison
+    const c = camera.position, p = player.position; let occ = false;
+    for (let i = 1; i < 12 && !occ; i++) { const t = i / 12; if (height(lerp(c.x, p.x, t), lerp(c.z, p.z, t)) > lerp(c.y, p.y + 0.9, t)) occ = true; }
+    if (occ) { if (strollPitch === null) strollPitch = camPitchT; camPitchT = Math.min(1.45, camPitchT + dt * 0.7); }
+    else if (strollPitch !== null) { camPitchT = Math.max(strollPitch, camPitchT - dt * 0.12); if (camPitchT <= strollPitch) strollPitch = null; }
+  } else strollPitch = null;
   if (!camFree) camTarget.lerp(player.position, Math.min(1, dt * 4));
 }
 
@@ -3255,7 +3262,7 @@ function ferry() {
   scene.add(b); boats.push(b); boardBoat(b, true); sail.auto = { zl, t: 0 };
   return true;
 }
-let strollStuck = null;
+let strollStuck = null, strollPitch = null;
 function setStroll(on) {
   stroll = on; $('stroll').classList.toggle('on', on);
   if (on) { moveTo = null; strollDir = Math.cos(camYaw) > 0 ? -1 : 1; }   // part dans la direction où regarde la caméra
