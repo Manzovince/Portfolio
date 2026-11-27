@@ -2253,22 +2253,24 @@ function makeCharacter(id) {
     add(new THREE.TorusGeometry(0.12, 0.018, 6, 20).rotateX(Math.PI / 2), charMat('#7a9e9f'), 0, 1.1, 0);
     anims.push((t, w) => { tail.rotation.x = 0.25 + Math.sin(w * 0.5) * 0.15; });
   } else if (id === 'explorateur') {
-    // veste saharienne kaki, casque colonial, foulard rouge, gros sac à dos + tapis de sol roulé, bâton de marche
-    add(lathe([[0, 0], [0.3, 0], [0.29, 0.1], [0.22, 0.55], [0.12, 0.82], [0, 0.84]]), charMat('#b9a67a'));
-    add(new THREE.CylinderGeometry(0.235, 0.25, 0.05, 20), charMat('#6b5436'), 0, 0.42, 0);   // ceinture
-    add(new THREE.TorusGeometry(0.11, 0.05, 8, 20).rotateX(Math.PI / 2), charMat('#c8553d'), 0, 0.8, 0);   // foulard
-    add(new THREE.SphereGeometry(0.13, 16, 12), charMat('#f3d9c0'), 0, 0.96, 0);
-    add(new THREE.SphereGeometry(0.15, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), charMat('#e9dcb8'), 0, 1.02, 0);   // casque
-    add(new THREE.CylinderGeometry(0.24, 0.24, 0.02, 24), charMat('#e9dcb8'), 0, 1.03, 0);
-    add(new THREE.TorusGeometry(0.15, 0.016, 6, 20).rotateX(Math.PI / 2), charMat('#6b5436'), 0, 1.05, 0);
-    const pack = new THREE.Group(); pack.position.set(0, 0.55, 0.2); group.add(pack);
-    const pk = (g, m, x, y, z) => { const o = new THREE.Mesh(g, m); o.position.set(x, y, z); o.castShadow = true; pack.add(o); return o; };
-    pk(new THREE.BoxGeometry(0.3, 0.36, 0.16), charMat('#7a5a3a'), 0, 0, 0.02);
-    pk(new THREE.BoxGeometry(0.31, 0.12, 0.17), charMat('#5e4329'), 0, 0.14, 0.03);
-    pk(new THREE.CylinderGeometry(0.07, 0.07, 0.42, 12).rotateZ(Math.PI / 2), charMat('#4f7a6a'), 0, 0.25, 0.04);   // tapis roulé
-    pk(new THREE.CylinderGeometry(0.05, 0.05, 0.12, 10), charMat('#9aa3a0'), 0.19, -0.08, 0.03);   // gourde
-    const stick = add(new THREE.CylinderGeometry(0.018, 0.022, 1.05, 6), charMat('#8a6a44'), 0.3, 0.5, -0.06); stick.rotation.x = -0.15;
-    anims.push((t, w) => { pack.position.y = 0.55 + Math.abs(Math.sin(w)) * 0.02; stick.rotation.x = -0.15 + Math.sin(w) * 0.25; });
+    // petit bonhomme aventurier : grosse tête, chapeau à large bord, besace, jambes et bras qui balancent
+    const limb = (g, m, x, y, z) => { const piv = new THREE.Group(); piv.position.set(x, y, z); group.add(piv); const o = new THREE.Mesh(g, m); o.position.y = -g.parameters.height / 2; o.castShadow = true; o.userData.char = true; piv.add(o); return piv; };
+    const pants = charMat('#5b4a3a'), shirt = charMat('#c9b27c'), skin = charMat('#f1cdb0'), boot = charMat('#3e2c20'), hat = charMat('#8a6240');
+    const legL = limb(new THREE.CylinderGeometry(0.065, 0.06, 0.3, 10), pants, -0.08, 0.32, 0), legR = limb(new THREE.CylinderGeometry(0.065, 0.06, 0.3, 10), pants, 0.08, 0.32, 0);
+    for (const l of [legL, legR]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.07, 0.17), boot); b.position.set(0, -0.31, -0.02); b.castShadow = true; l.add(b); }
+    add(lathe([[0, 0.28], [0.17, 0.3], [0.19, 0.42], [0.16, 0.6], [0, 0.63]]), shirt);
+    add(new THREE.CylinderGeometry(0.175, 0.185, 0.045, 18), charMat('#4a3526'), 0, 0.36, 0);   // ceinture
+    const armL = limb(new THREE.CylinderGeometry(0.05, 0.045, 0.26, 8), shirt, -0.2, 0.58, 0), armR = limb(new THREE.CylinderGeometry(0.05, 0.045, 0.26, 8), shirt, 0.2, 0.58, 0);
+    for (const a of [armL, armR]) { const h = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), skin); h.position.y = -0.28; a.add(h); }
+    add(new THREE.TorusGeometry(0.09, 0.035, 8, 16).rotateX(Math.PI / 2), charMat('#c8553d'), 0, 0.63, 0);   // foulard
+    add(new THREE.SphereGeometry(0.2, 18, 14), skin, 0, 0.83, 0);   // grosse tête
+    for (const sx of [-1, 1]) add(new THREE.SphereGeometry(0.025, 8, 6), charMat('#2a211c'), sx * 0.07, 0.85, -0.18);   // yeux
+    add(new THREE.CylinderGeometry(0.33, 0.33, 0.025, 26), hat, 0, 0.98, 0);                 // bord du chapeau
+    add(new THREE.CylinderGeometry(0.15, 0.19, 0.17, 20), hat, 0, 1.07, 0);                  // calotte
+    add(new THREE.CylinderGeometry(0.192, 0.192, 0.04, 20), charMat('#3a2a1e'), 0, 1.01, 0); // ruban
+    const bag = add(new THREE.BoxGeometry(0.17, 0.15, 0.07), charMat('#7a5a3a'), 0.17, 0.4, 0.06);
+    add(new THREE.TorusGeometry(0.24, 0.014, 4, 24).rotateY(Math.PI / 2).rotateX(0.7), charMat('#4a3526'), 0.02, 0.52, 0);   // bandoulière
+    anims.push((t, w) => { const k = Math.sin(w) * 0.55; legL.rotation.x = k; legR.rotation.x = -k; armL.rotation.x = -k * 0.8; armR.rotation.x = k * 0.8; bag.rotation.x = Math.sin(w) * 0.1; });
   }
   group.traverse(o => { if (o.isMesh) o.userData.char = true; });
   return { group, gait, anim: (t, w) => anims.forEach(f => f(t, w)) };
