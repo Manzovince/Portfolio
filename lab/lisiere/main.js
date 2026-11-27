@@ -2189,10 +2189,10 @@ function drawMinimap(now) {
   drawBigMap();
   updateTopo();
   if (!TOPO.img || now - miniT < 80) return; miniT = now;
-  const S = mini.width, k = S / TOPO.span;
+  const S = mini.width, VIEW = 160, k = S / VIEW, D = TOPO.span * k;   // on ne montre que 160 m autour du joueur (zoom ×1,9)
   miniCtx.fillStyle = '#eee6d0'; miniCtx.fillRect(0, 0, S, S);
   // la carte défile : le joueur reste au centre
-  miniCtx.drawImage(TOPO.img, (TOPO.cx - player.position.x) * k, (TOPO.cz - player.position.z) * k, S, S);
+  miniCtx.drawImage(TOPO.img, S / 2 + (TOPO.cx - TOPO.span / 2 - player.position.x) * k, S / 2 + (TOPO.cz - TOPO.span / 2 - player.position.z) * k, D, D);
   miniCtx.save(); miniCtx.translate(S / 2, S / 2); miniCtx.rotate(-camYaw);
   miniCtx.fillStyle = 'rgba(184,64,44,.18)'; miniCtx.beginPath(); miniCtx.moveTo(0, 0); miniCtx.lineTo(-16, -30); miniCtx.lineTo(16, -30); miniCtx.closePath(); miniCtx.fill();
   miniCtx.restore();
