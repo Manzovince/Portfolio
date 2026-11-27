@@ -51,7 +51,7 @@ const BIOMES = [
   { id: 'montagne', name: 'Montagne',       special: true, t: 0.03, h: 0.74, trees: 0.95, map: '#8d949c', grass: 0.55, flowers: 0.3, tint: [0.92, 1.0, 0.95] },
   { id: 'littoral', name: 'Bord de mer',    special: true, t: 0.96, h: 0.14, trees: 0.4,  map: '#b9ae74', grass: 0.45, flowers: 0.35, tint: [1.15, 1.05, 0.7] },
 ];
-const TREELINE = 9, SNOWLINE = 14.5;   // étages de montagne (altitude absolue)
+const TREELINE = 13, SNOWLINE = 21;   // étages de montagne (altitude absolue)
 // crêtes : bruit « ridged » (1 - |n|)², plusieurs octaves
 function ridged(x, z) { let s = 0, a = 0.55, f = 0.011; for (let i = 0; i < 4; i++) { const n = 1 - Math.abs(noise(x * f + 31 * i, z * f - 17 * i) * 1.35); s += n * n * a; a *= 0.5; f *= 2.1; } return s / 1.03; }
 const NB = BIOMES.length, BI = Object.fromEntries(BIOMES.map((b, i) => [b.id, i]));
@@ -231,7 +231,7 @@ function forestDensity(x, z, h = height(x, z)) {
   d *= smooth(6, 12, Math.hypot(x - clearing.x, z - clearing.y));
   if (!ASSETS) d *= chaletClear(x, z);
   d *= smooth(1.6, 4.5, pathDist(x, z));
-  d *= smooth(WL + 0.1, WL + 0.6, h) * smooth(TREELINE + 1.2, TREELINE - 1.2, h);   // limite des arbres en altitude
+  d *= smooth(WL + 0.1, WL + 0.6, h) * Math.max(smooth(TREELINE + 1.2, TREELINE - 1.2, h), 0.14 * smooth(SNOWLINE - 1, SNOWLINE - 4, h));   // quelques arbres épars au-dessus   // limite des arbres en altitude
   return clamp(d);
 }
 const birchness = (x, z) => fbm(x * 0.035 - 30, z * 0.035 + 21, 2);
@@ -1534,7 +1534,7 @@ function* populateChunk(ch) {
   }
   for (let i = 0; i < Nn(14000); i++) {   // éboulis et blocs enneigés
     const x = RX(), z = RZ(); if (biomeW(x, z)[BI.montagne] < 0.2) continue;
-    const h = height(x, z); if (h < TREELINE - 1.5 || rnd() > 0.35 || pathDist(x, z) < 2) continue;
+    const h = height(x, z); if (h < TREELINE - 1.5 || rnd() > 0.2 || pathDist(x, z) < 2) continue;
     const snowy = h > SNOWLINE - 0.5 + noise(x * 0.2, z * 0.2);
     addRockTo(snowy ? mtSnowSets : mtSets, snowy ? P.mtSnow : P.mt, x, z, R(0.3, 1.0) * (rnd() < 0.12 ? R(1.8, 3.2) : 1), rnd() * 4 | 0, 0.12);
   }
@@ -1609,7 +1609,7 @@ function* populateDetail(ch) {
   for (let i = 0; i < Nn(90000); i++) {
     const x = RX(), z = RZ(), fm = bMix(x, z, 'flowers');
     if (rnd() * 3.2 > fm) continue;
-    const h = height(x, z); if (h < WL + 0.1 || onBeach(x, z, h) || h > TREELINE + 2) continue;
+    const h = height(x, z); if (h < WL + 0.1 || onBeach(x, z, h) || h > SNOWLINE - 1 || (h > TREELINE + 2 && rnd() < 0.6)) continue;
     const d = forestDensity(x, z, h);
     if (pathDist(x, z) < 1.7 || litter(x, z) > 0.34) continue;
     let best = -1, bf = 0.08;
