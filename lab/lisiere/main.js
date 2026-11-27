@@ -253,7 +253,7 @@ function chaletsAround(x, z) { const cx = Math.floor(x / CHK), cz = Math.floor(z
 function nearChalet(x, z, r = 3.9) { if (ASSETS) return false; for (const c of chaletsAround(x, z)) if ((x - c.x) ** 2 + (z - c.z) ** 2 < r * r) return true; return false; }
 function chaletClear(x, z) { let k = 1; for (const c of chaletsAround(x, z)) k = Math.min(k, smooth(5.5, 10, Math.hypot(x - c.x, z - c.z))); return k; }
 function forestDensity(x, z, h = height(x, z)) {
-  let d = (0.62 + fbm(x * 0.028 + 11, z * 0.028 - 7, 3) * 0.75) * bMix(x, z, 'trees');
+  let d = (0.5 + fbm(x * 0.028 + 11, z * 0.028 - 7, 3) * 0.7) * bMix(x, z, 'trees');
   d *= smooth(6, 12, Math.hypot(x - clearing.x, z - clearing.y));
   if (!ASSETS) d *= chaletClear(x, z);
   d *= smooth(1.6, 4.5, pathDist(x, z));
@@ -1390,7 +1390,7 @@ let worldSeed = 1, P = null, worldRoot = null, worldReady = false;
 const groundMeshes = [], bridges = [];
 function hash3(a, b, c) { let h = Math.imul(a | 0, 374761393) ^ Math.imul(b | 0, 668265263) ^ Math.imul(c | 0, 2147483647); h = Math.imul(h ^ (h >>> 13), 1274126177); return (h ^ (h >>> 16)) >>> 0; }
 const crng = (cx, cz, salt) => mulberry32(hash3(cx, cz, salt * 7919 + worldSeed));
-const AKc = CHK * CHK / (260 * 260);   // les anciennes quantités étaient données pour 260 × 260 m
+const AKc = CHK * CHK / (260 * 260) * 0.85;   // ×0,85 : un peu moins d’éléments   // les anciennes quantités étaient données pour 260 × 260 m
 
 function buildPrototypes() {
   rnd = mulberry32(worldSeed + 99);
