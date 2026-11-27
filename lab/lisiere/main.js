@@ -77,6 +77,16 @@ function trailInfo(x, z) {
   }
   return best;
 }
+// sentier plus ou moins marqué : par endroits il s'efface presque (l'herbe et les fleurs reprennent)
+const pathVis = (x, z) => clamp(0.52 + fbm(x * 0.017 + 211, z * 0.017 - 97, 2) * 1.35, 0.1, 1);
+// couleur du sentier selon le sol : terre, latérite, sable, calcaire, gravier, boue…
+const PATH_PAL = {
+  foret: ['#8a6a48', '#6a4e34'], pinede: ['#8e6c46', '#6e5236'], prairie: ['#a08a5c', '#86704a'], marais: ['#5e5238', '#4a4030'],
+  savane: ['#b87a4a', '#9a6038'], tropic: ['#7a4a30', '#5e3826'], desert: ['#dcc08c', '#c8a874'], bambou: ['#9a8a5a', '#7e6e46'],
+  automne: ['#9a6a3a', '#7a5030'], lande: ['#8a8270', '#6e6656'], taiga: ['#7a6a52', '#5e5240'], maquis: ['#cfc3a4', '#ad9f82'],
+  steppe: ['#b8a67c', '#9a8862'], alpage: ['#8c7a5a', '#6e5e44'], montagne: ['#9e988c', '#7c766a'], littoral: ['#dccc9e', '#c2b082'],
+};
+const _ppa = Object.fromEntries(Object.entries(PATH_PAL).map(([k, v]) => [k, v.map(h => { const c = new THREE.Color(h); return [c.r * 255, c.g * 255, c.b * 255]; })]));
 const pathDist = (x, z) => { const t = trailInfo(x, z); return t.d + 1.9 - t.hw; };
 
 // Chaque biome occupe une région du plan (température, humidité) ; deux champs de bruit
@@ -1908,7 +1918,7 @@ function* populateDetail(ch) {
     if (rnd() * 2 > gmx) continue;
     const h = height(x, z); if (h < WL + 0.05 || onBeach(x, z, h) || h > SNOWLINE - 0.5 || (h > TREELINE + 1 && rnd() < 0.6)) continue;
     const pd = pathDist(x, z), d = forestDensity(x, z, h), cl = fbm(x * 0.12, z * 0.12, 2);
-    if (pd < 1.8 || litter(x, z) > 0.38) continue;
+    if (pd < 1.8 * (0.2 + 0.8 * pathVis(x, z)) || litter(x, z) > 0.38) continue;   // l'herbe reprend sur le sentier quand il s'efface
     if (cl < -0.2 + d * 0.25 - w[BI.prairie] * 0.4) continue;
     const tall = 1 + w[BI.alpage] * 0.4 + w[BI.prairie] * 0.9 + w[BI.marais] * 0.5 + w[BI.savane] * 1.6 + w[BI.steppe] * 1.3 + w[BI.maquis] * 0.2;
     grass.push({ x, z, y: h - 0.03, s: R(0.8, 1.5), sy: R(0.7, 1.5) * tall, ry: R(0, 3.14), c: grassColorAt(x, z, d) });
@@ -1929,7 +1939,7 @@ function* populateDetail(ch) {
     if (rnd() * 3.2 > fm) continue;
     const h = height(x, z); if (h < WL + 0.1 || onBeach(x, z, h) || h > SNOWLINE - 1 || (h > TREELINE + 2 && rnd() < 0.6)) continue;
     const d = forestDensity(x, z, h);
-    if (pathDist(x, z) < 1.7 || litter(x, z) > 0.34) continue;
+    if (pathDist(x, z) < 1.7 * pathVis(x, z) || litter(x, z) > 0.34) continue;
     let best = -1, bf = 0.08;
     const alp = biomeW(x, z)[BI.alpage] > 0.35;
     for (const f of FL) { if (f.open || alp ? d > 0.5 : (d < 0.25 || d > 0.85)) continue; const v = fbm(x * 0.07 + f.off, z * 0.07 - f.off, 2); if (v > bf) { bf = v; best = f.k; } }
@@ -2184,6 +2194,7 @@ function* buildGroundChunk(cx, cz) {
   const GP = GROUND_PAL;
   const PA = BIOMES.map(b => C(GP[b.id].A)), PB = BIOMES.map(b => C(GP[b.id].B)), PM = BIOMES.map(b => C(GP[b.id].M));
   const N = MR * MR, cA = new Uint8ClampedArray(N * 3), cB = new Uint8ClampedArray(N * 3), cM = new Uint8ClampedArray(N * 3);
+  const pPA = new Float32Array(N * 3), pPB = new Float32Array(N * 3), pVis = new Float32Array(N);
   const dens = new Float32Array(N), dry = new Float32Array(N), hgt = new Float32Array(N), lit = new Float32Array(N), rock = new Float32Array(N), n1a = new Float32Array(N), wpin = new Float32Array(N), wbam = new Float32Array(N), wdes = new Float32Array(N), wsea = new Float32Array(N), wmt = new Float32Array(N), slope = new Float32Array(N), cT = new Float32Array(N), bchA = new Float32Array(N), posi = new Float32Array(N);
   const w = new Float32Array(NB);
   for (let j = 0; j < MR; j++) for (let i = 0; i < MR; i++) {
@@ -2193,6 +2204,8 @@ function* buildGroundChunk(cx, cz) {
     for (let k = 0; k < NB; k++) { a0 += w[k] * PA[k][0]; a1 += w[k] * PA[k][1]; a2 += w[k] * PA[k][2]; b0 += w[k] * PB[k][0]; b1 += w[k] * PB[k][1]; b2 += w[k] * PB[k][2]; m0 += w[k] * PM[k][0]; m1 += w[k] * PM[k][1]; m2 += w[k] * PM[k][2]; }
     cA[q * 3] = a0; cA[q * 3 + 1] = a1; cA[q * 3 + 2] = a2; cB[q * 3] = b0; cB[q * 3 + 1] = b1; cB[q * 3 + 2] = b2; cM[q * 3] = m0; cM[q * 3 + 1] = m1; cM[q * 3 + 2] = m2;
     const wl = w[BI.lande]; wpin[q] = w[BI.pinede]; wbam[q] = w[BI.bambou]; wdes[q] = w[BI.desert] > 0.03 ? w[BI.desert] : 0;
+    { let a0 = 0, a1 = 0, a2 = 0, b0 = 0, b1 = 0, b2 = 0; for (let k = 0; k < NB; k++) { const wk = w[k]; if (wk < 0.01) continue; const [pa_, pb_] = _ppa[BIOMES[k].id]; a0 += wk * pa_[0]; a1 += wk * pa_[1]; a2 += wk * pa_[2]; b0 += wk * pb_[0]; b1 += wk * pb_[1]; b2 += wk * pb_[2]; }
+      pPA[q * 3] = a0; pPA[q * 3 + 1] = a1; pPA[q * 3 + 2] = a2; pPB[q * 3] = b0; pPB[q * 3 + 1] = b1; pPB[q * 3 + 2] = b2; pVis[q] = pathVis(x, z); }
     const h = height(x, z); hgt[q] = h;
     dens[q] = forestDensity(x, z, h); dry[q] = fbm(x * 0.04 + 70, z * 0.04 - 33, 3) + w[BI.prairie] * 0.2;
     lit[q] = litter(x, z); n1a[q] = fbm(x * 0.06, z * 0.06, 3);
@@ -2264,17 +2277,19 @@ function* buildGroundChunk(cx, cz) {
       col3 = mix3(col3, mix3(posA, posB, fine), pk);
     }
     const ti = trailInfo(x, z), sx = ti.d * 1.9 / ti.hw, pd = sx + n2 * (ti.s === 2 ? 0.35 : 0.7);
-    const P0 = (1 - smooth(0.9, 2.3, pd)) * smooth(WL + 0.1, WL + 0.5, h);
+    const vis = pVis[q], vk = 0.55 + 0.45 * vis;   // par endroits le sentier s'efface et se rétrécit
+    const P0 = (1 - smooth(0.9 * vk, 2.3 * vk, pd + (1 - vis) * (fine - 0.5) * 0.8)) * smooth(WL + 0.1, WL + 0.5, h) * (0.25 + 0.75 * vis);
     if (P0 > 0) {
       const pt = clamp(0.5 + n2 * 0.9 + (fine - 0.5) * 0.4);
-      let pc = mix3(pa, pb, pt);
+      const ppa = [pPA[q * 3], pPA[q * 3 + 1], pPA[q * 3 + 2]], ppb = [pPB[q * 3], pPB[q * 3 + 1], pPB[q * 3 + 2]];
+      let pc = mix3(mix3(ppa, ppb, pt), col3, 0.2 + 0.55 * (1 - vis));   // couleur du sol du biome, un peu fondue dans celle alentour
       const rut = Math.exp(-(((Math.abs(sx) - 0.62) / 0.2) ** 2)) * (0.6 + 0.4 * noise(z * 0.5, 3));
-      pc = mix3(pc, pRut, rut * 0.55 * (ti.s ? 0.3 : 1));
+      pc = mix3(pc, mix3(ppb, [0, 0, 0], 0.25), rut * 0.5 * vis * (ti.s ? 0.3 : 1));
       if (ti.s === 1) pc = mix3(pc, gravel, 0.6 * clamp(0.6 + fine * 0.5));   // gravier clair
       else if (ti.s === 2) pc = mix3(pc, col3, 0.3 + 0.3 * clamp(0.5 + n2));   // sente : herbe qui reprend
-      pc = mix3(pc, B, Math.exp(-((sx / 0.22) ** 2)) * clamp(0.3 + noise(z * 0.3, 9) * 0.8) * 0.7);
+      pc = mix3(pc, B, Math.exp(-((sx / 0.22) ** 2)) * clamp(0.3 + noise(z * 0.3, 9) * 0.8) * (0.7 + 0.3 * (1 - vis)));   // bande d'herbe au milieu, plus large quand le sentier s'efface
       col3 = mix3(col3, pc, P0);
-      col3 = mix3(col3, pEdge, Math.exp(-(((pd - 1.9) / 0.35) ** 2)) * 0.35 * smooth(WL + 0.1, WL + 0.5, h));
+      col3 = mix3(col3, mix3(col3, [20, 18, 10], 0.35), Math.exp(-(((pd - 1.9 * vk) / 0.35) ** 2)) * 0.3 * vis * smooth(WL + 0.1, WL + 0.5, h));   // bord : l'herbe alentour, un peu plus sombre
     }
     for (const c of chs) {
       const dx = x - c.x, dz = z - c.z; if (dx * dx + dz * dz > 400) continue;
@@ -2774,6 +2789,14 @@ function buildBridgeIn(ch) {
   }
   ch.group.add(g);
   bridges.push({ a, b, dir, side, half, deckY, ck: ch.key });
+}
+function bridgeInfo(x, z) {   // pont (ou ponton) sous (x, z) : position le long et en travers
+  for (const br of bridges) {
+    const rx = x - br.a.x, rz = z - br.a.z, along = rx * br.dir.x + rz * br.dir.z, across = rx * br.side.x + rz * br.side.z;
+    if (along < 0.5 || along > br.half * 2 - 0.5 || Math.abs(across) > (br.hw ?? 1)) continue;
+    return { br, along, across };
+  }
+  return null;
 }
 function onBridge(x, z) {   // hauteur du tablier si (x, z) est sur un pont
   for (const br of bridges) {
@@ -4356,7 +4379,7 @@ const ACTS = {
   peche: '🎣 Pêche', ricochets: '🪨 Ricochets', peinture: '🎨 Peint le paysage', lecture: '📖 Lecture', contemple: '🌄 Contemple',
   sieste: '💤 Sieste', photo: '📷 Photo', musique: '🎶 Joue de la musique', abri: '🌳 À l’abri sous un arbre', piquenique: '🧺 Pique-nique',
 };
-let act = null, actCool = 18;   // secondes de marche avant la prochaine pause
+let act = null, actCool = 18; const bridgeFished = new WeakSet();   // secondes de marche avant la prochaine pause
 const pm = hex => charMat(hex);
 const meshAt = (m, x, y, z) => { m.position.set(x, y, z); return m; };
 const rodBetween = (a, b, r, m) => { const d = b.clone().sub(a), g = new THREE.CylinderGeometry(r, r, d.length(), 5); g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), d.normalize())); const me = new THREE.Mesh(g, m); me.position.copy(a.clone().add(b).multiplyScalar(0.5)); return me; };
@@ -4407,10 +4430,19 @@ function buildActivity(kind, ctx = {}, owner = player) {   // accessoires et ét
   const a = { kind, t: 0, dur: kind === 'sieste' ? R(22, 32) : R(14, 24), props, fx: [], nextFx: 1, pose: sitting ? 'sit' : kind === 'sieste' ? 'doze' : 'stand', face: player.rotation.y, d: {} };
   // orientation : vers l'eau, ou vers un côté dégagé du sentier
   if (ctx.water) a.face = faceAngle(ctx.water.dx, ctx.water.dz);
+  if (ctx.bridge) {   // depuis un pont : contre la rambarde, face à l'eau ; depuis un ponton : tout au bout
+    const { br, along, sg } = ctx.bridge;
+    if (br.norail) { a.goto = br.a.clone().addScaledVector(br.dir, br.half * 2 - 0.7); a.face = faceAngle(br.dir.x, br.dir.z); }
+    else { a.goto = br.a.clone().addScaledVector(br.dir, along).addScaledVector(br.side, sg * 0.55); a.face = faceAngle(br.side.x * sg, br.side.z * sg); }
+    a.goto.y = 0;
+  } else if (ctx.water && (kind === 'peche' || kind === 'ricochets')) {   // on descend jusqu'au bord de l'eau
+    let d = 0; while (d < ctx.water.d + 1 && height(px + ctx.water.dx * (d + 0.25), pz + ctx.water.dz * (d + 0.25)) > WL + 0.06) d += 0.25;
+    if (d > 0.5) a.goto = V(px + ctx.water.dx * (d - 0.3), 0, pz + ctx.water.dz * (d - 0.3));
+  }
   else { const dz0 = strollDir, side = rnd() < 0.5 ? 1 : -1; a.face = faceAngle(side, dz0 * 0.3); }
   const L = a.d;
   if (kind === 'peche') {
-    const dist = clamp((ctx.water ? ctx.water.d : 3) + 1.2, 3, 6.5);
+    const dist = ctx.bridge ? 2.6 : 3;   // le bouchon à ~3 m du bord
     props.add(rodBetween(V(0.14, 0.42, -0.12), V(0.24, 1.45, -1.45), 0.012, pm('#6a4a30')));
     L.tip = V(0.24, 1.45, -1.45); L.dist = dist;
     L.bob = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), pm('#e8443a')); props.add(L.bob);
@@ -4479,6 +4511,11 @@ function endActivity() {
 // appelé à chaque image par updatePlayer quand la balade est active (renvoie la direction de marche, ou null pour rester sur place)
 function updateActivity(dt) {
   if (!act) {
+    const bi = bridgeInfo(player.position.x, player.position.z);   // sur un pont au-dessus de l'eau : une chance de s'arrêter pêcher
+    if (bi && actCool < 30 && !bridgeFished.has(bi.br) && height(player.position.x, player.position.z) < WL - 0.3) {
+      bridgeFished.add(bi.br);
+      if (rnd() < 0.6) { startActivity('peche', { bridge: { ...bi, sg: bi.across >= 0 ? 1 : -1 } }); return true; }
+    }
     if ((actCool -= dt) > 0) return false;
     const ctx = pickActivity(); if (!ctx) { actCool = 4; return false; }
     startActivity(ctx.kind, ctx); return true;
