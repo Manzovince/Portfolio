@@ -3026,15 +3026,18 @@ function landNear(x, z, rMax = 9) {
 function toggleBoat() {
   if (sail.boat) {   // débarquer
     const b = sail.boat, land = landNear(b.position.x, b.position.z); if (!land) return;
-    b.userData.sailing = false; sail.boat = null; sail.speed = 0;
+    b.userData.sailing = false; sail.boat = null; sail.speed = 0; sail.auto = null;
     player.position.set(land[0], height(land[0], land[1]), land[1]); player.rotation.x = player.rotation.z = 0;
     return;
   }
   const b = nearestBoat(); if (!b) return;
+  boardBoat(b);
+}
+function boardBoat(b, keepStroll = false) {
   // le bateau quitte son tronçon : il ne sera plus déchargé, on peut l'emmener partout
   if (b.parent !== scene) { const wp = new THREE.Vector3(); b.getWorldPosition(wp); b.parent.remove(b); scene.add(b); b.position.copy(wp); }
   for (const ch of chunks.values()) if (ch.boats) { const i = ch.boats.indexOf(b); if (i >= 0) ch.boats.splice(i, 1); }
-  b.userData.sailing = true; sail.boat = b; sail.speed = 0; moveTo = null; if (stroll) setStroll(false);
+  b.userData.sailing = true; sail.boat = b; sail.speed = 0; moveTo = null; if (stroll && !keepStroll) setStroll(false);
 }
 boatBtn.onclick = toggleBoat;
 addEventListener('keydown', e => { if ((e.code === 'Enter' || e.code === 'NumpadEnter') && e.target.tagName !== 'INPUT') toggleBoat(); });
@@ -3104,7 +3107,14 @@ function updatePlayer(dt) {
   updateWake(dt);
   if (sail.boat) {   // à bord : les touches barrent le bateau
     const c = Math.cos(camYaw), s = Math.sin(camYaw);
-    updateSailing(dt, mx * c + mz * s, -mx * s + mz * c);
+    if (sail.auto && (mx || mz)) { sail.auto = null; setStroll(false); }
+    if (sail.auto) {
+      const b = sail.boat.position, A = sail.auto, tz = strollDir > 0 ? Math.min(b.z + 8, A.zl + 4) : Math.max(b.z - 8, A.zl - 4);
+      let ix = pathX(tz) - b.x, iz = tz - b.z; const l = Math.hypot(ix, iz) || 1; ix /= l; iz /= l;
+      updateSailing(dt, ix, iz);
+      if (sail.boat) { A.t = sail.speed < 0.3 ? A.t + dt : 0;
+        if (A.t > 2.5) { const z = A.zl + strollDir * 2; sail.boat.userData.sailing = false; sail.boat = null; sail.auto = null; player.position.set(pathX(z), height(pathX(z), z), z); } }
+    } else updateSailing(dt, mx * c + mz * s, -mx * s + mz * c);
   }
   if (sail.boat) {
     sail.landT = (sail.landT || 0) - dt;
@@ -3125,6 +3135,10 @@ function updatePlayer(dt) {
   } else if (stroll) {
     // balade : on vise un point du sentier un peu plus loin ; demi-tour au bout du monde
     const pz = player.position.z;
+    if (height(pathX(pz + strollDir * 3), pz + strollDir * 3) < WL - 0.3 && onBridge(pathX(pz + strollDir * 3), pz + strollDir * 3) === null && !ferry())   // un pont : on passe à pied { strollDir = -strollDir; }
+    // coincé (bambous, rocher sur le sentier) : on se faufile un peu plus loin sur le sentier
+    if (!strollStuck || Math.abs(pz - strollStuck.z) > 0.6) strollStuck = { t: 0, z: pz };
+    else if ((strollStuck.t += dt) > 1.2) { const nz = pz + strollDir * 1.6; player.position.x = pathX(nz); player.position.z = nz; strollStuck = { t: 0, z: nz }; }
     const tz = pz + strollDir * 2.5, tx = pathX(tz) + Math.sin(tz * 0.37) * 0.35;   // léger zigzag naturel
     dx = tx - player.position.x; dz = tz - pz;
   } else if (moveTo) {
@@ -3228,6 +3242,20 @@ document.querySelectorAll('#ui details').forEach(d => d.addEventListener('toggle
 $('reset').onclick = () => { const i = PRESETS.indexOf(cur); Object.assign(cur, structuredClone(BASE[i]), { palette: cur.palette }); syncSliders(); };
 let seed = (Math.random() * 1e6) | 0;
 $('follow').onclick = () => follow();
+// traversée en balade : on cherche l'autre rive le long du sentier, un voilier apparaît dans l'eau et l'emmène
+function ferry() {
+  const pz = player.position.z; let zw = null, zl = null;
+  for (let d = 1; d < 700; d += 1) {
+    const z = pz + strollDir * d, h = onBridge(pathX(z), z) !== null ? WL + 1 : height(pathX(z), z);
+    if (zw === null) { if (h < WL - 0.5) zw = z; else if (d > 6) return false; continue; }
+    if (h > WL + 0.1) { let ok = true; for (let e = 1; e < 6; e++) { const z2 = z + strollDir * e; if (height(pathX(z2), z2) < WL) ok = false; } if (ok) { zl = z; break; } }
+  }
+  if (zw === null || zl === null) return false;
+  const b = makeSailboat((Math.abs(zw) | 0) & 7); b.position.set(pathX(zw), WL, zw); b.rotation.y = strollDir > 0 ? Math.PI : 0;
+  scene.add(b); boats.push(b); boardBoat(b, true); sail.auto = { zl, t: 0 };
+  return true;
+}
+let strollStuck = null;
 function setStroll(on) {
   stroll = on; $('stroll').classList.toggle('on', on);
   if (on) { moveTo = null; strollDir = Math.cos(camYaw) > 0 ? -1 : 1; }   // part dans la direction où regarde la caméra
