@@ -38,7 +38,8 @@ const pathX = z => 15 * Math.sin(z * 0.03 + pathPh[0]) + 7 * Math.sin(z * 0.083 
 const trailF = (i, x, z) => i === 1 ? fbm(x * 0.003 + 61, z * 0.003 - 17, 2) + baseRelief(x, z) * 0.11
                                      : fbm(x * 0.006 - 29, z * 0.006 + 44, 2) * 0.8 + baseRelief(x, z) * 0.09 + 0.12;
 const TRAIL_HW = [1.9, 1.25, 0.7];
-const trailOn = (i, x, z) => fbm(x * 0.0022 + i * 53, z * 0.0022 - i * 31, 2) > (i === 1 ? 0 : 0.12);   // les chemins ne parcourent que certaines régions
+const TRAILS_ON = false;   // chemins secondaires désactivés : seul le grand sentier reste
+const trailOn = (i, x, z) => TRAILS_ON && fbm(x * 0.0022 + i * 53, z * 0.0022 - i * 31, 2) > (i === 1 ? 0 : 0.12);   // les chemins ne parcourent que certaines régions
 function trailInfo(x, z) {
   let d0 = Math.abs(x - pathX(z)), best = { d: d0, hw: 1.9, s: 0 };
   if (ridgeMaskRaw(x, z) > 0.5) return best;
@@ -2100,7 +2101,7 @@ function* buildTopo(cx, cz, out = TOPO) {
   }
   g.stroke(); g.setLineDash([]);
   // chemins secondaires : points le long des lignes zéro (gravier brun, sentes plus fines)
-  { const st = S > 300 ? 2 : 1, m = span / S;
+  if (TRAILS_ON) { const st = S > 300 ? 2 : 1, m = span / S;
     for (let py = 0; py < S; py += st) {
       for (let px = 0; px < S; px += st) {
         const x = cx - span / 2 + px * m, z = cz - span / 2 + py * m;
