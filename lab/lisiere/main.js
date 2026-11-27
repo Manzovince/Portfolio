@@ -2172,7 +2172,6 @@ const CHARS = [
   { id: 'corbeau', name: 'Corbeau' },
   { id: 'pelerin', name: 'Pèlerin au chapeau' },
   { id: 'explorateur', name: 'Explorateur' },
-  { id: 'belier', name: 'Lapin bélier' },
 ];
 const charMat = (hex, glow = 0) => patch(new THREE.MeshLambertMaterial({ color: hex, emissive: hex, emissiveIntensity: glow }), { reveal: false });
 const lathe = (pts, seg = 24) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
@@ -2276,28 +2275,6 @@ function makeCharacter(id) {
     const bag = add(new THREE.BoxGeometry(0.17, 0.15, 0.07), charMat('#7a5a3a'), 0.17, 0.4, 0.06);
     add(new THREE.TorusGeometry(0.24, 0.014, 4, 24).rotateY(Math.PI / 2).rotateX(0.7), charMat('#4a3526'), 0.02, 0.52, 0);   // bandoulière
     anims.push((t, w) => { const k = Math.sin(w) * 0.55; legL.rotation.x = k; legR.rotation.x = -k; armL.rotation.x = -k * 0.8; armR.rotation.x = k * 0.8; bag.rotation.x = Math.sin(w) * 0.1; });
-  }
-  else if (id === 'belier') {
-    // lapin humanoïde blanc à taches grises, oreilles tombantes (une blanche, une grise), petit caleçon
-    const W = charMat('#f4f1ec'), G = charMat('#8d8d92'), P = charMat('#e9a3a8'), C = charMat('#6f9fd0');
-    const limb = (g, m, x, y, z) => { const piv = new THREE.Group(); piv.position.set(x, y, z); group.add(piv); const o = new THREE.Mesh(g, m); o.position.y = -g.parameters.height / 2; o.castShadow = true; o.userData.char = true; piv.add(o); return piv; };
-    const legL = limb(new THREE.CylinderGeometry(0.07, 0.065, 0.28, 10), W, -0.08, 0.3, 0), legR = limb(new THREE.CylinderGeometry(0.07, 0.065, 0.28, 10), G, 0.08, 0.3, 0);
-    for (const l of [legL, legR]) { const f = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8).scale(1, 0.55, 1.7), W); f.position.set(0, -0.29, -0.05); f.castShadow = true; l.add(f); }
-    add(lathe([[0, 0.26], [0.19, 0.28], [0.2, 0.42], [0.15, 0.6], [0, 0.64]]), W);          // corps
-    add(lathe([[0, 0.25], [0.195, 0.27], [0.205, 0.38], [0.2, 0.4], [0, 0.4]]), C);         // caleçon
-    add(new THREE.SphereGeometry(0.06, 10, 8), W, 0, 0.36, 0.2);                            // queue en pompon
-    add(new THREE.SphereGeometry(0.08, 10, 8).scale(1, 1.2, 0.5), G, 0.09, 0.52, -0.13);    // tache ventre
-    add(new THREE.SphereGeometry(0.07, 10, 8).scale(1, 1, 0.5), G, -0.1, 0.48, 0.15);       // tache dos
-    const armL = limb(new THREE.CylinderGeometry(0.05, 0.045, 0.24, 8), G, -0.19, 0.58, 0), armR = limb(new THREE.CylinderGeometry(0.05, 0.045, 0.24, 8), W, 0.19, 0.58, 0);
-    add(new THREE.SphereGeometry(0.2, 18, 14).scale(1, 0.92, 1), W, 0, 0.8, 0);              // tête
-    add(new THREE.SphereGeometry(0.09, 12, 10).scale(1, 0.8, 0.6), G, 0.1, 0.88, -0.12);    // tache autour de l'œil
-    for (const sx of [-1, 1]) add(new THREE.SphereGeometry(0.026, 8, 6), charMat('#2a211c'), sx * 0.08, 0.83, -0.18);
-    add(new THREE.SphereGeometry(0.03, 8, 6), P, 0, 0.77, -0.195);                          // museau
-    const ear = (m, sx) => { const piv = new THREE.Group(); piv.position.set(sx * 0.15, 0.93, 0); piv.rotation.z = sx * 2.6; group.add(piv);
-      const o = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10).scale(0.75, 2.6, 0.45), m); o.position.y = 0.17; o.castShadow = true; o.userData.char = true; piv.add(o); return piv; };
-    const earL = ear(W, -1), earR = ear(G, 1);
-    anims.push((t, w) => { const k = Math.sin(w) * 0.5; legL.rotation.x = k; legR.rotation.x = -k; armL.rotation.x = -k * 0.7; armR.rotation.x = k * 0.7;
-      earL.rotation.x = Math.sin(w + 1) * 0.12; earR.rotation.x = Math.sin(w + 1.4) * 0.12; earL.rotation.z = -2.6 + Math.sin(t * 1.3) * 0.05; earR.rotation.z = 2.6 - Math.sin(t * 1.3 + 1) * 0.05; });
   }
   group.traverse(o => { if (o.isMesh) o.userData.char = true; });
   return { group, gait, anim: (t, w) => anims.forEach(f => f(t, w)) };
