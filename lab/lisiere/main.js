@@ -263,7 +263,7 @@ const lakeK = (x, z, mk) => smooth(-0.34, -0.5, fbm(x * 0.0042 + gOff.l[0], z * 
 const riverN = (x, z) => { const wx = x + noise(x * 0.011 + 31, z * 0.011) * 22, wz = z + noise(x * 0.011, z * 0.011 - 47) * 22; return fbm(wx * 0.0021 + river.o[0], wz * 0.0021 + river.o[1], 2); };
 function riverAt(x, z) {
   if (!river.on) return null;
-  const n = riverN(x, z); if (Math.abs(n) > 0.05) return null;
+  const n = riverN(x, z); if (Math.abs(n) > 0.09) return null;
   const gx = (riverN(x + 2, z) - n) / 2, gz = (riverN(x, z + 2) - n) / 2, g = Math.hypot(gx, gz) + 1e-5;
   const c = continent(x, z), fade = smooth(-0.02, 0.06, c) * (1 - smooth(0.32, 0.65, ridgeMaskRaw(x, z)));
   if (fade <= 0) return null;
